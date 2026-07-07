@@ -1,31 +1,67 @@
 # AI PMO Copilot
 
-An intelligent PMO assistant designed to automate project governance, reporting, risk analysis and decision support using Artificial Intelligence.
+[![CI](https://github.com/chrisdemenezes/ai-pmo-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/chrisdemenezes/ai-pmo-copilot/actions/workflows/ci.yml)
 
-## Vision
-Transform PMO operations from manual execution into an AI-powered strategic capability.
+An intelligent PMO assistant designed to automate project governance, reporting, meeting intelligence, issue advisory and decision support using Artificial Intelligence.
 
-## Initial Scope
-- Project status intelligence
-- Automated meeting summaries
-- Risk and issue analysis
-- Executive reporting generation
-- Portfolio insights
-- AI agents for PMO operational activities
+## Architectural Decision
+
+The official application tree is `src/`.
+
+Legacy or parallel implementations must not be expanded. New code must be added only inside `src/` until the MVP baseline has passing CI evidence.
+
+## Current MVP Scope
+
+- FastAPI application entrypoint in `src/main.py`
+- Intelligence router in `src/api/routes/intelligence.py`
+- Meeting Intelligence agent
+- Project issue advisory agent
+- Single prompt registry
+- Production LLM provider using Anthropic via environment configuration
+- SQLAlchemy persistence repository
+- CI workflow running lint and tests
 
 ## Repository Structure
 
-```
-/docs
-  /product
-  /architecture
-  /functional
-  /technical
-/prompts
-/src
-/roadmap
+```text
+.github/workflows/ci.yml
+src/
+  main.py
+  api/routes/intelligence.py
+  agents/meeting_intelligence/
+  agents/issue_advisor/
+  database/repository.py
+  llm/providers/production_provider.py
+  prompts/registry.py
+tests/
+docs/
+release/
 ```
 
-## Current Phase
+## Run locally
 
-Foundation phase: product vision, functional definition, architecture and MVP planning.
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+export ANTHROPIC_API_KEY="your-key"
+uvicorn src.main:app --reload
+```
+
+Health check:
+
+```bash
+curl http://localhost:8000/health
+```
+
+Meeting analysis:
+
+```bash
+curl -X POST http://localhost:8000/api/meetings/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"project_name":"Multilift","transcript":"Client approved the handover and requested action tracking."}'
+```
+
+## Governance Rule
+
+No release or validation document may state that a feature is validated unless it links to the commit and CI/test evidence that supports the claim.
