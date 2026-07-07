@@ -24,6 +24,13 @@ Analyze project health and identify critical deviations.
 Output:
 Executive summary, risks and recommendations.
 
+## Placeholder Syntax
+
+Prompt files (`src/agents/*/prompts/*.md`) use `$placeholder` syntax (Python `string.Template`,
+substituted via `safe_substitute`), not `{placeholder}`/`str.format()`. This avoids `KeyError`
+crashes when a prompt's own instructional text contains literal braces (e.g. a JSON example such
+as `{"decisions": [...]}`), which `str.format()` would otherwise try to parse as a field reference.
+
 ## Governance
 
 Prompts must be version controlled and validated.

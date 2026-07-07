@@ -48,6 +48,9 @@ export ANTHROPIC_API_KEY="your-key"
 uvicorn src.main:app --reload
 ```
 
+To develop without calling the real Anthropic API (no API key or cost required), set
+`LLM_PROVIDER=mock` instead of `ANTHROPIC_API_KEY` — see `.env.example`.
+
 Health check:
 
 ```bash
