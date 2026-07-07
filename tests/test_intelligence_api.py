@@ -1,3 +1,6 @@
+from dataclasses import dataclass
+from datetime import datetime, timezone
+
 from fastapi.testclient import TestClient
 
 from src.main import app
@@ -20,7 +23,7 @@ class FakeProvider:
 
 
 class FakeRepository:
-    def save_analysis(self, kind, payload):
+    def save_analysis(self, kind, payload, project_name=None):
         assert kind in {"meeting", "risk"}
         assert payload["model_output"] == "api analysis generated"
         return 1
@@ -92,5 +95,55 @@ def test_risk_endpoint_returns_502_on_provider_unavailable_error():
 
     assert response.status_code == 502
     assert response.json()["error"] == "provider_unavailable"
+
+    app.dependency_overrides.clear()
+
+
+@dataclass
+class FakeAnalysisRecord:
+    id: int
+    kind: str
+    project_name: str | None
+    created_at: datetime
+
+
+class FakeRepositoryWithAnalyses:
+    def __init__(self, records):
+        self.records = records
+        self.received_kwargs = None
+
+    def list_analyses(self, project_name=None, limit=20, offset=0):
+        self.received_kwargs = {"project_name": project_name, "limit": limit, "offset": offset}
+        return self.records
+
+
+def test_list_analyses_endpoint_returns_summaries():
+    fake_repository = FakeRepositoryWithAnalyses(
+        records=[
+            FakeAnalysisRecord(id=2, kind="risk", project_name="Multilift", created_at=datetime.now(timezone.utc)),
+            FakeAnalysisRecord(id=1, kind="meeting", project_name="Multilift", created_at=datetime.now(timezone.utc)),
+        ]
+    )
+    app.dependency_overrides[intelligence.build_repository] = lambda: fake_repository
+
+    client = TestClient(app)
+    response = client.get("/api/analyses", params={"project_name": "Multilift"})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert [item["id"] for item in body] == [2, 1]
+    assert fake_repository.received_kwargs == {"project_name": "Multilift", "limit": 20, "offset": 0}
+
+    app.dependency_overrides.clear()
+
+
+def test_list_analyses_endpoint_with_no_results_returns_empty_list():
+    app.dependency_overrides[intelligence.build_repository] = lambda: FakeRepositoryWithAnalyses(records=[])
+
+    client = TestClient(app)
+    response = client.get("/api/analyses", params={"project_name": "Unknown"})
+
+    assert response.status_code == 200
+    assert response.json() == []
 
     app.dependency_overrides.clear()

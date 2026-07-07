@@ -1,3 +1,5 @@
+import logging
+from datetime import datetime
 from functools import lru_cache
 
 from pydantic import BaseModel, Field
@@ -10,6 +12,8 @@ from src.llm.providers.factory import get_provider
 from src.prompts.registry import PromptRegistry
 from src.database.repository import AnalysisRepository
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
 
@@ -21,6 +25,15 @@ class MeetingAnalysisRequest(BaseModel):
 class RiskAnalysisRequest(BaseModel):
     project_context: str = Field(..., min_length=10)
     project_name: str | None = None
+
+
+class AnalysisSummary(BaseModel):
+    id: int
+    kind: str
+    project_name: str | None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
 
 
 def build_prompt_registry() -> PromptRegistry:
@@ -43,9 +56,10 @@ def analyze_meeting(
     provider: LLMProvider = Depends(build_provider),
     repository: AnalysisRepository = Depends(build_repository),
 ):
+    logger.info("Analyzing meeting for project_name=%s", request.project_name)
     agent = MeetingIntelligenceAgent(model_client=provider, prompt_registry=prompts)
     result = agent.analyze(transcript=request.transcript, project_name=request.project_name)
-    repository.save_analysis(kind="meeting", payload=result)
+    repository.save_analysis(kind="meeting", payload=result, project_name=request.project_name)
     return result
 
 
@@ -56,7 +70,19 @@ def analyze_risk(
     provider: LLMProvider = Depends(build_provider),
     repository: AnalysisRepository = Depends(build_repository),
 ):
+    logger.info("Analyzing risk for project_name=%s", request.project_name)
     agent = RiskReviewAgent(model_client=provider, prompt_registry=prompts)
     result = agent.analyze(project_context=request.project_context, project_name=request.project_name)
-    repository.save_analysis(kind="risk", payload=result)
+    repository.save_analysis(kind="risk", payload=result, project_name=request.project_name)
     return result
+
+
+@router.get("/analyses", response_model=list[AnalysisSummary])
+def list_analyses(
+    project_name: str | None = None,
+    limit: int = 20,
+    offset: int = 0,
+    repository: AnalysisRepository = Depends(build_repository),
+):
+    logger.info("Listing analyses project_name=%s limit=%d offset=%d", project_name, limit, offset)
+    return repository.list_analyses(project_name=project_name, limit=limit, offset=offset)

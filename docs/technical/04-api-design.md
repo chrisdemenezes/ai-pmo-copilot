@@ -35,6 +35,19 @@ Output:
 - Risk assessment
 - Mitigation plan
 
+### List Analyses API
+
+GET /api/analyses
+
+Query params:
+- `project_name` (optional) — filter by project
+- `limit` (default 20)
+- `offset` (default 0)
+
+Output: list of `{id, kind, project_name, created_at}`, newest first. Empty list (200) when no analyses match — never 404.
+
+Note: `DATABASE_URL=sqlite:///:memory:` is not safe for the running app under FastAPI's threaded request handling — each worker thread gets its own separate in-memory database, so writes from one request may not be visible to another. Use the default file-based SQLite (or Postgres) for anything beyond single-threaded repository unit tests.
+
 ## Error Responses
 
 Applies to `/api/meetings/analyze` and `/api/risks/analyze`.
