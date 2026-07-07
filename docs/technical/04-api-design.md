@@ -48,6 +48,15 @@ Output: list of `{id, kind, project_name, created_at}`, newest first. Empty list
 
 Note: `DATABASE_URL=sqlite:///:memory:` is not safe for the running app under FastAPI's threaded request handling — each worker thread gets its own separate in-memory database, so writes from one request may not be visible to another. Use the default file-based SQLite (or Postgres) for anything beyond single-threaded repository unit tests.
 
+### Get Analysis by ID API
+
+GET /api/analyses/{id}
+
+Output: `{id, kind, project_name, created_at, payload}` — the full stored analysis, including the
+complete agent result (`payload`), unlike the summary returned by `GET /api/analyses`.
+
+404 (`{"detail": "Analysis not found"}`) when no analysis exists with that id.
+
 ## Error Responses
 
 Applies to `/api/meetings/analyze` and `/api/risks/analyze`.

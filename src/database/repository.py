@@ -59,3 +59,9 @@ class AnalysisRepository:
                 offset,
             )
             return records
+
+    def get_analysis(self, analysis_id: int) -> AnalysisRecord | None:
+        with self.SessionLocal() as session:
+            record = session.get(AnalysisRecord, analysis_id)
+            logger.info("Fetched analysis id=%s found=%s", analysis_id, record is not None)
+            return record

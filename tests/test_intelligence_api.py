@@ -147,3 +147,52 @@ def test_list_analyses_endpoint_with_no_results_returns_empty_list():
     assert response.json() == []
 
     app.dependency_overrides.clear()
+
+
+@dataclass
+class FakeAnalysisRecordWithPayload:
+    id: int
+    kind: str
+    project_name: str | None
+    created_at: datetime
+    payload: dict
+
+
+class FakeRepositoryWithGetAnalysis:
+    def __init__(self, record):
+        self.record = record
+
+    def get_analysis(self, analysis_id):
+        return self.record
+
+
+def test_get_analysis_endpoint_returns_full_payload():
+    record = FakeAnalysisRecordWithPayload(
+        id=1,
+        kind="meeting",
+        project_name="Multilift",
+        created_at=datetime.now(timezone.utc),
+        payload={"model_output": "summary generated"},
+    )
+    app.dependency_overrides[intelligence.build_repository] = lambda: FakeRepositoryWithGetAnalysis(record)
+
+    client = TestClient(app)
+    response = client.get("/api/analyses/1")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["id"] == 1
+    assert body["payload"] == {"model_output": "summary generated"}
+
+    app.dependency_overrides.clear()
+
+
+def test_get_analysis_endpoint_returns_404_when_not_found():
+    app.dependency_overrides[intelligence.build_repository] = lambda: FakeRepositoryWithGetAnalysis(None)
+
+    client = TestClient(app)
+    response = client.get("/api/analyses/999")
+
+    assert response.status_code == 404
+
+    app.dependency_overrides.clear()

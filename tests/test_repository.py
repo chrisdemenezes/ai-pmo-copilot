@@ -79,3 +79,20 @@ def test_list_analyses_orders_newest_first():
 
     records = repository.list_analyses(project_name="Multilift")
     assert [r.id for r in records] == [second_id, first_id]
+
+
+def test_get_analysis_returns_matching_record():
+    repository = AnalysisRepository(database_url="sqlite:///:memory:")
+
+    record_id = repository.save_analysis(kind="meeting", payload={"result": "ok"}, project_name="Multilift")
+
+    record = repository.get_analysis(record_id)
+    assert record is not None
+    assert record.id == record_id
+    assert record.payload == {"result": "ok"}
+
+
+def test_get_analysis_returns_none_when_not_found():
+    repository = AnalysisRepository(database_url="sqlite:///:memory:")
+
+    assert repository.get_analysis(999) is None

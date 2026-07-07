@@ -3,7 +3,7 @@ from datetime import datetime
 from functools import lru_cache
 
 from pydantic import BaseModel, Field
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from src.agents.meeting_intelligence.agent import MeetingIntelligenceAgent
 from src.agents.risk_review.agent import RiskReviewAgent
@@ -34,6 +34,10 @@ class AnalysisSummary(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class AnalysisDetail(AnalysisSummary):
+    payload: dict
 
 
 def build_prompt_registry() -> PromptRegistry:
@@ -86,3 +90,15 @@ def list_analyses(
 ):
     logger.info("Listing analyses project_name=%s limit=%d offset=%d", project_name, limit, offset)
     return repository.list_analyses(project_name=project_name, limit=limit, offset=offset)
+
+
+@router.get("/analyses/{analysis_id}", response_model=AnalysisDetail)
+def get_analysis(
+    analysis_id: int,
+    repository: AnalysisRepository = Depends(build_repository),
+):
+    logger.info("Fetching analysis id=%s", analysis_id)
+    record = repository.get_analysis(analysis_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+    return record
