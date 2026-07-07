@@ -6,7 +6,11 @@ from src.api.routes import intelligence
 
 class FakePromptRegistry:
     def get(self, agent_name, prompt_name):
-        return "Project: {project_name}\nInput: {transcript}{project_context}"
+        if agent_name == "meeting_intelligence":
+            return "Project: {project_name}\nInput: {transcript}"
+        if agent_name == "risk_review":
+            return "Project: {project_name}\nInput: {project_context}"
+        raise AssertionError(f"Unexpected agent: {agent_name}")
 
 
 class FakeProvider:
