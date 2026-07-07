@@ -1,7 +1,11 @@
-# AI PMO Copilot MVP Validation
+# AI PMO Copilot MVP Evidence
 
-Validated pilot workflow:
+This document is reserved for evidence links.
 
-Document -> AI -> Result -> Persistence
+A feature may only be marked as ready when this file includes:
 
-Status: MVP workflow baseline validated.
+- commit SHA
+- CI run link
+- test output or execution log
+
+Current correction branch: `fix/mvp-architecture-consolidation`.
