@@ -49,6 +49,7 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 export ANTHROPIC_API_KEY="your-key"
+export API_KEY="choose-a-local-secret"
 uvicorn src.main:app --reload
 ```
 
@@ -72,11 +73,13 @@ Health check:
 curl http://localhost:8000/health
 ```
 
-Meeting analysis:
+Meeting analysis (every `/api/*` route requires the `X-API-Key` header — see
+`docs/technical/04-api-design.md#authentication`):
 
 ```bash
 curl -X POST http://localhost:8000/api/meetings/analyze \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: $API_KEY" \
   -d '{"project_name":"Multilift","transcript":"Client approved the handover and requested action tracking."}'
 ```
 
