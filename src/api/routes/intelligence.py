@@ -84,12 +84,30 @@ def analyze_risk(
 @router.get("/analyses", response_model=list[AnalysisSummary])
 def list_analyses(
     project_name: str | None = None,
+    kind: str | None = None,
+    created_from: datetime | None = None,
+    created_to: datetime | None = None,
     limit: int = 20,
     offset: int = 0,
     repository: AnalysisRepository = Depends(build_repository),
 ):
-    logger.info("Listing analyses project_name=%s limit=%d offset=%d", project_name, limit, offset)
-    return repository.list_analyses(project_name=project_name, limit=limit, offset=offset)
+    logger.info(
+        "Listing analyses project_name=%s kind=%s created_from=%s created_to=%s limit=%d offset=%d",
+        project_name,
+        kind,
+        created_from,
+        created_to,
+        limit,
+        offset,
+    )
+    return repository.list_analyses(
+        project_name=project_name,
+        kind=kind,
+        created_from=created_from,
+        created_to=created_to,
+        limit=limit,
+        offset=offset,
+    )
 
 
 @router.get("/analyses/{analysis_id}", response_model=AnalysisDetail)

@@ -41,8 +41,12 @@ GET /api/analyses
 
 Query params:
 - `project_name` (optional) — filter by project
+- `kind` (optional) — filter by `"meeting"` or `"risk"`
+- `created_from` / `created_to` (optional, ISO 8601 datetime) — filter by creation period, inclusive
 - `limit` (default 20)
 - `offset` (default 0)
+
+All filters combine with AND when provided together.
 
 Output: list of `{id, kind, project_name, created_at}`, newest first. Empty list (200) when no analyses match — never 404.
 

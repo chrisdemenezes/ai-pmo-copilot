@@ -43,6 +43,9 @@ class AnalysisRepository:
     def list_analyses(
         self,
         project_name: str | None = None,
+        kind: str | None = None,
+        created_from: datetime | None = None,
+        created_to: datetime | None = None,
         limit: int = 20,
         offset: int = 0,
     ) -> list[AnalysisRecord]:
@@ -50,11 +53,20 @@ class AnalysisRepository:
             query = session.query(AnalysisRecord).order_by(AnalysisRecord.created_at.desc())
             if project_name is not None:
                 query = query.filter(AnalysisRecord.project_name == project_name)
+            if kind is not None:
+                query = query.filter(AnalysisRecord.kind == kind)
+            if created_from is not None:
+                query = query.filter(AnalysisRecord.created_at >= created_from)
+            if created_to is not None:
+                query = query.filter(AnalysisRecord.created_at <= created_to)
             records = query.offset(offset).limit(limit).all()
             logger.info(
-                "Listed %d analyses project_name=%s limit=%d offset=%d",
+                "Listed %d analyses project_name=%s kind=%s created_from=%s created_to=%s limit=%d offset=%d",
                 len(records),
                 project_name,
+                kind,
+                created_from,
+                created_to,
                 limit,
                 offset,
             )

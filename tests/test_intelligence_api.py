@@ -112,8 +112,15 @@ class FakeRepositoryWithAnalyses:
         self.records = records
         self.received_kwargs = None
 
-    def list_analyses(self, project_name=None, limit=20, offset=0):
-        self.received_kwargs = {"project_name": project_name, "limit": limit, "offset": offset}
+    def list_analyses(self, project_name=None, kind=None, created_from=None, created_to=None, limit=20, offset=0):
+        self.received_kwargs = {
+            "project_name": project_name,
+            "kind": kind,
+            "created_from": created_from,
+            "created_to": created_to,
+            "limit": limit,
+            "offset": offset,
+        }
         return self.records
 
 
@@ -132,7 +139,37 @@ def test_list_analyses_endpoint_returns_summaries():
     assert response.status_code == 200
     body = response.json()
     assert [item["id"] for item in body] == [2, 1]
-    assert fake_repository.received_kwargs == {"project_name": "Multilift", "limit": 20, "offset": 0}
+    assert fake_repository.received_kwargs == {
+        "project_name": "Multilift",
+        "kind": None,
+        "created_from": None,
+        "created_to": None,
+        "limit": 20,
+        "offset": 0,
+    }
+
+    app.dependency_overrides.clear()
+
+
+def test_list_analyses_endpoint_passes_kind_and_period_filters():
+    fake_repository = FakeRepositoryWithAnalyses(records=[])
+    app.dependency_overrides[intelligence.build_repository] = lambda: fake_repository
+
+    client = TestClient(app)
+    response = client.get(
+        "/api/analyses",
+        params={
+            "project_name": "Multilift",
+            "kind": "meeting",
+            "created_from": "2026-01-01T00:00:00Z",
+            "created_to": "2026-12-31T00:00:00Z",
+        },
+    )
+
+    assert response.status_code == 200
+    assert fake_repository.received_kwargs["kind"] == "meeting"
+    assert fake_repository.received_kwargs["created_from"] is not None
+    assert fake_repository.received_kwargs["created_to"] is not None
 
     app.dependency_overrides.clear()
 
