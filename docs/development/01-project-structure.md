@@ -50,3 +50,21 @@ implementation. Per its own documented status above (a temporary substitute supe
 `risk_review` was connected), keeping it around as untested-in-production dead code was not
 justified. If issue-specific analysis distinct from risk review is needed in the future, it should
 be scoped as a new decision, not a revival of this agent.
+
+## Decision: AP-001, DB-001, CP-001 deferred until MVP closure
+
+Three backlog items from the tracked spreadsheet are explicitly deferred, not implemented, not
+scheduled:
+
+- **AP-001 (Plano Inteligente / Action Plan)** — scope was never made concrete; no equivalent
+  exists in the current architecture to extend.
+- **DB-001 (Dashboard KPIs)** — requires a real frontend. `frontend/` today is documentation only
+  (no Next.js code); this is a separate project setup, not an incremental story.
+- **CP-001 (Chat PMO)** — requires multi-turn conversational orchestration with context memory,
+  which is the "Phase 3" work explicitly out of scope until the MVP (Sprint 1 + Sprint 2 platform
+  hardening, structured agent outputs, coverage gate, Alembic) is closed and stable.
+
+MVP state at the time of this decision: all Sprint 1/Sprint 2 stories (US-E1 through US-A2),
+MI-001 through MI-006, RI-001, SR-001, the 80% coverage gate, and Alembic migrations are merged to
+`main` and verified from clean checkouts (not just locally). See `docs/releases/mvp-validation.md`
+for commit-level evidence.
