@@ -25,6 +25,10 @@ Legacy or parallel implementations must not be expanded. New code must be added 
 
 ```text
 .github/workflows/ci.yml
+alembic.ini
+alembic/
+  env.py
+  versions/
 src/
   main.py
   api/routes/intelligence.py
@@ -50,6 +54,17 @@ uvicorn src.main:app --reload
 
 To develop without calling the real Anthropic API (no API key or cost required), set
 `LLM_PROVIDER=mock` instead of `ANTHROPIC_API_KEY` — see `.env.example`.
+
+By default the app uses a local SQLite file with the schema auto-created. To run against a real
+Postgres database with a proper migration history instead:
+
+```bash
+export DATABASE_URL="postgresql://user:password@localhost:5432/ai_pmo_copilot"
+alembic upgrade head
+```
+
+See `docs/technical/05-database-model.md` for details on when to use Alembic vs. auto-created
+tables.
 
 Health check:
 
