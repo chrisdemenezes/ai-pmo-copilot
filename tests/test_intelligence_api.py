@@ -14,6 +14,8 @@ class FakePromptRegistry:
             return "Project: $project_name\nInput: $transcript"
         if agent_name == "risk_review":
             return "Project: $project_name\nInput: $project_context"
+        if agent_name == "project_status":
+            return "Project: $project_name\nInput: $project_context"
         raise AssertionError(f"Unexpected agent: {agent_name}")
 
 
@@ -24,8 +26,8 @@ class FakeProvider:
 
 class FakeRepository:
     def save_analysis(self, kind, payload, project_name=None):
-        assert kind in {"meeting", "risk"}
-        # "api analysis generated" is not valid JSON, so both agents' structured
+        assert kind in {"meeting", "risk", "status"}
+        # "api analysis generated" is not valid JSON, so every agent's structured
         # output parser falls back to raw_output.
         assert payload["model_output"] == {
             "structured": False,
@@ -54,6 +56,23 @@ def test_meeting_and_risk_endpoints_with_dependency_overrides():
     )
     assert risk_response.status_code == 200
     assert risk_response.json()["agent"] == "risk_review"
+
+    app.dependency_overrides.clear()
+
+
+def test_project_status_endpoint_with_dependency_overrides():
+    app.dependency_overrides[intelligence.build_prompt_registry] = lambda: FakePromptRegistry()
+    app.dependency_overrides[intelligence.build_provider] = lambda: FakeProvider()
+    app.dependency_overrides[intelligence.build_repository] = lambda: FakeRepository()
+
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/projects/analyze",
+        json={"project_name": "Medlog", "project_context": "Schedule slipping two weeks."},
+    )
+    assert response.status_code == 200
+    assert response.json()["agent"] == "project_status"
 
     app.dependency_overrides.clear()
 

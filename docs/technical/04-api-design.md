@@ -5,18 +5,15 @@ Define communication contracts between application components.
 
 ## Core APIs
 
-### Project Analysis API
+### Project Status API
 
 POST /api/projects/analyze
 
-Input:
-- Project data
-- Documents
-- Context
+Input: `{project_context, project_name}` (same shape as the Risk Analysis API).
 
-Output:
-- Analysis
-- Recommendations
+Output: `{agent, project_name, model_output}` where `model_output` is one of:
+- Structured (model followed the requested JSON schema): `{structured: true, health_status ("green"|"yellow"|"red"), key_findings[], recommendations[]}`
+- Fallback (model response wasn't valid JSON): `{structured: false, raw_output}` — same fallback behavior as the other analysis APIs.
 
 ### Meeting Intelligence API
 
@@ -40,7 +37,7 @@ GET /api/analyses
 
 Query params:
 - `project_name` (optional) — filter by project
-- `kind` (optional) — filter by `"meeting"` or `"risk"`
+- `kind` (optional) — filter by `"meeting"`, `"risk"`, or `"status"`
 - `created_from` / `created_to` (optional, ISO 8601 datetime) — filter by creation period, inclusive
 - `limit` (default 20)
 - `offset` (default 0)
@@ -62,7 +59,7 @@ complete agent result (`payload`), unlike the summary returned by `GET /api/anal
 
 ## Error Responses
 
-Applies to `/api/meetings/analyze` and `/api/risks/analyze`.
+Applies to `/api/meetings/analyze`, `/api/risks/analyze`, and `/api/projects/analyze`.
 
 | Status | Body | Cause |
 |---|---|---|

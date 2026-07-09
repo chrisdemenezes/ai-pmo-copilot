@@ -15,6 +15,7 @@ Legacy or parallel implementations must not be expanded. New code must be added 
 - FastAPI application entrypoint in `src/main.py`
 - Intelligence router in `src/api/routes/intelligence.py`
 - Meeting Intelligence agent
+- Project Status agent
 - Single prompt registry
 - Production LLM provider using Anthropic via environment configuration
 - SQLAlchemy persistence repository
@@ -28,6 +29,7 @@ src/
   main.py
   api/routes/intelligence.py
   agents/meeting_intelligence/
+  agents/project_status/
   database/repository.py
   llm/providers/production_provider.py
   prompts/registry.py

@@ -18,7 +18,9 @@ ai-pmo-copilot
 │   ├── api/routes/intelligence.py
 │   ├── agents
 │   │   ├── meeting_intelligence
-│   │   └── risk_review
+│   │   ├── project_status
+│   │   ├── risk_review
+│   │   └── shared/output_parser.py
 │   ├── database/repository.py
 │   ├── llm/providers/production_provider.py
 │   └── prompts/registry.py
