@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta, timezone
+
 from src.api.routes import intelligence
 from src.database.repository import AnalysisRepository
 
@@ -96,3 +98,47 @@ def test_get_analysis_returns_none_when_not_found():
     repository = AnalysisRepository(database_url="sqlite:///:memory:")
 
     assert repository.get_analysis(999) is None
+
+
+def test_list_analyses_filters_by_kind():
+    repository = AnalysisRepository(database_url="sqlite:///:memory:")
+
+    repository.save_analysis(kind="meeting", payload={"result": "a"}, project_name="Multilift")
+    repository.save_analysis(kind="risk", payload={"result": "b"}, project_name="Multilift")
+
+    meeting_only = repository.list_analyses(kind="meeting")
+    assert [r.kind for r in meeting_only] == ["meeting"]
+
+
+def test_list_analyses_filters_by_period():
+    repository = AnalysisRepository(database_url="sqlite:///:memory:")
+
+    repository.save_analysis(kind="meeting", payload={"result": "a"}, project_name="Multilift")
+
+    now = datetime.now(timezone.utc)
+    future_only = repository.list_analyses(created_from=now + timedelta(days=1))
+    assert future_only == []
+
+    past_to_now = repository.list_analyses(
+        created_from=now - timedelta(days=1),
+        created_to=now + timedelta(days=1),
+    )
+    assert len(past_to_now) == 1
+
+
+def test_list_analyses_combines_project_kind_and_period_filters():
+    repository = AnalysisRepository(database_url="sqlite:///:memory:")
+
+    repository.save_analysis(kind="meeting", payload={"result": "a"}, project_name="Multilift")
+    repository.save_analysis(kind="risk", payload={"result": "b"}, project_name="Multilift")
+    repository.save_analysis(kind="meeting", payload={"result": "c"}, project_name="Medlog")
+
+    now = datetime.now(timezone.utc)
+    records = repository.list_analyses(
+        project_name="Multilift",
+        kind="meeting",
+        created_from=now - timedelta(days=1),
+        created_to=now + timedelta(days=1),
+    )
+    assert len(records) == 1
+    assert records[0].payload == {"result": "a"}
