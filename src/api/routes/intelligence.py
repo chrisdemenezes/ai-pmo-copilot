@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 from functools import lru_cache
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from fastapi import APIRouter, Depends, HTTPException
 
 from src.agents.meeting_intelligence.agent import MeetingIntelligenceAgent
@@ -17,14 +17,24 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+def _ensure_has_content(value: str) -> str:
+    if not value.strip():
+        raise ValueError("must contain non-whitespace content")
+    return value
+
+
 class MeetingAnalysisRequest(BaseModel):
-    transcript: str = Field(..., min_length=10)
+    transcript: str = Field(..., min_length=10, max_length=20000)
     project_name: str | None = None
+
+    _validate_transcript = field_validator("transcript")(_ensure_has_content)
 
 
 class RiskAnalysisRequest(BaseModel):
-    project_context: str = Field(..., min_length=10)
+    project_context: str = Field(..., min_length=10, max_length=20000)
     project_name: str | None = None
+
+    _validate_project_context = field_validator("project_context")(_ensure_has_content)
 
 
 class AnalysisSummary(BaseModel):

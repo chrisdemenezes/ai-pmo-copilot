@@ -67,7 +67,7 @@ Applies to `/api/meetings/analyze` and `/api/risks/analyze`.
 
 | Status | Body | Cause |
 |---|---|---|
-| 422 | FastAPI validation error | Request body fails schema validation (e.g. `transcript` shorter than 10 chars) |
+| 422 | FastAPI validation error | Request body fails schema validation: `transcript`/`project_context` shorter than 10 chars, longer than 20000 chars, or containing only whitespace |
 | 503 | `{"error": "provider_config_error", "detail": "..."}` | LLM provider is missing required configuration (e.g. `ANTHROPIC_API_KEY` unset, or `LLM_PROVIDER` set to an unknown value) |
 | 502 | `{"error": "provider_unavailable", "detail": "..."}` | The LLM provider's upstream call failed (timeout, rate limit, connection error) |
 
