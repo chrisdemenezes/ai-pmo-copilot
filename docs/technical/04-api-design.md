@@ -3,6 +3,19 @@
 ## Purpose
 Define communication contracts between application components.
 
+## Authentication
+
+Every route under `/api/*` requires an `X-API-Key` header matching the `API_KEY` environment
+variable (see `.env.example`). `/health` is exempt — it carries no application data and is used
+for uptime checks. Enforced by `verify_api_key` (`src/api/security.py`), applied once at the
+router level (`APIRouter(dependencies=[Depends(verify_api_key)])` in
+`src/api/routes/intelligence.py`) rather than per-route.
+
+| Status | Body | Cause |
+|---|---|---|
+| 503 | `{"detail": "API_KEY is not configured on the server"}` | The server has no `API_KEY` set — fails closed rather than accepting any caller |
+| 401 | `{"detail": "Invalid or missing API key"}` | `X-API-Key` header missing or does not match the configured key |
+
 ## Core APIs
 
 ### Project Status API
