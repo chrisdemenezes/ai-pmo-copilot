@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, field_validator
 from fastapi import APIRouter, Depends, HTTPException
 
 from src.agents.meeting_intelligence.agent import MeetingIntelligenceAgent
+from src.agents.project_status.agent import ProjectStatusAgent
 from src.agents.risk_review.agent import RiskReviewAgent
 from src.llm.providers.base import LLMProvider
 from src.llm.providers.factory import get_provider
@@ -31,6 +32,13 @@ class MeetingAnalysisRequest(BaseModel):
 
 
 class RiskAnalysisRequest(BaseModel):
+    project_context: str = Field(..., min_length=10, max_length=20000)
+    project_name: str | None = None
+
+    _validate_project_context = field_validator("project_context")(_ensure_has_content)
+
+
+class ProjectStatusRequest(BaseModel):
     project_context: str = Field(..., min_length=10, max_length=20000)
     project_name: str | None = None
 
@@ -88,6 +96,20 @@ def analyze_risk(
     agent = RiskReviewAgent(model_client=provider, prompt_registry=prompts)
     result = agent.analyze(project_context=request.project_context, project_name=request.project_name)
     repository.save_analysis(kind="risk", payload=result, project_name=request.project_name)
+    return result
+
+
+@router.post("/projects/analyze")
+def analyze_project_status(
+    request: ProjectStatusRequest,
+    prompts: PromptRegistry = Depends(build_prompt_registry),
+    provider: LLMProvider = Depends(build_provider),
+    repository: AnalysisRepository = Depends(build_repository),
+):
+    logger.info("Analyzing project status for project_name=%s", request.project_name)
+    agent = ProjectStatusAgent(model_client=provider, prompt_registry=prompts)
+    result = agent.analyze(project_context=request.project_context, project_name=request.project_name)
+    repository.save_analysis(kind="status", payload=result, project_name=request.project_name)
     return result
 
 
