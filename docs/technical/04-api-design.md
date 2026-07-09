@@ -30,9 +30,9 @@ Output: `{agent, project_name, model_output}` where `model_output` is one of:
 
 POST /api/risks/analyze
 
-Output:
-- Risk assessment
-- Mitigation plan
+Output: `{agent, project_name, model_output}` where `model_output` is one of:
+- Structured (model followed the requested JSON schema): `{structured: true, risks[] ({description, probability, impact, mitigation}), escalation_recommendation}`
+- Fallback (model response wasn't valid JSON): `{structured: false, raw_output}` — same fallback behavior as the Meeting Intelligence API.
 
 ### List Analyses API
 

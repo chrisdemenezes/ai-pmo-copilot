@@ -25,15 +25,12 @@ class FakeProvider:
 class FakeRepository:
     def save_analysis(self, kind, payload, project_name=None):
         assert kind in {"meeting", "risk"}
-        if kind == "meeting":
-            # "api analysis generated" is not valid JSON, so the structured
-            # output parser falls back to raw_output.
-            assert payload["model_output"] == {
-                "structured": False,
-                "raw_output": "api analysis generated",
-            }
-        else:
-            assert payload["model_output"] == "api analysis generated"
+        # "api analysis generated" is not valid JSON, so both agents' structured
+        # output parser falls back to raw_output.
+        assert payload["model_output"] == {
+            "structured": False,
+            "raw_output": "api analysis generated",
+        }
         return 1
 
 
