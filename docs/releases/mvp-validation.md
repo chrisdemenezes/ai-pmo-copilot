@@ -52,6 +52,33 @@ This document is the release evidence ledger for MVP claims.
 - Known unverified path: Alembic has only been exercised against SQLite in this environment; the Postgres/`psycopg2-binary` path has no live database to test against here (documented in `docs/technical/05-database-model.md`).
 - CI evidence: GitHub Actions workflow `CI` available at `.github/workflows/ci.yml`. The run result must be verified in GitHub Actions before any production-ready claim.
 
+## Evidence Entry 004 - API key authentication + CI pytest sys.path fix (US-SEC-01)
+
+- Source PR: #13 - feat: require X-API-Key on all /api/* routes + fix CI pytest sys.path (US-SEC-01)
+- Merge commit SHA: `87473809bac2f1d9825997fc54ab8b796f092472`
+- Scope evidenced:
+  - `src/api/security.py::verify_api_key` — router-level FastAPI dependency (`APIRouter(dependencies=[...])`) enforcing `X-API-Key` on every `/api/*` route; `hmac.compare_digest` for constant-time comparison; fails closed (503) when `API_KEY` is unset, 401 on missing/wrong key. `/health` stays unauthenticated.
+  - `tests/conftest.py` (new) — autouse override so the 49 pre-existing tests needed no per-test edits.
+  - `tests/test_api_security.py` (new, 5 tests) — 401/503/200/health-bypass coverage.
+  - `pyproject.toml` (new) — `[tool.pytest.ini_options] pythonpath = ["."]`.
+- Test evidence: 54/54 tests passing, 98.83% coverage, `ruff check src tests` clean.
+- CI evidence: **verified directly against the GitHub Actions run, not just local execution** — run [29058080160](https://github.com/chrisdemenezes/ai-pmo-copilot/actions/runs/29058080160) (PR branch, all green) and post-merge run [29058143393](https://github.com/chrisdemenezes/ai-pmo-copilot/actions/runs/29058143393) on `main` (all green).
+
+### Correction to Evidence Entries 001-003
+
+While preparing this entry, the actual GitHub Actions run history was checked directly for the
+first time this project (previous entries only ever confirmed test results by running `pytest`
+*locally*, never by inspecting the Actions run itself). Every recorded CI run on `main` going back
+through at least PR #7 had **conclusion: failure**, with `ModuleNotFoundError: No module named
+'src'` — the CI step invokes the `pytest` console script directly, which does not add the repo
+root to `sys.path`, while all local verification in this project used `python -m pytest` (which
+does, via `-m`). The "CI evidence" lines in Entries 001-003 above were therefore aspirational, not
+actually satisfied; the "must be verified in GitHub Actions before any production-ready claim"
+caveat those entries already carried was accurate and had not yet been checked. The test *content*
+of those entries is unaffected (the same 49 tests still pass once the import path is fixed by this
+entry's `pyproject.toml`), but no prior entry should be read as having real CI confirmation before
+this one.
+
 ## Decision: remaining backlog deferred until MVP closure
 
 AP-001, DB-001, and CP-001 are explicitly deferred, not scheduled. See
