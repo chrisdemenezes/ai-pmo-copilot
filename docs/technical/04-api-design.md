@@ -20,12 +20,11 @@ Output:
 
 ### Meeting Intelligence API
 
-POST /api/meetings/process
+POST /api/meetings/analyze
 
-Output:
-- Summary
-- Decisions
-- Actions
+Output: `{agent, project_name, model_output}` where `model_output` is one of:
+- Structured (model followed the requested JSON schema): `{structured: true, summary, decisions[], action_items[] ({description, owner, due_date}), issues[], dependencies[]}`
+- Fallback (model response wasn't valid JSON): `{structured: false, raw_output}` — the raw text is preserved, the request still returns 200, never fails just because parsing didn't succeed.
 
 ### Risk Analysis API
 

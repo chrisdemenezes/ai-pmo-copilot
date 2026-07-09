@@ -15,7 +15,7 @@ class FakeModelClient:
         return "summary generated"
 
 
-def test_meeting_agent_uses_prompt_and_model_client():
+def test_meeting_agent_falls_back_to_raw_output_when_not_json():
     agent = MeetingIntelligenceAgent(
         model_client=FakeModelClient(),
         prompt_registry=FakePromptRegistry(),
@@ -28,7 +28,30 @@ def test_meeting_agent_uses_prompt_and_model_client():
 
     assert result["agent"] == "meeting_intelligence"
     assert result["project_name"] == "Multilift"
-    assert result["model_output"] == "summary generated"
+    assert result["model_output"] == {"structured": False, "raw_output": "summary generated"}
+
+
+class FakeModelClientReturningJson:
+    def generate(self, prompt):
+        return (
+            '{"summary": "Handover approved", "decisions": ["Approve handover"], '
+            '"action_items": [{"description": "Track actions", "owner": "PM", "due_date": null}], '
+            '"issues": [], "dependencies": []}'
+        )
+
+
+def test_meeting_agent_parses_structured_json_output():
+    agent = MeetingIntelligenceAgent(
+        model_client=FakeModelClientReturningJson(),
+        prompt_registry=FakePromptRegistry(),
+    )
+
+    result = agent.analyze(project_name="Multilift", transcript="Client approved the handover.")
+
+    assert result["model_output"]["structured"] is True
+    assert result["model_output"]["summary"] == "Handover approved"
+    assert result["model_output"]["decisions"] == ["Approve handover"]
+    assert result["model_output"]["action_items"][0]["owner"] == "PM"
 
 
 class FakePromptRegistryWithJsonBraces:
