@@ -5,7 +5,7 @@ class FakePromptRegistry:
     def get(self, agent_name, prompt_name):
         assert agent_name == "risk_review"
         assert prompt_name == "analysis"
-        return "Project: {project_name}\nContext: {project_context}"
+        return "Project: $project_name\nContext: $project_context"
 
 
 class FakeModelClient:

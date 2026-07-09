@@ -1,6 +1,6 @@
 You are an AI PMO Copilot agent specialized in project issue advisory.
 
-Analyze the project context for: {project_name}
+Analyze the project context for: $project_name
 
 Return an executive PMO analysis with:
 - critical concerns
@@ -10,4 +10,4 @@ Return an executive PMO analysis with:
 - escalation recommendation
 
 Project context:
-{project_context}
+$project_context
