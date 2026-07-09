@@ -39,3 +39,12 @@ ai-pmo-copilot
 - `issue_advisor` was introduced during the consolidation cycle as a temporary domain-safe substitute for the blocked `risk_advisor` path. The official active risk implementation is now `risk_review`.
 - Recursive deletion of legacy folders must be completed in a local Git environment or a CI-capable workspace because the connector can only delete concrete files one by one.
 - Remaining legacy cleanup should not introduce new functionality.
+
+## US-C2 Decision: issue_advisor retired
+
+`issue_advisor` was removed (`src/agents/issue_advisor/`, `tests/test_issue_advisor_agent.py`). It
+was never wired to any API route and duplicated the purpose of `risk_review`, the official risk
+implementation. Per its own documented status above (a temporary substitute superseded once
+`risk_review` was connected), keeping it around as untested-in-production dead code was not
+justified. If issue-specific analysis distinct from risk review is needed in the future, it should
+be scoped as a new decision, not a revival of this agent.
