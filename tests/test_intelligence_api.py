@@ -53,6 +53,36 @@ def test_meeting_and_risk_endpoints_with_dependency_overrides():
     app.dependency_overrides.clear()
 
 
+def test_meeting_endpoint_rejects_whitespace_only_transcript():
+    client = TestClient(app)
+    response = client.post(
+        "/api/meetings/analyze",
+        json={"project_name": "Multilift", "transcript": "                    "},
+    )
+
+    assert response.status_code == 422
+
+
+def test_meeting_endpoint_rejects_transcript_over_max_length():
+    client = TestClient(app)
+    response = client.post(
+        "/api/meetings/analyze",
+        json={"project_name": "Multilift", "transcript": "a" * 20001},
+    )
+
+    assert response.status_code == 422
+
+
+def test_risk_endpoint_rejects_whitespace_only_project_context():
+    client = TestClient(app)
+    response = client.post(
+        "/api/risks/analyze",
+        json={"project_name": "Medlog", "project_context": "                    "},
+    )
+
+    assert response.status_code == 422
+
+
 class RaisingProvider:
     def __init__(self, exc):
         self.exc = exc
