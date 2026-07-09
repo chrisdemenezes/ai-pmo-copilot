@@ -79,6 +79,17 @@ of those entries is unaffected (the same 49 tests still pass once the import pat
 entry's `pyproject.toml`), but no prior entry should be read as having real CI confirmation before
 this one.
 
+## Evidence Entry 005 - Minimal CORS support (US-SEC-02)
+
+- Source PR: #15 - feat: add minimal CORS support (US-SEC-02)
+- Merge commit SHA: `0e318a63333ffd284590771a0c447c58a294c6c2`
+- Scope evidenced:
+  - `CORSMiddleware` (`fastapi.middleware.cors`, no new dependency) added in `src/main.py`, restricted to `GET`/`POST` and to the `Content-Type`/`X-API-Key` headers.
+  - Allowed origins from `CORS_ALLOWED_ORIGINS` (comma-separated); unset means no origin is allowed — fail-closed, consistent with US-SEC-01.
+  - `tests/test_cors.py` (new, 3 tests) — default-closed, allowed-origin, rejected-origin, via `importlib.reload(src.main)` since CORS config is read once at process startup.
+- Test evidence: 57/57 tests passing, 98.86% coverage, `ruff check src tests` clean.
+- CI evidence: verified against the real GitHub Actions run before merge — run [29058378473](https://github.com/chrisdemenezes/ai-pmo-copilot/actions/runs/29058378473), all green.
+
 ## Decision: remaining backlog deferred until MVP closure
 
 AP-001, DB-001, and CP-001 are explicitly deferred, not scheduled. See
