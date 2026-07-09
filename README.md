@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/chrisdemenezes/ai-pmo-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/chrisdemenezes/ai-pmo-copilot/actions/workflows/ci.yml)
 
-An intelligent PMO assistant designed to automate project governance, reporting, meeting intelligence, issue advisory and decision support using Artificial Intelligence.
+An intelligent PMO assistant designed to automate project governance, reporting, meeting intelligence and decision support using Artificial Intelligence.
 
 ## Architectural Decision
 
@@ -15,7 +15,6 @@ Legacy or parallel implementations must not be expanded. New code must be added 
 - FastAPI application entrypoint in `src/main.py`
 - Intelligence router in `src/api/routes/intelligence.py`
 - Meeting Intelligence agent
-- Project issue advisory agent
 - Single prompt registry
 - Production LLM provider using Anthropic via environment configuration
 - SQLAlchemy persistence repository
@@ -29,7 +28,6 @@ src/
   main.py
   api/routes/intelligence.py
   agents/meeting_intelligence/
-  agents/issue_advisor/
   database/repository.py
   llm/providers/production_provider.py
   prompts/registry.py
