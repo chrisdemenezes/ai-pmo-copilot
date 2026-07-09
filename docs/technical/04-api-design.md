@@ -16,6 +16,14 @@ router level (`APIRouter(dependencies=[Depends(verify_api_key)])` in
 | 503 | `{"detail": "API_KEY is not configured on the server"}` | The server has no `API_KEY` set — fails closed rather than accepting any caller |
 | 401 | `{"detail": "Invalid or missing API key"}` | `X-API-Key` header missing or does not match the configured key |
 
+## CORS
+
+Cross-origin browser requests are controlled by `CORS_ALLOWED_ORIGINS` (comma-separated, see
+`.env.example`). Unset means no origin is allowed — there is no wide-open default. Configured via
+`CORSMiddleware` in `src/main.py`, restricted to `GET`/`POST` (the only methods any route uses) and
+to the `Content-Type` and `X-API-Key` headers. Read once at process startup, not per request — a
+new origin requires restarting the process with the updated env var.
+
 ## Core APIs
 
 ### Project Status API
