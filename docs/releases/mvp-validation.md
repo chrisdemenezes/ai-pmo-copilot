@@ -128,6 +128,18 @@ this one.
 - Validation method: `docker compose config` (no daemon required) — confirmed YAML syntax and env var interpolation, and caught a real bug before merge (`RATE_LIMIT_MAX_REQUESTS`/`RATE_LIMIT_WINDOW_SECONDS` resolving to empty strings when unset on the host, which would have crashed `int("")`/`float("")` on first request — fixed with real numeric defaults in the compose file).
 - Known unverified path: this environment has no Docker daemon (`/var/run/docker.sock` missing), so `docker compose up` itself could not be exercised end-to-end here. Real execution against this file is still owed before calling the Docker path production-ready.
 
+## Evidence Entry 009 - Request-correlated structured logging (US-OBS-01)
+
+- Source PR: #23 - feat: add request-correlated structured logging (US-OBS-01)
+- Merge commit SHA: `c9cd4328f834125bb8eabcaec085645c53390758`
+- Scope evidenced:
+  - `src/api/request_context.py`: `configure_logging()` attaches a `StreamHandler` to the root logger (previously no handler existed anywhere — module-level `logger.info(...)` calls in `src/agents/*`, `src/database/repository.py`, `src/api/security.py`, `src/api/rate_limiter.py` were silently dropped outside interactive/test runs). `RequestIDMiddleware` (raw ASGI, not `BaseHTTPMiddleware`) sets a `request_id` `ContextVar` per request and echoes it as the `X-Request-ID` response header. `RequestIDLogFilter` injects it into every log record — no existing call site needed to change.
+  - Wired into `src/main.py`; `RequestIDMiddleware` added last so it wraps CORS too (verified empirically that the last-added middleware is outermost).
+  - `tests/test_request_context.py` (new, 5 tests): filter unit tests + generated/echoed/distinct `X-Request-ID` header integration tests.
+  - This closes Sprint 3 ("Operar com confiança") of the Master Product Backlog.
+- Test evidence: 68/68 tests passing, 98.51% coverage (`request_context.py` 94% — the 2 uncovered lines are the non-HTTP ASGI passthrough branch), `ruff check src tests` clean.
+- CI evidence: verified against the real GitHub Actions run before merge — run [29093969775](https://github.com/chrisdemenezes/ai-pmo-copilot/actions/runs/29093969775), all green.
+
 ## Decision: remaining backlog deferred until MVP closure
 
 AP-001, DB-001, and CP-001 are explicitly deferred, not scheduled. See
