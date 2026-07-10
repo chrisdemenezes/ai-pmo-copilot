@@ -90,6 +90,17 @@ this one.
 - Test evidence: 57/57 tests passing, 98.86% coverage, `ruff check src tests` clean.
 - CI evidence: verified against the real GitHub Actions run before merge — run [29058378473](https://github.com/chrisdemenezes/ai-pmo-copilot/actions/runs/29058378473), all green.
 
+## Evidence Entry 006 - Orphan code stubs removed (TASK-KN-01/TASK-AI-02)
+
+- Source PR: #17 - chore: remove orphan code stubs (TASK-KN-01/TASK-AI-02)
+- Merge commit SHA: `193519057842f078bc2926c2aaa3081b74f3ebae`
+- Scope evidenced:
+  - Removed `src/knowledge/ingestion_pipeline.py`, `knowledge/retrieval_service.py`, and `src/agents/core/agent.py` — confirmed zero references anywhere in the repository (application code or tests) before deletion.
+  - Decision recorded in `docs/development/01-project-structure.md`, section "TASK-KN-01 / TASK-AI-02 Decision: orphan stubs removed".
+  - This closes Sprint 1 ("Fechar a porta") of the Master Product Backlog: US-SEC-01, US-SEC-02, and this decision are all merged.
+- Test evidence: 57/57 tests passing (unchanged), 98.86% coverage (unchanged — none of the removed files had real test coverage), `ruff check src tests` clean.
+- CI evidence: verified against the real GitHub Actions run before merge — run [29091266054](https://github.com/chrisdemenezes/ai-pmo-copilot/actions/runs/29091266054), all green.
+
 ## Decision: remaining backlog deferred until MVP closure
 
 AP-001, DB-001, and CP-001 are explicitly deferred, not scheduled. See
