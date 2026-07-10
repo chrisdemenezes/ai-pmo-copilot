@@ -26,3 +26,23 @@ def test_get_provider_raises_on_unknown_value(monkeypatch):
 
     with pytest.raises(ProviderConfigError):
         get_provider()
+
+
+def test_get_provider_honors_model_name_when_set(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "anthropic")
+    monkeypatch.setenv("MODEL_NAME", "claude-custom-model")
+
+    provider = get_provider()
+
+    assert isinstance(provider, ProductionLLMProvider)
+    assert provider.model == "claude-custom-model"
+
+
+def test_get_provider_uses_default_model_when_model_name_unset(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "anthropic")
+    monkeypatch.delenv("MODEL_NAME", raising=False)
+
+    provider = get_provider()
+
+    assert isinstance(provider, ProductionLLMProvider)
+    assert provider.model == ProductionLLMProvider().model

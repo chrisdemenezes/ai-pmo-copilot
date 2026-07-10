@@ -11,6 +11,9 @@ def get_provider(env_var: str = "LLM_PROVIDER") -> LLMProvider:
     if provider_name == "mock":
         return MockLLMProvider()
     if provider_name == "anthropic":
+        model_name = os.getenv("MODEL_NAME")
+        if model_name:
+            return ProductionLLMProvider(model=model_name)
         return ProductionLLMProvider()
 
     raise ProviderConfigError(
