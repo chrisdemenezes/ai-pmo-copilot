@@ -98,3 +98,50 @@ def test_summarize_returns_zeros_for_project_with_no_analyses():
         "pending_action_items": 0,
         "latest_health_status": None,
     }
+
+
+def test_summarize_portfolio_groups_by_project_and_sorts_by_name():
+    repository = _repository()
+    repository.save_analysis(
+        kind="risk",
+        project_name="Multilift",
+        payload={"model_output": {"structured": True, "risks": [{"description": "a"}]}},
+    )
+    repository.save_analysis(
+        kind="meeting",
+        project_name="Medlog",
+        payload={"model_output": {"structured": True, "action_items": [{"description": "x"}]}},
+    )
+
+    portfolio = ProjectSummaryService(repository).summarize_portfolio()
+
+    assert [entry["project_name"] for entry in portfolio] == ["Medlog", "Multilift"]
+    medlog, multilift = portfolio
+    assert medlog["pending_action_items"] == 1
+    assert medlog["open_risks"] == 0
+    assert multilift["open_risks"] == 1
+    assert multilift["pending_action_items"] == 0
+
+
+def test_summarize_portfolio_excludes_analyses_without_a_project_name():
+    repository = _repository()
+    repository.save_analysis(
+        kind="risk",
+        project_name=None,
+        payload={"model_output": {"structured": True, "risks": [{"description": "a"}]}},
+    )
+    repository.save_analysis(
+        kind="risk",
+        project_name="Multilift",
+        payload={"model_output": {"structured": True, "risks": [{"description": "b"}]}},
+    )
+
+    portfolio = ProjectSummaryService(repository).summarize_portfolio()
+
+    assert [entry["project_name"] for entry in portfolio] == ["Multilift"]
+
+
+def test_summarize_portfolio_returns_empty_list_when_no_analyses_exist():
+    repository = _repository()
+
+    assert ProjectSummaryService(repository).summarize_portfolio() == []

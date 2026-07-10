@@ -115,6 +115,18 @@ raw model output that didn't follow the requested schema.
 A project with no analyses (or an unknown name) returns 200 with all counts at zero — same
 never-404 philosophy as `GET /api/analyses`.
 
+### Portfolio Summary API
+
+GET /api/portfolio/summary
+
+The same aggregation as the Project Summary API, for every project that has at least one analysis,
+in one call — `ProjectSummaryService.summarize_portfolio()` fetches all analyses once and groups
+them in memory by `project_name`, rather than one query per project. Analyses with no
+`project_name` are excluded — there's no project to attribute them to.
+
+Output: a list of the same shape as the Project Summary API, sorted by `project_name`. Empty list
+(200) when no analysis has ever been tagged with a project name.
+
 ## Error Responses
 
 Applies to `/api/meetings/analyze`, `/api/risks/analyze`, and `/api/projects/analyze`.
