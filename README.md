@@ -37,10 +37,17 @@ src/
   database/repository.py
   llm/providers/production_provider.py
   prompts/registry.py
+web/
+  app/
+  components/ui/
 tests/
 docs/
 release/
 ```
+
+Backend (`src/`) and frontend (`web/`) are two separate applications with independent dependency
+trees — see `web/README.md` for frontend setup and RFC-001 (referenced in
+`docs/development/01-project-structure.md`) for its architecture.
 
 ## Run locally
 
