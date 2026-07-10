@@ -114,6 +114,20 @@ this one.
 - CI evidence: verified against the real GitHub Actions run before merge — run [29092947436](https://github.com/chrisdemenezes/ai-pmo-copilot/actions/runs/29092947436), all green.
 - Known limitation: rate limiting is per-process, in-memory — not shared across multiple API instances, resets on restart. Documented in `docs/technical/04-api-design.md#rate-limiting` as acceptable for the current single-instance deployment.
 
+## Evidence Entry 008 - docker-compose repaired (TASK-INF-02)
+
+- Source PR: #21 - fix: repair docker-compose (TASK-INF-02)
+- Merge commit SHA: `a4846b531e022a705fb14334c1fabf7f2592cbd9`
+- Scope evidenced:
+  - New root `Dockerfile` builds the real `src.main:app` (copies only `src/`, `alembic.ini`, `alembic/`).
+  - `docker-compose.yml`: `api` service (runs `alembic upgrade head` before `uvicorn` on start) + `database` (`postgres:16`, named volume). `frontend` service dropped — no code to build.
+  - Removed `backend/Dockerfile` and `backend/requirements.txt` (unreferenced after the fix, described a module layout — `app.main:app` — that never existed). `backend/README.md` and vision docs untouched.
+  - Decision recorded in `docs/development/01-project-structure.md`, section "TASK-INF-02 Decision".
+- Test evidence: 63/63 tests passing (unchanged), 99.00% coverage (unchanged), `ruff check src tests` clean.
+- CI evidence: verified against the real GitHub Actions run before merge — run [29093653987](https://github.com/chrisdemenezes/ai-pmo-copilot/actions/runs/29093653987), all green.
+- Validation method: `docker compose config` (no daemon required) — confirmed YAML syntax and env var interpolation, and caught a real bug before merge (`RATE_LIMIT_MAX_REQUESTS`/`RATE_LIMIT_WINDOW_SECONDS` resolving to empty strings when unset on the host, which would have crashed `int("")`/`float("")` on first request — fixed with real numeric defaults in the compose file).
+- Known unverified path: this environment has no Docker daemon (`/var/run/docker.sock` missing), so `docker compose up` itself could not be exercised end-to-end here. Real execution against this file is still owed before calling the Docker path production-ready.
+
 ## Decision: remaining backlog deferred until MVP closure
 
 AP-001, DB-001, and CP-001 are explicitly deferred, not scheduled. See
