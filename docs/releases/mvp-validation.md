@@ -194,6 +194,27 @@ this one.
   this session's Docker daemon remains unavailable; the validation above ran directly against
   Postgres, not through `docker compose up`.
 
+## Evidence Entry 013 - Real Anthropic API probe, partial (TASK-AI-01)
+
+- No source PR — environment-level validation, no code changed.
+- Ran one real `ProductionLLMProvider.generate()` call per agent (`meeting_intelligence`,
+  `risk_review`, `project_status`), routed through the real `PromptRegistry` and each agent's real
+  `analyze()` method — the exact code path the API uses, not a standalone SDK smoke test.
+- Result: all three calls reached the real Anthropic API and authenticated successfully (not a 401),
+  but were rejected with `400 invalid_request_error: Your credit balance is too low to access the
+  Anthropic API` — the account backing the provided key has no billing/credit configured.
+- What this **does** confirm: `ProductionLLMProvider` connects to the real API correctly, and the
+  error-handling path (`ProviderUnavailableError` → 502, `src/main.py`'s exception handler) fires
+  exactly as designed for a real upstream rejection — not a hypothetical, an actual one.
+- What this does **not** confirm: the happy path — whether the model's real output reliably parses
+  as `structured: true` under `parse_structured_output`. That remains open until a call succeeds.
+- The API key used for this probe was pasted in plaintext in the requesting conversation; it was
+  used only in-process for this one run (never written to any file, `.env`, or committed) and the
+  user was advised to revoke and reissue it after this entry was recorded, per standard practice for
+  any credential that has appeared in plaintext outside a secrets manager.
+- `TASK-AI-01` remains open pending either billing being added to that account or a differently
+  funded key.
+
 ## Decision: remaining backlog deferred until MVP closure
 
 AP-001, DB-001, and CP-001 are explicitly deferred, not scheduled. See
