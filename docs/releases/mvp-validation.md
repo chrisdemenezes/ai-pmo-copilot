@@ -215,6 +215,33 @@ this one.
 - `TASK-AI-01` remains open pending either billing being added to that account or a differently
   funded key.
 
+## Evidence Entry 014 - Pilot Release readiness audit + MODEL_NAME fix
+
+- Independent readiness audit performed at the user's request: fresh `git worktree` off
+  `origin/main`, an isolated venv, `ruff check` and `pytest -q --cov=src --cov-fail-under=80` run
+  from scratch (80/80, 98.73%, matching every locally-reported number in this file), the last 5
+  `push`-event CI runs on `main` confirmed `completed`/`success` (not just PR checks), and all 30
+  merged PRs (#2-#31) confirmed to have `merged_at` set — no abandoned or reverted PRs in the
+  history. Full report published as an artifact; summarized here for the repo's own record.
+- Finding from that audit: `.env.example` documented `MODEL_NAME` but nothing in `src/` read it —
+  the model was fully hardcoded in `ProductionLLMProvider.model`.
+- Source PR: #32 - fix: wire up MODEL_NAME env var (readiness audit finding)
+- Merge commit SHA: `263c447bfcd6e014745effce3f79b34f362bf5f5`
+- Scope evidenced: `get_provider()` (`src/llm/providers/factory.py`) now passes `MODEL_NAME` through
+  to `ProductionLLMProvider`'s existing `model` field when set; falls back to the dataclass default
+  when unset (no behavior change for existing deployments). `tests/test_provider_factory.py` gained
+  2 tests (honors `MODEL_NAME` when set, uses the default when unset).
+- Test evidence: 82/82 tests passing, 98.74% coverage (`factory.py` 100%), `ruff check src tests`
+  clean.
+- CI evidence: verified against the real GitHub Actions run before merge — run
+  [29109796944](https://github.com/chrisdemenezes/ai-pmo-copilot/actions/runs/29109796944), all
+  green.
+- Also confirmed still open, not addressed in this entry: the real Anthropic model ID's currency is
+  unknown (Entry 013's probe failed on billing before reaching model resolution), and ~87
+  documentation files across the repo (`docs/`, `release/`, and 11 top-level vision directories)
+  remain unlabeled by implementation status — both are pre-existing, low-priority items, not new
+  regressions.
+
 ## Decision: remaining backlog deferred until MVP closure
 
 AP-001, DB-001, and CP-001 are explicitly deferred, not scheduled. See
