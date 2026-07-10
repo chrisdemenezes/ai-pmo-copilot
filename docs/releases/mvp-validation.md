@@ -153,6 +153,18 @@ this one.
 - Test evidence: 75/75 tests passing, 98.67% coverage (`project_summary_service.py` 100%), `ruff check src tests` clean.
 - CI evidence: verified against the real GitHub Actions run before merge — run [29094363129](https://github.com/chrisdemenezes/ai-pmo-copilot/actions/runs/29094363129), all green.
 
+## Evidence Entry 011 - Portfolio summary API (US-EXE-02)
+
+- Source PR: #27 - feat: add portfolio summary API (US-EXE-02)
+- Merge commit SHA: `5a10ea55f08434a5ec4da3476166c34f5ced12f9`
+- Scope evidenced:
+  - `ProjectSummaryService.summarize_portfolio()` — one fetch of every analysis, grouped by `project_name` in memory (no N+1 queries), reusing `summarize()`'s aggregation logic via a shared private `_aggregate()` method. Analyses with no `project_name` excluded.
+  - `GET /api/portfolio/summary` in `intelligence.py`; sorted-by-name list, empty list when no analysis has a project name.
+  - `tests/test_project_summary_service.py` (3 new tests) and `tests/test_project_summary_api.py` (2 new tests).
+  - This closes Sprint 4 ("Primeiro valor executivo") and the Master Product Backlog roadmap through the Pilot Release milestone.
+- Test evidence: 80/80 tests passing, 98.73% coverage (`project_summary_service.py` 100%), `ruff check src tests` clean.
+- CI evidence: verified against the real GitHub Actions run before merge — run [29094664025](https://github.com/chrisdemenezes/ai-pmo-copilot/actions/runs/29094664025), all green.
+
 ## Decision: remaining backlog deferred until MVP closure
 
 AP-001, DB-001, and CP-001 are explicitly deferred, not scheduled. See
