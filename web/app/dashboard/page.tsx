@@ -15,12 +15,17 @@ export default function DashboardPage() {
     return <DashboardSkeleton />;
   }
 
-  // Caught by app/dashboard/error.tsx -- FS-001 §12.
-  if (isError) {
+  // Only escalate to app/dashboard/error.tsx (FS-001 §12) when there is
+  // nothing cached to show. A failed background poll must not discard a
+  // dashboard that already loaded successfully -- FS-001 §6/§10
+  // (stale-while-revalidate): "revalidação em background... UI atualiza
+  // sem piscar", never "some dados válidos por causa de uma falha
+  // transitória".
+  if (isError && !data) {
     throw error;
   }
 
-  const projects = data;
+  const projects = data ?? [];
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 p-6">

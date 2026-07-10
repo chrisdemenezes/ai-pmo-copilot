@@ -69,7 +69,7 @@ describe("DashboardPage", () => {
     expect(screen.getAllByText("Projetos").length).toBeGreaterThan(0);
   });
 
-  it("throws the query error so app/dashboard/error.tsx can catch it", () => {
+  it("throws the query error when there is no cached data to fall back to", () => {
     mockedHook.mockReturnValue({
       isPending: false,
       isError: true,
@@ -81,5 +81,28 @@ describe("DashboardPage", () => {
     } as any);
 
     expect(() => render(<DashboardPage />)).toThrow("Backend respondeu 500.");
+  });
+
+  it("keeps rendering cached data when a background refetch fails (Achado #1 fix)", () => {
+    mockedHook.mockReturnValue({
+      isPending: false,
+      isError: true,
+      data: [
+        {
+          project_name: "Multilift",
+          total_analyses: 5,
+          open_risks: 3,
+          pending_action_items: 2,
+          latest_health_status: "red",
+        },
+      ],
+      error: new Error("Backend respondeu 500."),
+      refetch: vi.fn(),
+      isFetching: false,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+
+    expect(() => render(<DashboardPage />)).not.toThrow();
+    expect(screen.getAllByText("Multilift").length).toBeGreaterThan(0);
   });
 });
