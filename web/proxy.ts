@@ -12,6 +12,13 @@ export const config = {
 };
 
 export function proxy(request: NextRequest) {
+  // Emergency kill switch (TIP-001 §7 rollback strategy): if the session
+  // gate misbehaves in production, disable it without reverting the whole
+  // feature. Isolated to this one check -- the rest of /dashboard is unaffected.
+  if (process.env.DISABLE_WORKSPACE_SESSION_GATE === "true") {
+    return NextResponse.next();
+  }
+
   const { pathname } = request.nextUrl;
 
   if (pathname === LOGIN_ROUTE) {
