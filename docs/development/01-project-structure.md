@@ -2,9 +2,10 @@
 
 ## Architectural Decision
 
-The official implementation tree for the MVP is `src/`.
+The official implementation tree for the backend is `src/`. As of RFC-001 (Frontend Architecture,
+see "RFC-001 Decision" below), `web/` is the equivalent official tree for the frontend.
 
-No new parallel tree should be created until the MVP has passing CI evidence and the P0 corrections are closed.
+No new parallel tree should be created beyond these two without a decision recorded here first.
 
 ## Repository Organization
 
@@ -135,3 +136,60 @@ real `structured: true` vs. fallback rate) is explicitly deferred, not scheduled
 With this deferral, every other item in the Master Product Backlog's roadmap through the Pilot
 Release milestone (Sprints 1-4) is closed. See `docs/releases/mvp-validation.md`, Evidence Entries
 004-013, for the full record.
+
+## RFC-001 Decision: `web/` as the official frontend tree, Sprint 1 (Design System) delivered
+
+At the user's direction, the session's role shifted from Backend Engineer to Principal Product
+Designer / Frontend Architect. RFC-001 was produced first (architecture, stack, security model,
+design system, components, routes, states, API integration) and approved before any code was
+written, per the same "plan before code" discipline used throughout the backend work. Full RFC
+content published as an artifact during the session; this entry is the repository's lasting record.
+
+**Why `web/`, not `frontend/`:** `frontend/` holds only vision documentation (`README.md`,
+`90-mvp-web-interface.md`, `91-document-intelligence-workspace.md`) — no real code. Putting a real
+Next.js application inside it would mix a working app with aspirational docs in one directory,
+confusing for the next engineer (or AI) who opens the repository. `web/` is a clean, unambiguous
+home, parallel to `src/`. `frontend/` is untouched.
+
+**Stack** (confirms the pre-existing decision in `docs/technical/02-technology-stack.md`, adds the
+rest): Next.js 16 (App Router, TypeScript), Tailwind CSS v4 (CSS-first `@theme` config, not
+`tailwind.config.js` — a real breaking change from the version referenced in prior docs). Radix UI
+primitives vendored via hand-written wrapper components in `web/components/ui/` (the shadcn/ui CLI
+and registry at `ui.shadcn.com` are blocked by this environment's egress policy — reported, not
+routed around; the same architectural outcome, Radix + Tailwind owned as our own source, not a
+runtime dependency, was achieved by installing the underlying `@radix-ui/react-*` packages directly
+via npm and writing the component files by hand). TanStack Query, React Hook Form + Zod, and
+Playwright are planned for later sprints per RFC-001 but not yet installed — Sprint 1 has no API
+calls and no forms with real submission.
+
+**Security decision carried over from the RFC, not yet implemented:** the backend's single shared
+`API_KEY` must never reach the browser. A Backend-for-Frontend pattern (Next.js Route Handlers
+holding the real key server-side) is planned for Sprint 2 onward, when API calls are first made —
+Sprint 1 has no network calls to the FastAPI backend at all.
+
+**Sprint 1 scope delivered:**
+- Design tokens (`web/app/globals.css`) matching RFC-001 Section 5 exactly: indigo accent (distinct
+  from the blue/teal used in this project's engineering evidence docs, so the product is never
+  visually confused with its own internal audit reports), system font stacks (no `next/font/google`
+  — zero network requests for typography, same reasoning already applied to every HTML report this
+  session produced), status colors mapped 1:1 to the backend's real `health_status` values
+  (`green`/`yellow`/`red`, nothing invented).
+- Ten primitives in `web/components/ui/`: Button, Card, Input, Textarea, Badge (with
+  `healthStatusVariant()`, a pure function unit-tested directly), Skeleton, Tabs, Dialog, Select,
+  Label, plus a Sonner-based Toaster.
+- `web/app/style-guide` — a live page exercising every primitive, in both themes.
+- Vitest + React Testing Library configured; 9 tests passing (`healthStatusVariant` mapping, Badge
+  rendering, Button click/disabled behavior).
+
+**Real bug found and fixed during manual browser verification, not by static checks:** the Dialog's
+Cancel/Confirm buttons in the style-guide demo did not close the dialog — only the corner close icon
+did, because `DialogClose` was never exported from the primitive. Caught by driving the actual
+rendered page with Playwright (already available in this environment) and asserting on real DOM
+state, not by `tsc`/`eslint`/the production build, all of which passed while the bug was still
+present. Fixed by adding `DialogClose` to `web/components/ui/dialog.tsx` and wrapping the demo
+buttons with it.
+
+**Verification performed:** `npx tsc --noEmit`, `npx eslint .`, `npm run build` (both routes
+prerendered as static content), `npm test` (9/9), and a full manual pass in a real headless browser
+— both color schemes screenshotted, then Select/Tabs/Dialog/Toast/character-counter driven
+interactively via Playwright and asserted on real page state, not just visual inspection.

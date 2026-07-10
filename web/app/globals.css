@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens per RFC-001 Section 5. Values are not arbitrary: the accent
+ * hue (indigo) is deliberately distinct from the blue/teal used in the
+ * engineering evidence docs, so the product UI is never confused with the
+ * internal audit reports. Status colors map 1:1 to backend semantics
+ * (health_status green/yellow/red -> ok/warn/danger) -- no invented states.
+ */
+:root {
+  --bg: #f5f6fa;
+  --surface: #ffffff;
+  --surface-2: #ecedf5;
+  --ink: #191b26;
+  --ink-muted: #565a72;
+  --ink-faint: #8c90a4;
+  --border: #dde0ea;
+  --border-strong: #c4c8d8;
+
+  --accent: #4c4fc4;
+  --accent-ink: #35378e;
+  --accent-soft: #e7e7f8;
+
+  --ok: #2f8f5b;
+  --ok-soft: #e4f3ea;
+  --warn: #b07a2a;
+  --warn-soft: #f6ebda;
+  --danger: #b23b3b;
+  --danger-soft: #f6e2e2;
+
+  --status-neutral: #5b6b87;
+  --status-neutral-soft: #e7eaf0;
+
+  --font-display:
+    -apple-system, "Segoe UI Semibold", ui-sans-serif, "Helvetica Neue", Arial,
+    sans-serif;
+  --font-body:
+    -apple-system, "Segoe UI", ui-sans-serif, "Helvetica Neue", Arial,
+    sans-serif;
+  --font-mono:
+    ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Consolas,
+    monospace;
+
+  --radius: 0.375rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #13141c;
+    --surface: #1a1c28;
+    --surface-2: #222436;
+    --ink: #e9eaf3;
+    --ink-muted: #a2a6bc;
+    --ink-faint: #6e7288;
+    --border: #2b2e42;
+    --border-strong: #3b3f58;
+
+    --accent: #9498f0;
+    --accent-ink: #c7c9f8;
+    --accent-soft: #26284a;
+
+    --ok: #6fcb8f;
+    --ok-soft: #1e3527;
+    --warn: #e0ad63;
+    --warn-soft: #382c18;
+    --danger: #e08080;
+    --danger-soft: #3b2424;
+
+    --status-neutral: #a6b3c9;
+    --status-neutral-soft: #232a38;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+
+  --color-status-neutral: var(--status-neutral);
+  --color-status-neutral-soft: var(--status-neutral-soft);
+
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
