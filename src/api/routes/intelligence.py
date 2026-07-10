@@ -178,3 +178,11 @@ def get_project_summary(
 ):
     logger.info("Summarizing project_name=%s", project_name)
     return service.summarize(project_name=project_name)
+
+
+@router.get("/portfolio/summary", response_model=list[ProjectSummaryResponse])
+def get_portfolio_summary(
+    service: ProjectSummaryService = Depends(build_project_summary_service),
+):
+    logger.info("Summarizing portfolio")
+    return service.summarize_portfolio()

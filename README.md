@@ -103,6 +103,13 @@ Project summary (aggregated counts across every stored analysis for a project â€
 curl -H "X-API-Key: $API_KEY" http://localhost:8000/api/projects/Multilift/summary
 ```
 
+Portfolio summary (the same aggregation for every project in one call â€” see
+`docs/technical/04-api-design.md#portfolio-summary-api`):
+
+```bash
+curl -H "X-API-Key: $API_KEY" http://localhost:8000/api/portfolio/summary
+```
+
 ## Governance Rule
 
 No release or validation document may state that a feature is validated unless it links to the commit and CI/test evidence that supports the claim.

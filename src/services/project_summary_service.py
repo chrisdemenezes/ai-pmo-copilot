@@ -1,6 +1,7 @@
 import logging
+from collections import defaultdict
 
-from src.database.repository import AnalysisRepository
+from src.database.repository import AnalysisRecord, AnalysisRepository
 
 logger = logging.getLogger(__name__)
 
@@ -10,10 +11,31 @@ class ProjectSummaryService:
         self._repository = repository
 
     def summarize(self, project_name: str) -> dict:
-        # Relies on the repository's list_analyses ordering records newest-first,
-        # so the first "status" kind record encountered below is the latest one.
+        # Relies on the repository's list_analyses ordering records newest-first.
         records = self._repository.list_analyses(project_name=project_name, limit=None)
+        return self._aggregate(project_name, records)
 
+    def summarize_portfolio(self) -> list[dict]:
+        # One fetch of everything, grouped in memory, instead of one query per
+        # project — MVP data volume doesn't justify N+1 queries here.
+        records = self._repository.list_analyses(limit=None)
+
+        by_project: dict[str, list[AnalysisRecord]] = defaultdict(list)
+        for record in records:
+            if record.project_name is not None:
+                # Partitioning a stream that's already newest-first preserves
+                # that order within each project's bucket.
+                by_project[record.project_name].append(record)
+
+        summaries = [
+            self._aggregate(project_name, project_records)
+            for project_name, project_records in sorted(by_project.items())
+        ]
+        logger.info("Summarized portfolio: %d projects", len(summaries))
+        return summaries
+
+    @staticmethod
+    def _aggregate(project_name: str, records: list[AnalysisRecord]) -> dict:
         open_risks = 0
         pending_action_items = 0
         latest_health_status: str | None = None
