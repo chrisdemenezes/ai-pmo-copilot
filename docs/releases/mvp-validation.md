@@ -101,6 +101,19 @@ this one.
 - Test evidence: 57/57 tests passing (unchanged), 98.86% coverage (unchanged — none of the removed files had real test coverage), `ruff check src tests` clean.
 - CI evidence: verified against the real GitHub Actions run before merge — run [29091266054](https://github.com/chrisdemenezes/ai-pmo-copilot/actions/runs/29091266054), all green.
 
+## Evidence Entry 007 - Per-API-key rate limiting (US-SEC-03)
+
+- Source PR: #19 - feat: add per-API-key rate limiting (US-SEC-03)
+- Merge commit SHA: `a3e6500a060696ad7f94a5cf2eda65156a719f76`
+- Scope evidenced:
+  - `src/api/rate_limiter.py::RateLimiter` (in-process sliding window, no external dependency) plus `build_rate_limiter()` singleton via `@lru_cache`, mirroring the `build_repository()` DI pattern.
+  - `enforce_rate_limit` applied at the router level after `verify_api_key`; identifies callers by their already-validated `X-API-Key`. 429 on excess, configurable via `RATE_LIMIT_MAX_REQUESTS`/`RATE_LIMIT_WINDOW_SECONDS` (default 60/60s).
+  - `tests/conftest.py` — autouse bypass extended to `enforce_rate_limit` so pre-existing tests don't share one bucket.
+  - `tests/test_rate_limiter.py` (4 unit tests, injectable clock) and `tests/test_rate_limit_api.py` (2 integration tests — real 429, per-key isolation).
+- Test evidence: 63/63 tests passing, 99.00% coverage (`rate_limiter.py` 100%), `ruff check src tests` clean.
+- CI evidence: verified against the real GitHub Actions run before merge — run [29092947436](https://github.com/chrisdemenezes/ai-pmo-copilot/actions/runs/29092947436), all green.
+- Known limitation: rate limiting is per-process, in-memory — not shared across multiple API instances, resets on restart. Documented in `docs/technical/04-api-design.md#rate-limiting` as acceptable for the current single-instance deployment.
+
 ## Decision: remaining backlog deferred until MVP closure
 
 AP-001, DB-001, and CP-001 are explicitly deferred, not scheduled. See
