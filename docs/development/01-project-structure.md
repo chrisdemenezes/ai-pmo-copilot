@@ -114,3 +114,24 @@ env-var default bug in the rate-limit settings was actually caught before merge)
 of the Dockerfile against the already-working local run instructions in `README.md`. Real `docker
 compose up` execution against this file is still owed before calling Docker support production-
 ready.
+
+## Decision: TASK-AI-01 deferred, at the user's direction
+
+`TASK-AI-01` (a real integration call per agent against the production Anthropic API, to measure the
+real `structured: true` vs. fallback rate) is explicitly deferred, not scheduled:
+
+- A real `ANTHROPIC_API_KEY` was provided and tested (Evidence Entry 013). The key authenticated
+  successfully — this is not a credential or code problem — but the account behind it has no
+  billing/credit configured, so all three calls were rejected with `400: credit balance too low`
+  before reaching the model.
+- The user chose to proceed with the rest of the roadmap rather than wait for billing to be added.
+- What Entry 013 already confirms stands as real evidence: `ProductionLLMProvider` connects
+  correctly to the live API, and `ProviderUnavailableError` → 502 fires correctly against a genuine
+  upstream rejection. What remains open is specifically the structured-output success rate on a real
+  model response — that requires either billing added to the existing key's account or a differently
+  funded key, at the user's discretion. This is not blocked by anything in the codebase or this
+  environment.
+
+With this deferral, every other item in the Master Product Backlog's roadmap through the Pilot
+Release milestone (Sprints 1-4) is closed. See `docs/releases/mvp-validation.md`, Evidence Entries
+004-013, for the full record.
