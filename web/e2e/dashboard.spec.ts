@@ -54,30 +54,22 @@ test("renders the empty state when the backend has no projects", async ({ page }
 });
 
 // 7 + 12 (erro). Backend indisponível
-// NOTE (T9 finding, not silently fixed): the QueryClient in app/providers.tsx
-// uses TanStack Query's default retry (3 attempts, exponential backoff), so
-// the error only surfaces after ~7s of silent retries on top of the failed
-// request itself. Timeout below reflects that REAL observed latency, not a
-// padded guess -- see the T9 Executive Progress Report for the finding.
+// retry:false (Product Behavior Decision, T9) -- single attempt, error
+// surfaces immediately instead of after ~7.9s of retries.
 test("renders the safe error state when the backend is unavailable", async ({ page }) => {
   await setBackendScenario("unavailable");
   await login(page);
-  await expect(page.getByText("Não foi possível carregar o portfólio agora")).toBeVisible({
-    timeout: 15_000,
-  });
+  await expect(page.getByText("Não foi possível carregar o portfólio agora")).toBeVisible();
 });
 
 // 8. Timeout do backend
-// NOTE (T9 finding): each of the up to 4 attempts (1 initial + 3 retries)
-// waits the BFF's own 8s AbortController timeout, plus ~7s of backoff
-// between attempts -- worst case ~39s before the error surfaces. This is
-// the same undocumented retry-storm finding as the test above, magnified.
+// retry:false -- single attempt, bounded by the BFF's own 8s
+// AbortController timeout instead of ~40.2s across 4 attempts.
 test("renders the error state when the backend times out", async ({ page }) => {
-  test.setTimeout(60_000);
   await setBackendScenario("timeout");
   await login(page);
   await expect(page.getByText("Não foi possível carregar o portfólio agora")).toBeVisible({
-    timeout: 50_000,
+    timeout: 12_000,
   });
 });
 
