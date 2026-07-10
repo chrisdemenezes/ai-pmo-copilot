@@ -140,6 +140,19 @@ this one.
 - Test evidence: 68/68 tests passing, 98.51% coverage (`request_context.py` 94% — the 2 uncovered lines are the non-HTTP ASGI passthrough branch), `ruff check src tests` clean.
 - CI evidence: verified against the real GitHub Actions run before merge — run [29093969775](https://github.com/chrisdemenezes/ai-pmo-copilot/actions/runs/29093969775), all green.
 
+## Evidence Entry 010 - Project summary API (US-EXE-01)
+
+- Source PR: #25 - feat: add project summary API (US-EXE-01)
+- Merge commit SHA: `3bc8fbdbaaf270d285f44b587318a89839482ad7`
+- Scope evidenced:
+  - `src/services/project_summary_service.py::ProjectSummaryService` — first real file in `services/` (named in `CLAUDE.md`'s official architecture, previously empty). Aggregates `open_risks`, `pending_action_items`, `latest_health_status` from stored analyses, reading only through `AnalysisRepository`.
+  - `GET /api/projects/{project_name}/summary` in `intelligence.py`; unknown/empty project returns 200 with zeros.
+  - `src/database/repository.py::list_analyses` — `limit` now accepts `None`; default behavior for existing callers unchanged.
+  - Bug found and fixed during this story's own tests: `list_analyses` ordering had no tiebreaker beyond `created_at`, so two records saved in the same instant had non-deterministic order — this silently affected the existing `GET /api/analyses` "newest first" listing too, not just the new service. Fixed with `id.desc()` as a secondary sort key.
+  - `tests/test_project_summary_service.py` (6 unit tests, real `sqlite:///:memory:` repository) and `tests/test_project_summary_api.py` (2 integration tests).
+- Test evidence: 75/75 tests passing, 98.67% coverage (`project_summary_service.py` 100%), `ruff check src tests` clean.
+- CI evidence: verified against the real GitHub Actions run before merge — run [29094363129](https://github.com/chrisdemenezes/ai-pmo-copilot/actions/runs/29094363129), all green.
+
 ## Decision: remaining backlog deferred until MVP closure
 
 AP-001, DB-001, and CP-001 are explicitly deferred, not scheduled. See
