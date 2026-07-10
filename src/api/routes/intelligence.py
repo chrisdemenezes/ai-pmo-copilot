@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from src.agents.meeting_intelligence.agent import MeetingIntelligenceAgent
 from src.agents.project_status.agent import ProjectStatusAgent
 from src.agents.risk_review.agent import RiskReviewAgent
+from src.api.rate_limiter import enforce_rate_limit
 from src.api.security import verify_api_key
 from src.llm.providers.base import LLMProvider
 from src.llm.providers.factory import get_provider
@@ -16,7 +17,7 @@ from src.database.repository import AnalysisRepository
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(dependencies=[Depends(verify_api_key)])
+router = APIRouter(dependencies=[Depends(verify_api_key), Depends(enforce_rate_limit)])
 
 
 def _ensure_has_content(value: str) -> str:

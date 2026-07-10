@@ -24,6 +24,20 @@ Cross-origin browser requests are controlled by `CORS_ALLOWED_ORIGINS` (comma-se
 to the `Content-Type` and `X-API-Key` headers. Read once at process startup, not per request — a
 new origin requires restarting the process with the updated env var.
 
+## Rate Limiting
+
+Every route under `/api/*` is limited per API key to `RATE_LIMIT_MAX_REQUESTS` requests per
+`RATE_LIMIT_WINDOW_SECONDS` (see `.env.example`; defaults 60 requests / 60 seconds). Enforced by
+`enforce_rate_limit` (`src/api/rate_limiter.py`), applied at the router level alongside
+`verify_api_key` — auth runs first, so an invalid key never consumes another caller's quota.
+Sliding window, in-process (no external store); resets if the process restarts. Not shared across
+multiple app instances — acceptable for the current single-instance deployment, revisit if/when the
+service is horizontally scaled.
+
+| Status | Body | Cause |
+|---|---|---|
+| 429 | `{"detail": "Rate limit exceeded"}` | The caller's API key made more than `RATE_LIMIT_MAX_REQUESTS` requests within the current window |
+
 ## Core APIs
 
 ### Project Status API
