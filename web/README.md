@@ -6,7 +6,8 @@ those before adding a new dependency or route.
 
 ## Status
 
-Sprint 1 (Design System) and FS-001 (Dashboard Executivo — Release 0.2) are delivered:
+Sprint 1 (Design System) is delivered. FS-001 (Dashboard Executivo — Release 0.2) is implemented
+and validated locally, awaiting final gates and integration to `main`:
 
 - `web/app/style-guide` — every design token and primitive, light and dark.
 - `web/app/dashboard` — first screen wired to real backend data, gated behind a Nível 1 workspace

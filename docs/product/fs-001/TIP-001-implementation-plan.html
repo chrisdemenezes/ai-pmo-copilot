@@ -1,0 +1,348 @@
+<title>TIP-001 — Technical Implementation Plan: Dashboard Executivo</title>
+<style>
+:root{
+  --bg:#F5F6F8; --surface:#FFFFFF; --surface-2:#EEF1F6;
+  --ink:#1A2130; --ink-soft:#586174; --ink-faint:#8B93A3;
+  --border:#DFE3EA; --border-soft:#EBEEF2;
+  --accent:#1E7A5C; --accent-soft:#E4F4EE; --accent-ink:#136148;
+  --ok:#1C8A5C; --ok-soft:#E4F5EC;
+  --warn:#9A6B00; --warn-soft:#FBF1DC;
+  --danger:#C23B3B; --danger-soft:#FBE8E8;
+  --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --radius:8px;
+}
+:root[data-theme="dark"]{
+  --bg:#12151C; --surface:#191D26; --surface-2:#20242F;
+  --ink:#E7E9EE; --ink-soft:#A7AFC0; --ink-faint:#6B7284;
+  --border:#2A2F3B; --border-soft:#232733;
+  --accent:#5FCBA0; --accent-soft:#132A22; --accent-ink:#8FE0BE;
+  --ok:#4FBE8C; --ok-soft:#132A22;
+  --warn:#D6A93C; --warn-soft:#2E2712;
+  --danger:#E38080; --danger-soft:#301718;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12151C; --surface:#191D26; --surface-2:#20242F;
+    --ink:#E7E9EE; --ink-soft:#A7AFC0; --ink-faint:#6B7284;
+    --border:#2A2F3B; --border-soft:#232733;
+    --accent:#5FCBA0; --accent-soft:#132A22; --accent-ink:#8FE0BE;
+    --ok:#4FBE8C; --ok-soft:#132A22;
+    --warn:#D6A93C; --warn-soft:#2E2712;
+    --danger:#E38080; --danger-soft:#301718;
+  }
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6;}
+.wrap{max-width:960px;margin:0 auto;padding:40px 24px 100px;}
+header.doc-head{border-bottom:2px solid var(--ink);padding-bottom:20px;margin-bottom:24px;}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);font-weight:700;}
+h1{font-size:27px;margin:6px 0 4px;letter-spacing:-.01em;text-wrap:balance;}
+.subtitle{color:var(--ink-soft);font-size:14.5px;margin:0 0 14px;}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);font-size:12px;color:var(--ink-faint);}
+.meta-row code{color:var(--ink-soft);}
+.callout{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 6px 6px 0;padding:12px 16px;margin:14px 0;font-size:14px;}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft);}
+.callout strong{display:block;margin-bottom:3px;}
+section{margin:38px 0;}
+.section-head{display:flex;align-items:baseline;gap:10px;margin-bottom:14px;}
+.step-no{font-family:var(--mono);font-size:12px;color:var(--accent-ink);background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-weight:700;}
+h2{font-size:19px;margin:0;letter-spacing:-.005em;}
+h3{font-size:15px;margin:20px 0 8px;}
+p{margin:0 0 12px;}
+ul,ol{margin:0 0 12px;padding-left:22px;}
+li{margin-bottom:4px;}
+code{font-family:var(--mono);font-size:.87em;background:var(--surface-2);padding:1px 5px;border-radius:4px;}
+
+.task{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);margin-bottom:14px;overflow:hidden;}
+.task-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 16px;background:var(--surface-2);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.task-id{font-family:var(--mono);font-weight:700;color:var(--accent-ink);}
+.task-title{font-weight:700;font-size:14px;}
+.task-body{padding:10px 16px 14px;font-size:13.8px;}
+.task-body dl{display:grid;grid-template-columns:130px 1fr;gap:5px 12px;margin:8px 0 0;}
+.task-body dt{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.03em;padding-top:2px;}
+.task-body dd{margin:0;}
+.subtasks{list-style:none;padding:0;margin:6px 0 0;}
+.subtasks li{padding:3px 0 3px 16px;position:relative;font-size:13.3px;}
+.subtasks li::before{content:"–";position:absolute;left:0;color:var(--ink-faint);}
+
+.pill{display:inline-block;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.02em;padding:2px 8px;border-radius:999px;white-space:nowrap;}
+.pill.ok{background:var(--ok-soft);color:var(--ok);}
+.pill.warn{background:var(--warn-soft);color:var(--warn);}
+.pill.danger{background:var(--danger-soft);color:var(--danger);}
+.pill.neutral{background:var(--surface-2);color:var(--ink-soft);}
+.pill.accent{background:var(--accent-soft);color:var(--accent-ink);}
+
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:560px;}
+thead th{text-align:left;background:var(--surface-2);font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);padding:9px 12px;border-bottom:1px solid var(--border);}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--border-soft);vertical-align:top;}
+tbody tr:last-child td{border-bottom:none;}
+
+.order-list{counter-reset:ord;list-style:none;padding:0;margin:0;}
+.order-list li{counter-increment:ord;position:relative;padding:9px 0 9px 34px;border-bottom:1px solid var(--border-soft);font-size:13.8px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;}
+.order-list li:last-child{border-bottom:none;}
+.order-list li::before{content:counter(ord);position:absolute;left:0;top:9px;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--mono);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+
+.checklist{list-style:none;padding:0;margin:0;}
+.checklist li{display:flex;gap:9px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--border-soft);font-size:13.8px;}
+.checklist li:last-child{border-bottom:none;}
+.checklist .box{flex:0 0 16px;height:16px;border:1.5px solid var(--ink-faint);border-radius:4px;margin-top:2px;}
+
+.effort-badge{font-family:var(--mono);font-weight:700;font-size:11px;padding:2px 8px;border-radius:5px;}
+.effort-S{background:var(--ok-soft);color:var(--ok);}
+.effort-M{background:var(--warn-soft);color:var(--warn);}
+.effort-L{background:var(--danger-soft);color:var(--danger);}
+
+.doc-footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);}
+</style>
+
+<div class="wrap">
+  <header class="doc-head">
+    <div class="kicker">Technical Implementation Plan · TIP-001</div>
+    <h1>Dashboard Executivo — Plano de Implementação</h1>
+    <p class="subtitle">Decompõe FS-001 (Revisão 3, aprovada) em tarefas técnicas executáveis. Escopo v1: W1, W2, W3, W5 — W4 adiado para fast-follow (UX Review).</p>
+    <div class="meta-row">
+      <span>Papel: <code>Principal Software Engineer</code></span>
+      <span>Fonte: <code>FS-001 Rev. 5</code> + <code>UX-REVIEW-FS001.html</code></span>
+      <span>Backend: <code>main@30f6f40</code></span>
+      <span>Frontend: <code>claude/cleanup-orphaned-files-xtvwrj@bd46fb3</code></span>
+      <span>Status: <code>T1–T9 concluídas — ver FS-001 §21</code></span>
+    </div>
+  </header>
+
+  <div class="callout ok">
+    <strong>T1–T9 concluídas e testadas.</strong> Este plano permanece o registro de decomposição técnica; execução real documentada em FS-001 §21 e <code>docs/releases/mvp-validation.md</code> Evidence Entry 015.
+  </div>
+
+  <div class="callout warn">
+    <strong>Este documento não contém código nem autoriza commit/PR.</strong>
+    É o plano de execução para a fase de Implementação, que só inicia após Aprovação formal do Product Owner sobre FS-001.
+  </div>
+
+  <section>
+    <div class="section-head"><span class="step-no">1</span><h2>Tarefas e subtarefas</h2></div>
+
+    <div class="task">
+      <div class="task-head"><span class="task-id">T1</span><span class="task-title">Sessão de workspace Nível 1 (mínima)</span><span class="pill danger">Bloqueante</span></div>
+      <div class="task-body">
+        <p>Pré-requisito identificado em FS-001 §9/§16 — sem isso, <code>/dashboard</code> não está de fato protegida.</p>
+        <ul class="subtasks">
+          <li>Definir mecanismo mínimo: cookie de sessão assinado (workspace único, sem multi-usuário) validado em <code>middleware.ts</code> do Next.js</li>
+          <li>Implementar rota de "entrada no workspace" (formulário de senha única compartilhada, não é usuário/senha individual)</li>
+          <li>Middleware bloqueia acesso a <code>/dashboard</code> e a todas as rotas <code>/api/bff/*</code> sem cookie válido</li>
+          <li>Testes: acesso sem cookie → redirect; acesso com cookie válido → passa; cookie expirado → redirect</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="task">
+      <div class="task-head"><span class="task-id">T2</span><span class="task-title">Rota BFF <code>/api/bff/dashboard</code></span><span class="pill accent">Primeira rota BFF do projeto</span></div>
+      <div class="task-body">
+        <ul class="subtasks">
+          <li>Route Handler Next.js que injeta <code>X-API-Key</code> (variável de ambiente server-side, nunca em código de cliente)</li>
+          <li>Repassa <code>GET /api/portfolio/summary</code> ao backend FastAPI</li>
+          <li>Formato de erro padronizado (sem detalhe interno, sem header vazado) — decisão de Architecture Review em FS-001 §18</li>
+          <li>Timeout e tratamento de 5xx/502/503 do backend</li>
+          <li>Testes de integração com backend mockado (sucesso, erro, timeout)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="task">
+      <div class="task-head"><span class="task-id">T3</span><span class="task-title">Data layer — hook <code>usePortfolioSummary()</code></span></div>
+      <div class="task-body">
+        <ul class="subtasks">
+          <li>TanStack Query hook consumindo <code>/api/bff/dashboard</code></li>
+          <li><code>staleTime: 30_000</code>, <code>refetchInterval: 60_000</code>, <code>refetchIntervalInBackground: false</code> (Data Freshness Matrix, FS-001 §10)</li>
+          <li>Botão de atualização manual (<code>refetch()</code> exposto)</li>
+          <li>Testes unitários da configuração do hook (mock do fetch)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="task">
+      <div class="task-head"><span class="task-id">T4</span><span class="task-title">UI — Portfolio Summary Strip (W1)</span></div>
+      <div class="task-body">
+        <ul class="subtasks">
+          <li>Função pura de agregação client-side (nº projetos, soma <code>open_risks</code>, soma <code>pending_action_items</code>) — testável isoladamente do componente</li>
+          <li>Componente de apresentação usando tokens do Design System (Sprint 1)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="task">
+      <div class="task-head"><span class="task-id">T5</span><span class="task-title">UI — Project Health Grid (W2)</span></div>
+      <div class="task-body">
+        <ul class="subtasks">
+          <li>Grid <code>auto-fill</code>/<code>minmax</code> (nota de layout do UX Review — funciona com 1 ou N projetos)</li>
+          <li>Card com <code>project_name</code> truncado (ellipsis + <code>title</code>), contadores em <code>tabular-nums</code></li>
+          <li>Badge de <code>latest_health_status</code> via <code>healthStatusVariant()</code> (já existe, sem alteração)</li>
+          <li>Rótulo "Riscos identificados" + tooltip (copy final do UX Review)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="task">
+      <div class="task-head"><span class="task-id">T6</span><span class="task-title">UI — Health Status Distribution (W3)</span></div>
+      <div class="task-body">
+        <ul class="subtasks">
+          <li>Função pura de agregação por valor de <code>latest_health_status</code> (reusa o mesmo payload de T4)</li>
+          <li>Componente de apresentação, reusa <code>Badge</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="task">
+      <div class="task-head"><span class="task-id">T7</span><span class="task-title">UI — Risk Concentration Ranking (W5)</span></div>
+      <div class="task-body">
+        <ul class="subtasks">
+          <li>Ordenação client-side por <code>open_risks</code> decrescente (reusa o mesmo payload de T4)</li>
+          <li>Componente de apresentação (top N, reusa estilo de card de T5)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="task">
+      <div class="task-head"><span class="task-id">T8</span><span class="task-title">Estados da tela</span></div>
+      <div class="task-body">
+        <ul class="subtasks">
+          <li>Loading: grid de <code>Skeleton</code> no layout final (evita layout shift)</li>
+          <li>Vazio: copy final do UX Review, sem CTA inexistente</li>
+          <li>Erro: <code>app/dashboard/error.tsx</code>, copy final do UX Review, sem stack trace</li>
+          <li>Parcial: badge "Sem dado" quando <code>latest_health_status</code> é <code>null</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="task">
+      <div class="task-head"><span class="task-id">T9</span><span class="task-title">Testes E2E (Playwright)</span></div>
+      <div class="task-body">
+        <ul class="subtasks">
+          <li>Cenário 1: 3 projetos → 3 cards com dados reais (FS-001 §15)</li>
+          <li>Cenário 2: portfólio vazio → estado vazio, sem card fantasma</li>
+          <li>Cenário 3: backend retorna 5xx → <code>X-API-Key</code> nunca aparece na resposta ao browser</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="task">
+      <div class="task-head"><span class="task-id">T10</span><span class="task-title">Documentação e evidência</span></div>
+      <div class="task-body">
+        <ul class="subtasks">
+          <li>Atualizar <code>web/README.md</code> (status: Sprint 2 entregue, primeira integração BFF)</li>
+          <li>Nova Evidence Entry em <code>docs/releases/mvp-validation.md</code> com link a commit + execução real de CI</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">2</span><h2>Ordem de execução</h2></div>
+    <ol class="order-list">
+      <li>T1 — Sessão Nível 1 (bloqueia proteção real de qualquer rota nova)</li>
+      <li>T2 — Rota BFF (pode ser desenvolvida em paralelo a T1 sem o middleware ligado; gate final exige T1 concluído)</li>
+      <li>T3 — Data layer (depende de T2 existir)</li>
+      <li>T4 + T5 — Strip e Grid (dependem de T3; podem ser paralelizados entre si)</li>
+      <li>T6 + T7 — Distribution e Ranking (dependem apenas do mesmo payload de T4/T5, podem começar assim que T3 estiver pronto)</li>
+      <li>T8 — Estados da tela (integra com T4–T7, precisa de todos os componentes de apresentação prontos)</li>
+      <li>T9 — E2E (precisa da feature completa e do gate de T1 ativo)</li>
+      <li>T10 — Documentação (fecha a entrega, após T9 verde)</li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">3</span><h2>Dependências</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Dependência</th><th>Tipo</th><th>Estado</th></tr></thead>
+        <tbody>
+          <tr><td><code>GET /api/portfolio/summary</code></td><td>Backend</td><td><span class="pill ok">Pronto</span></td></tr>
+          <tr><td>Design System (Card, Badge, Skeleton)</td><td>Frontend</td><td><span class="pill ok">Pronto (Sprint 1)</span></td></tr>
+          <tr><td>Sessão Nível 1 (T1)</td><td>Frontend, novo</td><td><span class="pill danger">A construir — bloqueia T2 em produção</span></td></tr>
+          <tr><td>Variável de ambiente <code>API_KEY</code> disponível ao BFF em runtime</td><td>Infra</td><td><span class="pill neutral">Confirmar no ambiente de deploy antes de T2</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">4</span><h2>Riscos de implementação</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Risco</th><th>Classificação</th><th>Mitigação</th></tr></thead>
+        <tbody>
+          <tr><td>T1 subestimado — primeira feature de sessão do projeto, sem precedente no código</td><td><span class="pill danger">Alto</span></td><td>Escopo deliberadamente mínimo (cookie único de workspace, não multi-usuário) para conter incerteza; não expandir para RBAC nesta feature</td></tr>
+          <tr><td><code>portfolio/summary</code> sem paginação — payload grande em runtime real</td><td><span class="pill warn">Médio</span></td><td>Herdado de FS-001 §17 — aceitável no volume do MVP</td></tr>
+          <tr><td>Divergência entre skeleton (T8) e layout final (T5) causando layout shift</td><td><span class="pill neutral">Baixo</span></td><td>Construir o skeleton a partir do componente final, não o inverso</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">5</span><h2>Definition of Done</h2></div>
+    <ul class="checklist">
+      <li><span class="box"></span><code>npx tsc --noEmit</code> sem erros</li>
+      <li><span class="box"></span><code>npx eslint .</code> sem erros</li>
+      <li><span class="box"></span><code>npm test</code> — testes unitários de T3, T4, T6, T7 passando</li>
+      <li><span class="box"></span><code>npm run build</code> sem erros</li>
+      <li><span class="box"></span>3 cenários E2E de T9 passando (Playwright)</li>
+      <li><span class="box"></span>3 critérios de aceite de FS-001 §15 verificados manualmente em browser real</li>
+      <li><span class="box"></span><code>X-API-Key</code> confirmado ausente de toda resposta ao browser, em todo cenário de erro testado</li>
+      <li><span class="box"></span>CI (job <code>frontend</code> em <code>.github/workflows/ci.yml</code>) verde</li>
+      <li><span class="box"></span>Code Review aprovado (próximo gate do pipeline)</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">6</span><h2>Estratégia de testes</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Camada</th><th>Ferramenta</th><th>Cobre</th></tr></thead>
+        <tbody>
+          <tr><td>Unitário</td><td>Vitest</td><td>Funções puras de agregação (T4, T6, T7) e configuração do hook (T3) — isoladas de rede e DOM</td></tr>
+          <tr><td>Componente</td><td>Vitest + React Testing Library</td><td>Estados de T8 (loading/vazio/erro/parcial) renderizados com dados mockados</td></tr>
+          <tr><td>Integração</td><td>Vitest (mock do backend)</td><td>Rota BFF (T2) — sucesso, erro, timeout, ausência de <code>X-API-Key</code> na resposta</td></tr>
+          <tr><td>E2E</td><td>Playwright</td><td>Os 3 critérios de aceite de FS-001 §15, contra browser real (mesma abordagem que encontrou o bug real de <code>DialogClose</code> no Sprint 1)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">7</span><h2>Estratégia de rollback</h2></div>
+    <p>A feature é inteiramente aditiva: uma rota nova (<code>/dashboard</code>), uma Route Handler nova (<code>/api/bff/dashboard</code>) e um middleware novo de sessão — nenhum endpoint, tabela ou rota existente é modificado ou removido.</p>
+    <ul>
+      <li><strong>Rollback de código:</strong> revert do commit/PR de merge — sem migração de banco envolvida, sem dado a reverter.</li>
+      <li><strong>Rollback parcial do middleware de sessão (T1):</strong> se o gate de sessão causar bloqueio indevido em produção, o middleware pode ser desativado via flag de ambiente sem remover a tela — a tela fica temporariamente sem proteção Nível 1, risco aceito e documentado, não recomendado além de uma janela curta de correção.</li>
+      <li><strong>Sem impacto no backend:</strong> nenhuma mudança em <code>src/</code> é necessária para esta feature — rollback do frontend não tem efeito colateral no backend.</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">8</span><h2>Estimativa de esforço</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tarefa</th><th>Esforço</th><th>Motivo</th></tr></thead>
+        <tbody>
+          <tr><td>T1 — Sessão Nível 1</td><td><span class="effort-badge effort-L">L</span></td><td>Sem precedente no código; maior incerteza de todo o plano</td></tr>
+          <tr><td>T2 — Rota BFF</td><td><span class="effort-badge effort-M">M</span></td><td>Primeira rota BFF do projeto, mas padrão bem especificado em FS-001/RFC-001</td></tr>
+          <tr><td>T3 — Data layer</td><td><span class="effort-badge effort-S">S</span></td><td>Configuração de hook sobre padrão já usado no style-guide</td></tr>
+          <tr><td>T4 — W1 Strip</td><td><span class="effort-badge effort-S">S</span></td><td>Agregação trivial + componente simples</td></tr>
+          <tr><td>T5 — W2 Grid</td><td><span class="effort-badge effort-M">M</span></td><td>Maior superfície de UI, inclui os 3 ajustes de layout do UX Review</td></tr>
+          <tr><td>T6 — W3 Distribution</td><td><span class="effort-badge effort-S">S</span></td><td>Mesmo payload de T4/T5, agregação simples</td></tr>
+          <tr><td>T7 — W5 Ranking</td><td><span class="effort-badge effort-S">S</span></td><td>Mesmo payload, apenas ordenação</td></tr>
+          <tr><td>T8 — Estados</td><td><span class="effort-badge effort-S">S</span></td><td>Copy já definida pelo UX Review, componentes já existem</td></tr>
+          <tr><td>T9 — E2E</td><td><span class="effort-badge effort-M">M</span></td><td>3 cenários reais contra browser, incluindo o cenário de segurança (X-API-Key)</td></tr>
+          <tr><td>T10 — Documentação</td><td><span class="effort-badge effort-S">S</span></td><td>Atualização de arquivos existentes</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:13px;color:var(--ink-faint)">Estimativa em T-shirt size (S/M/L), não em horas — nenhuma velocidade de equipe real foi medida ainda para converter em dias com confiança.</p>
+  </section>
+
+  <footer class="doc-footer">
+    AI PMO Copilot · TIP-001 · Papel: Principal Software Engineer · decompõe FS-001 Rev. 3 (aprovada) · nenhum código, PR ou commit produzido nesta entrega · aguardando Aprovação do Product Owner para iniciar T1.
+  </footer>
+</div>

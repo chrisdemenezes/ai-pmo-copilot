@@ -250,6 +250,12 @@ this one.
 - Commits (chronological): `412fa6e` (T1 session gate, T2 BFF route, T3 data layer, T4-T7 widgets),
   `63957d3` (T8 dashboard states), `cd93d1d` (fix: cached data survives a failed background
   refetch), `9d77b59` (T9 E2E suite), `bd46fb3` (retry:false Product Behavior Decision).
+- Traceability of the process artifacts (FS-001 Revisão 5, TIP-001, UX Review): versioned in this
+  repository rather than linked externally — the artifact-hosting URLs used during authoring are
+  private by default and not a durable reference for a future engineer or auditor.
+  `docs/product/fs-001/FS-001-feature-specification.html`,
+  `docs/product/fs-001/TIP-001-implementation-plan.html`,
+  `docs/product/fs-001/UX-REVIEW-FS001.html` — self-contained, open directly in a browser.
 - Scope evidenced:
   - `web/proxy.ts`, `web/lib/session.ts` — Nível 1 workspace session (HMAC-signed cookie, single
     shared password, 12h TTL, emergency kill switch via `DISABLE_WORKSPACE_SESSION_GATE`)

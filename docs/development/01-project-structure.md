@@ -194,9 +194,10 @@ prerendered as static content), `npm test` (9/9), and a full manual pass in a re
 — both color schemes screenshotted, then Select/Tabs/Dialog/Toast/character-counter driven
 interactively via Playwright and asserted on real page state, not just visual inspection.
 
-## FS-001 Decision: Dashboard Executivo (Release 0.2) delivered
+## FS-001 Decision: Dashboard Executivo (Release 0.2) implemented and validated locally
 
-First screen wired to real backend data, delivered under the AI Product Engineering Framework
+Implemented and validated locally, awaiting final gates and integration to `main` — not yet
+delivered. First screen wired to real backend data, built under the AI Product Engineering Framework
 (AI-PEF) gate sequence: Product Review (Product Hypothesis per ADR-010, since no pre-launch feature
 can have a historical business metric), Architecture Review, UX Review, Feature Specification
 (FS-001 Rev. 4), Technical Implementation Plan (TIP-001), Product Owner Approval, then T1–T9.

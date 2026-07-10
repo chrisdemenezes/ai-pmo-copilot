@@ -1,0 +1,204 @@
+<title>UX Review — FS-001 Dashboard Executivo</title>
+<style>
+:root{
+  --bg:#F5F6F8; --surface:#FFFFFF; --surface-2:#EEF1F6;
+  --ink:#1A2130; --ink-soft:#586174; --ink-faint:#8B93A3;
+  --border:#DFE3EA; --border-soft:#EBEEF2;
+  --accent:#3450C7; --accent-soft:#EAEEFB; --accent-ink:#233A9E;
+  --ok:#1C8A5C; --ok-soft:#E4F5EC;
+  --warn:#9A6B00; --warn-soft:#FBF1DC;
+  --danger:#C23B3B; --danger-soft:#FBE8E8;
+  --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --radius:8px;
+}
+:root[data-theme="dark"]{
+  --bg:#12151C; --surface:#191D26; --surface-2:#20242F;
+  --ink:#E7E9EE; --ink-soft:#A7AFC0; --ink-faint:#6B7284;
+  --border:#2A2F3B; --border-soft:#232733;
+  --accent:#7C93F5; --accent-soft:#1C2440; --accent-ink:#AEBBF9;
+  --ok:#4FBE8C; --ok-soft:#132A22;
+  --warn:#D6A93C; --warn-soft:#2E2712;
+  --danger:#E38080; --danger-soft:#301718;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12151C; --surface:#191D26; --surface-2:#20242F;
+    --ink:#E7E9EE; --ink-soft:#A7AFC0; --ink-faint:#6B7284;
+    --border:#2A2F3B; --border-soft:#232733;
+    --accent:#7C93F5; --accent-soft:#1C2440; --accent-ink:#AEBBF9;
+    --ok:#4FBE8C; --ok-soft:#132A22;
+    --warn:#D6A93C; --warn-soft:#2E2712;
+    --danger:#E38080; --danger-soft:#301718;
+  }
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6;}
+.wrap{max-width:920px;margin:0 auto;padding:40px 24px 100px;}
+header.doc-head{border-bottom:2px solid var(--ink);padding-bottom:20px;margin-bottom:24px;}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);font-weight:700;}
+h1{font-size:27px;margin:6px 0 4px;letter-spacing:-.01em;text-wrap:balance;}
+.subtitle{color:var(--ink-soft);font-size:14.5px;margin:0 0 14px;}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);font-size:12px;color:var(--ink-faint);}
+.meta-row code{color:var(--ink-soft);}
+section{margin:38px 0;}
+.section-head{display:flex;align-items:baseline;gap:10px;margin-bottom:14px;}
+.step-no{font-family:var(--mono);font-size:12px;color:var(--accent-ink);background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-weight:700;}
+h2{font-size:19px;margin:0;letter-spacing:-.005em;}
+h3{font-size:15px;margin:20px 0 8px;}
+p{margin:0 0 12px;}
+ul,ol{margin:0 0 12px;padding-left:22px;}
+li{margin-bottom:5px;}
+code{font-family:var(--mono);font-size:.87em;background:var(--surface-2);padding:1px 5px;border-radius:4px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;}
+.finding{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);margin-bottom:14px;overflow:hidden;}
+.finding-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 16px;background:var(--surface-2);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.finding-head .fname{font-weight:700;font-size:14px;}
+.finding-body{padding:4px 16px 14px;font-size:13.8px;}
+.finding-body dl{display:grid;grid-template-columns:130px 1fr;gap:5px 12px;margin:10px 0 0;}
+.finding-body dt{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.03em;padding-top:2px;}
+.finding-body dd{margin:0;}
+.pill{display:inline-block;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.02em;padding:2px 8px;border-radius:999px;white-space:nowrap;}
+.pill.ok{background:var(--ok-soft);color:var(--ok);}
+.pill.warn{background:var(--warn-soft);color:var(--warn);}
+.pill.danger{background:var(--danger-soft);color:var(--danger);}
+.pill.neutral{background:var(--surface-2);color:var(--ink-soft);}
+.pill.accent{background:var(--accent-soft);color:var(--accent-ink);}
+.callout{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 6px 6px 0;padding:12px 16px;margin:14px 0;font-size:14px;}
+.callout.ok{border-color:var(--ok);background:var(--ok-soft);}
+.callout strong{display:block;margin-bottom:3px;}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:520px;}
+thead th{text-align:left;background:var(--surface-2);font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);padding:9px 12px;border-bottom:1px solid var(--border);}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--border-soft);vertical-align:top;}
+tbody tr:last-child td{border-bottom:none;}
+.copy-block{border:1px dashed var(--border);border-radius:6px;padding:10px 14px;background:var(--surface-2);font-size:13.5px;margin:8px 0;}
+.copy-block .label{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.03em;display:block;margin-bottom:4px;}
+.rec-list{list-style:none;padding:0;margin:0;}
+.rec-list li{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--border-soft);font-size:13.8px;}
+.rec-list li:last-child{border-bottom:none;}
+.rec-num{font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--accent);border-radius:50%;width:20px;height:20px;flex:0 0 20px;display:flex;align-items:center;justify-content:center;}
+.verdict{border:2px solid var(--ok);background:var(--ok-soft);border-radius:var(--radius);padding:20px 22px;text-align:left;}
+.verdict h2{color:var(--ok);}
+.doc-footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);}
+</style>
+
+<div class="wrap">
+  <header class="doc-head">
+    <div class="kicker">UX Review · Gate de FS-001</div>
+    <h1>UX Review — Dashboard Executivo (FS-001)</h1>
+    <p class="subtitle">Avaliação completa da Feature Specification FS-001 (Revisão 2) contra dado real do backend. Este documento não altera FS-001 — registra achados e recomendações para incorporação em Revisão 3.</p>
+    <div class="meta-row">
+      <span>Papel: <code>Principal UX Architect</code></span>
+      <span>Objeto revisado: <code>FS-001 Revisão 2</code></span>
+      <span>Backend: <code>main@30f6f40</code></span>
+    </div>
+  </header>
+
+  <section>
+    <div class="section-head"><span class="step-no">1</span><h2>Escopo deste review</h2></div>
+    <p>Avaliação dos 4 itens deixados em aberto pela Definition of Ready de FS-001 §18: (a) Wireframe 2 contra dado real; (b) decisão sobre os widgets candidatos W3/W4/W5; (c) copy final de estado vazio, estado de erro e do rótulo de <code>open_risks</code>; (d) revalidação de contraste dos badges de <code>latest_health_status</code>.</p>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">2</span><h2>Wireframe 2 contra dado real</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Cenário real</th><th>Evidência</th><th>Risco para o Wireframe 2</th><th>Recomendação</th></tr></thead>
+        <tbody>
+          <tr><td>Nome de projeto sem limite de tamanho</td><td><code>project_name: str | None</code> — sem <code>max_length</code> no schema (<code>src/api/routes/intelligence.py:32</code>)</td><td>Título do card pode quebrar o layout do grid</td><td>Truncar com <code>text-overflow: ellipsis</code> em 1 linha + atributo <code>title</code> nativo para o nome completo no hover</td></tr>
+          <tr><td>Contadores sem limite superior conhecido</td><td><code>total_analyses</code>, <code>open_risks</code>, <code>pending_action_items</code> são <code>int</code> sem cap no schema</td><td>Número de 3+ dígitos pode desalinhar a grade de contadores do card</td><td><code>font-variant-numeric: tabular-nums</code> nos contadores; largura do bloco de número não fixa</td></tr>
+          <tr><td>Portfólio com 1–2 projetos</td><td>Nenhuma constraint de volume mínimo</td><td>Grid denso do Wireframe 2 assume várias colunas; com poucos itens pode parecer quebrado ou desalinhado à esquerda</td><td>Grid via <code>auto-fill</code>/<code>minmax</code>, não número fixo de colunas — funciona igualmente bem com 1 ou 50 cards</td></tr>
+          <tr><td>Portfólio grande</td><td><code>GET /api/portfolio/summary</code> sem paginação (risco já registrado em FS-001 §17, Médio)</td><td>Grid muito longo</td><td>Scroll natural da página — não inventar paginação client-side nesta revisão; reavaliar junto do risco de paginação do backend</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout">
+      <strong>Conclusão:</strong> Wireframe 2 permanece válido na estrutura (grid + faixa de sumário); os 4 ajustes acima são de implementação de layout, não de redesenho. Nenhum novo wireframe é necessário.
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">3</span><h2>Decisão sobre widgets candidatos</h2></div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="fname">W3 — Health Status Distribution</span><span class="pill ok">Aprovado para v1</span></div>
+      <div class="finding-body">
+        <dl>
+          <dt>Justificativa</dt><dd>Responde diretamente à pergunta 4 de FS-001 §2 ("quantos projetos estão fora do estado saudável"); mesma chamada de rede de W1/W2, custo de implementação marginal, nenhum widget novo de UI (reusa <code>Badge</code>).</dd>
+          <dt>Alternativas rejeitadas</dt><dd>Omitir e deixar o usuário contar badges manualmente no grid — rejeitada por contrariar o princípio "menor número de cliques" do Product Blueprint §5.</dd>
+          <dt>Consequências</dt><dd>Nenhuma negativa identificada — não introduz chamada de rede nem componente novo.</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="fname">W5 — Risk Concentration Ranking</span><span class="pill ok">Aprovado para v1</span></div>
+      <div class="finding-body">
+        <dl>
+          <dt>Justificativa</dt><dd>Atende diretamente ao objetivo do PMO Analyst em FS-001 §2 ("priorizar onde investigar em seguida"); mesma chamada de rede, apenas ordenação client-side.</dd>
+          <dt>Alternativas rejeitadas</dt><dd>Confiar apenas na ordenação alfabética do grid (comportamento padrão do backend) — rejeitada porque não prioriza por risco, obrigando o usuário a escanear todos os cards.</dd>
+          <dt>Consequências</dt><dd>Nenhuma negativa identificada.</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="finding">
+      <div class="finding-head"><span class="fname">W4 — Recent Analyses Feed</span><span class="pill warn">Adiado — fast-follow (v1.1)</span></div>
+      <div class="finding-body">
+        <dl>
+          <dt>Justificativa</dt><dd>Não corresponde a nenhuma das 5 perguntas canônicas de FS-001 §2; exige rota BFF/endpoint próprio e traz o risco já sinalizado em FS-001 §17 de dobrar o consumo do rate limit compartilhado se não sincronizado — reduzir a superfície da primeira integração BFF do projeto é preferível.</dd>
+          <dt>Alternativas rejeitadas</dt><dd>Incluir na v1 mesmo assim, sincronizando o timer com W1/W2 — rejeitada por adicionar uma segunda fonte de dados e um segundo caminho de erro à primeira tela integrada do produto, aumentando a superfície de falha sem responder a uma pergunta canônica da persona primária.</dd>
+          <dt>Consequências</dt><dd>Nenhuma perda de valor imediato — nenhuma persona definida em FS-001 §2 lista "atividade recente do portfólio" como objetivo desta tela. Revisitar como candidato de Release 0.2.1 ou 0.3.</dd>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">4</span><h2>Copy final</h2></div>
+    <h3>Estado vazio</h3>
+    <div class="copy-block"><span class="label">Título</span>Nenhum projeto com análise registrada ainda</div>
+    <div class="copy-block"><span class="label">Corpo</span>Assim que uma reunião, risco ou status de projeto for analisado, ele aparece aqui automaticamente.</div>
+    <h3>Estado de erro</h3>
+    <div class="copy-block"><span class="label">Título</span>Não foi possível carregar o portfólio agora</div>
+    <div class="copy-block"><span class="label">Corpo</span>Tente novamente em instantes. Se o problema persistir, informe o código de referência ao suporte.</div>
+    <p style="font-size:13px;color:var(--ink-faint)">Nenhum detalhe interno (stack trace, header, nome de exceção) exposto — consistente com o critério de aceite de FS-001 §15.</p>
+    <h3>Rótulo de <code>open_risks</code></h3>
+    <div class="copy-block"><span class="label">Rótulo do contador</span>Riscos identificados</div>
+    <div class="copy-block"><span class="label">Tooltip (ícone de informação ao lado do número)</span>Total de riscos já identificados pela IA em análises deste projeto. Não indica se cada risco já foi tratado — o produto ainda não rastreia esse ciclo de vida.</div>
+    <p>Rótulo trocado de "Riscos abertos" (FS-001 Revisão 2, §11) para "Riscos identificados" — resolve diretamente o risco de leitura incorreta registrado em FS-001 §17 sem depender de um tooltip ser lido.</p>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">5</span><h2>Revalidação de contraste dos badges</h2></div>
+    <p>Valores reais confirmados no backend: <code>health_status</code> é sempre <code>"green" | "yellow" | "red"</code> (<code>src/agents/project_status/prompts/analysis.md</code>) ou <code>null</code> quando nenhuma análise <code>status</code> existe. <code>healthStatusVariant()</code> (<code>web/components/ui/badge.tsx</code>) já mapeia os 4 casos 1:1 para os variants <code>ok</code>/<code>warn</code>/<code>danger</code>/<code>neutral</code> — cobertura confirmada por teste (<code>badge.test.tsx</code>, 4 casos).</p>
+    <div class="callout ok">
+      <strong>Nenhum novo par de cor é introduzido por esta feature.</strong>
+      Os 4 tokens usados são exatamente os já calculados e aprovados em RFC-001 §2 (contraste WCAG AA computado para os pares <code>ok</code>/<code>warn</code>/<code>danger</code>/<code>neutral</code>). Revalidação concluída por reuso, não por novo cálculo.
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">6</span><h2>Recomendações registradas para FS-001 Revisão 3</h2></div>
+    <ul class="rec-list">
+      <li><span class="rec-num">1</span><span>Atualizar §5 (Widget Catalog): W3 e W5 de "Candidato" para "Aprovado para v1"; W4 de "Candidato" para "Adiado — fast-follow (v1.1)".</span></li>
+      <li><span class="rec-num">2</span><span>Atualizar §3 (Escopo) para incluir explicitamente W3 e W5.</span></li>
+      <li><span class="rec-num">3</span><span>Atualizar §11 (Mapeamento de dados → UI): renomear rótulo de <code>open_risks</code> de "Riscos" para "Riscos identificados" + tooltip.</span></li>
+      <li><span class="rec-num">4</span><span>Atualizar §12 (Estados da tela): incorporar copy final de vazio e erro (§4 deste review).</span></li>
+      <li><span class="rec-num">5</span><span>Adicionar nota de implementação em §2/§11: truncamento de nome de projeto + <code>tabular-nums</code> nos contadores + grid <code>auto-fill</code>/<code>minmax</code> (§2 deste review).</span></li>
+      <li><span class="rec-num">6</span><span>Marcar os 4 itens do checklist "UX Review deve confirmar" (§18) como concluídos, referenciando este documento.</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="verdict">
+      <h2>Veredito</h2>
+      <p style="margin-top:8px"><strong>Aprovado com ressalvas incorporadas.</strong> Nenhum achado bloqueia a Feature; todas as 6 recomendações são refinamentos de escopo/copy/layout, não redesenho. FS-001 pode avançar para Revisão 3 incorporando as recomendações acima, seguida do gate de Aprovação.</p>
+    </div>
+  </section>
+
+  <footer class="doc-footer">
+    AI PMO Copilot · UX Review de FS-001 · Papel: Principal UX Architect · não altera FS-001 diretamente — recomendações pendentes de incorporação em Revisão 3.
+  </footer>
+</div>
