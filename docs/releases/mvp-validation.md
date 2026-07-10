@@ -165,6 +165,35 @@ this one.
 - Test evidence: 80/80 tests passing, 98.73% coverage (`project_summary_service.py` 100%), `ruff check src tests` clean.
 - CI evidence: verified against the real GitHub Actions run before merge — run [29094664025](https://github.com/chrisdemenezes/ai-pmo-copilot/actions/runs/29094664025), all green.
 
+## Evidence Entry 012 - Real PostgreSQL validation (TASK-INF-01)
+
+- No source PR — this is an environment-level validation, not a code change. No files in the
+  repository were modified as part of this entry (`docs/technical/05-database-model.md` was updated
+  separately to record the result).
+- PostgreSQL 16 was found already installed in this session's environment (`postgresql-16` package,
+  a provisioned but stopped cluster at `/var/lib/postgresql/16/main`) — the "no Postgres available"
+  caveat carried since Evidence Entry 003 was an environment assumption that turned out to be wrong
+  once actually checked, not a hard constraint of the sandbox.
+- Started the cluster (`pg_ctlcluster 16 main start`), created a real `aipmo` role and `aipmo_test`
+  database, and ran:
+  - `alembic upgrade head` against `postgresql://aipmo:aipmo@localhost:5432/aipmo_test` — succeeded,
+    `Context impl PostgresqlImpl`.
+  - Schema inspected via `psql \d analysis_records` and `\di` — matches `AnalysisRecord` exactly:
+    `id`, `kind`, `project_name`, `payload` (as `json`), `created_at` (`timestamp with time zone`),
+    plus `analysis_records_pkey` and `ix_analysis_records_project_name` indexes.
+  - The real app (`uvicorn src.main:app`) started against this database with
+    `DATABASE_URL` pointed at it, `API_KEY` and `LLM_PROVIDER=mock` set, and was exercised over real
+    HTTP: `GET /health`, `POST /api/meetings/analyze`, `GET /api/analyses`, `GET
+    /api/projects/{name}/summary`, `GET /api/portfolio/summary`, and an unauthenticated request
+    correctly returning 401. Every response was correct; `X-Request-ID` correlation appeared in the
+    server logs for each request as designed (Evidence Entry 009).
+  - Environment torn down afterward (`DROP DATABASE`, `DROP ROLE`, cluster stopped) — this was a
+    verification run, not a persistent addition to the environment.
+- This closes `TASK-INF-01` from the Master Product Backlog (Sprint 2, "Validar o que já existe").
+  Docker Compose itself (`docker-compose.yml`, Evidence Entry 008) is still unverified end-to-end —
+  this session's Docker daemon remains unavailable; the validation above ran directly against
+  Postgres, not through `docker compose up`.
+
 ## Decision: remaining backlog deferred until MVP closure
 
 AP-001, DB-001, and CP-001 are explicitly deferred, not scheduled. See
