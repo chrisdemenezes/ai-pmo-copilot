@@ -60,10 +60,15 @@ Alembic manages schema evolution for real deployments (`alembic/`, config in `al
 - `tests/test_alembic_migration.py` runs `alembic upgrade head` against a temporary SQLite file and
   asserts the resulting schema matches `AnalysisRecord` — this exists specifically to catch drift if
   the model changes without the migration being updated to match.
-- Postgres has not been tested against a live instance in this environment (no Postgres available);
-  `alembic upgrade head` has only been verified against SQLite. `psycopg2-binary` is in
-  `requirements.txt` for when a real Postgres `DATABASE_URL` is configured, but that path is
-  currently unverified end-to-end.
+- Verified end-to-end against a real PostgreSQL 16 instance (not just SQLite): `alembic upgrade
+  head` ran clean, and the resulting schema was inspected column-by-column via `psql` and matched
+  `AnalysisRecord` exactly (`id`, `kind`, `project_name`, `payload`, `created_at`, plus both indexes
+  — `analysis_records_pkey` and `ix_analysis_records_project_name`). The full app was then run with
+  `DATABASE_URL` pointed at that Postgres instance and exercised over real HTTP (`POST
+  /api/meetings/analyze`, `GET /api/analyses`, `GET /api/projects/{name}/summary`, `GET
+  /api/portfolio/summary`) — every response was correct, and `X-Request-ID` correlation showed up
+  as expected in the logs for each request. See `docs/releases/mvp-validation.md`, Evidence Entry
+  012, for the full record. This closes `TASK-INF-01` from the Master Product Backlog.
 
 To create a new migration after changing `AnalysisRecord`:
 
