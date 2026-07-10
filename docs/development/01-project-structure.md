@@ -193,3 +193,52 @@ buttons with it.
 prerendered as static content), `npm test` (9/9), and a full manual pass in a real headless browser
 — both color schemes screenshotted, then Select/Tabs/Dialog/Toast/character-counter driven
 interactively via Playwright and asserted on real page state, not just visual inspection.
+
+## FS-001 Decision: Dashboard Executivo (Release 0.2) delivered
+
+First screen wired to real backend data, delivered under the AI Product Engineering Framework
+(AI-PEF) gate sequence: Product Review (Product Hypothesis per ADR-010, since no pre-launch feature
+can have a historical business metric), Architecture Review, UX Review, Feature Specification
+(FS-001 Rev. 4), Technical Implementation Plan (TIP-001), Product Owner Approval, then T1–T9.
+
+**Security/session decision now implemented** (was "planned for Sprint 2" per the Sprint 1 entry
+above, now closed): a Backend-for-Frontend layer (`web/app/api/bff/`) holds `API_KEY` server-side
+only, and a minimal Nível 1 workspace session (`web/lib/session.ts`, `web/proxy.ts`) gates
+`/dashboard` and every `/api/bff/*` route — single shared password (`WORKSPACE_PASSWORD`), HMAC-signed
+cookie (`SESSION_SECRET`), 12h TTL, no per-user identity, no logout endpoint (not in TIP-001's
+scope). An emergency kill switch (`DISABLE_WORKSPACE_SESSION_GATE`) disables the gate without
+reverting the feature, per TIP-001 §7's rollback strategy.
+
+**Next.js 16 breaking change hit during implementation (classified Technical Adaptation, not an
+architecture change):** `middleware.ts` is deprecated in favor of `proxy.ts` (function name
+`middleware` → `proxy`), and the runtime changed from Edge to Node.js by default — confirmed in
+`node_modules/next/dist/docs/01-app/02-guides/upgrading/version-16.md` before writing any code, per
+`web/AGENTS.md`'s warning. This simplified the session implementation (Node `crypto` HMAC directly,
+no Web Crypto API workaround needed).
+
+**Product Behavior Decision: `retry: false` on `usePortfolioSummary()` only.** T9's E2E suite
+measured the TanStack Query default (`retry: 3`, exponential backoff) delaying the dashboard's error
+state to ~7.9s (backend down) or ~40.2s (backend hanging) — both contrary to the "Feedback imediato"
+principle already in the Product Blueprint. The BFF's own 8s timeout already tolerates transient
+network slowness, so the retry only cost latency without changing the outcome. After the change,
+measured at ~0.7s and ~8.9s respectively. Scoped to this one query, not the `QueryClient` global —
+see `web/lib/hooks/use-portfolio-summary.ts` and Evidence Entry 015.
+
+**Real bug found and fixed before it shipped, not by static checks (same pattern as Sprint 1's
+Dialog bug):** the initial implementation threw to the error boundary whenever `isError` was true,
+including when a background poll failed after data had already loaded successfully — discarding a
+working dashboard over a transient network blip, contrary to RFC-001's stale-while-revalidate
+design. Found by the Principal Reviewer role auditing T8, not by `tsc`/`eslint`/tests, all of which
+passed while the bug was present. Fixed by only throwing when there is no cached data
+(`isError && !data`).
+
+**Scope delivered:** W1 (Portfolio Summary Strip), W2 (Project Health Grid), W3 (Health Status
+Distribution), W5 (Risk Concentration Ranking) — all client-side derivations of the same
+`GET /api/portfolio/summary` call, no new backend endpoint. W4 (Recent Analyses Feed) was adiado to
+a fast-follow release by the UX Review (see FS-001 §5) — not built.
+
+**Verification performed:** `npx tsc --noEmit`, `npx eslint .`, `npm run build`, `npm test`
+(48/48), `npm run test:e2e` (33/33 — 11 scenarios × 3 breakpoints from RFC-001: mobile <768px,
+md 768–1023px, lg ≥1024px), against a standalone HTTP mock of the backend contract
+(`web/e2e/mock-backend.mjs`) — no product endpoint or `src/` file touched by tests. Full detail in
+`docs/releases/mvp-validation.md` Evidence Entry 015.

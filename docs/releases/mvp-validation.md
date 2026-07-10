@@ -242,6 +242,44 @@ this one.
   remain unlabeled by implementation status — both are pre-existing, low-priority items, not new
   regressions.
 
+## Evidence Entry 015 - FS-001 Dashboard Executivo (Release 0.2), T1-T9
+
+- Branch: `claude/cleanup-orphaned-files-xtvwrj` (not yet merged — PR opens after Code Review, QA
+  Review, Release Review and Retrospective, per the AI-PEF gate sequence). No GitHub Actions run
+  link yet for this reason; local-equivalent checks below were run from a clean state instead.
+- Commits (chronological): `412fa6e` (T1 session gate, T2 BFF route, T3 data layer, T4-T7 widgets),
+  `63957d3` (T8 dashboard states), `cd93d1d` (fix: cached data survives a failed background
+  refetch), `9d77b59` (T9 E2E suite), `bd46fb3` (retry:false Product Behavior Decision).
+- Scope evidenced:
+  - `web/proxy.ts`, `web/lib/session.ts` — Nível 1 workspace session (HMAC-signed cookie, single
+    shared password, 12h TTL, emergency kill switch via `DISABLE_WORKSPACE_SESSION_GATE`)
+  - `web/app/api/bff/dashboard/route.ts` — BFF proxy to `GET /api/portfolio/summary`, `X-API-Key`
+    injected server-side only, 8s timeout, no detail leaked on error
+  - `web/lib/hooks/use-portfolio-summary.ts` — TanStack Query, `staleTime: 30s`,
+    `refetchInterval: 60s`, `retry: false` (Product Behavior Decision, see below)
+  - `web/lib/dashboard/aggregate.ts` + 4 components — W1 Portfolio Summary Strip, W2 Project Health
+    Grid, W3 Health Status Distribution, W5 Risk Concentration Ranking (W4 adiado by UX Review)
+  - `web/app/dashboard/page.tsx` + `error.tsx` — loading/vazio/erro/parcial/sucesso states
+- **Product Behavior Decision:** `retry: false` scoped to `usePortfolioSummary()` only, approved by
+  the Product Owner from evidence produced by this entry's own E2E run — default retry (3 attempts,
+  exponential backoff) measured at ~7.9s (backend down) / ~40.2s (backend timeout) before the error
+  state appeared; after the change, ~0.7s / ~8.9s. Full analysis (current config, alternatives,
+  UX/backend-load trade-offs) presented to the Product Owner before implementation, not applied
+  unilaterally.
+- Test evidence: 48/48 unit + component tests (`npm test`, 10 files), 33/33 E2E tests (`npm run
+  test:e2e`, 11 scenarios × 3 breakpoints — mobile/md/lg per RFC-001), `npx tsc --noEmit` clean,
+  `npx eslint .` clean, `npm run build` succeeds (`/dashboard`, `/entrar`, `/api/bff/dashboard`,
+  `/api/bff/session` all compile; Proxy/Middleware compiles).
+- E2E tests run against a standalone HTTP mock of the backend contract (`web/e2e/mock-backend.mjs`)
+  mirroring the already-tested `GET /api/portfolio/summary` shape — no new product endpoint, `src/`
+  untouched.
+- CI evidence: not yet available — this entry will be updated with the GitHub Actions run link once
+  the PR for this branch opens, per this repo's Governance Rule below.
+- Known limitations, not new regressions: single shared workspace password (no per-user auth, no
+  logout endpoint); `GET /api/portfolio/summary` has no backend pagination (FS-001 §17, Médio); no
+  "atualizado há Xmin" staleness indicator (RFC-001, deferred by design); W4 Recent Analyses Feed
+  not built (adiado to fast-follow by UX Review).
+
 ## Decision: remaining backlog deferred until MVP closure
 
 AP-001, DB-001, and CP-001 are explicitly deferred, not scheduled. See
