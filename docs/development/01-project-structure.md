@@ -87,3 +87,29 @@ work, they should be scoped and built against then-current requirements, not res
 stubs. The documentation-only placeholders under `knowledge/` (`vector_store/`, `documents/`,
 `embeddings/` READMEs) are unaffected — they are declared as vision docs, not code pretending to be
 an implementation.
+
+## TASK-INF-02 Decision: docker-compose fixed, not removed
+
+`docker-compose.yml` referenced two broken build contexts: `./backend` (`Dockerfile` pointed at
+`app.main:app`, a module that has never existed since `src/` became the official tree) and
+`./frontend` (no `Dockerfile` at all — `frontend/` is still documentation only, per the DB-001/CP-001
+deferral above). Fixed rather than removed, because a working Compose stack also gives anyone with a
+local Docker daemon a way to close `TASK-INF-01` (Alembic vs. a real Postgres) themselves:
+
+- Added a root `Dockerfile` building the real `src/main:app` (only `src/`, `alembic.ini`, and
+  `alembic/` are copied in — not the whole repo).
+- `docker-compose.yml` now has two services: `api` (built from the root `Dockerfile`, runs `alembic
+  upgrade head` before `uvicorn` on every start) and `database` (`postgres:16`, with a named volume
+  so data survives `docker compose down`). The `frontend` service was dropped — there is no code to
+  build.
+- Removed `backend/Dockerfile` and `backend/requirements.txt` — nothing referenced them anymore
+  after the fix, and they described a module layout (`app.main:app`) that was never real.
+  `backend/README.md` and the numbered vision docs under `backend/` are untouched.
+
+Known limitation: this environment has no Docker daemon available (`/var/run/docker.sock` missing),
+so `docker compose up` itself could not be exercised end-to-end here. Verified instead via `docker
+compose config` (confirms YAML syntax and env var interpolation resolve correctly — this is how an
+env-var default bug in the rate-limit settings was actually caught before merge) and manual review
+of the Dockerfile against the already-working local run instructions in `README.md`. Real `docker
+compose up` execution against this file is still owed before calling Docker support production-
+ready.

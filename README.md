@@ -67,6 +67,19 @@ alembic upgrade head
 See `docs/technical/05-database-model.md` for details on when to use Alembic vs. auto-created
 tables.
 
+## Run with Docker Compose
+
+Runs the API (built from the root `Dockerfile`) against a real Postgres, migrated via `alembic
+upgrade head` on container start:
+
+```bash
+export API_KEY="choose-a-local-secret"
+docker compose up --build
+```
+
+Set `ANTHROPIC_API_KEY` in the environment first if you want `LLM_PROVIDER=anthropic` instead of
+the `mock` default. See `docker-compose.yml` for the full list of env vars passed through.
+
 Health check:
 
 ```bash
