@@ -23,7 +23,8 @@ ai-pmo-copilot
 │   │   └── shared/output_parser.py
 │   ├── database/repository.py
 │   ├── llm/providers/production_provider.py
-│   └── prompts/registry.py
+│   ├── prompts/registry.py
+│   └── services/project_summary_service.py
 ├── tests
 ├── docs
 └── release

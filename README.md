@@ -96,6 +96,13 @@ curl -X POST http://localhost:8000/api/meetings/analyze \
   -d '{"project_name":"Multilift","transcript":"Client approved the handover and requested action tracking."}'
 ```
 
+Project summary (aggregated counts across every stored analysis for a project — see
+`docs/technical/04-api-design.md#project-summary-api`):
+
+```bash
+curl -H "X-API-Key: $API_KEY" http://localhost:8000/api/projects/Multilift/summary
+```
+
 ## Governance Rule
 
 No release or validation document may state that a feature is validated unless it links to the commit and CI/test evidence that supports the claim.

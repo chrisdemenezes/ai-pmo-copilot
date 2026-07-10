@@ -92,6 +92,29 @@ complete agent result (`payload`), unlike the summary returned by `GET /api/anal
 
 404 (`{"detail": "Analysis not found"}`) when no analysis exists with that id.
 
+### Project Summary API
+
+GET /api/projects/{project_name}/summary
+
+Aggregates every stored analysis for a project into executive-level counts, so a PMO Manager
+doesn't have to read individual analyses. Built by `ProjectSummaryService`
+(`src/services/project_summary_service.py`), which only reads `AnalysisRepository` — no new
+provider or registry.
+
+Output: `{project_name, total_analyses, open_risks, pending_action_items, latest_health_status}`
+where:
+- `total_analyses` — count of all analyses for the project, structured or fallback.
+- `open_risks` — sum of `risks[]` length across every `risk` analysis with `structured: true`.
+- `pending_action_items` — sum of `action_items[]` length across every `meeting` analysis with `structured: true`.
+- `latest_health_status` — `health_status` from the most recent `status` analysis with `structured: true`, or `null` if none exists.
+
+Fallback analyses (`structured: false`) are counted in `total_analyses` but contribute nothing to
+the other three fields — there's no reliable `risks[]`/`action_items[]`/`health_status` to read from
+raw model output that didn't follow the requested schema.
+
+A project with no analyses (or an unknown name) returns 200 with all counts at zero — same
+never-404 philosophy as `GET /api/analyses`.
+
 ## Error Responses
 
 Applies to `/api/meetings/analyze`, `/api/risks/analyze`, and `/api/projects/analyze`.

@@ -14,6 +14,7 @@ from src.llm.providers.base import LLMProvider
 from src.llm.providers.factory import get_provider
 from src.prompts.registry import PromptRegistry
 from src.database.repository import AnalysisRepository
+from src.services.project_summary_service import ProjectSummaryService
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +61,14 @@ class AnalysisDetail(AnalysisSummary):
     payload: dict
 
 
+class ProjectSummaryResponse(BaseModel):
+    project_name: str
+    total_analyses: int
+    open_risks: int
+    pending_action_items: int
+    latest_health_status: str | None
+
+
 def build_prompt_registry() -> PromptRegistry:
     return PromptRegistry(base_path="src/agents")
 
@@ -71,6 +80,12 @@ def build_provider() -> LLMProvider:
 @lru_cache
 def build_repository() -> AnalysisRepository:
     return AnalysisRepository()
+
+
+def build_project_summary_service(
+    repository: AnalysisRepository = Depends(build_repository),
+) -> ProjectSummaryService:
+    return ProjectSummaryService(repository=repository)
 
 
 @router.post("/meetings/analyze")
@@ -154,3 +169,12 @@ def get_analysis(
     if record is None:
         raise HTTPException(status_code=404, detail="Analysis not found")
     return record
+
+
+@router.get("/projects/{project_name}/summary", response_model=ProjectSummaryResponse)
+def get_project_summary(
+    project_name: str,
+    service: ProjectSummaryService = Depends(build_project_summary_service),
+):
+    logger.info("Summarizing project_name=%s", project_name)
+    return service.summarize(project_name=project_name)
