@@ -68,3 +68,22 @@ MVP state at the time of this decision: all Sprint 1/Sprint 2 stories (US-E1 thr
 MI-001 through MI-006, RI-001, SR-001, the 80% coverage gate, and Alembic migrations are merged to
 `main` and verified from clean checkouts (not just locally). See `docs/releases/mvp-validation.md`
 for commit-level evidence.
+
+## TASK-KN-01 / TASK-AI-02 Decision: orphan stubs removed
+
+Three code stubs were removed — none were ever imported by any application code or referenced by
+any test:
+
+- `src/knowledge/ingestion_pipeline.py` (`KnowledgePipeline.ingest`) — a 4-line stub, no chunking,
+  no embedding call, no storage backend. Not a foundation to build on, just a placeholder.
+- `knowledge/retrieval_service.py` (`RetrievalService.search`) — same shape, hardcoded empty result.
+- `src/agents/core/agent.py` (`Agent(ABC)`) — never adopted as the base class of
+  `meeting_intelligence`, `risk_review`, or `project_status`, which all follow their own identical
+  `__init__(model_client, prompt_registry)` / `analyze(...)` shape instead.
+
+Same reasoning as the `issue_advisor` removal (US-C2): unreferenced, untested-in-production code
+does not earn its keep by existing. If Knowledge/RAG or a shared `Agent` base class become real
+work, they should be scoped and built against then-current requirements, not resurrected from these
+stubs. The documentation-only placeholders under `knowledge/` (`vector_store/`, `documents/`,
+`embeddings/` READMEs) are unaffected — they are declared as vision docs, not code pretending to be
+an implementation.
