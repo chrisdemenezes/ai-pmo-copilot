@@ -4,6 +4,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from src.api.request_context import RequestIDMiddleware, configure_logging
 from src.api.routes.intelligence import router as intelligence_router
 from src.llm.providers.base import ProviderConfigError, ProviderUnavailableError
 
@@ -13,6 +14,8 @@ def _cors_allowed_origins() -> list[str]:
     return [origin.strip() for origin in raw.split(",") if origin.strip()]
 
 
+configure_logging()
+
 app = FastAPI(title="AI PMO Copilot API", version="0.1.0")
 
 app.add_middleware(
@@ -21,6 +24,7 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type", "X-API-Key"],
 )
+app.add_middleware(RequestIDMiddleware)
 
 app.include_router(intelligence_router, prefix="/api", tags=["intelligence"])
 
