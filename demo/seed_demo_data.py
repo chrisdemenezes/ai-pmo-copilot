@@ -19,8 +19,28 @@ from __future__ import annotations
 import json
 import os
 import sys
+from pathlib import Path
 
 import httpx
+
+
+def _load_env_file(path: Path) -> None:
+    """Populate os.environ from a simple KEY=VALUE file, without overriding
+    variables already set in the real environment. Avoids requiring the
+    caller to remember to `source demo/.env` before running this script --
+    start-demo.sh already sourced it for the backend/frontend processes, but
+    that does not carry over to a separately invoked `python` process."""
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        os.environ.setdefault(key.strip(), value.strip())
+
+
+_load_env_file(Path(__file__).parent / ".env")
 
 BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8000")
 API_KEY = os.environ.get("API_KEY", "demo-local-secret-key")
