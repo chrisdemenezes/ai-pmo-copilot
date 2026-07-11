@@ -55,4 +55,20 @@ export function healthStatusVariant(
   return "neutral";
 }
 
+/**
+ * health_status -> the label shown to the user. Single source of truth so
+ * every screen that renders health_status agrees on the same words --
+ * a raw "RED"/"GREEN" badge next to a Portuguese-labelled one on the same
+ * screen is a Design Consistency Finding (QA Review, FS-001), not a
+ * cosmetic choice per component.
+ */
+export function healthStatusLabel(
+  status: "green" | "yellow" | "red" | null | undefined,
+): string {
+  if (status === "green") return "Saudável";
+  if (status === "yellow") return "Atenção";
+  if (status === "red") return "Crítico";
+  return "Sem dado";
+}
+
 export { Badge, badgeVariants };

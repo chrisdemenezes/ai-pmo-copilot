@@ -1,0 +1,627 @@
+<title>Feature Specification — Dashboard Executivo (Release 0.2)</title>
+<style>
+:root{
+  --bg:#F5F6F8; --surface:#FFFFFF; --surface-2:#EEF1F6;
+  --ink:#1A2130; --ink-soft:#586174; --ink-faint:#8B93A3;
+  --border:#DFE3EA; --border-soft:#EBEEF2;
+  --accent:#3450C7; --accent-soft:#EAEEFB; --accent-ink:#233A9E;
+  --ok:#1C8A5C; --ok-soft:#E4F5EC;
+  --warn:#9A6B00; --warn-soft:#FBF1DC;
+  --danger:#C23B3B; --danger-soft:#FBE8E8;
+  --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --radius:8px;
+}
+:root[data-theme="dark"]{
+  --bg:#12151C; --surface:#191D26; --surface-2:#20242F;
+  --ink:#E7E9EE; --ink-soft:#A7AFC0; --ink-faint:#6B7284;
+  --border:#2A2F3B; --border-soft:#232733;
+  --accent:#7C93F5; --accent-soft:#1C2440; --accent-ink:#AEBBF9;
+  --ok:#4FBE8C; --ok-soft:#132A22;
+  --warn:#D6A93C; --warn-soft:#2E2712;
+  --danger:#E38080; --danger-soft:#301718;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12151C; --surface:#191D26; --surface-2:#20242F;
+    --ink:#E7E9EE; --ink-soft:#A7AFC0; --ink-faint:#6B7284;
+    --border:#2A2F3B; --border-soft:#232733;
+    --accent:#7C93F5; --accent-soft:#1C2440; --accent-ink:#AEBBF9;
+    --ok:#4FBE8C; --ok-soft:#132A22;
+    --warn:#D6A93C; --warn-soft:#2E2712;
+    --danger:#E38080; --danger-soft:#301718;
+  }
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6;}
+.wrap{max-width:960px;margin:0 auto;padding:40px 24px 100px;}
+header.doc-head{border-bottom:2px solid var(--ink);padding-bottom:20px;margin-bottom:8px;}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);font-weight:700;}
+h1{font-size:28px;margin:6px 0 4px;letter-spacing:-.01em;text-wrap:balance;}
+.subtitle{color:var(--ink-soft);font-size:14.5px;margin:0 0 14px;}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);font-size:12px;color:var(--ink-faint);}
+.meta-row code{color:var(--ink-soft);}
+
+.pipeline{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:22px 0 34px;font-family:var(--mono);font-size:11.5px;}
+.pipeline .stage{padding:5px 10px;border-radius:999px;border:1px solid var(--border);color:var(--ink-faint);white-space:nowrap;}
+.pipeline .stage.done{background:var(--ok-soft);color:var(--ok);border-color:transparent;}
+.pipeline .stage.now{background:var(--accent);color:#fff;border-color:transparent;font-weight:700;}
+.pipeline .arrow{color:var(--border);}
+
+.changelog{font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);background:var(--surface-2);border-radius:6px;padding:8px 12px;margin-bottom:28px;}
+.changelog strong{color:var(--ink-soft);}
+
+section{margin:40px 0;}
+.section-head{display:flex;align-items:baseline;gap:10px;margin-bottom:14px;}
+.step-no{font-family:var(--mono);font-size:12px;color:var(--accent-ink);background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-weight:700;}
+.step-no.new{color:#fff;background:var(--accent);}
+h2{font-size:19px;margin:0;letter-spacing:-.005em;}
+h3{font-size:15px;margin:22px 0 8px;color:var(--ink);}
+h4{font-size:13.5px;margin:16px 0 6px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;font-family:var(--mono);}
+p{margin:0 0 12px;}
+ul,ol{margin:0 0 12px;padding-left:22px;}
+li{margin-bottom:5px;}
+code{font-family:var(--mono);font-size:.87em;background:var(--surface-2);padding:1px 5px;border-radius:4px;}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;}
+.card + .card{margin-top:12px;}
+
+.callout{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 6px 6px 0;padding:12px 16px;margin:14px 0;font-size:14px;}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft);}
+.callout.danger{border-color:var(--danger);background:var(--danger-soft);}
+.callout.ok{border-color:var(--ok);background:var(--ok-soft);}
+.callout strong{display:block;margin-bottom:3px;}
+
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:560px;}
+thead th{text-align:left;background:var(--surface-2);font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);padding:9px 12px;border-bottom:1px solid var(--border);}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--border-soft);vertical-align:top;}
+tbody tr:last-child td{border-bottom:none;}
+td code{white-space:nowrap;}
+
+.pill{display:inline-block;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.02em;padding:2px 8px;border-radius:999px;white-space:nowrap;}
+.pill.ok{background:var(--ok-soft);color:var(--ok);}
+.pill.warn{background:var(--warn-soft);color:var(--warn);}
+.pill.danger{background:var(--danger-soft);color:var(--danger);}
+.pill.neutral{background:var(--surface-2);color:var(--ink-soft);}
+.pill.accent{background:var(--accent-soft);color:var(--accent-ink);}
+
+.endpoint{display:flex;gap:10px;align-items:center;font-family:var(--mono);font-size:13px;padding:9px 12px;background:var(--surface-2);border-radius:6px;margin-bottom:8px;flex-wrap:wrap;}
+.endpoint .verb{font-weight:700;color:var(--ok);}
+.endpoint .verb.post{color:var(--accent-ink);}
+.endpoint .tag{margin-left:auto;font-size:10.5px;}
+
+.gwt{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.gwt-row{display:grid;grid-template-columns:90px 1fr;border-bottom:1px solid var(--border-soft);}
+.gwt-row:last-child{border-bottom:none;}
+.gwt-row span.k{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-faint);padding:10px 12px;background:var(--surface-2);}
+.gwt-row span.v{padding:10px 12px;}
+
+.checklist{list-style:none;padding:0;margin:0;}
+.checklist li{display:flex;gap:9px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--border-soft);}
+.checklist li:last-child{border-bottom:none;}
+.checklist .box{flex:0 0 16px;height:16px;border:1.5px solid var(--ink-faint);border-radius:4px;margin-top:2px;}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media (max-width:640px){.grid-2{grid-template-columns:1fr;}}
+
+.map-row{display:grid;grid-template-columns:1fr 20px 1fr;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border-soft);font-size:13.5px;}
+.map-row:last-child{border-bottom:none;}
+.map-row .field{font-family:var(--mono);color:var(--accent-ink);}
+.map-row .arrow{color:var(--ink-faint);text-align:center;}
+
+.persona-card{border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;background:var(--surface);}
+.persona-card + .persona-card{margin-top:10px;}
+.persona-name{font-weight:700;font-size:14.5px;}
+.persona-role{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.04em;}
+.persona-need{color:var(--ink-soft);font-size:13.5px;margin:4px 0 10px;}
+.q-list{list-style:none;padding:0;margin:0;}
+.q-list li{padding:5px 0 5px 20px;position:relative;font-size:13.5px;}
+.q-list li::before{content:"?";position:absolute;left:0;color:var(--accent);font-weight:700;font-family:var(--mono);}
+
+.widget{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);margin-bottom:14px;overflow:hidden;}
+.widget-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;background:var(--surface-2);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.widget-head .wname{font-weight:700;font-size:14px;}
+.widget-id{font-family:var(--mono);font-size:11px;color:var(--ink-faint);}
+.widget-body{padding:4px 16px 14px;}
+.widget-body dl{display:grid;grid-template-columns:140px 1fr;gap:4px 12px;margin:10px 0 0;font-size:13.5px;}
+.widget-body dt{font-family:var(--mono);font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.03em;padding-top:2px;}
+.widget-body dd{margin:0;}
+
+pre.mermaid-src{background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:14px 16px;font-family:var(--mono);font-size:11.5px;line-height:1.55;overflow-x:auto;white-space:pre;}
+.mermaid-cap{font-size:12px;color:var(--ink-faint);margin-top:6px;}
+
+.flow-steps{counter-reset:step;list-style:none;padding:0;margin:0;}
+.flow-steps li{counter-increment:step;position:relative;padding:8px 0 8px 34px;border-bottom:1px solid var(--border-soft);font-size:13.5px;}
+.flow-steps li:last-child{border-bottom:none;}
+.flow-steps li::before{content:counter(step);position:absolute;left:0;top:8px;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--mono);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+
+.doc-footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);}
+</style>
+
+<div class="wrap">
+  <header class="doc-head">
+    <div class="kicker">Feature Specification · FS-001 · Revisão 5</div>
+    <h1>Dashboard Executivo</h1>
+    <p class="subtitle">Release 0.2 — Frontend MVP · deriva de Product Vision, Product Blueprint §10 (Roadmap) e RFC-001 (Fluxo B, Wireframe correspondente)</p>
+    <div class="meta-row">
+      <span>Autor: <code>Chief Product Architect</code></span>
+      <span>Backend: <code>main@30f6f40</code></span>
+      <span>Frontend: <code>claude/cleanup-orphaned-files-xtvwrj@bd46fb3</code></span>
+      <span>Status: <code>T1–T9 implementados e testados — T10 (documentação) em andamento, aguardando Code Review</code></span>
+    </div>
+  </header>
+
+  <div class="changelog"><strong>Revisão 5 (T10):</strong> documento atualizado para refletir o estado real implementado — Sessão Nível 1, Rota BFF e todos os widgets em produção no branch, não mais "a construir"; Product Behavior Decision de <code>retry: false</code> registrada (§10); dependências (§16) e riscos (§17) marcados como resolvidos onde aplicável. <strong>Revisão 4:</strong> Product Review reexecutado sob AI-PEF v1.0/ADR-010 — as 2 perguntas sem métrica histórica substituídas por Product Hypothesis estruturada (§1); Feature Specification completada com os 10 campos oficiais do template do AI-PEF. <strong>Revisão 3:</strong> incorpora as 6 recomendações do UX Review. <strong>Revisão 2:</strong> adiciona Executive Experience, Widget Catalog, Information Architecture, Data Freshness Matrix e Data Sources. Nenhum conteúdo de revisões anteriores foi removido; seções renumeradas.</div>
+
+  <div class="pipeline">
+    <span class="stage done">Product Review</span><span class="arrow">→</span>
+    <span class="stage done">Architecture Review</span><span class="arrow">→</span>
+    <span class="stage done">UX Review</span><span class="arrow">→</span>
+    <span class="stage done">Feature Specification</span><span class="arrow">→</span>
+    <span class="stage done">Technical Implementation Plan</span><span class="arrow">→</span>
+    <span class="stage done">Product Owner Approval</span><span class="arrow">→</span>
+    <span class="stage done">Implementation (T1–T9)</span><span class="arrow">→</span>
+    <span class="stage now">Code Review</span><span class="arrow">→</span>
+    <span class="stage">QA Review</span><span class="arrow">→</span>
+    <span class="stage">Release Review</span><span class="arrow">→</span>
+    <span class="stage">Knowledge Base Update</span>
+  </div>
+
+  <div class="callout">
+    <strong>Esta especificação não autoriza implementação.</strong>
+    Portões 1–5 do AI-PEF (Product Review, Architecture Review, UX Review, Feature Specification, Technical Implementation Plan) estão completos. O gate restante é a Aprovação formal do Product Owner (Portão 6) — nenhum código será escrito antes dela.
+  </div>
+
+  <section>
+    <div class="section-head"><span class="step-no">PR</span><h2>Product Review (Portão 1, AI-PEF v1.0)</h2></div>
+    <p>Reexecutado sob ADR-010: FS-001 é a primeira Feature do primeiro produto integrado do AI PMO Copilot — nenhuma métrica histórica de negócio pode existir ainda. As 2 perguntas sem baseline são respondidas como Product Hypothesis, não como afirmação vaga.</p>
+    <ol>
+      <li>Problema de negócio: PMOs agregam manualmente o status de portfólio (Product Vision, Blueprint §1) — <span class="pill ok">respondível com evidência qualitativa real</span>.</li>
+      <li>Melhora a tomada de decisão: visibilidade agregada + priorização por risco (W5) para as personas que precisam de agregação antes de detalhe — <span class="pill ok">respondível, grounded em FS-001 §2</span>.</li>
+      <li>Reduz esforço operacional: uma tela agregada substitui abrir N telas — <span class="pill ok">respondível funcionalmente</span>.</li>
+    </ol>
+    <div class="card">
+      <h4 style="margin-top:0">Product Hypothesis 1 — Métrica de negócio</h4>
+      <div class="map-row"><span class="field">Problema observado</span><span class="arrow">→</span><span>PMOs/gestores gastam tempo desproporcional agregando manualmente status de portfólio (Blueprint §1), sem medição hoje</span></div>
+      <div class="map-row"><span class="field">Hipótese</span><span class="arrow">→</span><span>O Dashboard reduz o tempo que um PMO Analyst/Executive Sponsor gasta obtendo visão de portfólio, frente ao processo manual atual</span></div>
+      <div class="map-row"><span class="field">Benefício esperado</span><span class="arrow">→</span><span>Menos tempo em preparação de relatório/reunião de status de portfólio</span></div>
+      <div class="map-row"><span class="field">Métrica esperada</span><span class="arrow">→</span><span>Tempo relatado para montar visão de portfólio (pesquisa) + acessos únicos semanais ao Dashboard (proxy de adoção, já em FS-001 §19)</span></div>
+      <div class="map-row"><span class="field">Método de validação</span><span class="arrow">→</span><span>Pesquisa qualitativa com 3–5 usuários piloto, mesma pergunta antes e depois do release</span></div>
+      <div class="map-row"><span class="field">Critério de sucesso</span><span class="arrow">→</span><span>Redução de tempo relatada por ≥70% dos usuários piloto, ou adoção semanal recorrente nas primeiras 4 semanas</span></div>
+      <div class="map-row"><span class="field">Horizonte de validação</span><span class="arrow">→</span><span>4 semanas após o Release</span></div>
+    </div>
+    <div class="card">
+      <h4 style="margin-top:0">Product Hypothesis 2 — Valor de mercado</h4>
+      <div class="map-row"><span class="field">Problema observado</span><span class="arrow">→</span><span>O diferencial "rollup de portfólio sem agregação manual" (Blueprint §1) nunca foi demonstrado com usuário/comprador real — produto ainda sem nenhuma tela integrada a dado real</span></div>
+      <div class="map-row"><span class="field">Hipótese</span><span class="arrow">→</span><span>Um Dashboard funcional viabiliza a primeira demonstração real do produto, materializando o diferencial já declarado na visão de produto</span></div>
+      <div class="map-row"><span class="field">Benefício esperado</span><span class="arrow">→</span><span>Destrava validação de mercado hoje impossível (nada demonstrável integrado a dado real)</span></div>
+      <div class="map-row"><span class="field">Métrica esperada</span><span class="arrow">→</span><span>Nº de demonstrações/pilotos reais viabilizados pelo Dashboard</span></div>
+      <div class="map-row"><span class="field">Método de validação</span><span class="arrow">→</span><span>Registro de sessões de demonstração que usaram o Dashboard como tela principal + feedback qualitativo coletado nessas sessões</span></div>
+      <div class="map-row"><span class="field">Critério de sucesso</span><span class="arrow">→</span><span>≥1 demonstração real (interna ou externa) usando o Dashboard dentro de 60 dias do Release</span></div>
+      <div class="map-row"><span class="field">Horizonte de validação</span><span class="arrow">→</span><span>60 dias após o Release</span></div>
+    </div>
+    <div class="callout ok">
+      <strong>Veredito do Product Review:</strong> as 5 perguntas estão respondidas — 3 com evidência qualitativa direta, 2 com Product Hypothesis mensurável e falsificável (ADR-010). Portão 1 <strong>aprovado</strong>. As 2 hipóteses ficam registradas como dívida de validação, com checagem obrigatória no Portão 11 (Knowledge Base Update) dentro dos horizontes acima — não é uma aprovação permanente sem essa checagem.
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">1</span><h2>Objetivo</h2></div>
+    <p>Dar ao PMO Lead / gestor de portfólio uma visão agregada da saúde de todos os projetos em uma única tela, sem precisar abrir cada projeto individualmente — a dor central descrita no Product Vision do Product Blueprint ("consolidar em minutos o que hoje leva horas de reuniões e planilhas").</p>
+    <p>É a primeira tela funcional do produto a consumir dado real do backend (Sprint 1 entregou apenas o Design System, sem integração).</p>
+    <div class="card">
+      <div class="map-row"><span class="field">Valor para o Negócio</span><span class="arrow">→</span><span>Primeira tela que materializa o diferencial de rollup automático já declarado no Product Vision (Blueprint §1) — viabiliza demonstração real do produto (Product Hypothesis 2, acima)</span></div>
+      <div class="map-row"><span class="field">Valor para o Usuário</span><span class="arrow">→</span><span>Elimina a agregação manual de status entre projetos para o Executive Sponsor e o PMO Analyst (Product Hypothesis 1, acima)</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no new">2</span><h2>Executive Experience</h2></div>
+    <p>Personas confirmadas em <code>docs/product/03-user-personas.md</code> (sem alteração) e priorização confirmada no Product Blueprint §1: o Dashboard é desenhado primariamente para as personas que precisam de <em>agregação antes de detalhe</em>.</p>
+
+    <h3>Objetivos da tela por perfil</h3>
+    <div class="persona-card">
+      <div class="persona-name">Executive Sponsor <span class="pill accent">primário</span></div>
+      <div class="persona-role">Precisa de visibilidade estratégica sem detalhe operacional</div>
+      <p class="persona-need">Objetivo nesta tela: confirmar, em segundos, se o portfólio está saudável o suficiente para não exigir sua atenção agora. Não lê análise individual aqui — se precisar, delega ao PMO Analyst.</p>
+    </div>
+    <div class="persona-card">
+      <div class="persona-name">PMO Analyst <span class="pill accent">primário</span></div>
+      <div class="persona-role">Precisa de automação para rotinas de governança e monitoramento de portfólio</div>
+      <p class="persona-need">Objetivo nesta tela: identificar rapidamente quais projetos concentram risco/pendência para priorizar onde investigar em seguida — o Dashboard é o ponto de partida do seu fluxo de trabalho diário, não o destino final.</p>
+    </div>
+    <div class="persona-card">
+      <div class="persona-name">IT Manager <span class="pill neutral">secundário</span></div>
+      <div class="persona-role">Precisa de insights consolidados para decisões e prioridades</div>
+      <p class="persona-need">Objetivo nesta tela: comparar projetos entre si para decidir onde alocar atenção técnica — uso ocasional, não diário.</p>
+    </div>
+    <div class="persona-card">
+      <div class="persona-name">Project Manager <span class="pill neutral">secundário</span></div>
+      <div class="persona-role">Precisa de suporte em relatórios, riscos, reuniões e comunicação com stakeholders</div>
+      <p class="persona-need">Objetivo nesta tela: ver o próprio projeto no contexto do portfólio (comparação), mas seu uso principal do produto está em telas de projeto individual (Release 0.3), não aqui.</p>
+    </div>
+
+    <h3>Perguntas que o Dashboard deve responder em menos de 30 segundos</h3>
+    <p>Derivadas exclusivamente dos 5 campos reais de <code>ProjectSummaryResponse</code> — nenhuma pergunta abaixo depende de dado que não existe hoje:</p>
+    <ul class="q-list">
+      <li>Quantos projetos têm alguma análise registrada no portfólio?</li>
+      <li>Quais projetos têm o maior número de riscos extraídos (<code>open_risks</code>)?</li>
+      <li>Quais projetos têm ações pendentes acumuladas (<code>pending_action_items</code>)?</li>
+      <li>Qual o status de saúde mais recente de cada projeto (<code>latest_health_status</code>), e quantos estão fora do estado saudável?</li>
+      <li>Qual projeto tem mais atividade de análise registrada (<code>total_analyses</code>), como sinal indireto de quanto monitoramento aquele projeto vem recebendo?</li>
+    </ul>
+    <div class="callout warn">
+      <strong>Pergunta que o Dashboard <em>não</em> pode responder hoje, e não deve prometer:</strong>
+      "Qual projeto está mais atrasado?", "Qual o custo/ROI do portfólio?", "O que mudou desde ontem?". Nenhum desses dados existe no schema real (sem cronograma, sem custo, sem snapshot histórico — ver Data Sources §10 e Product Blueprint §12, risco "domain model real muito distante do alvo").
+    </div>
+    <div class="callout">
+      <strong>Nuance semântica importante sobre <code>open_risks</code>:</strong>
+      o nome vem do schema da API, mas o valor é a contagem cumulativa de todos os riscos já extraídos por análises <code>risk</code> com saída estruturada — não existe estado de risco "resolvido/fechado" hoje (Risk não tem máquina de estados no Product Blueprint). O rótulo "aberto" não deve ser lido pelo usuário como "ainda pendente de tratamento"; é matéria de UX Review decidir como comunicar isso na tela sem induzir a essa leitura incorreta.
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">3</span><h2>Escopo</h2></div>
+    <ul>
+      <li>Rota <code>/dashboard</code> (App Router, rota protegida por sessão de workspace — Nível 1, RFC-001).</li>
+      <li>Grid de cards, um por projeto, com os 5 campos reais retornados por <code>GET /api/portfolio/summary</code>.</li>
+      <li>Faixa de sumário agregado do portfólio no topo (nº de projetos, soma de <code>open_risks</code>, soma de <code>pending_action_items</code>) — <strong>calculada no cliente</strong> a partir da mesma resposta, sem endpoint adicional.</li>
+      <li>Estado de carregamento (skeleton grid, componente <code>Skeleton</code> já existente).</li>
+      <li>Estado vazio (nenhum projeto com análise registrada ainda).</li>
+      <li>Estado de erro (falha ao contatar o backend — usa <code>error.tsx</code> do App Router).</li>
+      <li>Widgets W3 (Health Status Distribution) e W5 (Risk Concentration Ranking) — aprovados para v1 pelo UX Review, funcional completo em §5.</li>
+    </ul>
+    <p>W4 (Recent Analyses Feed) foi adiado para fast-follow (v1.1) pelo UX Review — ver §5.</p>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">4</span><h2>Fora de escopo (explícito)</h2></div>
+    <ul>
+      <li><strong>Drill-down por projeto</strong> — pertence à Release 0.3 (Gestão de Projetos), tela própria com rota <code>/projetos/[nome]</code>.</li>
+      <li><strong>Gráfico de tendência/série temporal</strong> — não existe dado histórico agregável hoje; <code>AnalysisRecord</code> não versiona snapshots de portfólio ao longo do tempo. Construir isso exigiria uma mudança de schema fora do escopo desta feature.</li>
+      <li><strong>Filtro por período no Dashboard</strong> — os parâmetros <code>created_from</code>/<code>created_to</code> existem em <code>GET /api/analyses</code>, mas essa é uma tela diferente; o Dashboard mostra sempre o estado atual.</li>
+      <li><strong>Exportação (PDF/Excel/CSV)</strong> — não mencionado em nenhum artefato aprovado anteriormente; não inventado aqui.</li>
+      <li><strong>Atualização em tempo real via push</strong> — RFC-001 decidiu Polling como estratégia (D3), detalhado na Data Freshness Matrix (§10).</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no new">5</span><h2>Widget Catalog</h2></div>
+    <p>Todo widget abaixo é construído exclusivamente a partir de <code>GET /api/portfolio/summary</code> ou <code>GET /api/analyses</code> — nenhum endpoint novo é proposto. W1 e W2 são o escopo confirmado (§3); W3–W5 são candidatos para decisão no UX Review, listados aqui porque são funcionalmente triviais de adicionar (mesma chamada de rede que W1/W2, apenas reapresentação client-side).</p>
+
+    <div class="widget">
+      <div class="widget-head"><span class="wname">W1 — Portfolio Summary Strip</span><span class="widget-id pill ok">Nesta feature</span></div>
+      <div class="widget-body">
+        <p>Faixa de 3 números agregados no topo da tela: nº de projetos, soma de <code>open_risks</code>, soma de <code>pending_action_items</code> — resposta imediata às perguntas 1, 2 e 3 do §2.</p>
+        <dl>
+          <dt>Fonte de dados</dt><dd><code>GET /api/portfolio/summary</code> — agregado no cliente por <code>reduce</code> sobre a lista, sem chamada adicional</dd>
+          <dt>Frequência</dt><dd>Idêntica à do payload que consome — ver Data Freshness Matrix (§10)</dd>
+          <dt>Estados</dt><dd>Loading (skeleton de 3 números), vazio (portfólio sem projetos → não renderiza a faixa), erro (herdado do estado de erro da tela)</dd>
+          <dt>Dependências</dt><dd>Nenhuma além de W2 — consome o mesmo fetch</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="widget">
+      <div class="widget-head"><span class="wname">W2 — Project Health Grid</span><span class="widget-id pill ok">Nesta feature</span></div>
+      <div class="widget-body">
+        <p>Grid de cards, um por projeto, com os 5 campos de <code>ProjectSummaryResponse</code> — mapeamento completo em §11.</p>
+        <dl>
+          <dt>Fonte de dados</dt><dd><code>GET /api/portfolio/summary</code> — lista já vem ordenada por <code>project_name</code> (backend, ver §9)</dd>
+          <dt>Frequência</dt><dd>Ver Data Freshness Matrix (§10)</dd>
+          <dt>Estados</dt><dd>Loading, vazio, erro, parcial (<code>latest_health_status</code> nulo) — detalhados em §12</dd>
+          <dt>Dependências</dt><dd><code>Card</code>, <code>Badge</code> (<code>healthStatusVariant()</code>), <code>Skeleton</code> — todos existentes do Sprint 1</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="widget">
+      <div class="widget-head"><span class="wname">W3 — Health Status Distribution</span><span class="widget-id pill ok">Aprovado para v1 (UX Review)</span></div>
+      <div class="widget-body">
+        <p>Contagem de projetos por valor de <code>latest_health_status</code> (ex.: quantos "healthy", quantos "at_risk", quantos sem dado) — responde diretamente à pergunta 4 do §2 sem exigir que o usuário conte os cards manualmente.</p>
+        <dl>
+          <dt>Fonte de dados</dt><dd>Mesmo payload de W1/W2 — agregação client-side por valor de <code>latest_health_status</code>, sem chamada adicional</dd>
+          <dt>Frequência</dt><dd>Idêntica a W1/W2</dd>
+          <dt>Estados</dt><dd>Loading, vazio; sem estado de erro próprio (herda de W2)</dd>
+          <dt>Dependências</dt><dd>Nenhum componente novo necessário — reusa <code>Badge</code></dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="widget">
+      <div class="widget-head"><span class="wname">W4 — Recent Analyses Feed</span><span class="widget-id pill warn">Adiado — fast-follow v1.1 (UX Review)</span></div>
+      <div class="widget-body">
+        <p>Lista das últimas análises registradas em todo o portfólio (kind, projeto, data) — sinal de atividade recente, complementar ao rollup estático de W1/W2.</p>
+        <dl>
+          <dt>Fonte de dados</dt><dd><code>GET /api/analyses</code> sem filtro de projeto — real e já ordenado <code>created_at desc, id desc</code> pelo backend (<code>src/database/repository.py:53</code>); <strong>chamada de rede adicional</strong>, distinta de W1–W3</dd>
+          <dt>Frequência</dt><dd>Mesma família de cache <code>analyses-list</code> do RFC-001 (staleTime 30s) — se aprovado, deve compartilhar o mesmo intervalo de poll de W1/W2 para não duplicar orçamento de rate limit (§10)</dd>
+          <dt>Estados</dt><dd>Loading, vazio (nenhuma análise em todo o backend), erro próprio (chamada independente de W1/W2, pode falhar isoladamente)</dd>
+          <dt>Dependências</dt><dd>Nova rota BFF (<code>/api/bff/analyses/recent</code> ou reuso parametrizado da mesma rota de W1/W2) — decisão de Architecture Review se aprovado</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="widget">
+      <div class="widget-head"><span class="wname">W5 — Risk Concentration Ranking</span><span class="widget-id pill ok">Aprovado para v1 (UX Review)</span></div>
+      <div class="widget-body">
+        <p>Top N projetos ordenados por <code>open_risks</code> decrescente — responde à pergunta 2 do §2 sem exigir que o usuário escaneie o grid inteiro.</p>
+        <dl>
+          <dt>Fonte de dados</dt><dd>Mesmo payload de W1/W2 — <code>sort</code> client-side, sem chamada adicional</dd>
+          <dt>Frequência</dt><dd>Idêntica a W1/W2</dd>
+          <dt>Estados</dt><dd>Loading, vazio (nenhum projeto com <code>open_risks &gt; 0</code>)</dd>
+          <dt>Dependências</dt><dd>Nenhuma nova — reusa dado e componentes de W2</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="widget">
+      <div class="widget-head"><span class="wname">W6 — Tendência de Saúde ao Longo do Tempo</span><span class="widget-id pill danger">Bloqueada</span></div>
+      <div class="widget-body">
+        <p>Fora de escopo (§4). Exigiria snapshot histórico do portfólio — não existe no schema (<code>AnalysisRecord</code> é o único registro persistido, sem tabela de série temporal agregada).</p>
+      </div>
+    </div>
+
+    <div class="widget">
+      <div class="widget-head"><span class="wname">W7 — Custo de IA por Análise/Portfólio</span><span class="widget-id pill danger">Bloqueada</span></div>
+      <div class="widget-body">
+        <p>Nenhum tracking de custo existe hoje — gap já registrado no Product Blueprint §6 (NFR "Custos") e §9 (Observability, "custos da IA").</p>
+      </div>
+    </div>
+
+    <div class="widget">
+      <div class="widget-head"><span class="wname">W8 — Notificações</span><span class="widget-id pill danger">Bloqueada</span></div>
+      <div class="widget-body">
+        <p>Entidade <code>Notification</code> classificada Bloqueada no Domain Model do Product Blueprint §2 — sem API de armazenamento ou envio hoje.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">6</span><h2>User story</h2></div>
+    <div class="card">
+      <p style="margin:0"><strong>Como</strong> PMO Lead<br><strong>Quero</strong> ver a saúde de todos os projetos do portfólio em uma única tela<br><strong>Para</strong> identificar riscos e pendências sem abrir cada projeto individualmente</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">7</span><h2>Referência de UX</h2></div>
+    <p>Fluxo e wireframe já aprovados em RFC-001 (Revisão 3) — não redesenhados aqui:</p>
+    <ul>
+      <li><strong>Fluxo B</strong> — "Consultar Dashboard Executivo"</li>
+      <li><strong>Wireframe 2</strong> — grid de cards de projeto + faixa de sumário</li>
+    </ul>
+    <p>Divergência da UX destes artefatos em relação a esta especificação, e a decisão sobre incluir W3–W5, são matéria do gate <strong>UX Review</strong>, não desta seção.</p>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no new">8</span><h2>Information Architecture</h2></div>
+    <p>Fluxo completo e real, da origem do dado até a apresentação na tela — nenhuma etapa abaixo é hipotética, todas correspondem a código existente.</p>
+    <ol class="flow-steps">
+      <li><strong>Origem (fora desta feature):</strong> um PM/PMO envia texto livre via <code>POST /api/meetings/analyze</code>, <code>/api/risks/analyze</code> ou <code>/api/projects/analyze</code>, em outra tela do produto.</li>
+      <li>O agente de IA correspondente (Meeting Intelligence, Risk Review ou Project Status) processa o texto e produz um payload estruturado (ou fallback, se a saída do modelo não seguir o schema pedido).</li>
+      <li><code>AnalysisRepository</code> persiste o resultado como um <code>AnalysisRecord</code> — tabela única, imutável, sem <code>PUT</code>/<code>PATCH</code>/<code>DELETE</code>.</li>
+      <li>Ao receber uma requisição em <code>GET /api/portfolio/summary</code>, <code>ProjectSummaryService.summarize_portfolio()</code> busca <strong>todas</strong> as análises em uma única query e agrupa em memória por <code>project_name</code> — não existe agregação pré-computada ou materializada; o número é sempre recalculado do zero a cada chamada.</li>
+      <li>O backend FastAPI serializa a lista como <code>list[ProjectSummaryResponse]</code>, protegida por <code>X-API-Key</code> (Nível 2) e pelo rate limiter.</li>
+      <li>A Route Handler do BFF (<code>/api/bff/dashboard</code>, a ser criada nesta feature) recebe a requisição do browser, injeta o <code>X-API-Key</code> (nunca exposto ao cliente) e repassa a chamada ao backend.</li>
+      <li>O browser (TanStack Query) busca via <code>fetch</code>, aplica <code>staleTime</code> e cacheia — ver Data Freshness Matrix (§10).</li>
+      <li>React renderiza W1/W2 (e W3–W5, se aprovados) a partir do mesmo objeto em cache — nenhum widget refaz a chamada de rede.</li>
+      <li>Enquanto a aba está visível, o polling condicional de 60s (RFC-001, decisão D3) repete os passos 4–8 automaticamente; o usuário também pode forçar via botão de atualização manual.</li>
+    </ol>
+    <pre class="mermaid-src">sequenceDiagram
+    participant U as Usuário (browser)
+    participant BFF as Next.js Route Handler
+    participant API as FastAPI /api/portfolio/summary
+    participant SVC as ProjectSummaryService
+    participant DB as AnalysisRecord (tabela única)
+
+    U->>BFF: GET /api/bff/dashboard (cookie sessão Nível 1)
+    BFF->>API: GET /api/portfolio/summary (X-API-Key, Nível 2)
+    API->>SVC: summarize_portfolio()
+    SVC->>DB: SELECT * (uma query, sem N+1)
+    DB-->>SVC: todas as AnalysisRecord
+    SVC-->>API: agregação em memória, agrupada por project_name
+    API-->>BFF: list[ProjectSummaryResponse]
+    BFF-->>U: JSON (sem X-API-Key)
+    Note over U: TanStack Query cacheia (staleTime)
+    loop a cada 60s, aba visível
+        U->>BFF: refetch automático
+    end</pre>
+    <p class="mermaid-cap">Diagrama Mermaid portátil — renderiza nativamente se commitado como Markdown no GitHub.</p>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">9</span><h2>Contrato de API</h2></div>
+    <p>Nenhum endpoint novo é necessário no backend para W1/W2 (escopo confirmado). Endpoints reais envolvidos nesta especificação:</p>
+    <div class="endpoint"><span class="verb">GET</span> <span>/api/portfolio/summary</span><span class="tag pill ok">W1, W2, W3, W5</span></div>
+    <div class="endpoint"><span class="verb">GET</span> <span>/api/analyses</span><span class="tag pill accent">W4 (candidato)</span></div>
+    <div class="endpoint"><span class="verb">GET</span> <span>/api/projects/{'{'}project_name{'}'}/summary</span><span class="tag pill neutral">não usado nesta tela (Release 0.3)</span></div>
+    <p>Fluxo BFF detalhado em Information Architecture (§8).</p>
+    <div class="callout ok">
+      <strong>Resolvido em T1 (implementação):</strong>
+      a sessão de workspace Nível 1 (browser↔BFF) foi implementada como gate mínimo — cookie assinado por HMAC (<code>web/lib/session.ts</code>), aplicado via <code>proxy.ts</code> (Next.js 16 renomeou <code>middleware.ts</code>; ver Technical Adaptation em <code>docs/development/01-project-structure.md</code>) sobre <code>/dashboard</code> e todo <code>/api/bff/*</code>. Senha única de workspace, sem multi-usuário, exatamente como decidido no Architecture Review.
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no new">10</span><h2>Data Freshness Matrix</h2></div>
+    <p>Política de atualização por conjunto de informação — grounded na Estratégia de Estado (RFC-001 §6) e na decisão de Tempo Real (RFC-001 §7, D3). O backend não mantém nenhum cache próprio: <code>summarize_portfolio()</code> recalcula a cada chamada (§8) — toda a "obsolescência" descrita abaixo é inteiramente client-side.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Conjunto de dados</th><th><code>staleTime</code></th><th>Polling</th><th>Atualização manual</th></tr></thead>
+        <tbody>
+          <tr><td>W1 Portfolio Summary Strip</td><td class="mono">30s</td><td rowspan="4" class="mono">60s (<code>refetchInterval</code>, só enquanto a aba está visível — RFC-001 D3)</td><td rowspan="4">Botão sempre disponível, mecanismo primário — o poll é complemento</td></tr>
+          <tr><td>W2 Project Health Grid</td><td class="mono">30s</td></tr>
+          <tr><td>W3 Health Status Distribution</td><td class="mono">30s</td></tr>
+          <tr><td>W5 Risk Concentration Ranking</td><td class="mono">30s</td></tr>
+          <tr><td>W4 Recent Analyses Feed <span class="pill accent">candidato</span></td><td class="mono">30s (família <code>analyses-list</code>)</td><td class="mono">Se aprovado: mesmo ciclo de 60s de W1/W2 — não introduzir um segundo timer</td><td>Herdado do botão da tela</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>W1, W2, W3 e W5 compartilham a <strong>mesma chamada de rede</strong> — são reapresentações do mesmo payload, portanto têm exatamente a mesma frescura por construção; não é possível um estar "mais atualizado" que outro.</p>
+    <div class="callout">
+      <strong>Restrição de orçamento a respeitar:</strong> rate limit de 60 requisições/60s por chave, compartilhado entre todos os operadores do workspace via BFF (RFC-001). Cada widget adicional com fonte de dados própria (como W4) consome desse mesmo orçamento — argumento a favor de manter W3/W5 como reapresentação client-side em vez de novas chamadas, e de sincronizar o timer de W4 ao de W1/W2 se aprovado.
+    </div>
+    <p>Nenhum indicador de "atualizado há Xmin" está no escopo desta revisão — RFC-001 já registrou isso como decisão em aberto para o Sprint 2 (Pergunta em Aberto).</p>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">11</span><h2>Mapeamento de dados → UI</h2></div>
+    <p>Todo campo abaixo vem de <code>ProjectSummaryResponse</code> (schema real, <code>src/api/routes/intelligence.py:64</code>), com semântica confirmada em <code>docs/technical/04-api-design.md</code>. Nenhum campo é inventado.</p>
+    <div class="card">
+      <div class="map-row"><span class="field">project_name</span><span class="arrow">→</span><span>Título do card</span></div>
+      <div class="map-row"><span class="field">total_analyses</span><span class="arrow">→</span><span>Contador "Análises registradas" — inclui análises fallback (não-estruturadas)</span></div>
+      <div class="map-row"><span class="field">open_risks</span><span class="arrow">→</span><span>Contador "Riscos identificados" (renomeado no UX Review — evita a leitura incorreta de "aberto" como "pendente de tratamento") + tooltip explicando que é contagem cumulativa; soma de <code>risks[]</code> entre análises <code>risk</code> estruturadas; destaque visual quando &gt; 0</span></div>
+      <div class="map-row"><span class="field">pending_action_items</span><span class="arrow">→</span><span>Contador "Ações pendentes" — soma de <code>action_items[]</code> entre análises <code>meeting</code> estruturadas</span></div>
+      <div class="map-row"><span class="field">latest_health_status</span><span class="arrow">→</span><span><code>Badge</code> via <code>healthStatusVariant()</code> — vem da análise <code>status</code> estruturada mais recente; <code>null</code> se nenhuma existir</span></div>
+    </div>
+    <div class="callout">
+      <strong>Notas de layout do UX Review:</strong> <code>project_name</code> não tem limite de tamanho no schema (<code>str | None</code>, sem <code>max_length</code>) — truncar com ellipsis + atributo <code>title</code> no card. Contadores sem cap superior conhecido — usar <code>font-variant-numeric: tabular-nums</code>, largura não fixa. Grid via <code>auto-fill</code>/<code>minmax</code>, não colunas fixas, para funcionar igualmente bem com poucos ou muitos projetos. Detalhe completo em <code>UX-REVIEW-FS001.html</code> §2.
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">12</span><h2>Estados da tela</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Estado</th><th>Gatilho</th><th>Comportamento</th></tr></thead>
+        <tbody>
+          <tr><td>Loading</td><td>Requisição em voo</td><td>Grid de <code>Skeleton</code> no lugar dos cards, mesmo layout final (evita layout shift)</td></tr>
+          <tr><td>Vazio</td><td><code>portfolio/summary</code> retorna <code>[]</code></td><td>Copy final (UX Review): título "Nenhum projeto com análise registrada ainda", corpo "Assim que uma reunião, risco ou status de projeto for analisado, ele aparece aqui automaticamente." Sem CTA para funcionalidade inexistente</td></tr>
+          <tr><td>Erro</td><td>Falha de rede, 401/403, 5xx do BFF ou backend</td><td>Copy final (UX Review): título "Não foi possível carregar o portfólio agora", corpo "Tente novamente em instantes. Se o problema persistir, informe o código de referência ao suporte." <code>error.tsx</code> do App Router; sem stack trace, sem header vazado</td></tr>
+          <tr><td>Dado parcial</td><td><code>latest_health_status</code> é <code>null</code></td><td>Badge neutro "Sem dado", não tratado como erro</td></tr>
+          <tr><td>Sucesso</td><td>200 com lista não vazia</td><td>Grid completo + faixa de sumário agregado (+ W3–W5 se aprovados)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no new">13</span><h2>Data Sources</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Categoria</th><th>Fonte</th><th>Detalhe</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pill ok">Fonte atual</span></td><td><code>GET /api/portfolio/summary</code></td><td>Agregação em tempo real sobre <code>AnalysisRecord</code>, computada a cada chamada por <code>ProjectSummaryService.summarize_portfolio()</code> — sem view materializada, sem tabela de agregação própria</td></tr>
+          <tr><td><span class="pill ok">Fonte atual</span></td><td><code>GET /api/analyses</code></td><td>Lista bruta, ordenada por <code>created_at desc</code> — usada apenas se W4 for aprovado</td></tr>
+          <tr><td><span class="pill warn">Fonte planejada</span></td><td>Entidades normalizadas (<code>Risk</code>, <code>ActionItem</code>, <code>Decision</code>, <code>Issue</code>)</td><td>Hoje vivem embutidas no <code>payload</code> JSON de cada análise, não são tabelas próprias (Product Blueprint §2, status "Parcial"). Um widget que precisasse listar riscos individuais com texto — não apenas contá-los — dependeria dessa normalização, fora do escopo desta feature</td></tr>
+          <tr><td><span class="pill danger">Agregação futura, fora de alcance hoje</span></td><td>Série temporal de saúde do portfólio</td><td>Exigiria snapshot histórico persistido (W6) — nenhuma infraestrutura de captura de snapshot existe</td></tr>
+          <tr><td><span class="pill danger">Agregação futura, fora de alcance hoje</span></td><td>Custo de IA por análise/portfólio</td><td>Exigiria instrumentação de custo por chamada ao provider de LLM (W7) — gap já registrado no Product Blueprint §6</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">14</span><h2>NFRs aplicáveis</h2></div>
+    <ul>
+      <li><strong>Performance:</strong> Dashboard &lt; 2s (Product Blueprint §7) — meta ainda não medida, precisa de instrumentação real antes do Release.</li>
+      <li><strong>Acessibilidade:</strong> WCAG AA — pares de cor dos badges de status já validados nos tokens do Design System (RFC-001).</li>
+      <li><strong>Responsividade:</strong> grid colapsa para 1 coluna em mobile, conforme princípio "Mobile Responsive" do Blueprint §5.</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">15</span><h2>Critérios de aceite</h2></div>
+    <div class="gwt">
+      <div class="gwt-row"><span class="k">GIVEN</span><span class="v">o backend tem 3 projetos com análises registradas</span></div>
+      <div class="gwt-row"><span class="k">WHEN</span><span class="v">o usuário acessa <code>/dashboard</code></span></div>
+      <div class="gwt-row"><span class="k">THEN</span><span class="v">os 3 cards são exibidos com os 5 campos reais de cada projeto, sem dado inventado</span></div>
+    </div>
+    <br>
+    <div class="gwt">
+      <div class="gwt-row"><span class="k">GIVEN</span><span class="v">o backend não tem nenhum projeto com análise registrada</span></div>
+      <div class="gwt-row"><span class="k">WHEN</span><span class="v">o usuário acessa <code>/dashboard</code></span></div>
+      <div class="gwt-row"><span class="k">THEN</span><span class="v">o estado vazio é exibido, nunca um grid quebrado ou card fantasma</span></div>
+    </div>
+    <br>
+    <div class="gwt">
+      <div class="gwt-row"><span class="k">GIVEN</span><span class="v">o backend retorna 5xx</span></div>
+      <div class="gwt-row"><span class="k">WHEN</span><span class="v">a Route Handler do BFF repassa a falha</span></div>
+      <div class="gwt-row"><span class="k">THEN</span><span class="v"><code>X-API-Key</code> nunca aparece em nenhuma resposta enviada ao browser, em nenhum cenário de erro</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">16</span><h2>Dependências</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Dependência</th><th>Estado</th><th>Bloqueia?</th></tr></thead>
+        <tbody>
+          <tr><td>Backend <code>GET /api/portfolio/summary</code></td><td><span class="pill ok">Pronto</span></td><td>Não</td></tr>
+          <tr><td>Backend <code>GET /api/analyses</code> (se W4 aprovado)</td><td><span class="pill ok">Pronto</span></td><td>Não</td></tr>
+          <tr><td>Design System (Card, Badge, Skeleton)</td><td><span class="pill ok">Pronto (Sprint 1)</span></td><td>Não</td></tr>
+          <tr><td>Rota BFF <code>/api/bff/dashboard</code></td><td><span class="pill ok">Pronto (T2)</span></td><td>Não</td></tr>
+          <tr><td>Sessão de workspace Nível 1</td><td><span class="pill ok">Pronto (T1)</span></td><td>Não</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">17</span><h2>Riscos específicos desta feature</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Risco</th><th>Classificação</th><th>Mitigação</th></tr></thead>
+        <tbody>
+          <tr><td><code>portfolio/summary</code> sem paginação — resposta cresce sem limite com o nº de projetos</td><td><span class="pill warn">Médio</span></td><td>Aceitável no volume do MVP; reavaliar se o portfólio ultrapassar ~50 projetos</td></tr>
+          <tr><td>Nenhum cache — cada carregamento da tela dispara 1 chamada real ao backend</td><td><span class="pill neutral">Baixo</span></td><td>Aceitável no MVP; TanStack Query com <code>staleTime</code> curto já mitiga (§10)</td></tr>
+          <tr><td>Ausência de sessão Nível 1 (§9, §16)</td><td><span class="pill danger">Alto</span></td><td>Decisão explícita necessária antes da Aprovação</td></tr>
+          <tr><td>Leitura incorreta de <code>open_risks</code> como "riscos ainda não tratados" (§2)</td><td><span class="pill warn">Médio</span></td><td>UX Review deve definir rótulo/tooltip que não induza essa leitura</td></tr>
+          <tr><td>Se W4 for aprovado sem sincronizar o timer com W1/W2, dobra o consumo de rate limit do workspace</td><td><span class="pill warn">Médio</span></td><td>Explicitamente endereçado em §10 — mesmo ciclo de 60s obrigatório</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">18</span><h2>Definition of Ready — próximos gates</h2></div>
+    <h3>Architecture Review deve confirmar</h3>
+    <ul class="checklist">
+      <li><span class="box"></span>Decisão sobre sessão Nível 1 (§9, §16) — implementar mínimo viável ou aceitar risco documentado</li>
+      <li><span class="box"></span>Formato de erro da rota BFF (payload de erro padronizado, sem vazamento de detalhe interno)</li>
+      <li><span class="box"></span>Aprovação (ou não) de W4 — se aprovado, decidir se reusa a rota BFF de W1/W2 com parâmetro ou cria rota própria</li>
+    </ul>
+    <h3>UX Review — concluído (ver <code>UX-REVIEW-FS001.html</code>)</h3>
+    <ul class="checklist">
+      <li><span class="box" style="background:var(--ok);border-color:var(--ok)"></span>Wireframe 2 confirmado válido na estrutura; 4 ajustes de layout registrados (truncamento de nome, tabular-nums, grid auto-fill, sem paginação client-side)</li>
+      <li><span class="box" style="background:var(--ok);border-color:var(--ok)"></span>W3 e W5 aprovados para v1; W4 adiado para fast-follow v1.1</li>
+      <li><span class="box" style="background:var(--ok);border-color:var(--ok)"></span>Copy final definida para estado vazio, estado de erro e rótulo de <code>open_risks</code> (renomeado "Riscos identificados" + tooltip)</li>
+      <li><span class="box" style="background:var(--ok);border-color:var(--ok)"></span>Contraste dos badges confirmado por reuso dos 4 tokens já validados em RFC-001 — nenhum par novo introduzido</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">19</span><h2>Critérios de Sucesso e Métricas</h2></div>
+    <h3>Critérios de sucesso (das Product Hypothesis do Product Review)</h3>
+    <ul>
+      <li>Redução de tempo relatada por ≥70% dos usuários piloto, ou adoção semanal recorrente nas primeiras 4 semanas (Hipótese 1)</li>
+      <li>≥1 demonstração real usando o Dashboard dentro de 60 dias do Release (Hipótese 2)</li>
+    </ul>
+    <h3>Métricas de produto pós-release</h3>
+    <ul>
+      <li>Tempo de carregamento real do <code>/dashboard</code> em produção (comparar contra meta &lt; 2s do Blueprint §7)</li>
+      <li>Taxa de erro da rota BFF (5xx próprios + 5xx repassados do backend)</li>
+      <li>Uso: nº de acessos únicos a <code>/dashboard</code> por semana (primeiro sinal real de adoção, e proxy da Hipótese 1)</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">20</span><h2>Rollback</h2></div>
+    <p>Estratégia técnica completa em TIP-001 §7 — resumo: feature inteiramente aditiva (rota nova, Route Handler nova, middleware de sessão novo), nenhum endpoint/tabela existente é alterado. Rollback de código é revert do commit/PR, sem migração envolvida. O middleware de sessão Nível 1 tem um interruptor de emergência via variável de ambiente (<code>DISABLE_WORKSPACE_SESSION_GATE</code>), isolado do restante da tela, para não travar acesso indevidamente em produção.</p>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">21</span><h2>Implementação concluída (T1–T9)</h2></div>
+    <p>Todas as 9 tarefas de TIP-001 implementadas, testadas e commitadas no branch <code>claude/cleanup-orphaned-files-xtvwrj</code>. Detalhe completo em <code>docs/releases/mvp-validation.md</code> Evidence Entry 015 e <code>docs/development/01-project-structure.md</code>.</p>
+    <ul>
+      <li>48/48 testes unitários/componente, 33/33 testes E2E (Playwright, 3 breakpoints), <code>tsc</code>/<code>eslint</code> limpos, <code>next build</code> bem-sucedido</li>
+      <li>2 achados corrigidos antes do Release, não silenciosamente: dashboard descartava dado válido em falha de poll em background (corrigido, commit <code>cd93d1d</code>); política de retry padrão do TanStack Query mascarava o estado de erro por até 40s (Product Behavior Decision aprovada, <code>retry: false</code> escopado a esta query, commit <code>bd46fb3</code>)</li>
+      <li>1 Technical Adaptation: Next.js 16 renomeou <code>middleware.ts</code> para <code>proxy.ts</code> — sem impacto arquitetural</li>
+    </ul>
+  </section>
+
+  <footer class="doc-footer">
+    AI PMO Copilot · Feature Specification FS-001 · Revisão 5 · Release 0.2 · T1–T9 implementados e testados · próximo gate: Code Review.
+  </footer>
+</div>
