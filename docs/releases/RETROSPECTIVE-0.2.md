@@ -133,3 +133,13 @@ nenhuma implementação de Release 0.3.
 - Um portão formal separado de "Security Review", distinto de Code Review — considerado, mas sem
   evidência suficiente (1 achado em 1 release) para justificar um novo portão dedicado ainda; manter
   como recomendação a observar, não decisão.
+
+## Addendum — atualização do AI-PEF executada (ADR-011)
+
+Após aprovação desta Retrospective, o Product Owner autorizou uma atualização restrita do AI-PEF
+com origem exclusiva nesta seção 10 — nenhuma mudança adicional. Executada como **ADR-011**:
+checklist de segurança condicional adicionado ao Template de Technical Implementation Plan; Release
+Decision Record formalizado como critério de saída obrigatório do Portão 10 (Release Review) já
+existente — sem gate novo, sem papel novo. AI-PEF agora versionado em
+`docs/product/ai-pef/AI-PEF.html` (v1.1), commit `16d84f1`, primeira vez que o framework entra em
+controle de versão do repositório.
