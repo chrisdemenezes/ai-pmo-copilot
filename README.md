@@ -4,6 +4,10 @@
 
 An intelligent PMO assistant designed to automate project governance, reporting, meeting intelligence and decision support using Artificial Intelligence.
 
+**Status: Release 0.3 – Planning.** Opened ahead of Validation Sprint completion by explicit Founder
+decision — see `docs/releases/ADR-012-founder-decision-release-0.3.md`. Release 0.2 (Dashboard
+Executivo) is merged and live; see `docs/releases/RDR-0.2.md`.
+
 ## Architectural Decision
 
 The official application tree is `src/`.
