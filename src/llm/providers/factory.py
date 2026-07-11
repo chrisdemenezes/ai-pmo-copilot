@@ -9,7 +9,7 @@ def get_provider(env_var: str = "LLM_PROVIDER") -> LLMProvider:
     provider_name = os.getenv(env_var, "anthropic").lower()
 
     if provider_name == "mock":
-        return MockLLMProvider()
+        return MockLLMProvider(response_file=os.getenv("MOCK_LLM_RESPONSE_FILE"))
     if provider_name == "anthropic":
         model_name = os.getenv("MODEL_NAME")
         if model_name:

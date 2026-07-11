@@ -18,7 +18,7 @@ if [ ! -f "$ENV_FILE" ]; then
   # Portable in-place edit (works on both GNU and BSD sed).
   sed -i.bak "s#^SESSION_SECRET=.*#SESSION_SECRET=${GENERATED_SECRET}#" "$ENV_FILE"
   rm -f "$ENV_FILE.bak"
-  echo "Created $ENV_FILE -- set ANTHROPIC_API_KEY in it before running the seed script."
+  echo "Created $ENV_FILE (Demo Mode: mock provider, no external credential needed)."
 fi
 
 set -a
@@ -26,7 +26,7 @@ set -a
 source "$ENV_FILE"
 set +a
 
-if [ -z "${ANTHROPIC_API_KEY:-}" ] && [ "${LLM_PROVIDER:-}" = "anthropic" ]; then
+if [ "${LLM_PROVIDER:-}" = "anthropic" ] && [ -z "${ANTHROPIC_API_KEY:-}" ]; then
   echo "WARNING: LLM_PROVIDER=anthropic but ANTHROPIC_API_KEY is empty."
   echo "The backend will start, but any /api/*/analyze call will fail with a 503"
   echo "(provider_config_error) until a real key is set in demo/.env."
@@ -41,6 +41,7 @@ echo "Starting backend on :$BACKEND_PORT (SQLite, no Docker) ..."
 (
   cd "$ROOT_DIR"
   API_KEY="$API_KEY" LLM_PROVIDER="$LLM_PROVIDER" ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}" \
+    MOCK_LLM_RESPONSE_FILE="${MOCK_LLM_RESPONSE_FILE:-}" \
     uvicorn src.main:app --host 0.0.0.0 --port "$BACKEND_PORT" \
     > "$LOG_DIR/backend.log" 2>&1 &
   echo $! > "$DEMO_DIR/backend.pid"

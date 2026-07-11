@@ -1,9 +1,10 @@
 # DPS-01 — Ambiente de Demonstração
 
 Não é a Release 0.3. Não altera arquitetura, contratos de API ou o AI-PEF. Este
-diretório contém apenas orquestração: os mesmos comandos (`uvicorn`, `next dev`,
-chamadas HTTP aos endpoints reais) que já existem em `README.md` e `web/README.md`,
-reunidos para subir com um passo único.
+diretório contém orquestração (os mesmos comandos de `README.md` / `web/README.md`,
+reunidos para subir com um passo único) e o Demo Mode: um modo de operação da
+demonstração que reutiliza exatamente os mesmos endpoints e schemas de produção,
+mudando apenas a fonte do texto que o `MockLLMProvider` devolve.
 
 ## Passo único
 
@@ -11,10 +12,9 @@ reunidos para subir com um passo único.
 bash demo/start-demo.sh
 ```
 
-Na primeira execução, cria `demo/.env` a partir de `demo/.env.example` (gitignored,
-como qualquer `.env` no repositório) com um `SESSION_SECRET` gerado automaticamente.
-Edite `demo/.env` para definir `ANTHROPIC_API_KEY` — ver "Impedimento conhecido"
-abaixo.
+Na primeira execução, cria `demo/.env` a partir de `demo/.env.example` (gitignored)
+com um `SESSION_SECRET` gerado automaticamente. Já vem configurado em Demo Mode —
+nenhuma credencial externa é necessária.
 
 Ao concluir:
 
@@ -26,65 +26,63 @@ bash demo/stop-demo.sh
 
 1. `bash demo/start-demo.sh` — aguardar as duas mensagens "is up".
 2. `python3 demo/seed_demo_data.py` — popula o portfólio fictício do DPS-01
-   (Implantação SAP S/4HANA + 5 projetos de apoio). **Requer o impedimento abaixo
-   resolvido.**
+   (Implantação SAP S/4HANA + 5 projetos de apoio) via Demo Mode.
 3. Abrir `http://localhost:3000/entrar`, senha em `demo/.env` (`WORKSPACE_PASSWORD`).
 4. Abrir `http://localhost:3000/dashboard` — seguir o roteiro do DPS-01, Seção 8.
 5. Ao final: `bash demo/stop-demo.sh`.
 
-## Evidências (Sprint 1, validado nesta máquina em 2026-07-11)
+## Demo Mode
 
-- `GET /health` → `200 {"status":"healthy",...}` — backend real sobe sem Docker/Postgres (SQLite).
-- `POST /api/bff/session` com senha correta → `200 {"authenticated":true}`, cookie `workspace_session` setado.
-- `GET /api/bff/dashboard` sem cookie → `401 {"error":"unauthenticated",...}` — gate real, confirmado.
-- `GET /api/bff/dashboard` com cookie válido, banco vazio → `200 []` — plumbing completo, ponta a ponta.
-- `bash demo/stop-demo.sh` → portas 3000 e 8000 liberadas, confirmado com `lsof`.
+Capacidade adicionada na Sprint 2, classificada como **Demo Capability** (não uma
+Feature de produto): um campo opcional e aditivo `response_file` em
+`MockLLMProvider` (`src/llm/providers/mock_provider.py`), ligado por uma única
+variável de ambiente nova, `MOCK_LLM_RESPONSE_FILE` (`src/llm/providers/factory.py`).
+Quando ausente, o comportamento é idêntico ao de antes da Sprint 2 — usado hoje por
+todo o restante do repositório (testes, CI, dev local) sem qualquer mudança.
 
-**Login e Dashboard funcionam ponta a ponta hoje, sem nenhuma alteração de código.**
+`seed_demo_data.py` escreve o JSON estruturado de cada projeto nesse arquivo antes de
+cada chamada real; o backend lê o arquivo a cada requisição e devolve o conteúdo como
+se fosse a resposta do modelo. Da agregação em diante (`parse_structured_output`,
+`ProjectSummaryService`, o Dashboard) é o mesmo fluxo de produção, sem nenhum atalho.
 
-## Impedimento conhecido (provedor LLM)
+Nenhum contrato de API mudou, nenhum schema de saída mudou, nenhuma arquitetura
+mudou, o `ProductionLLMProvider` não foi tocado. Para rodar a demo contra o Claude
+real em vez do Demo Mode, basta trocar `LLM_PROVIDER=anthropic` e preencher
+`ANTHROPIC_API_KEY` em `demo/.env` — `seed_demo_data.py` detecta automaticamente e
+envia o contexto real em vez de escrever o arquivo de resposta.
 
-A cadeia de análise de IA (`POST /api/projects/analyze`, `/api/risks/analyze`,
-`/api/meetings/analyze`) está bloqueada neste ambiente por falta de credencial —
-não é uma lacuna de desenvolvimento. Duas evidências reais, capturadas nesta sessão:
+## Evidências (Sprint 2, validado nesta máquina em 2026-07-11)
 
-**Com `LLM_PROVIDER=anthropic` e sem `ANTHROPIC_API_KEY`** (configuração padrão deste `demo/.env.example`):
-
-```
-HTTP 503 {"error":"provider_config_error","detail":"ANTHROPIC_API_KEY is required for production LLM execution."}
-```
-
-Este ambiente de execução não possui uma `ANTHROPIC_API_KEY` disponível.
-
-**Com `LLM_PROVIDER=mock`** (o padrão do restante do repositório, usado em dev/CI):
+**Testes automatizados:**
 
 ```
-POST /api/projects/analyze -> 200, mas model_output = {"structured": false, "raw_output": "mock analysis output"}
-GET  /api/portfolio/summary -> latest_health_status: null, open_risks: 0, pending_action_items: 0
+ruff check src tests            -> All checks passed!
+python3 -m pytest               -> 87 passed
 ```
 
-O `MockLLMProvider` sempre devolve o texto fixo `"mock analysis output"`, que não é
-JSON — `parse_structured_output` marca `structured: false`, e `ProjectSummaryService`
-ignora registros não estruturados na agregação. O registro é salvo (`total_analyses`
-sobe), mas o card do projeto fica sem saúde e sem contagem de riscos. Confirmado nesta
-sessão com uma chamada real.
+7 testes novos: 3 em `test_mock_provider.py` (lê o arquivo, lê fresco a cada chamada,
+comportamento inalterado quando ausente), 2 em `test_provider_factory.py`
+(`response_file=None` por padrão, honra `MOCK_LLM_RESPONSE_FILE` quando definido).
 
-`MockLLMProvider` aceita um campo `response` configurável no construtor, mas
-`src/llm/providers/factory.py` sempre instancia `MockLLMProvider()` sem argumentos —
-não há hoje nenhuma variável de ambiente que permita injetar uma resposta mock
-customizada por chamada.
+**Seed real, ponta a ponta:**
 
-### Duas saídas possíveis — decisão do Product Owner
+```
+== Implantacao SAP S/4HANA ==
+  [status] structured=True health_status=red
+  [risk] structured=True risks=4
+== Migracao de Data Center ==     [status] structured=True health_status=yellow
+== Portal do Cliente 2.0 ==       [status] structured=True health_status=green
+== Programa de Governanca de Dados ==  [status] structured=True health_status=green
+== Renovacao de Infraestrutura de Rede ==  [status] structured=True health_status=green
+== Implantacao de CRM Regional == [status] structured=True health_status=yellow
+```
 
-1. **Fornecer uma `ANTHROPIC_API_KEY` real** neste ambiente. Zero alteração de
-   código; resolve por configuração, como a diretriz da Sprint 1 pede.
-2. **Autorizar uma alteração mínima e aditiva** em `src/llm/providers/factory.py`
-   para ler um `MOCK_LLM_RESPONSE` opcional do ambiente e repassá-lo ao
-   `MockLLMProvider`, preservando 100% do comportamento atual quando a variável não
-   está definida. É código de produto — por instrução explícita da Sprint 1,
-   qualquer necessidade dessa natureza deve interromper e aguardar autorização em
-   vez de ser decidida unilateralmente.
+`GET /api/portfolio/summary` e `GET /api/bff/dashboard` (via cookie de sessão real)
+retornam exatamente os mesmos 6 registros, byte a byte.
 
-Nenhuma das duas foi executada. `demo/seed_demo_data.py` está pronto e testado contra
-ambos os modos de falha — falta apenas a decisão acima para produzir dados
-estruturados de verdade.
+**Dashboard real, capturado via Playwright** (login real, senha real, sessão real):
+SAP S/4HANA no topo da distribuição CRÍTICO, 4 riscos identificados; distribuição de
+saúde 3 SAUDÁVEL / 2 ATENÇÃO / 1 CRÍTICO; os 6 projetos renderizados na grade —
+reproduz exatamente o Ato 2 do DPS-01 (Demo Story, Seção 2).
+
+**Login e Dashboard continuam funcionando ponta a ponta, agora com a cadeia de IA completa, sem nenhuma credencial externa.**

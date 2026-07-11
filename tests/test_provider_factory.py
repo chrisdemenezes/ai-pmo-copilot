@@ -11,6 +11,26 @@ def test_get_provider_returns_mock_when_configured(monkeypatch):
     assert isinstance(get_provider(), MockLLMProvider)
 
 
+def test_get_provider_mock_has_no_response_file_by_default(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "mock")
+    monkeypatch.delenv("MOCK_LLM_RESPONSE_FILE", raising=False)
+
+    provider = get_provider()
+
+    assert isinstance(provider, MockLLMProvider)
+    assert provider.response_file is None
+
+
+def test_get_provider_mock_honors_response_file_when_set(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "mock")
+    monkeypatch.setenv("MOCK_LLM_RESPONSE_FILE", "/tmp/demo-response.json")
+
+    provider = get_provider()
+
+    assert isinstance(provider, MockLLMProvider)
+    assert provider.response_file == "/tmp/demo-response.json"
+
+
 def test_get_provider_returns_production_when_configured(monkeypatch):
     monkeypatch.setenv("LLM_PROVIDER", "anthropic")
     assert isinstance(get_provider(), ProductionLLMProvider)
