@@ -42,8 +42,8 @@ describe("ProjectHealthGrid", () => {
     render(<ProjectHealthGrid projects={projects} />);
     expect(screen.getByText("Multilift")).toBeInTheDocument();
     expect(screen.getByText("Aurora")).toBeInTheDocument();
-    expect(screen.getByText("red")).toBeInTheDocument();
-    expect(screen.getByText("sem dado")).toBeInTheDocument();
+    expect(screen.getByText("Crítico")).toBeInTheDocument();
+    expect(screen.getByText("Sem dado")).toBeInTheDocument();
   });
 
   it("renders nothing when the portfolio is empty", () => {

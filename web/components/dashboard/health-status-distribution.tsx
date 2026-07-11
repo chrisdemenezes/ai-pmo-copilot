@@ -1,12 +1,12 @@
-import { Badge, healthStatusVariant } from "@/components/ui/badge";
+import { Badge, healthStatusLabel, healthStatusVariant } from "@/components/ui/badge";
 import { groupByHealthStatus, type HealthStatusKey } from "@/lib/dashboard/aggregate";
 import type { ProjectSummary } from "@/lib/dashboard/types";
 
-const LABELS: Record<HealthStatusKey, string> = {
-  green: "Saudável",
-  yellow: "Atenção",
-  red: "Crítico",
-  none: "Sem dado",
+const KEY_TO_STATUS: Record<HealthStatusKey, "green" | "yellow" | "red" | null> = {
+  green: "green",
+  yellow: "yellow",
+  red: "red",
+  none: null,
 };
 
 /** W3 -- FS-001 §5. Same payload as W1/W2, no extra request. */
@@ -18,8 +18,8 @@ export function HealthStatusDistribution({ projects }: { projects: ProjectSummar
     <div className="flex flex-wrap gap-4">
       {keys.map((key) => (
         <div key={key} className="flex items-center gap-2">
-          <Badge variant={key === "none" ? "neutral" : healthStatusVariant(key)}>
-            {LABELS[key]}
+          <Badge variant={healthStatusVariant(KEY_TO_STATUS[key])}>
+            {healthStatusLabel(KEY_TO_STATUS[key])}
           </Badge>
           <span className="font-mono text-sm tabular-nums">{counts[key]}</span>
         </div>

@@ -1,4 +1,4 @@
-import { Badge, healthStatusVariant } from "@/components/ui/badge";
+import { Badge, healthStatusLabel, healthStatusVariant } from "@/components/ui/badge";
 import { rankByRisk } from "@/lib/dashboard/aggregate";
 import type { ProjectSummary } from "@/lib/dashboard/types";
 
@@ -22,7 +22,7 @@ export function RiskConcentrationRanking({ projects }: { projects: ProjectSummar
           </span>
           <span className="flex items-center gap-2">
             <Badge variant={healthStatusVariant(project.latest_health_status)}>
-              {project.latest_health_status ?? "sem dado"}
+              {healthStatusLabel(project.latest_health_status)}
             </Badge>
             <span className="font-mono text-sm tabular-nums">{project.open_risks}</span>
           </span>

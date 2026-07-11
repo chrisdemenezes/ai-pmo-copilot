@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Badge, healthStatusVariant } from "@/components/ui/badge";
+import { Badge, healthStatusLabel, healthStatusVariant } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ProjectSummary } from "@/lib/dashboard/types";
 
@@ -20,7 +20,7 @@ export function ProjectHealthGrid({ projects }: { projects: ProjectSummary[] }) 
               {project.project_name}
             </CardTitle>
             <Badge variant={healthStatusVariant(project.latest_health_status)}>
-              {project.latest_health_status ?? "sem dado"}
+              {healthStatusLabel(project.latest_health_status)}
             </Badge>
           </CardHeader>
           <CardContent className="grid grid-cols-3 gap-3">

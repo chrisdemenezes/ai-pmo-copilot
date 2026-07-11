@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-import { Badge, healthStatusVariant } from "./badge";
+import { Badge, healthStatusLabel, healthStatusVariant } from "./badge";
 
 describe("healthStatusVariant", () => {
   it("maps green to ok", () => {
@@ -22,6 +22,28 @@ describe("healthStatusVariant", () => {
 
   it("maps undefined to neutral", () => {
     expect(healthStatusVariant(undefined)).toBe("neutral");
+  });
+});
+
+describe("healthStatusLabel", () => {
+  it("maps green to Saudável", () => {
+    expect(healthStatusLabel("green")).toBe("Saudável");
+  });
+
+  it("maps yellow to Atenção", () => {
+    expect(healthStatusLabel("yellow")).toBe("Atenção");
+  });
+
+  it("maps red to Crítico", () => {
+    expect(healthStatusLabel("red")).toBe("Crítico");
+  });
+
+  it("maps null to Sem dado", () => {
+    expect(healthStatusLabel(null)).toBe("Sem dado");
+  });
+
+  it("maps undefined to Sem dado", () => {
+    expect(healthStatusLabel(undefined)).toBe("Sem dado");
   });
 });
 
