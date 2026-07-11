@@ -1,0 +1,592 @@
+<title>AI-PEF v1.1 — AI Product Engineering Framework</title>
+<style>
+:root{
+  --bg:#F6F5F1; --surface:#FFFFFF; --surface-2:#EFEDE6;
+  --ink:#211D16; --ink-soft:#5B5546; --ink-faint:#938C79;
+  --border:#DEDACD; --border-soft:#EAE7DD;
+  --accent:#8A5A2B; --accent-soft:#F1E6D6; --accent-ink:#6B4420;
+  --ok:#2F7D52; --ok-soft:#E5F0E8;
+  --warn:#96690C; --warn-soft:#F5EBD6;
+  --danger:#AE3B32; --danger-soft:#F5E2DF;
+  --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  --serif:Georgia,"Iowan Old Style","Palatino Linotype",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --radius:8px;
+}
+:root[data-theme="dark"]{
+  --bg:#171410; --surface:#1F1B15; --surface-2:#26221A;
+  --ink:#EDE8DC; --ink-soft:#B6AE9A; --ink-faint:#807969;
+  --border:#3A342A; --border-soft:#2C2820;
+  --accent:#D9A15C; --accent-soft:#2E2417; --accent-ink:#E8BE87;
+  --ok:#6FBE93; --ok-soft:#1B2A20;
+  --warn:#D9A83D; --warn-soft:#2E2612;
+  --danger:#E08579; --danger-soft:#2E1D1A;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#171410; --surface:#1F1B15; --surface-2:#26221A;
+    --ink:#EDE8DC; --ink-soft:#B6AE9A; --ink-faint:#807969;
+    --border:#3A342A; --border-soft:#2C2820;
+    --accent:#D9A15C; --accent-soft:#2E2417; --accent-ink:#E8BE87;
+    --ok:#6FBE93; --ok-soft:#1B2A20;
+    --warn:#D9A83D; --warn-soft:#2E2612;
+    --danger:#E08579; --danger-soft:#2E1D1A;
+  }
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.65;}
+.wrap{max-width:980px;margin:0 auto;padding:48px 24px 120px;}
+header.doc-head{border-bottom:3px double var(--ink);padding-bottom:24px;margin-bottom:10px;}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-ink);font-weight:700;}
+h1{font-family:var(--serif);font-size:34px;margin:8px 0 6px;letter-spacing:-.01em;text-wrap:balance;font-weight:700;}
+.subtitle{color:var(--ink-soft);font-size:15px;margin:0 0 16px;max-width:70ch;}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px 20px;font-family:var(--mono);font-size:12px;color:var(--ink-faint);}
+.meta-row code{color:var(--ink-soft);}
+.stat-row{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0 0;}
+.stat{border:1px solid var(--border);border-radius:var(--radius);padding:10px 16px;background:var(--surface);min-width:110px;}
+.stat b{display:block;font-family:var(--serif);font-size:22px;color:var(--accent-ink);}
+.stat span{font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.03em;}
+
+nav.toc{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 22px;margin:32px 0;font-size:13.5px;column-count:2;column-gap:24px;}
+nav.toc a{color:var(--ink-soft);text-decoration:none;display:block;padding:3px 0;break-inside:avoid;}
+nav.toc a:hover{color:var(--accent-ink);}
+@media (max-width:640px){nav.toc{column-count:1;}}
+
+section{margin:48px 0;}
+.section-head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:10px;}
+.step-no{font-family:var(--serif);font-size:22px;color:var(--accent-ink);font-weight:700;}
+h2{font-family:var(--serif);font-size:22px;margin:0;font-weight:700;}
+h3{font-size:15.5px;margin:24px 0 8px;font-weight:700;}
+h4{font-size:13px;margin:16px 0 6px;text-transform:uppercase;letter-spacing:.04em;font-family:var(--mono);color:var(--ink-soft);}
+p{margin:0 0 12px;max-width:76ch;}
+ul,ol{margin:0 0 12px;padding-left:22px;}
+li{margin-bottom:5px;}
+code{font-family:var(--mono);font-size:.87em;background:var(--surface-2);padding:1px 5px;border-radius:4px;}
+
+.callout{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 6px 6px 0;padding:13px 16px;margin:16px 0;font-size:14px;}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft);}
+.callout.ok{border-color:var(--ok);background:var(--ok-soft);}
+.callout strong{display:block;margin-bottom:3px;}
+
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:600px;}
+thead th{text-align:left;background:var(--surface-2);font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);padding:9px 12px;border-bottom:1px solid var(--border);}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--border-soft);vertical-align:top;}
+tbody tr:last-child td{border-bottom:none;}
+
+.pill{display:inline-block;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.02em;padding:2px 8px;border-radius:999px;white-space:nowrap;}
+.pill.ok{background:var(--ok-soft);color:var(--ok);}
+.pill.warn{background:var(--warn-soft);color:var(--warn);}
+.pill.danger{background:var(--danger-soft);color:var(--danger);}
+.pill.neutral{background:var(--surface-2);color:var(--ink-soft);}
+.pill.accent{background:var(--accent-soft);color:var(--accent-ink);}
+
+.gate{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);margin-bottom:14px;overflow:hidden;}
+.gate-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 18px;background:var(--surface-2);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.gate-num{font-family:var(--serif);font-weight:700;font-size:17px;color:var(--accent-ink);}
+.gate-title{font-weight:700;font-size:14.5px;}
+.gate-role{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);}
+.gate-body{padding:6px 18px 16px;font-size:13.6px;}
+.gate-body dl{display:grid;grid-template-columns:140px 1fr;gap:6px 12px;margin:10px 0 0;}
+.gate-body dt{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.03em;padding-top:2px;}
+.gate-body dd{margin:0;}
+
+.template-block{border:1.5px dashed var(--accent);border-radius:var(--radius);background:var(--surface);padding:18px 22px;margin:14px 0;}
+.template-block .tlabel{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--accent-ink);font-weight:700;margin-bottom:10px;display:block;}
+.template-block .ph{color:var(--accent-ink);font-family:var(--mono);}
+.template-block dl{display:grid;grid-template-columns:180px 1fr;gap:8px 14px;font-size:13.6px;}
+.template-block dt{font-weight:700;padding-top:2px;}
+.template-block dd{margin:0;color:var(--ink-soft);}
+.template-block ol.q{counter-reset:q;list-style:none;padding:0;margin:0;}
+.template-block ol.q li{counter-increment:q;padding:7px 0 7px 30px;position:relative;border-bottom:1px solid var(--border-soft);font-size:13.8px;}
+.template-block ol.q li:last-child{border-bottom:none;}
+.template-block ol.q li::before{content:"P"counter(q);position:absolute;left:0;top:7px;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent-ink);}
+
+.role-card{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);padding:16px 20px;margin-bottom:12px;}
+.role-name{font-weight:700;font-size:15px;font-family:var(--serif);}
+.role-card dl{display:grid;grid-template-columns:110px 1fr;gap:5px 12px;margin:8px 0 0;font-size:13.5px;}
+.role-card dt{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;padding-top:2px;}
+.role-card dd{margin:0;}
+
+.maturity{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:14px 0;}
+@media (max-width:760px){.maturity{grid-template-columns:1fr;}}
+.mlevel{border:1px solid var(--border);border-radius:6px;padding:12px 10px;background:var(--surface);text-align:center;}
+.mlevel.current{border-color:var(--accent);background:var(--accent-soft);}
+.mlevel b{display:block;font-family:var(--serif);font-size:19px;color:var(--accent-ink);}
+.mlevel span{font-size:11.5px;color:var(--ink-soft);display:block;margin-top:4px;}
+
+.doc-footer{margin-top:70px;padding-top:18px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);}
+</style>
+
+<div class="wrap">
+  <header class="doc-head">
+    <div class="kicker">Executive Order · Ativo Estratégico Independente</div>
+    <h1>AI Product Engineering Framework</h1>
+    <p class="subtitle">v1.1 — extraído e generalizado do processo real de engenharia usado para construir o AI PMO Copilot, o primeiro produto desenvolvido sob este framework. Não é documentação sobre um processo; são os papéis, portões e templates que qualquer novo produto pode adotar diretamente.</p>
+    <div class="meta-row">
+      <span>Papel: <code>Chief Product Architect</code></span>
+      <span>Caso de origem: <code>AI PMO Copilot</code></span>
+      <span>Ciclos completos validados: <code>1 (Release 0.2)</code></span>
+      <span>Status: <code>framework evolutivo (ADR-009) — atualização restrita v1.1 (ADR-011)</code></span>
+    </div>
+    <div class="callout" style="margin-top:14px">
+      <strong>v1.1 — mudança restrita, origem: Retrospective 0.2.</strong>
+      Exatamente 2 alterações, ambas com evidência de 1 ciclo real (ver ADR-011, §9): checklist de segurança condicional no Template de TIP; Release Decision Record formalizado como saída obrigatória do Portão 10 existente. Nenhum gate novo, nenhum papel novo, nenhuma das expansões maiores anteriormente propostas foi incorporada — permanecem em §10.
+    </div>
+    <div class="stat-row">
+      <div class="stat"><b>7</b><span>Papéis</span></div>
+      <div class="stat"><b>11</b><span>Portões</span></div>
+      <div class="stat"><b>8</b><span>Templates operacionais</span></div>
+      <div class="stat"><b>8</b><span>Princípios fundamentais</span></div>
+      <div class="stat"><b>3</b><span>Documentos fundacionais</span></div>
+      <div class="stat"><b>9</b><span>Itens em backlog de evolução</span></div>
+    </div>
+  </header>
+
+  <nav class="toc">
+    <a href="#o-que-e">0 · O que este framework é e não é</a>
+    <a href="#principios">1 · Princípios fundamentais</a>
+    <a href="#papeis">2 · Papéis</a>
+    <a href="#portoes">3 · Os 11 portões</a>
+    <a href="#templates">4 · Templates operacionais</a>
+    <a href="#fundacionais">5 · Documentos fundacionais por produto</a>
+    <a href="#caso">6 · Caso de estudo: AI PMO Copilot</a>
+    <a href="#maturidade">7 · Modelo de maturidade</a>
+    <a href="#fora">8 · Fora de escopo desta versão</a>
+    <a href="#governanca">9 · Governança do próprio framework · ADR-009</a>
+    <a href="#backlog">10 · Backlog de Evolução (candidatos, não oficiais)</a>
+  </nav>
+
+  <section id="o-que-e">
+    <div class="section-head"><span class="step-no">0</span><h2>O que este framework é e não é</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>É</th><th>Não é</th></tr></thead>
+        <tbody>
+          <tr><td>Um conjunto de papéis, portões e templates que qualquer produto pode adotar para conduzir engenharia com IA de forma disciplinada</td><td>Uma plataforma de software ou ferramenta instalável</td></tr>
+          <tr><td>Templates literais, prontos para preencher, extraídos de artefatos reais que funcionaram</td><td>Um sistema que impõe as regras sozinho — hoje a disciplina depende de quem conduz o processo (papel exercido por um assistente de IA seguindo o framework à risca)</td></tr>
+          <tr><td>Validado uma vez, em um produto real (AI PMO Copilot), do Product Review à Aprovação do Product Owner</td><td>Validado estatisticamente em múltiplos produtos — é o caso de uso número 1, não uma média de N produtos</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout warn">
+      <strong>Honestidade arquitetural, por princípio próprio do framework (P5, abaixo):</strong>
+      nenhum mecanismo de enforcement automático (linter, bot de CI, gate programático) existe hoje. "Operacional" aqui significa "diretamente usável por uma equipe", não "impõe-se sozinho". Automatizar a aplicação do framework é um item de evolução futura, registrado em §8.
+    </div>
+  </section>
+
+  <section id="principios">
+    <div class="section-head"><span class="step-no">1</span><h2>Princípios fundamentais</h2></div>
+    <p>Cada princípio tem origem rastreável em uma decisão real tomada durante a construção do AI PMO Copilot — nenhum foi inventado em abstrato para este documento.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Princípio</th><th>Origem</th></tr></thead>
+        <tbody>
+          <tr><td><code>P1</code></td><td>Nenhuma implementação inicia sem aprovação explícita do Product Owner</td><td>Gate estabelecido antes de FS-001 avançar</td></tr>
+          <tr><td><code>P2</code></td><td>Um papel por resposta/decisão — nunca misturar responsabilidades</td><td>Executive Order de constituição da Equipe Virtual</td></tr>
+          <tr><td><code>P3</code></td><td>Toda decisão arquitetural é um ADR: Problema / Alternativas / Decisão / Consequências / Rollback</td><td>Formato usado nos 8 ADRs do Product Blueprint</td></tr>
+          <tr><td><code>P4</code></td><td>Toda Feature distingue Estado Atual / Estado Planejado / Visão de Produto / Fora de Escopo / Dependências Externas, sempre</td><td>Regra explícita do Product Blueprint e de FS-001</td></tr>
+          <tr><td><code>P5</code></td><td>Nenhum endpoint, campo, entidade ou capacidade é inventado — toda afirmação técnica é verificável no código real</td><td>Regra seguida em toda a construção de FS-001 (grounding em <code>src/api/routes/intelligence.py</code>)</td></tr>
+          <tr><td><code>P6</code></td><td>Toda Feature passa pelo Product Review, fundamentado em métrica histórica quando ela existe, ou em Product Hypothesis estruturada e mensurável quando o produto ainda não foi lançado (ADR-010) — nunca em afirmação vaga, não mensurável e sem plano de validação</td><td>Aplicação real a FS-001: retornou por 2 perguntas sem métrica histórica; reaprovado após ADR-010 substituir essas 2 respostas por hipóteses estruturadas</td></tr>
+          <tr><td><code>P7</code></td><td>Toda implementação preserva Clean Architecture, SOLID, baixo acoplamento, alta coesão, observabilidade, segurança, escalabilidade, performance e testabilidade</td><td><code>CLAUDE.md</code> do AI PMO Copilot, já em vigor desde antes deste framework</td></tr>
+          <tr><td><code>P8</code></td><td>O framework evolui apenas por evidência prática — nenhum módulo, template, papel ou checklist novo é promovido a oficial sem ter sido usado em pelo menos um ciclo completo real de desenvolvimento</td><td>ADR-009 (§9) — rejeição fundamentada da expansão prescritiva para 10 módulos antes de FS-001 concluir um ciclo</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="papeis">
+    <div class="section-head"><span class="step-no">2</span><h2>Papéis</h2></div>
+    <div class="role-card">
+      <div class="role-name">Chief Product Officer Advisor</div>
+      <dl>
+        <dt>Mandato</dt><dd>Guardião do valor de negócio e do Product Review — decide se uma Feature tem justificativa objetiva para existir</dd>
+        <dt>Entradas</dt><dd>Proposta de Feature, Product Blueprint, dado de mercado/negócio real quando disponível</dd>
+        <dt>Saídas</dt><dd>Product Review (aprovado / retorna) — template em §4</dd>
+        <dt>Autoridade</dt><dd>Pode barrar uma Feature antes de qualquer outro portão, mesmo com escopo técnico perfeito</dd>
+      </dl>
+    </div>
+    <div class="role-card">
+      <div class="role-name">Chief Product Architect</div>
+      <dl>
+        <dt>Mandato</dt><dd>Preservar a arquitetura do produto pelos próximos anos; dono do Product Blueprint, da Architecture Baseline e deste framework</dd>
+        <dt>Entradas</dt><dd>Feature aprovada no Product Review, estado real do sistema</dd>
+        <dt>Saídas</dt><dd>Architecture Review, ADRs, ajustes ao Blueprint/Baseline</dd>
+        <dt>Autoridade</dt><dd>Veto sobre qualquer decisão que introduza arquitetura paralela, duplicação ou acoplamento indevido</dd>
+      </dl>
+    </div>
+    <div class="role-card">
+      <div class="role-name">Principal UX Architect</div>
+      <dl>
+        <dt>Mandato</dt><dd>Garantir que a experiência reflita dado real do sistema, não o wireframe idealizado</dd>
+        <dt>Entradas</dt><dd>Feature Specification, wireframes/fluxos existentes, schema real de dados</dd>
+        <dt>Saídas</dt><dd>UX Review — achados, decisões de escopo de UI, copy final</dd>
+        <dt>Autoridade</dt><dd>Pode adiar widgets/telas candidatas sem bloquear o restante da Feature</dd>
+      </dl>
+    </div>
+    <div class="role-card">
+      <div class="role-name">Principal Software Engineer</div>
+      <dl>
+        <dt>Mandato</dt><dd>Decompor a Feature aprovada em trabalho executável e, quando autorizado, implementar</dd>
+        <dt>Entradas</dt><dd>Feature Specification aprovada, UX Review, Architecture Baseline</dd>
+        <dt>Saídas</dt><dd>Technical Implementation Plan; código, testes e documentação quando autorizado</dd>
+        <dt>Autoridade</dt><dd>Decide a decomposição técnica; não decide se a Feature deve existir</dd>
+      </dl>
+    </div>
+    <div class="role-card">
+      <div class="role-name">Principal Reviewer</div>
+      <dl>
+        <dt>Mandato</dt><dd>Revisão de código independente — nunca a mesma passagem de trabalho que implementou</dd>
+        <dt>Entradas</dt><dd>Diff/PR, Technical Implementation Plan, Definition of Done</dd>
+        <dt>Saídas</dt><dd>Code Review — aprovado / achados a corrigir</dd>
+        <dt>Autoridade</dt><dd>Bloqueia merge se o DoD do TIP não estiver satisfeito</dd>
+      </dl>
+    </div>
+    <div class="role-card">
+      <div class="role-name">Product Quality Architect</div>
+      <dl>
+        <dt>Mandato</dt><dd>Validar os Critérios de Aceite da Feature Specification um a um contra o sistema real, não contra a intenção</dd>
+        <dt>Entradas</dt><dd>Build/release candidato, Critérios de Aceite da Feature Specification</dd>
+        <dt>Saídas</dt><dd>QA Review — aprovado / reprovado com evidência</dd>
+        <dt>Autoridade</dt><dd>Bloqueia release se qualquer Critério de Aceite falhar</dd>
+      </dl>
+    </div>
+    <div class="role-card">
+      <div class="role-name">Release Manager</div>
+      <dl>
+        <dt>Mandato</dt><dd>Confirmar CI verde, plano de rollback documentado e testável, produzir o Executive Status Report e o Release Decision Record</dd>
+        <dt>Entradas</dt><dd>Build aprovado em QA, estratégia de rollback do TIP</dd>
+        <dt>Saídas</dt><dd>Release Review, Release Notes, Executive Status Report, Release Decision Record (ADR-011) — templates em §4</dd>
+        <dt>Autoridade</dt><dd>Único papel com autoridade de disparar o release</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section id="portoes">
+    <div class="section-head"><span class="step-no">3</span><h2>Os 11 portões</h2></div>
+    <p>Nenhum portão pode ser pulado. Cada um tem critério de entrada, papel responsável e critério de saída — sem os quais a Feature não avança ao próximo.</p>
+
+    <div class="gate">
+      <div class="gate-head"><span class="gate-num">1</span><span class="gate-title">Product Review</span><span class="gate-role pill accent">CPO Advisor</span></div>
+      <div class="gate-body"><dl>
+        <dt>Entrada</dt><dd>Proposta de Feature (ideia, dor observada, pedido de stakeholder)</dd>
+        <dt>Critério de saída</dt><dd>As 5 perguntas do template (§4) respondidas com métrica histórica real quando ela existe. Quando o produto/Feature ainda não foi lançado e não pode existir baseline histórico, a pergunta é respondida com uma <strong>Product Hypothesis</strong> estruturada (template em §4, ADR-010 em §9) — mensurável, falsificável e com horizonte de validação definido. Uma resposta vaga, sem métrica e sem plano de validação, não satisfaz nem uma coisa nem outra: a Feature <strong>retorna</strong> (P6)</dd>
+      </dl></div>
+    </div>
+    <div class="gate">
+      <div class="gate-head"><span class="gate-num">2</span><span class="gate-title">Architecture Review</span><span class="gate-role pill accent">Chief Product Architect</span></div>
+      <div class="gate-body"><dl>
+        <dt>Entrada</dt><dd>Feature aprovada no Product Review</dd>
+        <dt>Critério de saída</dt><dd>Nenhuma arquitetura paralela proposta; toda dependência mapeada contra código real (P5); decisões registradas como ADR quando alteram o Baseline</dd>
+      </dl></div>
+    </div>
+    <div class="gate">
+      <div class="gate-head"><span class="gate-num">3</span><span class="gate-title">UX Review</span><span class="gate-role pill accent">Principal UX Architect</span></div>
+      <div class="gate-body"><dl>
+        <dt>Entrada</dt><dd>Feature aprovada em Architecture Review</dd>
+        <dt>Critério de saída</dt><dd>Fluxo/wireframe validado contra dado real; escopo de UI decidido (o que entra na v1 vs. fast-follow); copy final definida</dd>
+      </dl></div>
+    </div>
+    <div class="gate">
+      <div class="gate-head"><span class="gate-num">4</span><span class="gate-title">Feature Specification</span><span class="gate-role pill accent">Chief Product Architect + Principal UX Architect</span></div>
+      <div class="gate-body"><dl>
+        <dt>Entrada</dt><dd>Resultado dos 3 reviews anteriores</dd>
+        <dt>Critério de saída</dt><dd>Documento completo com os 10 campos obrigatórios (§4) — nenhum campo pode ficar "a definir" sem virar pendência explícita</dd>
+      </dl></div>
+    </div>
+    <div class="gate">
+      <div class="gate-head"><span class="gate-num">5</span><span class="gate-title">Technical Implementation Plan</span><span class="gate-role pill accent">Principal Software Engineer</span></div>
+      <div class="gate-body"><dl>
+        <dt>Entrada</dt><dd>Feature Specification completa</dd>
+        <dt>Critério de saída</dt><dd>Tarefas decompostas com dependências e ordem de execução; DoD, estratégia de testes e de rollback definidas antes de qualquer código</dd>
+      </dl></div>
+    </div>
+    <div class="gate">
+      <div class="gate-head"><span class="gate-num">6</span><span class="gate-title">Product Owner Approval</span><span class="gate-role pill danger">Product Owner (humano)</span></div>
+      <div class="gate-body"><dl>
+        <dt>Entrada</dt><dd>Portões 1–5 completos e publicados</dd>
+        <dt>Critério de saída</dt><dd>Aprovação explícita, registrada — este é o único portão que não pode ser exercido por nenhum papel da Equipe Virtual (P1)</dd>
+      </dl></div>
+    </div>
+    <div class="gate">
+      <div class="gate-head"><span class="gate-num">7</span><span class="gate-title">Implementation</span><span class="gate-role pill accent">Principal Software Engineer</span></div>
+      <div class="gate-body"><dl>
+        <dt>Entrada</dt><dd>Aprovação do Product Owner</dd>
+        <dt>Critério de saída</dt><dd>Código segue o TIP; qualquer desvio de escopo exige um novo ADR, não uma decisão silenciosa</dd>
+      </dl></div>
+    </div>
+    <div class="gate">
+      <div class="gate-head"><span class="gate-num">8</span><span class="gate-title">Code Review</span><span class="gate-role pill accent">Principal Reviewer</span></div>
+      <div class="gate-body"><dl>
+        <dt>Entrada</dt><dd>Implementação completa, CI rodando</dd>
+        <dt>Critério de saída</dt><dd>DoD do TIP satisfeito item a item; revisor é sempre um papel distinto de quem implementou (P2)</dd>
+      </dl></div>
+    </div>
+    <div class="gate">
+      <div class="gate-head"><span class="gate-num">9</span><span class="gate-title">QA Review</span><span class="gate-role pill accent">Product Quality Architect</span></div>
+      <div class="gate-body"><dl>
+        <dt>Entrada</dt><dd>Code Review aprovado</dd>
+        <dt>Critério de saída</dt><dd>Todos os Critérios de Aceite da Feature Specification verificados contra o sistema real, com evidência</dd>
+      </dl></div>
+    </div>
+    <div class="gate">
+      <div class="gate-head"><span class="gate-num">10</span><span class="gate-title">Release Review</span><span class="gate-role pill accent">Release Manager</span></div>
+      <div class="gate-body"><dl>
+        <dt>Entrada</dt><dd>QA aprovado</dd>
+        <dt>Critério de saída</dt><dd>CI verde, rollback testado ou justificadamente aceito, Release Notes redigidas, e um <strong>Release Decision Record</strong> preenchido (template em §4, ADR-011) — pré-condição obrigatória para a decisão de merge ou publicação da Release, não um artefato à parte de um gate novo</dd>
+      </dl></div>
+    </div>
+    <div class="gate">
+      <div class="gate-head"><span class="gate-num">11</span><span class="gate-title">Knowledge Base Update</span><span class="gate-role pill accent">Release Manager + Chief Product Architect</span></div>
+      <div class="gate-body"><dl>
+        <dt>Entrada</dt><dd>Release publicado</dd>
+        <dt>Critério de saída</dt><dd>Roadmap atualizado, Product Knowledge Base atualizado, Executive Status Report emitido (§4)</dd>
+      </dl></div>
+    </div>
+  </section>
+
+  <section id="templates">
+    <div class="section-head"><span class="step-no">4</span><h2>Templates operacionais</h2></div>
+    <p>Copiáveis diretamente para qualquer novo produto — os campos entre <span class="ph">[colchetes]</span> são o que muda; a estrutura, não.</p>
+
+    <h3>Template — Product Review</h3>
+    <div class="template-block">
+      <span class="tlabel">Preencher para: <span class="ph">[nome da Feature]</span></span>
+      <ol class="q">
+        <li>Qual problema de negócio esta Feature resolve?</li>
+        <li>Qual métrica de negócio será impactada — com baseline medido, não estimado?</li>
+        <li>Como essa Feature reduz esforço operacional?</li>
+        <li>Como essa Feature melhora a tomada de decisão?</li>
+        <li>Como essa Feature aumenta o valor do produto no mercado?</li>
+      </ol>
+      <p style="margin-top:10px;font-size:13px"><strong>Regra:</strong> se qualquer resposta não for objetiva (sem dado real, sem baseline), a Feature retorna ao Product Review — nunca avança com uma resposta especulativa.</p>
+    </div>
+
+    <h3>Template — Product Hypothesis <span class="pill accent">usar quando não há métrica histórica (ADR-010)</span></h3>
+    <div class="template-block">
+      <span class="tlabel">Substitui uma pergunta do Product Review que não tem baseline histórico</span>
+      <dl>
+        <dt>Problema observado</dt><dd><span class="ph">[dor real, ainda que sem medição — deve ter origem em Product Vision/Blueprint, não inventada]</span></dd>
+        <dt>Hipótese</dt><dd><span class="ph">[afirmação testável sobre o efeito esperado da Feature]</span></dd>
+        <dt>Benefício esperado</dt><dd><span class="ph">[o que muda para o usuário/negócio se a hipótese for verdadeira]</span></dd>
+        <dt>Métrica esperada</dt><dd><span class="ph">[o que será medido — nome, não apenas "melhoria"]</span></dd>
+        <dt>Método de validação</dt><dd><span class="ph">[como e quando os dados serão coletados após o lançamento]</span></dd>
+        <dt>Critério de sucesso</dt><dd><span class="ph">[limiar objetivo que confirma ou refuta a hipótese]</span></dd>
+        <dt>Horizonte de validação</dt><dd><span class="ph">[prazo definido — a hipótese não fica em aberto indefinidamente]</span></dd>
+      </dl>
+      <p style="margin-top:10px;font-size:13px"><strong>Obrigação de fechamento:</strong> ao fim do horizonte de validação, a hipótese é confirmada ou refutada com dado real, no Portão 11 (Knowledge Base Update) ou na Retrospective do ciclo — uma hipótese nunca aprovada permanentemente sem essa checagem. Hipótese sem checagem registrada é dívida de produto explícita (Executive Status Report, campo "Dívida Técnica").</p>
+    </div>
+
+    <h3>Template — Architecture Decision Record</h3>
+    <div class="template-block">
+      <span class="tlabel">ADR-<span class="ph">[NNN]</span> — <span class="ph">[título]</span></span>
+      <dl>
+        <dt>Contexto</dt><dd><span class="ph">[situação que motivou a decisão]</span></dd>
+        <dt>Problema</dt><dd><span class="ph">[o que precisa ser resolvido]</span></dd>
+        <dt>Alternativas</dt><dd><span class="ph">[opções consideradas, com trade-off de cada uma]</span></dd>
+        <dt>Decisão</dt><dd><span class="ph">[o que foi escolhido]</span></dd>
+        <dt>Consequências</dt><dd><span class="ph">[o que essa escolha implica, positivo e negativo]</span></dd>
+        <dt>Rollback</dt><dd><span class="ph">[como reverter, se necessário]</span></dd>
+      </dl>
+    </div>
+
+    <h3>Template — Feature Specification</h3>
+    <div class="template-block">
+      <span class="tlabel">FS-<span class="ph">[NNN]</span> — <span class="ph">[nome da Feature]</span></span>
+      <dl>
+        <dt>Objetivo</dt><dd><span class="ph">[o que a Feature entrega]</span></dd>
+        <dt>Valor para o Negócio</dt><dd><span class="ph">[distinto de valor para o usuário — vem do Product Review]</span></dd>
+        <dt>Valor para o Usuário</dt><dd><span class="ph">[dor real resolvida]</span></dd>
+        <dt>Critérios de Aceite</dt><dd><span class="ph">[Given/When/Then, testáveis]</span></dd>
+        <dt>Critérios de Sucesso</dt><dd><span class="ph">[condição que define a Feature como bem-sucedida]</span></dd>
+        <dt>Métricas</dt><dd><span class="ph">[o que será medido pós-release, com baseline]</span></dd>
+        <dt>Dependências</dt><dd><span class="ph">[reais, verificadas em código — nunca inventadas]</span></dd>
+        <dt>Riscos</dt><dd><span class="ph">[classificados Crítico/Alto/Médio/Baixo, com mitigação]</span></dd>
+        <dt>Rollback</dt><dd><span class="ph">[como desfazer sem efeito colateral]</span></dd>
+        <dt>Testes</dt><dd><span class="ph">[por camada: unitário, componente, integração, E2E]</span></dd>
+      </dl>
+      <p style="margin-top:10px;font-size:13px">Toda Feature Specification também declara, sempre: Estado Atual / Estado Planejado / Visão de Produto / Itens Fora de Escopo / Dependências Externas (P4).</p>
+    </div>
+
+    <h3>Template — Technical Implementation Plan</h3>
+    <div class="template-block">
+      <span class="tlabel">TIP-<span class="ph">[NNN]</span> — <span class="ph">[nome da Feature]</span></span>
+      <dl>
+        <dt>Tarefas</dt><dd><span class="ph">[decompostas em subtarefas executáveis]</span></dd>
+        <dt>Dependências</dt><dd><span class="ph">[entre tarefas e com sistemas externos]</span></dd>
+        <dt>Ordem de execução</dt><dd><span class="ph">[sequência e o que pode paralelizar]</span></dd>
+        <dt>Riscos</dt><dd><span class="ph">[de implementação, distintos dos riscos de produto da Feature Spec]</span></dd>
+        <dt>Definition of Done</dt><dd><span class="ph">[checklist verificável, não intenção]</span></dd>
+        <dt>Estratégia de testes</dt><dd><span class="ph">[por camada, o que cada uma cobre]</span></dd>
+        <dt>Estratégia de rollback</dt><dd><span class="ph">[técnica: revert, flag, migração reversível]</span></dd>
+        <dt>Estimativa de esforço</dt><dd><span class="ph">[por tarefa, com justificativa da incerteza]</span></dd>
+        <dt>Checklist de segurança <span class="pill accent">condicional, ADR-011</span></dt><dd>
+          <span class="ph">[obrigatório apenas se a Feature envolver autenticação, sessão, credenciais ou rota protegida — caso contrário, "Não se aplica"]</span>
+          <ul style="margin:8px 0 0;padding-left:20px;font-size:13px">
+            <li>Proteção contra força bruta na(s) rota(s) de login/emissão de sessão (rate limiting)</li>
+            <li>Limitação por IP, não apenas por credencial</li>
+            <li>Janela temporal configurável, não hardcoded</li>
+            <li>Testes automatizados cobrindo a mitigação</li>
+            <li>Documentação da mitigação no README do componente afetado</li>
+          </ul>
+        </dd>
+      </dl>
+    </div>
+
+    <h3>Template — Executive Status Report</h3>
+    <div class="template-block">
+      <span class="tlabel">Ciclo: <span class="ph">[período/release]</span></span>
+      <dl>
+        <dt>Progresso</dt><dd><span class="ph">[o que saiu de cada portão neste ciclo]</span></dd>
+        <dt>Riscos</dt><dd><span class="ph">[abertos, com classificação]</span></dd>
+        <dt>Pendências</dt><dd><span class="ph">[o que falta para o próximo portão]</span></dd>
+        <dt>Próximos Passos</dt><dd><span class="ph">[Features na fila, por portão atual]</span></dd>
+        <dt>Qualidade</dt><dd><span class="ph">[resultado do QA Review do ciclo]</span></dd>
+        <dt>Cobertura</dt><dd><span class="ph">[cobertura de teste real, não estimada]</span></dd>
+        <dt>Dívida Técnica</dt><dd><span class="ph">[itens registrados, não silenciados]</span></dd>
+        <dt>Maturidade do Produto</dt><dd><span class="ph">[nível no Modelo de Maturidade, §7]</span></dd>
+      </dl>
+    </div>
+
+    <h3>Template — Release Decision Record <span class="pill accent">obrigatório, ADR-011</span></h3>
+    <div class="template-block">
+      <span class="tlabel">Saída obrigatória do Portão 10 (Release Review) — pré-condição para merge/publicação, não um gate à parte</span>
+      <dl>
+        <dt>Release</dt><dd><span class="ph">[identificador]</span></dd>
+        <dt>Data</dt><dd><span class="ph">[YYYY-MM-DD]</span></dd>
+        <dt>Commit</dt><dd><span class="ph">[SHA do merge/publicação]</span></dd>
+        <dt>PR</dt><dd><span class="ph">[link]</span></dd>
+        <dt>Resultado</dt><dd><span class="ph">[Aprovada / Aprovada com restrições / Reprovada]</span></dd>
+        <dt>Ambiente autorizado</dt><dd><span class="ph">[ex.: interno, piloto, produção]</span></dd>
+        <dt>Ambientes bloqueados</dt><dd><span class="ph">[explícito — nunca deixar implícito]</span></dd>
+        <dt>Riscos aceitos</dt><dd><span class="ph">[classificados, com condição de encerramento]</span></dd>
+        <dt>Riscos mitigados</dt><dd><span class="ph">[lista, com commit de referência]</span></dd>
+        <dt>Condição obrigatória p/ próxima Release</dt><dd><span class="ph">[se houver risco aceito com prazo]</span></dd>
+        <dt>Responsável pela decisão</dt><dd>Product Owner</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section id="fundacionais">
+    <div class="section-head"><span class="step-no">5</span><h2>Documentos fundacionais por produto</h2></div>
+    <p>Todo produto que adota este framework precisa dos 3 documentos abaixo antes do primeiro Product Review — generalizados da experiência do AI PMO Copilot:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Documento</th><th>Conteúdo mínimo</th></tr></thead>
+        <tbody>
+          <tr><td>Product Blueprint</td><td>Visão de produto, modelo de domínio, modelo de eventos, máquinas de estado, princípios de UX, NFRs, metas de performance, blueprint de segurança e observabilidade, roadmap por releases, ADRs, riscos arquiteturais</td></tr>
+          <tr><td>Architecture Baseline</td><td>Stack técnica, design system, estratégia de integração entre camadas, evolução do modelo de autenticação</td></tr>
+          <tr><td>Product Knowledge Base</td><td>Consolidação viva de decisões, features entregues e aprendizados — atualizada a cada portão 11</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="caso">
+    <div class="section-head"><span class="step-no">6</span><h2>Caso de estudo: AI PMO Copilot</h2></div>
+    <p>Prova de que o framework não é teórico — mapeamento de cada template contra o artefato real produzido:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Elemento do framework</th><th>Artefato real do AI PMO Copilot</th></tr></thead>
+        <tbody>
+          <tr><td>Product Blueprint</td><td><code>product-blueprint.html</code> — 13 capítulos, 10 diagramas, 8 ADRs, 10 riscos</td></tr>
+          <tr><td>Architecture Baseline</td><td><code>frontend-rfc.html</code> (RFC-001, Revisão 3)</td></tr>
+          <tr><td>Product Review (Portão 1)</td><td>Aplicado a FS-001: 2 de 5 perguntas sem resposta objetiva → Feature retornada</td></tr>
+          <tr><td>Feature Specification (Portão 4)</td><td><code>feature-spec-dashboard.html</code> (FS-001, Revisão 3)</td></tr>
+          <tr><td>UX Review (Portão 3)</td><td><code>ux-review-fs001.html</code> — aprovado com ressalvas, 6 recomendações incorporadas</td></tr>
+          <tr><td>Technical Implementation Plan (Portão 5)</td><td><code>tip-001.html</code> (TIP-001) — 10 tarefas, ordem de execução, DoD</td></tr>
+          <tr><td>Product Knowledge Base</td><td><strong>Ainda não existe</strong> — gap real, registrado, não maquiado</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="maturidade">
+    <div class="section-head"><span class="step-no">7</span><h2>Modelo de maturidade</h2></div>
+    <div class="maturity">
+      <div class="mlevel"><b>0</b><span>Ad-hoc — sem portões, sem template</span></div>
+      <div class="mlevel"><b>1</b><span>Documentado — templates existem, uso opcional</span></div>
+      <div class="mlevel current"><b>2</b><span>Gateado — portões seguidos, ADRs registrados <br><em>(AI PMO Copilot está aqui)</em></span></div>
+      <div class="mlevel"><b>3</b><span>Rastreável — Knowledge Base viva, métricas com baseline real</span></div>
+      <div class="mlevel"><b>4</b><span>Auditável — enforcement automatizado, multi-produto</span></div>
+    </div>
+    <p>Honestidade de posição: o AI PMO Copilot está no <strong>Nível 2</strong> — os 11 portões são seguidos e os ADRs existem, mas o Product Knowledge Base não existe (§6) e o Product Review de FS-001 identificou que nenhuma métrica de negócio tem baseline medido. Avançar ao Nível 3 exige fechar essas duas lacunas antes de reivindicar mais do que isso.</p>
+  </section>
+
+  <section id="fora">
+    <div class="section-head"><span class="step-no">8</span><h2>Fora de escopo desta versão</h2></div>
+    <ul>
+      <li>Enforcement automatizado (linter, bot de CI que bloqueia PR sem ADR, checagem programática de portão) — hoje 100% disciplina de processo.</li>
+      <li>Validação em mais de um produto — o framework tem exatamente 1 caso de uso real até esta versão.</li>
+      <li>Versionamento formal fora deste documento (changelog estruturado, RFC de mudança do próprio framework) — tratado em §9 apenas como regra de governança, não como ferramenta.</li>
+    </ul>
+  </section>
+
+  <section id="governanca">
+    <div class="section-head"><span class="step-no">9</span><h2>Governança do próprio framework</h2></div>
+    <p>O AI-PEF é, ele mesmo, sujeito às suas regras: qualquer mudança nos papéis, portões ou templates é proposta pelo Chief Product Architect como ADR e depende de Aprovação do Product Owner — o mesmo Portão 6 usado por qualquer Feature de produto. Não há um caminho de exceção para alterar o próprio framework sem passar pelo processo que ele define.</p>
+
+    <h3>ADR-009 — O AI-PEF evolui apenas por evidência prática, não por prescrição antecipada</h3>
+    <div class="template-block">
+      <dl>
+        <dt>Contexto</dt><dd>Pedido de expansão do AI-PEF v1.0 para 10 módulos (Governança, Lifecycle, Templates, Checklists, Knowledge Base, AI Roles, Engineering Standards, Product Standards, Governança de IA, Framework Roadmap), estruturados como repositório de 12 pastas pronto para eventual publicação open source — antes de qualquer Feature ter atravessado os 11 portões na prática. FS-001, o único caso real do framework, estava (e permanece) travado no Portão 1.</dd>
+        <dt>Problema</dt><dd>Documentar templates, checklists e papéis nunca exercitados (ex.: Sprint Plan, Retrospective, Security Compliance, os papéis "Chief PMO Architect"/"QA Architect"/"Security Architect") como "oficiais" viola o princípio P5 aplicado a processo: nenhuma capacidade deveria ser declarada pronta sem verificação real. O risco concreto é retrabalho — assim como o UX Review de FS-001 só revelou problemas reais de schema depois de olhar o código, um framework de 10 módulos escrito antes do primeiro ciclo completo tende a estar errado nos detalhes que só a prática revela.</dd>
+        <dt>Alternativas</dt><dd><strong>(a)</strong> Construir os 10 módulos agora, de forma prescritiva — aceito o risco de retrabalho em troca de completude imediata. <strong>(b)</strong> Manter o framework mínimo validado (v1.0, 6 templates realmente usados) e expandir apenas por evidência, um módulo/template por vez, após cada ciclo completo real.</dd>
+        <dt>Decisão</dt><dd><strong>(b).</strong> O AI-PEF passa de framework prescritivo para framework evolutivo. Nenhum módulo, template, papel ou checklist novo é promovido a oficial sem ter sido usado em pelo menos um ciclo completo real de desenvolvimento (Ideia até Knowledge Base Update). Melhorias identificadas durante uma implementação são registradas como candidatas (§10) e só incorporadas ao framework oficial após Release Review e Retrospective daquele ciclo.</dd>
+        <dt>Consequências</dt><dd>Crescimento mais lento e deliberadamente incompleto do framework — módulos pedidos (Discovery, Sprint Plan, Retrospective, checklists de compliance, papéis adicionais, taxonomia de Knowledge Base, governança de IA, roadmap do próprio framework) ficam registrados como backlog, não como capítulos do documento oficial. Em contrapartida, cada peça que entra no framework tem prova de que funciona.</dd>
+        <dt>Rollback</dt><dd>Se a disciplina de evidência real se mostrar lenta demais frente à necessidade do negócio, o Product Owner pode reverter para modo prescritivo via novo ADR — decisão de processo, sem custo de dado ou código perdido.</dd>
+      </dl>
+    </div>
+  </section>
+
+    <h3>ADR-010 — Product Hypothesis substitui a exigência de métrica histórica quando ela não pode existir ainda</h3>
+    <div class="template-block">
+      <dl>
+        <dt>Contexto</dt><dd>Portão 1 (Product Review), como definido em v1.0, exigia métrica de negócio com baseline medido. FS-001 retornou porque nenhum baseline existe — mas nenhum baseline pode existir para nenhuma Feature nova de nenhum produto novo, por definição, antes do primeiro lançamento.</dd>
+        <dt>Problema</dt><dd>Como escrito, o Portão 1 era estruturalmente impossível de passar para qualquer primeira Feature de qualquer produto — não era uma barra de qualidade, era um bloqueio permanente disfarçado de critério.</dd>
+        <dt>Alternativas</dt><dd><strong>(a)</strong> Manter a exigência estrita de métrica histórica — inviabiliza o framework para qualquer produto ainda não lançado. <strong>(b)</strong> Aceitar qualquer justificativa qualitativa sem rigor — esvazia P6. <strong>(c)</strong> Introduzir Product Hypothesis: uma afirmação estruturada, mensurável e falsificável, com validação obrigatória futura, usada apenas quando a métrica histórica genuinamente não pode existir ainda.</dd>
+        <dt>Decisão</dt><dd><strong>(c).</strong> Product Review aceita Product Hypothesis (template em §4) no lugar de métrica histórica quando o produto/Feature ainda não foi lançado. Isto não é uma exceção ao Portão 1 — é a forma como o Portão 1 se aplica corretamente antes do primeiro lançamento.</dd>
+        <dt>Consequências</dt><dd>Toda hipótese aceita cria uma obrigação de checagem futura no Portão 11/Retrospective (§4) — uma hipótese não é uma aprovação permanente, é uma aposta registrada com prazo. Se o padrão de hipóteses nunca checadas se repetir, isso é sinal de mau uso do mecanismo, não motivo para descartá-lo.</dd>
+        <dt>Rollback</dt><dd>Se hipóteses se tornarem um "checkbox" sistemático sem validação real (evidência observável ao longo de várias Features), o Product Owner pode reverter para exigência estrita de métrica histórica via novo ADR, exigindo piloto/beta prévio antes do Portão 1 de qualquer Feature nova.</dd>
+      </dl>
+    </div>
+
+    <h3>ADR-011 — Checklist de segurança condicional no TIP; Release Decision Record formalizado, sem novo gate</h3>
+    <div class="template-block">
+      <dl>
+        <dt>Contexto</dt><dd>Retrospective da Release 0.2 (FS-001): o achado de maior severidade de todo o ciclo (Security Finding, Alto — força bruta sem mitigação numa rota de sessão) só apareceu no Code Review, sem nenhum portão anterior antecipá-lo; e o Release Decision Record, sugerido durante o ciclo e não previsto na v1.0, se mostrou eficaz na prática (fechou a trilha de auditoria de quem aprovou, sob quais condições).</dd>
+        <dt>Problema</dt><dd>Duas lacunas concretas, validadas por evidência de um ciclo real: (1) nenhum checklist garantia que Features com autenticação/sessão/credenciais fossem escrutinadas por segurança antes do Code Review; (2) a decisão de release (ambiente autorizado, riscos aceitos, condições) não tinha um artefato formal obrigatório — dependia de ficar espalhada em mensagens.</dd>
+        <dt>Alternativas</dt><dd><strong>(a)</strong> Não mudar nada — manter as duas lacunas até se repetirem em outro ciclo. <strong>(b)</strong> Corrigir com o mínimo necessário: checklist condicional no template de TIP já existente + RDR formalizado como saída obrigatória do Portão 10 já existente. <strong>(c)</strong> Ir além: criar um gate de Security Review dedicado, expandir para os 10 módulos previamente propostos, criar o papel permanente de Security Architect. Rejeitada — nenhuma dessas expansões tem evidência de mais de 1 ciclo, violaria P8/ADR-009.</dd>
+        <dt>Decisão</dt><dd><strong>(b).</strong> Duas mudanças apenas: checklist de segurança condicional adicionado ao Template — Technical Implementation Plan (§4); Release Decision Record formalizado como Template obrigatório (§4) e como critério de saída do Portão 10 existente (§3) — não um portão novo.</dd>
+        <dt>Consequências</dt><dd>A ordem e a contagem dos 11 portões permanecem inalteradas. Nenhum papel novo. Nenhum checklist genérico sem relação com esta Release foi adicionado — o checklist de segurança é condicional (só se aplica a Features com autenticação/sessão/credenciais/rota protegida), não universal.</dd>
+        <dt>Rollback</dt><dd>Se o checklist de segurança se mostrar insuficiente (ex.: um achado de severidade equivalente escapar dele em um ciclo futuro), a resposta é reforçar o próprio checklist via novo ADR, não necessariamente criar o gate de Security Review — essa opção permanece em observação (§10), não decidida.</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section id="backlog">
+    <div class="section-head"><span class="step-no">10</span><h2>Backlog de Evolução (candidatos, não oficiais)</h2></div>
+    <p>Itens pedidos na expansão para 10 módulos, retidos como candidatos por ADR-009 — cada um só entra no AI-PEF oficial depois de um ciclo real que o exercite.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Candidato</th><th>Precisa de evidência de</th></tr></thead>
+        <tbody>
+          <tr><td>Etapas Ideia / Discovery (antes do Portão 1)</td><td>Uma Feature nascendo de fato antes do Product Review, com registro do que aconteceu nessa fase</td></tr>
+          <tr><td>Retrospective (após Knowledge Base Update)</td><td>Um ciclo completo terminado, com aprendizados reais a capturar</td></tr>
+          <tr><td>Templates: Product Canvas, Sprint Plan, Release Plan, Retrospective</td><td>Uso real em pelo menos um ciclo — hoje só os 6 templates de §4 foram exercitados</td></tr>
+          <tr><td>Checklists: DoR, DoD formal, Go/No-Go, Release Readiness, Architecture/UX/Security/Product Compliance</td><td>Um Code Review, QA Review e Release Review reais — nenhum aconteceu ainda</td></tr>
+          <tr><td>Taxonomia completa de Knowledge Base</td><td>O Knowledge Base em si ainda não existe (§6) — não há o que taxonomizar sem conteúdo real</td></tr>
+          <tr><td>Papéis adicionais: Chief PMO Architect, QA Architect, Security Architect</td><td>Uma necessidade real não coberta pelos 7 papéis atuais, observada em um ciclo real</td></tr>
+          <tr><td>Módulo de Governança de IA (quando decide/recomenda/audita)</td><td>Casos reais de ambiguidade de autoridade encontrados durante implementação</td></tr>
+          <tr><td>Framework Roadmap (versionamento, compatibilidade, extensões)</td><td>Uma segunda versão real do framework para ter o que versionar</td></tr>
+          <tr><td>Estrutura de repositório (12 pastas) e decisão de open source</td><td>Conteúdo suficiente validado para justificar a divisão em módulos — hoje cabe em 1 documento sem perda</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:13px;color:var(--ink-faint)">Este backlog é populado durante a implementação de FS-001, conforme instrução do Product Owner — cada linha só sai daqui para o corpo oficial do framework após Release Review + Retrospective do ciclo que a validou.</p>
+  </section>
+
+  <footer class="doc-footer">
+    AI Product Engineering Framework · v1.1 · Papel: Chief Product Architect · atualização restrita validada pela Release 0.2 (ADR-011) · nenhum código de produto foi alterado nesta entrega.
+  </footer>
+</div>
