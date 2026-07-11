@@ -243,3 +243,37 @@ a fast-follow release by the UX Review (see FS-001 §5) — not built.
 md 768–1023px, lg ≥1024px), against a standalone HTTP mock of the backend contract
 (`web/e2e/mock-backend.mjs`) — no product endpoint or `src/` file touched by tests. Full detail in
 `docs/releases/mvp-validation.md` Evidence Entry 015.
+
+**Code Review + QA Review findings, one fixed pre-merge:** independent Code Review (Principal
+Reviewer, read-only) found 5 issues; QA Review (Product Quality Architect) added a 6th. Of these,
+the Design Consistency Finding (health status shown as raw "RED"/"GREEN" in two widgets vs.
+translated "Crítico"/"Saudável" in a third, same screen) was fixed pre-merge — `healthStatusLabel()`
+added next to `healthStatusVariant()` in `web/components/ui/badge.tsx` as the single source of
+truth, replacing the ad-hoc label map W3 had on its own. Test suite grew from 48 to 53 tests as a
+result. The other 4 (no request-level schema validation on the BFF's backend response, `/api/bff/dashboard`
+not re-checking the session independently of `proxy.ts`'s matcher, an unhandled exception if
+`SESSION_SECRET` is unset, missing `aria-live` on state transitions) are registered as non-blocking
+technical backlog — none is a Security Finding.
+
+## Decision: Security Finding (Achado #1) — risk accepted for internal/pilot use only, mitigation required before next Release
+
+`POST /api/bff/session` (the workspace login route) has no brute-force protection — no rate
+limiting, no per-IP throttling — on the single shared `WORKSPACE_PASSWORD` that gates the entire
+BFF. Found in Code Review, confirmed as a real production risk (not theoretical): since the
+password is shared by the whole workspace rather than per-user, a successful brute force
+compromises every user's access at once. The backend's own rate limiter (60 req/60s on `/api/*`)
+does not cover this route — it is a different surface (the Next.js BFF, not FastAPI).
+
+**Decision (Product Owner, Release Review):** formal risk acceptance, scoped explicitly and only to
+internal use and a controlled pilot at Stratech. **Does not extend to public production or external
+customers** — that decision would require the mitigation below to exist first.
+
+**Mandatory condition for the next Release** before this finding can be closed:
+- Rate limiting specific to the login route (`POST /api/bff/session`)
+- Per-IP throttling
+- Configurable time window
+- Automated tests covering the mitigation
+- Documentation of the mitigation in `web/README.md`
+
+Tracked as a Release 0.3 (or earlier) blocker for any deployment beyond internal/pilot scope — not
+optional backlog.
