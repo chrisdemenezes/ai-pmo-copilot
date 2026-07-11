@@ -1,0 +1,290 @@
+<title>Strattech Brand Discovery Framework</title>
+<style>
+:root{
+  --bg:#F5F6F8; --surface:#FFFFFF; --surface-2:#EEF1F6;
+  --ink:#1A2130; --ink-soft:#586174; --ink-faint:#8B93A3;
+  --border:#DFE3EA; --border-soft:#EBEEF2;
+  --accent:#8A3B7A; --accent-soft:#F5E9F2; --accent-ink:#6B2C5F;
+  --ok:#1C8A5C; --ok-soft:#E4F5EC;
+  --warn:#9A6B00; --warn-soft:#FBF1DC;
+  --danger:#C23B3B; --danger-soft:#FBE8E8;
+  --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --radius:8px;
+}
+:root[data-theme="dark"]{
+  --bg:#14121A; --surface:#1C1922; --surface-2:#23202B;
+  --ink:#ECE9F0; --ink-soft:#B3AEBE; --ink-faint:#7C7889;
+  --border:#332E3D; --border-soft:#2A2632;
+  --accent:#D98FC8; --accent-soft:#2E2233; --accent-ink:#EAB4DD;
+  --ok:#4FBE8C; --ok-soft:#132A22;
+  --warn:#D6A93C; --warn-soft:#2E2612;
+  --danger:#E38080; --danger-soft:#301718;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14121A; --surface:#1C1922; --surface-2:#23202B;
+    --ink:#ECE9F0; --ink-soft:#B3AEBE; --ink-faint:#7C7889;
+    --border:#332E3D; --border-soft:#2A2632;
+    --accent:#D98FC8; --accent-soft:#2E2233; --accent-ink:#EAB4DD;
+    --ok:#4FBE8C; --ok-soft:#132A22;
+    --warn:#D6A93C; --warn-soft:#2E2612;
+    --danger:#E38080; --danger-soft:#301718;
+  }
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.65;}
+.wrap{max-width:960px;margin:0 auto;padding:44px 24px 110px;}
+header.doc-head{border-bottom:2px solid var(--ink);padding-bottom:22px;margin-bottom:10px;}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);font-weight:700;}
+h1{font-size:29px;margin:8px 0 6px;letter-spacing:-.01em;text-wrap:balance;}
+.subtitle{color:var(--ink-soft);font-size:14.5px;margin:0 0 14px;max-width:74ch;}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);font-size:12px;color:var(--ink-faint);}
+.meta-row code{color:var(--ink-soft);}
+
+section{margin:42px 0;}
+.section-head{display:flex;align-items:baseline;gap:10px;margin-bottom:14px;}
+.step-no{font-family:var(--mono);font-size:12px;color:var(--accent-ink);background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-weight:700;}
+h2{font-size:20px;margin:0;letter-spacing:-.005em;}
+h3{font-size:15px;margin:22px 0 8px;}
+p{margin:0 0 12px;max-width:76ch;}
+ul,ol{margin:0 0 12px;padding-left:22px;}
+li{margin-bottom:6px;}
+code{font-family:var(--mono);font-size:.87em;background:var(--surface-2);padding:1px 5px;border-radius:4px;}
+
+.callout{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 6px 6px 0;padding:13px 16px;margin:16px 0;font-size:14px;}
+.callout.danger{border-color:var(--danger);background:var(--danger-soft);}
+.callout strong{display:block;margin-bottom:3px;}
+
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:580px;}
+thead th{text-align:left;background:var(--surface-2);font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);padding:9px 12px;border-bottom:1px solid var(--border);}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--border-soft);vertical-align:top;}
+tbody tr:last-child td{border-bottom:none;}
+
+.pill{display:inline-block;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.02em;padding:2px 8px;border-radius:999px;white-space:nowrap;}
+.pill.po{background:var(--accent-soft);color:var(--accent-ink);}
+.pill.team{background:var(--ok-soft);color:var(--ok);}
+.pill.blocked{background:var(--danger-soft);color:var(--danger);}
+
+.decision-card{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);padding:16px 20px;margin-bottom:12px;}
+.decision-card .dtitle{font-weight:700;font-size:14.5px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+.decision-card dl{display:grid;grid-template-columns:140px 1fr;gap:6px 12px;margin:10px 0 0;font-size:13.5px;}
+.decision-card dt{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;padding-top:2px;}
+.decision-card dd{margin:0;}
+
+.template-block{border:1.5px dashed var(--accent);border-radius:var(--radius);background:var(--surface);padding:16px 20px;margin:14px 0;}
+.template-block .tlabel{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--accent-ink);font-weight:700;margin-bottom:10px;display:block;}
+.template-block dl{display:grid;grid-template-columns:170px 1fr;gap:7px 14px;font-size:13.6px;}
+.template-block dt{font-weight:700;padding-top:2px;}
+.template-block dd{margin:0;color:var(--ink-soft);}
+.ph{color:var(--accent-ink);font-family:var(--mono);}
+
+.workshop{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);margin-bottom:12px;overflow:hidden;}
+.workshop-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 18px;background:var(--surface-2);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.workshop-stage{font-family:var(--mono);font-weight:700;color:var(--accent-ink);}
+.workshop-title{font-weight:700;font-size:14.5px;}
+.workshop-body{padding:10px 18px 16px;font-size:13.6px;}
+.workshop-body dl{display:grid;grid-template-columns:150px 1fr;gap:6px 12px;margin:8px 0 0;}
+.workshop-body dt{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;padding-top:2px;}
+.workshop-body dd{margin:0;}
+
+.doc-footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);}
+</style>
+
+<div class="wrap">
+  <header class="doc-head">
+    <div class="kicker">Strattech · Processo, não conteúdo</div>
+    <h1>Strattech Brand Discovery Framework</h1>
+    <p class="subtitle">Guia o Product Owner na construção fundamentada da identidade da Strattech. Este documento não define missão, personalidade, posicionamento, cores ou concorrentes — constrói o processo que permitirá defini-los com evidência real, não invenção.</p>
+    <div class="meta-row">
+      <span>Papel: <code>Chief Brand Strategist</code></span>
+      <span>Reutiliza: <code>Template Product Hypothesis (AI-PEF §4, ADR-010)</code></span>
+      <span>Bloqueia FS-001? <code>Não — atividade paralela, Release 0.2 intacta</code></span>
+    </div>
+  </header>
+
+  <div class="callout">
+    <strong>Por que processo, e não conteúdo.</strong>
+    Nenhum fato de marca real existe hoje sobre a Strattech em nenhum artefato desta sessão. Definir personalidade ou posicionamento agora seria inventar, violando o mesmo princípio P5 do AI-PEF ("nenhuma capacidade é inventada — toda afirmação é verificável"). Este framework organiza como chegar a esses fatos com fundamento, não os substitui por suposição.
+  </div>
+
+  <section>
+    <div class="section-head"><span class="step-no">1</span><h2>Decisões estratégicas que precisam ser tomadas</h2></div>
+    <div class="decision-card">
+      <div class="dtitle">D1 — Propósito e missão <span class="pill po">Exclusivo do PO</span></div>
+      <p style="margin:8px 0 0">Por que a Strattech existe, além de "vender software de IA para PMO"? Nenhuma pesquisa substitui essa decisão — é uma escolha fundacional do fundador/PO.</p>
+    </div>
+    <div class="decision-card">
+      <div class="dtitle">D2 — Arquitetura de marca <span class="pill po">Exclusivo do PO, informado por evidência</span></div>
+      <p style="margin:8px 0 0">Strattech como marca guarda-chuva visível (cada produto leva "Strattech" no nome, ex. "Strattech PMO Copilot") vs. Strattech como empresa invisível por trás de marcas de produto independentes. Depende diretamente de quantos produtos futuros (§6) realmente vão existir — decisão prematura sem isso.</p>
+    </div>
+    <div class="decision-card">
+      <div class="dtitle">D3 — Público-alvo e mercado <span class="pill team">Rascunho pela equipe, ratificado pelo PO</span></div>
+      <p style="margin:8px 0 0">Quem a Strattech serve — mesmo público do AI PMO Copilot (Product Manager, PMO Analyst, IT Manager, Executive Sponsor, já documentado) ou mais amplo? Rascunhável a partir de evidência real já existente.</p>
+    </div>
+    <div class="decision-card">
+      <div class="dtitle">D4 — Personalidade e arquétipo de marca <span class="pill po">Exclusivo do PO, com opções propostas pela equipe</span></div>
+      <p style="margin:8px 0 0">Como a marca "soa" e "se comporta" — não é derivável de dado de uso, é escolha subjetiva de direção, embora possa ser testada depois.</p>
+    </div>
+    <div class="decision-card">
+      <div class="dtitle">D5 — Posicionamento competitivo de marca <span class="pill team">Rascunho pela equipe</span></div>
+      <p style="margin:8px 0 0">Distinto do posicionamento de <em>produto</em> já existente (Product Blueprint §1, Jira/ClickUp/Monday/MS Project/ChatGPT) — este é sobre como a empresa se posiciona, não uma feature específica.</p>
+    </div>
+    <div class="decision-card">
+      <div class="dtitle">D6 — Nível de investimento em marca agora <span class="pill po">Exclusivo do PO</span></div>
+      <p style="margin:8px 0 0">Vale formalizar identidade completa antes do primeiro Release, ou só o mínimo (tokens visuais já reais) até haver tração?</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">2</span><h2>Perguntas que precisam ser respondidas</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Decisão</th><th>Perguntas</th></tr></thead>
+        <tbody>
+          <tr><td>D1 Propósito</td><td>Se a Strattech não existisse, o que pararia de acontecer para os PMOs que ela serve? O que a Strattech recusa a fazer, mesmo que fosse lucrativo?</td></tr>
+          <tr><td>D2 Arquitetura de marca</td><td>Quantos produtos além do AI PMO Copilot têm compromisso real de serem construídos nos próximos 12 meses? Um usuário que usa dois "Copilots" da Strattech deveria perceber que são da mesma empresa, ou isso é irrelevante para ele?</td></tr>
+          <tr><td>D3 Público-alvo</td><td>As 4 personas já documentadas (<code>docs/product/03-user-personas.md</code>) representam quem realmente usaria mais de um produto Strattech, ou são específicas do AI PMO Copilot?</td></tr>
+          <tr><td>D4 Personalidade</td><td>Em 3 adjetivos, como a Strattech deveria soar numa mensagem de erro? Numa demonstração de venda? Ela é mais "engenheira rigorosa" ou "consultora confiável"?</td></tr>
+          <tr><td>D5 Posicionamento</td><td>Quem são os concorrentes reais da <em>empresa</em> Strattech (não do produto) — outras consultorias de IA para governança? Fornecedores de plataforma de IA genérica? Ninguém ainda, porque a categoria não existe?</td></tr>
+          <tr><td>D6 Investimento</td><td>Existe orçamento/tempo de design dedicado agora, ou toda energia deve ir para o Release 0.2 primeiro?</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">3</span><h2>Evidências a coletar</h2></div>
+    <ul>
+      <li><strong>Já disponível, sem custo adicional:</strong> <code>docs/product/03-user-personas.md</code>, posicionamento competitivo de produto do Product Blueprint §1, as 2 Product Hypothesis já registradas em FS-001 (métrica de negócio e valor de mercado) — seus resultados, quando o horizonte de validação vencer (4 e 60 dias pós-Release), são a primeira evidência real de mercado que a Strattech terá.</li>
+      <li><strong>A coletar via os usuários piloto do Dashboard (mesmo canal da Product Hypothesis 2 de FS-001):</strong> como esses usuários descreveriam a empresa por trás do produto, não apenas o produto, em suas próprias palavras.</li>
+      <li><strong>A coletar via pesquisa externa:</strong> quem hoje resolve o mesmo problema sem um produto de IA dedicado (planilha, consultoria, nada) — a categoria de mercado da Strattech pode nem existir ainda como categoria nomeada.</li>
+      <li><strong>Explicitamente fora de alcance sem o PO:</strong> qualquer decisão de marca que dependa de visão de fundador (D1, D6) não tem evidência coletável — é escolha, não pesquisa.</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">4</span><h2>Hipóteses de marca — reusa o template Product Hypothesis (AI-PEF §4)</h2></div>
+    <p>Mesma estrutura já aprovada em ADR-010 para hipóteses de produto, aplicada a marca — não um template novo.</p>
+    <div class="template-block">
+      <span class="tlabel">Exemplo de preenchimento — não uma hipótese real ainda</span>
+      <dl>
+        <dt>Problema observado</dt><dd><span class="ph">[o que hoje impede um segundo produto de herdar a marca do primeiro]</span></dd>
+        <dt>Hipótese de marca</dt><dd><span class="ph">[ex.: "usuários que já confiam no AI PMO Copilot adotam um segundo Copilot Strattech mais rápido do que adotariam um produto de marca não relacionada"]</span></dd>
+        <dt>Benefício esperado</dt><dd><span class="ph">[custo de aquisição menor para o produto nº 2]</span></dd>
+        <dt>Métrica esperada</dt><dd><span class="ph">[nomear a métrica — não inventar o valor]</span></dd>
+        <dt>Método de validação</dt><dd><span class="ph">[como e quando medir, só possível quando o produto nº 2 existir]</span></dd>
+        <dt>Critério de sucesso</dt><dd><span class="ph">[limiar objetivo]</span></dd>
+        <dt>Horizonte de validação</dt><dd><span class="ph">[prazo — não indefinido]</span></dd>
+      </dl>
+    </div>
+    <div class="callout danger">
+      <strong>Nenhuma hipótese de marca pode ser formulada de verdade antes do Workshop (§7).</strong>
+      O exemplo acima é ilustrativo do formato, não uma hipótese real — formulá-la de fato exige as decisões D1-D6, que são do PO.
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">5</span><h2>Como as hipóteses serão validadas</h2></div>
+    <ul>
+      <li><strong>Qualitativo:</strong> entrevistas com os mesmos usuários piloto do Dashboard — reusa o canal já definido em FS-001, sem criar um segundo processo de pesquisa paralelo.</li>
+      <li><strong>Comportamental:</strong> se e quando um segundo produto existir, taxa de adoção comparada entre usuários que já conheciam o AI PMO Copilot vs. novos.</li>
+      <li><strong>De mercado:</strong> reação a mensagens de posicionamento testadas (não geradas por suposição — pós-Workshop, com opções reais).</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">6</span><h2>Como essas decisões influenciam cada ativo</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Ativo</th><th>Influência</th></tr></thead>
+        <tbody>
+          <tr><td>AI PMO Copilot</td><td>D2 decide se ele passa a se chamar "Strattech PMO Copilot" ou mantém nome independente; D4/D5 podem gerar ajustes de copy (não de código) na tela já implementada</td></tr>
+          <tr><td>AI Product Engineering Framework</td><td>Nenhuma — o AI-PEF é processo de engenharia, não de marca; D1-D6 não alteram nenhum portão, papel ou template do framework</td></tr>
+          <tr><td>Produtos futuros (AI Process/Governance/Architecture/Executive Copilot)</td><td>D2 e D6 decidem se esses nomes viram Product Vision reais algum dia ou permanecem apenas rótulos aspiracionais; nenhum deles ganha conteúdo a partir deste documento</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">7</span><h2>Roteiro de Workshop</h2></div>
+
+    <div class="workshop">
+      <div class="workshop-head"><span class="workshop-stage">Etapa 0</span><span class="workshop-title">Preparação — evidência já disponível</span></div>
+      <div class="workshop-body"><dl>
+        <dt>Conduz</dt><dd>Equipe de arquitetura, antes do workshop</dd>
+        <dt>Produto</dt><dd>Dossiê com personas existentes, posicionamento de produto do Blueprint, status das 2 Product Hypothesis de FS-001</dd>
+        <dt>Decisão do PO aqui?</dt><dd>Nenhuma — só preparação</dd>
+      </dl></div>
+    </div>
+
+    <div class="workshop">
+      <div class="workshop-head"><span class="workshop-stage">Etapa 1</span><span class="workshop-title">Propósito e missão (D1)</span></div>
+      <div class="workshop-body"><dl>
+        <dt>Conduz</dt><dd>PO, facilitado pela equipe</dd>
+        <dt>Produto</dt><dd>Declaração de propósito, 1-2 frases</dd>
+        <dt>Decisão do PO aqui?</dt><dd><span class="pill po">Exclusiva — sem input de dado</span></dd>
+      </dl></div>
+    </div>
+
+    <div class="workshop">
+      <div class="workshop-head"><span class="workshop-stage">Etapa 2</span><span class="workshop-title">Público-alvo e mercado (D3)</span></div>
+      <div class="workshop-body"><dl>
+        <dt>Conduz</dt><dd>Equipe apresenta rascunho a partir de evidência existente; PO ratifica ou corrige</dd>
+        <dt>Produto</dt><dd>Público-alvo confirmado ou revisado</dd>
+        <dt>Decisão do PO aqui?</dt><dd><span class="pill team">Refinável — rascunho da equipe, aprovação do PO</span></dd>
+      </dl></div>
+    </div>
+
+    <div class="workshop">
+      <div class="workshop-head"><span class="workshop-stage">Etapa 3</span><span class="workshop-title">Arquitetura de marca (D2)</span></div>
+      <div class="workshop-body"><dl>
+        <dt>Conduz</dt><dd>PO, com a lista real de produtos futuros com compromisso de construção (não a lista aspiracional completa)</dd>
+        <dt>Produto</dt><dd>Decisão guarda-chuva vs. marcas independentes</dd>
+        <dt>Decisão do PO aqui?</dt><dd><span class="pill po">Exclusiva</span></dd>
+      </dl></div>
+    </div>
+
+    <div class="workshop">
+      <div class="workshop-head"><span class="workshop-stage">Etapa 4</span><span class="workshop-title">Personalidade e arquétipo (D4)</span></div>
+      <div class="workshop-body"><dl>
+        <dt>Conduz</dt><dd>Equipe propõe 2-3 opções de arquétipo com trade-offs; PO escolhe</dd>
+        <dt>Produto</dt><dd>Arquétipo/personalidade escolhidos</dd>
+        <dt>Decisão do PO aqui?</dt><dd><span class="pill po">Exclusiva, entre opções propostas</span></dd>
+      </dl></div>
+    </div>
+
+    <div class="workshop">
+      <div class="workshop-head"><span class="workshop-stage">Etapa 5</span><span class="workshop-title">Posicionamento competitivo de marca (D5)</span></div>
+      <div class="workshop-body"><dl>
+        <dt>Conduz</dt><dd>Equipe rascunha a partir de D1-D4 já decididos</dd>
+        <dt>Produto</dt><dd>Declaração de posicionamento</dd>
+        <dt>Decisão do PO aqui?</dt><dd><span class="pill team">Refinável — rascunho da equipe, aprovação do PO</span></dd>
+      </dl></div>
+    </div>
+
+    <div class="workshop">
+      <div class="workshop-head"><span class="workshop-stage">Etapa 6</span><span class="workshop-title">Formulação de hipóteses de marca (§4)</span></div>
+      <div class="workshop-body"><dl>
+        <dt>Conduz</dt><dd>Equipe, usando o template reaproveitado de AI-PEF</dd>
+        <dt>Produto</dt><dd>Hipóteses reais preenchidas, com horizonte de validação</dd>
+        <dt>Decisão do PO aqui?</dt><dd><span class="pill team">Refinável</span></dd>
+      </dl></div>
+    </div>
+
+    <div class="workshop">
+      <div class="workshop-head"><span class="workshop-stage">Etapa 7</span><span class="workshop-title">Ratificação e registro</span></div>
+      <div class="workshop-body"><dl>
+        <dt>Conduz</dt><dd>PO aprova o conjunto; equipe registra como atualização ao Product Blueprint (não um novo ADR — marca não é decisão arquitetural)</dd>
+        <dt>Produto</dt><dd>Brand Experience Guide, agora fundamentado, não inventado</dd>
+        <dt>Decisão do PO aqui?</dt><dd><span class="pill po">Aprovação final exclusiva</span></dd>
+      </dl></div>
+    </div>
+  </section>
+
+  <footer class="doc-footer">
+    AI PMO Copilot / Strattech · Brand Discovery Framework · Papel: Chief Brand Strategist · nenhuma identidade, cor, personalidade ou posicionamento foi definido nesta entrega — apenas o processo para chegar lá com evidência. FS-001 retoma de onde parou (T8).
+  </footer>
+</div>

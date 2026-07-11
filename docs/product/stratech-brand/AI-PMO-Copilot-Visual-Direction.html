@@ -1,0 +1,179 @@
+<title>Direção Visual Oficial — AI PMO Copilot</title>
+<style>
+:root{
+  --bg:#F5F6F8; --surface:#FFFFFF; --surface-2:#EEF1F6;
+  --ink:#1A2130; --ink-soft:#586174; --ink-faint:#8B93A3;
+  --border:#DFE3EA; --border-soft:#EBEEF2;
+  --accent:#3450C7; --accent-soft:#EAEEFB; --accent-ink:#233A9E;
+  --ok:#1C8A5C; --ok-soft:#E4F5EC;
+  --warn:#9A6B00; --warn-soft:#FBF1DC;
+  --danger:#C23B3B; --danger-soft:#FBE8E8;
+  --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --radius:8px;
+}
+:root[data-theme="dark"]{
+  --bg:#12151C; --surface:#191D26; --surface-2:#20242F;
+  --ink:#E7E9EE; --ink-soft:#A7AFC0; --ink-faint:#6B7284;
+  --border:#2A2F3B; --border-soft:#232733;
+  --accent:#7C93F5; --accent-soft:#1C2440; --accent-ink:#AEBBF9;
+  --ok:#4FBE8C; --ok-soft:#132A22;
+  --warn:#D6A93C; --warn-soft:#2E2612;
+  --danger:#E38080; --danger-soft:#301718;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12151C; --surface:#191D26; --surface-2:#20242F;
+    --ink:#E7E9EE; --ink-soft:#A7AFC0; --ink-faint:#6B7284;
+    --border:#2A2F3B; --border-soft:#232733;
+    --accent:#7C93F5; --accent-soft:#1C2440; --accent-ink:#AEBBF9;
+    --ok:#4FBE8C; --ok-soft:#132A22;
+    --warn:#D6A93C; --warn-soft:#2E2612;
+    --danger:#E38080; --danger-soft:#301718;
+  }
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.65;}
+.wrap{max-width:960px;margin:0 auto;padding:44px 24px 110px;}
+header.doc-head{border-bottom:2px solid var(--ink);padding-bottom:22px;margin-bottom:10px;}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);font-weight:700;}
+h1{font-size:28px;margin:8px 0 6px;letter-spacing:-.01em;text-wrap:balance;}
+.subtitle{color:var(--ink-soft);font-size:14.5px;margin:0 0 14px;max-width:74ch;}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);font-size:12px;color:var(--ink-faint);}
+.meta-row code{color:var(--ink-soft);}
+section{margin:40px 0;}
+.section-head{display:flex;align-items:baseline;gap:10px;margin-bottom:14px;}
+.step-no{font-family:var(--mono);font-size:12px;color:var(--accent-ink);background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-weight:700;}
+h2{font-size:19px;margin:0;}
+h3{font-size:14.5px;margin:18px 0 8px;}
+p{margin:0 0 12px;max-width:76ch;}
+ul,ol{margin:0 0 12px;padding-left:22px;}
+li{margin-bottom:6px;}
+code{font-family:var(--mono);font-size:.87em;background:var(--surface-2);padding:1px 5px;border-radius:4px;}
+.callout{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 6px 6px 0;padding:13px 16px;margin:16px 0;font-size:14px;}
+.callout strong{display:block;margin-bottom:3px;}
+.value-card{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);padding:16px 20px;margin-bottom:12px;}
+.value-card .vname{font-weight:700;font-size:15px;color:var(--accent-ink);}
+.value-card dl{display:grid;grid-template-columns:130px 1fr;gap:6px 12px;margin:10px 0 0;font-size:13.6px;}
+.value-card dt{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;padding-top:2px;}
+.value-card dd{margin:0;}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:560px;}
+thead th{text-align:left;background:var(--surface-2);font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);padding:9px 12px;border-bottom:1px solid var(--border);}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--border-soft);vertical-align:top;}
+tbody tr:last-child td{border-bottom:none;}
+.pill{display:inline-block;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.02em;padding:2px 8px;border-radius:999px;}
+.pill.ok{background:var(--ok-soft);color:var(--ok);}
+.pill.neutral{background:var(--surface-2);color:var(--ink-soft);}
+.doc-footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);}
+</style>
+
+<div class="wrap">
+  <header class="doc-head">
+    <div class="kicker">AI PMO Copilot · Direção, não implementação</div>
+    <h1>Direção Visual Oficial do AI PMO Copilot</h1>
+    <p class="subtitle">Como a interface deve transmitir os 8 valores nomeados pelo Product Owner — grounded no Design System já real do Sprint 1 (RFC-001), não em suposição. Não altera nenhum token, componente ou tela existente.</p>
+    <div class="meta-row">
+      <span>Papel: <code>Chief Design Officer</code></span>
+      <span>Base: <code>web/app/globals.css</code> (RFC-001, já implementado)</span>
+      <span>Padrão-alvo: <code>Enterprise, executivo, alto padrão</code></span>
+    </div>
+  </header>
+
+  <div class="callout">
+    <strong>Nota de grounding.</strong>
+    Os 8 valores abaixo foram nomeados diretamente pelo Product Owner — não extraídos de nenhum material de marca não recebido. Cada um é mapeado a uma decisão de design <em>já real</em> (Design System do Sprint 1) ou a um princípio de aplicação futura, nunca a uma cor ou fonte inventada agora.
+  </div>
+
+  <section>
+    <div class="section-head"><span class="step-no">1</span><h2>Os 8 valores, traduzidos em decisão visual</h2></div>
+
+    <div class="value-card">
+      <div class="vname">Confiança</div>
+      <dl>
+        <dt>Já real</dt><dd>Badges de status mapeados 1:1 ao contrato real do backend (<code>health_status</code>) — nenhum estado inventado; contraste WCAG AA já computado (RFC-001 §2)</dd>
+        <dt>Princípio</dt><dd>A interface nunca mostra um número ou estado que não corresponda a um dado real e verificável — confiança visual vem de honestidade de dado, não de estilo</dd>
+      </dl>
+    </div>
+
+    <div class="value-card">
+      <div class="vname">Arquitetura</div>
+      <dl>
+        <dt>Já real</dt><dd>Grade de espaçamento e tokens consistentes (<code>--radius</code>, escala tipográfica) em todos os primitivos de <code>components/ui/</code></dd>
+        <dt>Princípio</dt><dd>Estrutura visível: hierarquia clara de seções (como no Dashboard: faixa de sumário → distribuição → ranking → grid), nunca um bloco único indiferenciado</dd>
+      </dl>
+    </div>
+
+    <div class="value-card">
+      <div class="vname">Inteligência</div>
+      <dl>
+        <dt>Já real</dt><dd>Accent indigo deliberadamente distinto do azul genérico associado a "produto de IA" (RFC-001, decisão registrada em <code>globals.css</code>)</dd>
+        <dt>Princípio</dt><dd>Nenhum enfeite de "IA" (glow, gradiente animado, ícone de robô) — a inteligência se mostra no resultado estruturado, não em decoração de superfície</dd>
+      </dl>
+    </div>
+
+    <div class="value-card">
+      <div class="vname">Governança</div>
+      <dl>
+        <dt>Já real</dt><dd>Estados de erro sem vazamento de detalhe interno (FS-001 §12); rótulos como "Riscos identificados" corrigidos para não sugerir estado gerenciado que não existe (UX Review)</dd>
+        <dt>Princípio</dt><dd>Toda contagem/estado exibido é rastreável a uma regra de agregação nomeada, nunca a um número mágico</dd>
+      </dl>
+    </div>
+
+    <div class="value-card">
+      <div class="vname">Previsibilidade</div>
+      <dl>
+        <dt>Já real</dt><dd>Skeletons construídos a partir do layout final, não de um placeholder genérico — nenhum layout shift entre loading e sucesso (T8)</dd>
+        <dt>Princípio</dt><dd>Mesmo componente, mesmo comportamento, em toda tela — nenhuma exceção visual por tela sem justificativa registrada</dd>
+      </dl>
+    </div>
+
+    <div class="value-card">
+      <div class="vname">Execução</div>
+      <dl>
+        <dt>Já real</dt><dd>Botão de atualização manual sempre disponível como ação primária (RFC-001 §7) — o usuário nunca fica sem uma ação clara disponível</dd>
+        <dt>Princípio</dt><dd>Toda tela tem pelo menos uma ação primária visível e nomeada com verbo, nunca apenas um estado passivo de leitura</dd>
+      </dl>
+    </div>
+
+    <div class="value-card">
+      <div class="vname">Simplicidade</div>
+      <dl>
+        <dt>Já real</dt><dd>10 primitivos no Design System, nenhum componente redundante; grid <code>auto-fill</code>/<code>minmax</code> em vez de layout customizado por quantidade de itens</dd>
+        <dt>Princípio</dt><dd>Um widget novo só entra em uma tela se responder a uma pergunta real do usuário (mesmo critério já usado para aprovar/adiar W3-W5 no UX Review de FS-001)</dd>
+      </dl>
+    </div>
+
+    <div class="value-card">
+      <div class="vname">Elegância executiva</div>
+      <dl>
+        <dt>Já real</dt><dd>Tipografia sistêmica sóbria (sem webfont decorativo), números em <code>tabular-nums</code>, densidade de informação calibrada para quem decide rápido, não para quem opera o dia a dia</dd>
+        <dt>Princípio</dt><dd>Restrição, não ausência: elegância vem de espaço em branco disciplinado e hierarquia, nunca de minimalismo que esconda dado que o executivo precisa</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">2</span><h2>O que isto NÃO muda</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Ativo</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Tokens de cor/tipografia em <code>globals.css</code></td><td><span class="pill neutral">Inalterados</span> — pertencem ao Design System do Sprint 1, não redefinidos aqui</td></tr>
+          <tr><td>Componentes em <code>components/ui/</code></td><td><span class="pill neutral">Inalterados</span></td></tr>
+          <tr><td>Tela <code>/dashboard</code> (FS-001)</td><td><span class="pill neutral">Inalterada</span> — já expressa a maioria destes princípios por construção</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Este documento é critério de avaliação para decisões visuais <em>futuras</em>, não uma ordem de retrabalho do que já existe.</p>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">3</span><h2>Como aplicar em decisões futuras</h2></div>
+    <p>Antes de aprovar qualquer novo componente ou tela: qual dos 8 valores ele reforça, e qual princípio acima ele segue? Se a resposta não for direta, o UX Review correspondente deve registrar a justificativa explicitamente — mesma disciplina de Decisão/Justificativa já usada em ADRs.</p>
+  </section>
+
+  <footer class="doc-footer">
+    AI PMO Copilot · Direção Visual Oficial · Papel: Chief Design Officer · nenhum código, componente ou token alterado nesta entrega · grounded no Design System real (RFC-001) e nos 8 valores nomeados diretamente pelo Product Owner.
+  </footer>
+</div>

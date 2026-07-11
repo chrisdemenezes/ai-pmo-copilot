@@ -1,0 +1,1185 @@
+<title>RFC-001 — AI PMO Copilot Frontend Architecture</title>
+<style>
+  :root {
+    --bg: #F5F6FA; --surface: #FFFFFF; --surface-2: #ECEEF5; --ink: #191B26;
+    --ink-muted: #565A72; --ink-faint: #8C90A4; --border: #DDE0EA; --border-strong: #C4C8D8;
+    --accent: #4C4FC4; --accent-ink: #35378E; --accent-soft: #E7E7F8;
+    --ok: #2F8F5B; --ok-soft: #E4F3EA; --warn: #B07A2A; --warn-soft: #F6EBDA;
+    --danger: #B23B3B; --danger-soft: #F6E2E2; --status-pill: #5B6B87; --status-pill-soft: #E7EAF0;
+    --font-display: -apple-system, "Segoe UI Semibold", ui-sans-serif, "Helvetica Neue", Arial, sans-serif;
+    --font-body: -apple-system, "Segoe UI", ui-sans-serif, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #13141C; --surface: #1A1C28; --surface-2: #222436; --ink: #E9EAF3;
+      --ink-muted: #A2A6BC; --ink-faint: #6E7288; --border: #2B2E42; --border-strong: #3B3F58;
+      --accent: #9498F0; --accent-ink: #C7C9F8; --accent-soft: #26284A;
+      --ok: #6FCB8F; --ok-soft: #1E3527; --warn: #E0AD63; --warn-soft: #382C18;
+      --danger: #E08080; --danger-soft: #3B2424; --status-pill: #A6B3C9; --status-pill-soft: #232A38;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #13141C; --surface: #1A1C28; --surface-2: #222436; --ink: #E9EAF3;
+    --ink-muted: #A2A6BC; --ink-faint: #6E7288; --border: #2B2E42; --border-strong: #3B3F58;
+    --accent: #9498F0; --accent-ink: #C7C9F8; --accent-soft: #26284A;
+    --ok: #6FCB8F; --ok-soft: #1E3527; --warn: #E0AD63; --warn-soft: #382C18;
+    --danger: #E08080; --danger-soft: #3B2424; --status-pill: #A6B3C9; --status-pill-soft: #232A38;
+  }
+  :root[data-theme="light"] {
+    --bg: #F5F6FA; --surface: #FFFFFF; --surface-2: #ECEEF5; --ink: #191B26;
+    --ink-muted: #565A72; --ink-faint: #8C90A4; --border: #DDE0EA; --border-strong: #C4C8D8;
+    --accent: #4C4FC4; --accent-ink: #35378E; --accent-soft: #E7E7F8;
+    --ok: #2F8F5B; --ok-soft: #E4F3EA; --warn: #B07A2A; --warn-soft: #F6EBDA;
+    --danger: #B23B3B; --danger-soft: #F6E2E2; --status-pill: #5B6B87; --status-pill-soft: #E7EAF0;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15.5px; line-height: 1.6; margin: 0; -webkit-font-smoothing: antialiased; }
+  .page { display: grid; grid-template-columns: 250px minmax(0, 900px); gap: 44px; max-width: 1260px; margin: 0 auto; padding: 36px 24px 100px; }
+  @media (max-width: 900px) { .page { grid-template-columns: 1fr; } nav.toc { display: none; } }
+  nav.toc { position: sticky; top: 30px; align-self: start; font-size: 12.5px; max-height: calc(100vh - 60px); overflow-y: auto; }
+  nav.toc .toc-label { text-transform: uppercase; letter-spacing: 0.08em; font-size: 10.5px; color: var(--ink-faint); margin: 14px 0 6px; font-weight: 700; }
+  nav.toc .toc-label:first-child { margin-top: 0; }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; }
+  nav.toc li { margin: 0; }
+  nav.toc a { display: block; padding: 3px 0 3px 10px; border-left: 2px solid var(--border); color: var(--ink-muted); text-decoration: none; }
+  nav.toc a:hover, nav.toc a:focus-visible { color: var(--accent); border-color: var(--accent); outline: none; }
+  nav.toc .toc-meta { color: var(--ink-faint); font-size: 11.5px; padding-left: 10px; line-height: 1.6; margin-top: 14px; }
+  header.masthead { border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 36px; }
+  header.masthead .eyebrow-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  header.masthead .eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.06em; color: var(--accent); text-transform: uppercase; }
+  .status-badge { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; background: var(--ok-soft); color: var(--ok); border: 1px solid var(--ok); }
+  .status-badge::before { content: "●"; }
+  header.masthead h1 { font-family: var(--font-display); font-size: clamp(24px, 4vw, 32px); font-weight: 700; margin: 0 0 10px; text-wrap: balance; letter-spacing: -0.01em; }
+  header.masthead p.dek { color: var(--ink-muted); font-size: 15px; max-width: 68ch; margin: 0 0 14px; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12px; color: var(--ink-faint); font-family: var(--font-mono); }
+  section { margin-bottom: 44px; scroll-margin-top: 20px; }
+  section.top-section { margin-bottom: 56px; padding-bottom: 40px; border-bottom: 1px solid var(--border); }
+  section > .section-head { display: flex; align-items: baseline; gap: 12px; border-left: 3px solid var(--accent); padding-left: 14px; margin-bottom: 14px; }
+  section > .section-head .step-no { font-family: var(--font-mono); font-size: 13px; color: var(--accent); font-weight: 600; }
+  section h2 { font-family: var(--font-display); font-size: 20px; font-weight: 700; margin: 0; letter-spacing: -0.005em; }
+  section h3 { font-family: var(--font-display); font-size: 15px; font-weight: 700; margin: 26px 0 8px; padding-top: 12px; border-top: 1px solid var(--border); }
+  section h3:first-of-type { border-top: none; padding-top: 0; margin-top: 14px; }
+  section h4 { font-family: var(--font-mono); font-size: 11.5px; font-weight: 700; margin: 14px 0 6px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.04em; }
+  section .section-note { color: var(--ink-muted); font-size: 13.5px; margin: 0 0 14px; max-width: 68ch; }
+  section p { margin: 0 0 10px; }
+  section ul, section ol { margin: 0 0 10px; padding-left: 20px; }
+  section li { margin-bottom: 5px; }
+
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; letter-spacing: 0.02em; padding: 2px 7px; border-radius: 3px; white-space: nowrap; text-transform: uppercase; }
+  .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
+  .pill.chosen, .pill.now { color: var(--ok); background: var(--ok-soft); }
+  .pill.rejected, .pill.blocked { color: var(--danger); background: var(--danger-soft); }
+  .pill.open, .pill.planned { color: var(--status-pill); background: var(--status-pill-soft); }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; margin: 12px 0 16px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; background: var(--surface); }
+  thead th { background: var(--surface-2); text-align: left; font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink-muted); font-weight: 600; padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  tbody td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; color: var(--ink); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--surface-2); }
+  td.mono { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-muted); }
+
+  .tree { font-family: var(--font-mono); font-size: 12px; line-height: 1.7; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px 18px; overflow-x: auto; white-space: pre; color: var(--ink-muted); }
+  .tree .hl { color: var(--accent-ink); font-weight: 600; }
+
+  /* Decision record */
+  .decision { border: 1px solid var(--border); border-radius: 8px; background: var(--surface); padding: 16px 18px; margin-bottom: 14px; }
+  .decision .d-title { font-weight: 700; font-size: 14.5px; margin-bottom: 10px; }
+  .decision dl { display: grid; grid-template-columns: 110px 1fr; gap: 4px 12px; margin: 0; }
+  .decision dt { font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--accent-ink); padding-top: 2px; }
+  .decision dd { margin: 0 0 8px; font-size: 13.5px; color: var(--ink); }
+  .decision dd.muted { color: var(--ink-muted); }
+
+  /* Palette + swatches */
+  .swatch-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0 14px; }
+  .swatch { display: flex; flex-direction: column; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-muted); width: 66px; }
+  .swatch .chip { width: 52px; height: 40px; border-radius: 6px; border: 1px solid var(--border-strong); }
+  .type-sample { display: flex; align-items: baseline; gap: 14px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .type-sample:last-child { border-bottom: none; }
+  .type-sample .ts-label { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-faint); width: 190px; flex: none; }
+
+  /* Component spec cards */
+  .comp-card { border: 1px solid var(--border); border-radius: 8px; background: var(--surface); margin-bottom: 12px; overflow: hidden; }
+  .comp-card .cc-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; background: var(--surface-2); flex-wrap: wrap; }
+  .comp-card .cc-name { font-family: var(--font-mono); font-weight: 700; font-size: 13.5px; color: var(--accent-ink); }
+  .comp-card .cc-body { padding: 12px 14px; }
+  .comp-card dl { display: grid; grid-template-columns: 130px 1fr; gap: 3px 12px; margin: 0; font-size: 13px; }
+  .comp-card dt { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink-faint); padding-top: 3px; }
+  .comp-card dd { margin: 0 0 7px; color: var(--ink); }
+
+  /* Flow steps */
+  ol.flow-steps { list-style: none; padding: 0; margin: 8px 0 4px; counter-reset: fs; }
+  ol.flow-steps li { counter-increment: fs; display: flex; gap: 12px; padding: 6px 0; }
+  ol.flow-steps li::before { content: counter(fs); flex: none; width: 20px; height: 20px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-ink); font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+  ol.flow-steps li .fs-text { font-size: 13.5px; padding-top: 1px; }
+  ol.flow-steps li .fs-text .fs-sub { display: block; color: var(--ink-muted); font-size: 12.5px; margin-top: 2px; }
+  .flow-block { border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin-bottom: 14px; background: var(--surface); }
+  .flow-title { font-weight: 700; font-size: 14px; margin: 0 0 4px; display: flex; align-items: center; gap: 8px; }
+  .flow-goal { color: var(--ink-muted); font-size: 12.5px; margin: 0 0 10px; }
+
+  /* Wireframes -- deliberately not styled like the real product */
+  .wf-frame { border: 2px dashed #9AA0B4; border-radius: 4px; padding: 10px; margin: 10px 0 20px; background: repeating-linear-gradient(135deg, transparent, transparent 8px, rgba(150,155,180,0.06) 8px, rgba(150,155,180,0.06) 9px); }
+  .wf-frame.blocked { border-color: var(--danger); }
+  .wf-title { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-faint); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .wf-region { border: 1px dashed #9AA0B4; border-radius: 3px; padding: 7px 9px; color: #7A8099; font-family: var(--font-mono); font-size: 10px; margin-bottom: 5px; background: var(--surface); }
+  .wf-region:last-child { margin-bottom: 0; }
+  .wf-row { display: flex; gap: 5px; }
+  .wf-row > .wf-region { flex: 1; }
+  .wf-block { min-height: 28px; display: flex; align-items: center; justify-content: center; text-align: center; }
+  .wf-block.tall { min-height: 56px; }
+  .wf-block.short { min-height: 18px; justify-content: flex-start; }
+
+  .callout { border: 1px solid var(--border-strong); border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 0 6px 6px 0; padding: 11px 15px; font-size: 13px; color: var(--ink); margin: 12px 0; }
+  .callout strong { color: var(--accent-ink); }
+  .callout.warn { border-left-color: var(--warn); background: var(--warn-soft); }
+  .callout.warn strong { color: var(--warn); }
+  .callout.ok { border-left-color: var(--ok); background: var(--ok-soft); }
+  .callout.ok strong { color: var(--ok); }
+  .callout.danger { border-left-color: var(--danger); background: var(--danger-soft); }
+  .callout.danger strong { color: var(--danger); }
+
+  ul.question-list { margin: 6px 0; padding-left: 0; list-style: none; counter-reset: q; }
+  ul.question-list > li { counter-increment: q; padding: 9px 0 9px 28px; position: relative; border-bottom: 1px solid var(--border); }
+  ul.question-list > li:last-child { border-bottom: none; }
+  ul.question-list > li::before { content: "Q" counter(q); position: absolute; left: 0; top: 9px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; color: var(--accent); }
+  ul.question-list > li .q-text { font-weight: 600; font-size: 13.5px; margin-bottom: 2px; }
+  ul.question-list > li p { color: var(--ink-muted); font-size: 13px; margin: 0; }
+
+  footer.doc-footer { margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 11.5px; color: var(--ink-faint); font-family: var(--font-mono); }
+  a { color: var(--accent); }
+  code { font-family: var(--font-mono); font-size: 0.9em; background: var(--surface-2); padding: 1px 5px; border-radius: 3px; }
+</style>
+
+<div class="page">
+  <nav class="toc" aria-label="Sumário">
+    <div class="toc-label">Base</div>
+    <ol>
+      <li><a href="#contexto">Contexto</a></li>
+      <li><a href="#decisoes">Decisões Registradas</a></li>
+    </ol>
+    <div class="toc-label">1–10 (obrigatórios)</div>
+    <ol>
+      <li><a href="#design-system">1 · Design System</a></li>
+      <li><a href="#navegacao">2 · Navegação e Rotas</a></li>
+      <li><a href="#componentes">3 · Componentes</a></li>
+      <li><a href="#fluxos">4 · Fluxos de Usuário</a></li>
+      <li><a href="#wireframes">5 · Wireframes</a></li>
+      <li><a href="#estado">6 · Estratégia de Estado</a></li>
+      <li><a href="#tempo-real">7 · Tempo Real</a></li>
+      <li><a href="#integracao">8 · BFF × FastAPI</a></li>
+      <li><a href="#auth-futura">9 · Evolução da Auth</a></li>
+      <li><a href="#rollout">10 · Roadmap Detalhado</a></li>
+    </ol>
+    <div class="toc-label">Encerramento</div>
+    <ol>
+      <li><a href="#riscos">Riscos globais</a></li>
+      <li><a href="#perguntas">Perguntas em aberto</a></li>
+    </ol>
+    <div class="toc-meta">
+      Backend: <code>main@30f6f40</code><br>
+      Frontend: <code>main@2afb970</code><br>
+      Rev. 3 — sem código de aplicação
+    </div>
+  </nav>
+
+  <main>
+    <header class="masthead">
+      <div class="eyebrow-row">
+        <span class="eyebrow">RFC-001 · Revisão 3</span>
+        <span class="status-badge">Aprovado conceitualmente — detalhamento completo</span>
+      </div>
+      <h1>AI PMO Copilot — Especificação Completa de Frontend</h1>
+      <p class="dek">Cobertura integral dos 10 itens obrigatórios solicitados, com granularidade por subitem. Nenhum código de aplicação, nenhum componente React, nenhuma mudança de backend. Toda capacidade é rotulada como <span class="pill now">Atual</span> (via endpoint real hoje), <span class="pill planned">Planejada</span> (buildável, ainda não construída) ou <span class="pill blocked">Bloqueada</span> (depende de backend inexistente) — nenhum endpoint é inventado.</p>
+      <div class="meta-row">
+        <span><strong>Papel</strong> Principal Product Designer / Frontend Architect</span>
+        <span><strong>Sprint 1</strong> concluído e mergeado</span>
+        <span><strong>Implementação</strong> aguardando aprovação explícita desta revisão</span>
+      </div>
+    </header>
+
+    <section id="contexto" class="top-section">
+      <div class="section-head"><h2>Contexto e o que já é real</h2></div>
+      <p>Esta é a Revisão 3. O Sprint 1 (Design System) já foi implementado e mergeado — <code>web/</code> existe, com 10 primitivos reais em <code>components/ui/</code> e uma página <code>/style-guide</code> viva nos dois temas. Os valores de cor, tipografia e espaçamento citados abaixo são os valores reais de <code>web/app/globals.css</code>, não uma proposta.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Superfície real do backend</th><th>Detalhe</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">POST /api/meetings/analyze</td><td><code>{project_name?, transcript}</code> — <code>transcript</code>: 10–20000 chars</td></tr>
+            <tr><td class="mono">POST /api/risks/analyze</td><td><code>{project_name?, project_context}</code> — mesmos limites</td></tr>
+            <tr><td class="mono">POST /api/projects/analyze</td><td><code>{project_name?, project_context}</code> — mesmos limites</td></tr>
+            <tr><td class="mono">GET /api/analyses</td><td>filtros: <code>project_name, kind, created_from, created_to, limit, offset</code></td></tr>
+            <tr><td class="mono">GET /api/analyses/{id}</td><td>404 se não existir — sem <code>PUT</code>/<code>PATCH</code>/<code>DELETE</code>: análises são imutáveis</td></tr>
+            <tr><td class="mono">GET /api/projects/{name}/summary</td><td><code>{total_analyses, open_risks, pending_action_items, latest_health_status}</code></td></tr>
+            <tr><td class="mono">GET /api/portfolio/summary</td><td>lista do mesmo shape acima, ordenada por nome</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Não existe: entidade <code>User</code>, contas individuais, endpoint de streaming/job assíncrono, endpoint de documentos, endpoint de "agentes" como recurso gerenciável. Cada seção abaixo trata essas ausências explicitamente, não as ignora.</p>
+    </section>
+
+    <section id="decisoes" class="top-section">
+      <div class="section-head"><h2>Decisões Arquiteturais Registradas</h2></div>
+      <p class="section-note">Formato fixo: Decisão, Justificativa, Alternativas rejeitadas, Consequências. As decisões operacionais menores ficam registradas dentro de cada seção temática.</p>
+
+      <div class="decision">
+        <div class="d-title">D1 — Padrão Backend-for-Frontend (BFF)</div>
+        <dl>
+          <dt>Decisão</dt><dd>O navegador nunca fala diretamente com o FastAPI. Toda chamada passa por Route Handlers do Next.js em <code>app/api/*</code>.</dd>
+          <dt>Justificativa</dt><dd>O backend usa uma <code>API_KEY</code> única compartilhada — se o navegador a guardasse, qualquer DevTools a exporia.</dd>
+          <dt>Alternativas rejeitadas</dt><dd class="muted">Guardar a chave em <code>localStorage</code>/env pública (inseguro); pedir ao usuário sua própria chave por sessão (o backend não suporta múltiplas chaves).</dd>
+          <dt>Consequências</dt><dd class="muted">Toda rota de produto precisa de um Route Handler correspondente; latência adicional de um hop; mas é o único ponto de troca de credencial, o que habilita a seção 9 (evolução de auth) sem quebra.</dd>
+        </dl>
+      </div>
+
+      <div class="decision">
+        <div class="d-title">D2 — Radix UI vendorizado à mão, sem CLI do shadcn/ui</div>
+        <dl>
+          <dt>Decisão</dt><dd>Primitivos escritos em <code>components/ui/</code> a partir de <code>@radix-ui/react-*</code> instalados via npm.</dd>
+          <dt>Justificativa</dt><dd><code>ui.shadcn.com</code> está bloqueado pela política de rede deste ambiente (403 do proxy).</dd>
+          <dt>Alternativas rejeitadas</dt><dd class="muted">MUI/Mantine/Chakra (linguagem visual própria, bundle maior); esperar a liberação de rede (sem prazo definido).</dd>
+          <dt>Consequências</dt><dd class="muted">Atualizações de acessibilidade do Radix exigem merge manual; ganho é controle total do código, sem dependência de runtime de terceiros para estilo.</dd>
+        </dl>
+      </div>
+
+      <div class="decision">
+        <div class="d-title">D3 — Sem push em tempo real (SSE/WebSocket) no MVP</div>
+        <dl>
+          <dt>Decisão</dt><dd>Nenhum mecanismo de push. Ver comparação completa na seção 7.</dd>
+          <dt>Justificativa</dt><dd>Nenhum dos 7 endpoints reais emite eventos ou faz streaming — construir push sobre uma API request/response seria arquitetura paralela.</dd>
+          <dt>Alternativas rejeitadas</dt><dd class="muted">SSE simulado no BFF sem fonte real de eventos; WebSocket "para o futuro" sem consumidor hoje.</dd>
+          <dt>Consequências</dt><dd class="muted">Dashboard usa polling condicional (seção 7); revisitar apenas se o backend ganhar um endpoint assíncrono real.</dd>
+        </dl>
+      </div>
+
+      <div class="decision">
+        <div class="d-title">D4 — Dois níveis de autenticação, não um</div>
+        <dl>
+          <dt>Decisão</dt><dd>Nível 1 (sessão de workspace, navegador↔BFF) separado de Nível 2 (credencial de backend, BFF↔FastAPI). Ver seção 9.</dd>
+          <dt>Justificativa</dt><dd>Um <code>401</code> do FastAPI hoje só pode significar "o operador configurou a <code>API_KEY</code> errada" — nunca "sessão de um usuário expirou", porque não há usuários.</dd>
+          <dt>Alternativas rejeitadas</dt><dd class="muted">Tratar os dois como um único conceito de "login" (a Revisão 1 cometeu esse erro).</dd>
+          <dt>Consequências</dt><dd class="muted">É essa separação que torna a migração para JWT/OIDC (seção 9) uma mudança contida ao BFF, não uma reescrita.</dd>
+        </dl>
+      </div>
+
+      <div class="decision">
+        <div class="d-title">D5 — Nenhuma store global de estado</div>
+        <dl>
+          <dt>Decisão</dt><dd>TanStack Query é o estado de servidor; não há Redux/Zustand/Context global de dados.</dd>
+          <dt>Justificativa</dt><dd>A API já é a fonte da verdade; duplicar esse dado numa store separada cria duas fontes para sincronizar.</dd>
+          <dt>Alternativas rejeitadas</dt><dd class="muted">Redux Toolkit (overhead de boilerplate sem necessidade real); Zustand para tudo (mistura estado de servidor com estado de UI).</dd>
+          <dt>Consequências</dt><dd class="muted">Estado de UI puro continua em <code>useState</code>/URL — ver seção 6.</dd>
+        </dl>
+      </div>
+
+      <div class="decision">
+        <div class="d-title">D6 — Navegação mobile: bottom tab bar, não drawer</div>
+        <dl>
+          <dt>Decisão</dt><dd>Abaixo de 768px, a sidebar vira uma barra fixa inferior de 3 itens (Portfólio · Análises · Nova análise).</dd>
+          <dt>Justificativa</dt><dd>Só existem 2 destinos de navegação + 1 ação primária — um drawer (menu hambúrguer) adicionaria um toque extra para algo que cabe sempre visível.</dd>
+          <dt>Alternativas rejeitadas</dt><dd class="muted">Drawer lateral (padrão para >5 itens, over-engineering aqui); esconder "Nova análise" atrás de um FAB (menos descobrível).</dd>
+          <dt>Consequências</dt><dd class="muted">Se a navegação crescer além de 3-4 destinos, este padrão precisa ser revisitado — documentado como gatilho, não ignorado.</dd>
+        </dl>
+      </div>
+
+      <div class="decision">
+        <div class="d-title">D7 — "Central de Agentes" v1 sem novo endpoint</div>
+        <dl>
+          <dt>Decisão</dt><dd>Reenquadrar o Sprint 5 como uma vista dos 3 tipos de análise já existentes (<code>meeting</code>/<code>risk</code>/<code>status</code>), agregados via <code>GET /api/analyses?kind=</code>, em vez de "gestão de agentes" (que exigiria endpoint novo).</dd>
+          <dt>Justificativa</dt><dd>Os três "agentes" já têm identidade real no backend como valores de <code>kind</code> — uma vista de contagem/atalho por tipo é honesta e buildável hoje; "gerenciar" um agente (editar prompt, ver config) não é.</dd>
+          <dt>Alternativas rejeitadas</dt><dd class="muted">Esperar um endpoint de gestão de agentes antes de tocar o Sprint 5 inteiro (desperdiça o que já é possível); construir uma tela de configuração fictícia (violaria "não inventar endpoints").</dd>
+          <dt>Consequências</dt><dd class="muted">Sprint 5 passa a ter escopo v1 real (seção 10) — só a parte de configuração/gestão continua bloqueada.</dd>
+        </dl>
+      </div>
+    </section>
+
+    <!-- ================= 1. DESIGN SYSTEM ================= -->
+    <section id="design-system" class="top-section">
+      <div class="section-head"><span class="step-no">1</span><h2>Design System Completo</h2></div>
+
+      <h3>Paleta de cores</h3>
+      <div class="swatch-row">
+        <div class="swatch"><span class="chip" style="background:#4C4FC4"></span>accent</div>
+        <div class="swatch"><span class="chip" style="background:#35378E"></span>accent-ink</div>
+        <div class="swatch"><span class="chip" style="background:#E7E7F8;border-color:#C4C8D8"></span>accent-soft</div>
+        <div class="swatch"><span class="chip" style="background:#191B26"></span>ink</div>
+        <div class="swatch"><span class="chip" style="background:#565A72"></span>ink-muted</div>
+        <div class="swatch"><span class="chip" style="background:#8C90A4"></span>ink-faint</div>
+        <div class="swatch"><span class="chip" style="background:#F5F6FA;border-color:#C4C8D8"></span>bg</div>
+        <div class="swatch"><span class="chip" style="background:#FFFFFF;border-color:#C4C8D8"></span>surface</div>
+        <div class="swatch"><span class="chip" style="background:#ECEDF5"></span>surface-2</div>
+        <div class="swatch"><span class="chip" style="background:#2F8F5B"></span>ok</div>
+        <div class="swatch"><span class="chip" style="background:#B07A2A"></span>warn</div>
+        <div class="swatch"><span class="chip" style="background:#B23B3B"></span>danger</div>
+        <div class="swatch"><span class="chip" style="background:#5B6B87"></span>status-neutral</div>
+      </div>
+      <p>Índigo escolhido para o accent especificamente por ser distinto do azul/teal já usado nos relatórios de engenharia deste projeto (Master Backlog, Readiness Audit) — o produto não deve ser visualmente confundido com a própria documentação de auditoria interna. Neutros (<code>ink</code>/<code>bg</code>/<code>surface</code>) têm leve viés de temperatura em direção ao accent, não são cinza puro.</p>
+
+      <h3>Tipografia</h3>
+      <div class="type-sample"><span class="ts-label">display-xl · 28px / 700 / -0.01em</span><span style="font-family:var(--font-display);font-weight:700;font-size:22px;">AI PMO Copilot</span></div>
+      <div class="type-sample"><span class="ts-label">display · 20px / 700</span><span style="font-family:var(--font-display);font-weight:700;font-size:18px;">Resumo de Portfólio</span></div>
+      <div class="type-sample"><span class="ts-label">display-sm (card title) · 15px / 700</span><span style="font-family:var(--font-display);font-weight:700;font-size:15px;">Multilift</span></div>
+      <div class="type-sample"><span class="ts-label">body · 15.5px / 400 / 1.6</span><span style="font-family:var(--font-body);font-size:15.5px;">3 riscos abertos, 1 ação pendente</span></div>
+      <div class="type-sample"><span class="ts-label">small · 13px / 400</span><span style="font-family:var(--font-body);font-size:13px;color:var(--ink-muted);">Atualizado há 2 minutos</span></div>
+      <div class="type-sample"><span class="ts-label">label (uppercase) · 11px / 600 / +0.03em</span><span style="font-family:var(--font-body);font-size:11px;font-weight:600;letter-spacing:0.03em;text-transform:uppercase;color:var(--ink-faint);">Status</span></div>
+      <div class="type-sample"><span class="ts-label">mono/dado · 13px / 500</span><span style="font-family:var(--font-mono);font-size:13px;font-weight:500;">req_id: a30e7f2a…</span></div>
+      <p>Três famílias, todas pilhas de fontes de sistema (<code>--font-display</code>/<code>--font-body</code>/<code>--font-mono</code>) — zero requisição de rede, decisão idêntica a todo relatório de engenharia já produzido nesta sessão.</p>
+
+      <h3>Espaçamento</h3>
+      <p>Escala padrão do Tailwind v4, base 4px, sem override: <code>1</code>=4px, <code>2</code>=8px, <code>3</code>=12px, <code>4</code>=16px, <code>6</code>=24px, <code>8</code>=32px, <code>12</code>=48px, <code>16</code>=64px. Não existe uma escala customizada em <code>globals.css</code> porque a padrão já é exatamente múltiplos de 4px — um override duplicaria uma decisão já correta.</p>
+
+      <h3>Grid e breakpoints</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Breakpoint</th><th>Largura</th><th>Comportamento do shell</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">— (mobile)</td><td class="mono">&lt;768px</td><td>Sidebar vira bottom tab bar (D6); conteúdo em coluna única; tabelas viram cards empilhados</td></tr>
+            <tr><td class="mono">md</td><td class="mono">768–1023px</td><td>Sidebar colapsa para rail somente-ícone (56px); conteúdo ganha 2 colunas onde fizer sentido (ex: resumo + lista)</td></tr>
+            <tr><td class="mono">lg+</td><td class="mono">≥1024px</td><td>Sidebar completa (220px, ícone+label); conteúdo com <code>max-width</code> de 1200px centralizado</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Bordas</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Token</th><th>Valor</th><th>Uso</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">--radius-sm</td><td class="mono">2px</td><td>Badges, indicadores pequenos</td></tr>
+            <tr><td class="mono">--radius-md</td><td class="mono">4px</td><td>Itens de lista, select items</td></tr>
+            <tr><td class="mono">--radius-lg</td><td class="mono">6px</td><td>Cards, inputs, dialogs, botões</td></tr>
+            <tr><td class="mono">border width</td><td class="mono">1px (padrão) / 2px (foco visível)</td><td><code>--border</code> (divisores) / <code>--border-strong</code> (contornos de input/botão)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Sombras (elevação)</h3>
+      <p>Três níveis, usando utilitários padrão do Tailwind (sem tokens customizados — já implementados assim no Sprint 1):</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Nível</th><th>Classe</th><th>Componentes</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">1</td><td class="mono">shadow-xs</td><td>Card, Input, Button</td></tr>
+            <tr><td class="mono">2</td><td class="mono">shadow-md</td><td>Select content, dropdowns</td></tr>
+            <tr><td class="mono">3</td><td class="mono">shadow-lg</td><td>Dialog</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Ícones</h3>
+      <p><code>lucide-react</code> — já uma dependência real desde o Sprint 1 (usada em <code>Dialog</code> e <code>Select</code>). Convenções:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tamanho</th><th>Classe</th><th>Uso</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">12px</td><td class="mono">size-3</td><td>Dentro de Badge</td></tr>
+            <tr><td class="mono">14px</td><td class="mono">size-3.5</td><td>Indicador de item selecionado (Select)</td></tr>
+            <tr><td class="mono">16px</td><td class="mono">size-4</td><td>Padrão em botões, inputs, nav</td></tr>
+            <tr><td class="mono">20px</td><td class="mono">size-5</td><td>Estados vazios/ilustrativos (novo, seção 5)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Regra: ícone sozinho (sem label visível) sempre exige <code>aria-label</code> — nunca um botão só-ícone silencioso para leitor de tela. Ícone+label é o padrão; ícone sozinho só em ações repetidas em contexto óbvio (fechar diálogo, ordenar coluna).</p>
+
+      <h3>Estados semânticos</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Estado</th><th>Aplicação visual</th><th>Onde</th></tr></thead>
+          <tbody>
+            <tr><td>hover</td><td><code>bg-surface-2</code></td><td>Linhas de tabela, itens de menu</td></tr>
+            <tr><td>focus-visible</td><td>anel de 2px <code>--accent</code>, offset 2px</td><td>Todo elemento interativo — nunca <code>outline: none</code> sem substituto</td></tr>
+            <tr><td>disabled</td><td>opacidade 50%, <code>pointer-events: none</code></td><td>Botões, inputs</td></tr>
+            <tr><td>loading</td><td><code>Skeleton</code> (pulso) no lugar do conteúdo real, nunca um spinner cobrindo a tela toda</td><td>Qualquer região aguardando dado de servidor</td></tr>
+            <tr><td>success/ok/warn/danger</td><td><code>--ok</code>/<code>--warn</code>/<code>--danger</code> + <code>-soft</code> como fundo</td><td>Badges de <code>health_status</code>, toasts, banners de erro</td></tr>
+            <tr><td>vazio</td><td>região com borda tracejada + texto explicativo + CTA, nunca só um espaço em branco</td><td>Portfólio sem projetos, análises sem resultado, ver seção 5</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Dark theme</h3>
+      <p>Implementado desde o Sprint 1 via <code>@media (prefers-color-scheme: dark)</code> (segue o SO por padrão) com override manual possível via <code>data-theme="dark"</code>/<code>data-theme="light"</code> no elemento raiz — mesmo padrão usado em todo artefato de engenharia desta sessão. Nenhum token tem só uma leitura: todo par claro/escuro foi definido junto, não invertido automaticamente (inversão ingênua quebra contraste em cores saturadas como o accent).</p>
+
+      <h3>Tokens de design — referência consolidada</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Token</th><th>Light</th><th>Dark</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">--bg</td><td class="mono">#f5f6fa</td><td class="mono">#13141c</td></tr>
+            <tr><td class="mono">--surface / -2</td><td class="mono">#ffffff / #ecedf5</td><td class="mono">#1a1c28 / #222436</td></tr>
+            <tr><td class="mono">--ink / -muted / -faint</td><td class="mono">#191b26 / #565a72 / #8c90a4</td><td class="mono">#e9eaf3 / #a2a6bc / #6e7288</td></tr>
+            <tr><td class="mono">--border / -strong</td><td class="mono">#dde0ea / #c4c8d8</td><td class="mono">#2b2e42 / #3b3f58</td></tr>
+            <tr><td class="mono">--accent / -ink / -soft</td><td class="mono">#4c4fc4 / #35378e / #e7e7f8</td><td class="mono">#9498f0 / #c7c9f8 / #26284a</td></tr>
+            <tr><td class="mono">--ok / --warn / --danger</td><td class="mono">#2f8f5b / #b07a2a / #b23b3b</td><td class="mono">#6fcb8f / #e0ad63 / #e08080</td></tr>
+            <tr><td class="mono">--status-neutral</td><td class="mono">#5b6b87</td><td class="mono">#a6b3c9</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Acessibilidade e contraste</h3>
+      <p>Razões de contraste calculadas via a fórmula de luminância relativa do WCAG 2.1 (<code>(L1+0.05)/(L2+0.05)</code>), não estimadas:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Par</th><th>Tema</th><th>Razão</th><th>Nível</th></tr></thead>
+          <tbody>
+            <tr><td><code>ink</code> sobre <code>bg</code></td><td>Light</td><td class="mono">15.9:1</td><td>AAA</td></tr>
+            <tr><td><code>ink</code> sobre <code>bg</code></td><td>Dark</td><td class="mono">15.3:1</td><td>AAA</td></tr>
+            <tr><td><code>ink-muted</code> sobre <code>bg</code></td><td>Light</td><td class="mono">6.3:1</td><td>AA (texto normal)</td></tr>
+            <tr><td>Branco sobre <code>accent</code> (botão default)</td><td>Light</td><td class="mono">6.5:1</td><td>AA</td></tr>
+            <tr><td><code>accent-ink</code> sobre <code>accent-soft</code></td><td>Light</td><td class="mono">8.2:1</td><td>AAA</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout warn">
+        <strong>Honestidade sobre cobertura:</strong> os 5 pares acima foram calculados manualmente para validar o método e os pares de maior risco (texto secundário, botão primário). Os demais pares (badges de status, dark mode completo) precisam do mesmo cálculo — proposto como um passo de CI no Sprint 2 (<code>axe-core</code> ou <code>Lighthouse CI</code> rodando contra <code>/style-guide</code>), não verificação manual repetida a cada novo token. Nenhuma alegação de conformidade total até esse gate existir.
+      </div>
+      <p>Convenções adicionais: todo elemento interativo tem estado <code>focus-visible</code> distinto (nunca removido sem substituto); toda cor semântica (ok/warn/danger) é acompanhada de texto ou ícone, nunca só cor (daltonismo); <code>prefers-reduced-motion</code> respeitado nas transições do Dialog/Toast.</p>
+    </section>
+
+    <!-- ================= 2. NAVEGAÇÃO ================= -->
+    <section id="navegacao" class="top-section">
+      <div class="section-head"><span class="step-no">2</span><h2>Arquitetura de Navegação e Mapa de Rotas</h2></div>
+
+      <h3>Rotas públicas vs. protegidas</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Rota</th><th>Proteção</th><th>Redireciona se...</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">/workspace-access</td><td>Pública</td><td>já tem sessão válida → <code>/</code></td></tr>
+            <tr><td class="mono">/</td><td>Protegida (nível 1)</td><td>sem sessão → <code>/workspace-access</code></td></tr>
+            <tr><td class="mono">/projects/[projectName]</td><td>Protegida</td><td>idem</td></tr>
+            <tr><td class="mono">/analyses</td><td>Protegida</td><td>idem</td></tr>
+            <tr><td class="mono">/analyses/[id]</td><td>Protegida</td><td>idem</td></tr>
+            <tr><td class="mono">/new</td><td>Protegida</td><td>idem</td></tr>
+            <tr><td class="mono">/agents</td><td>Protegida</td><td>idem — <span class="pill planned">v1 planejado</span>, ver Decisão D7</td></tr>
+            <tr><td class="mono">/api/*</td><td>Protegida internamente</td><td>Route Handlers verificam a sessão antes de repassar ao FastAPI</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Layout principal</h3>
+      <p>Duas regiões persistentes: Sidebar (nav) + área de conteúdo. Implementado como um único layout compartilhado (<code>app/(protected)/layout.tsx</code>, agrupando as rotas protegidas via Route Group do App Router) para não duplicar a navegação por página. <code>/workspace-access</code> fica fora desse grupo — tela cheia, sem sidebar.</p>
+
+      <h3>Sidebar</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Região</th><th>Conteúdo</th><th>Comportamento</th></tr></thead>
+          <tbody>
+            <tr><td>Topo</td><td>Nome do produto</td><td>Estático, sem link (já está na home)</td></tr>
+            <tr><td>CTA</td><td>"+ Nova análise"</td><td>Sempre visível, destaque de cor (accent), leva a <code>/new</code></td></tr>
+            <tr><td>Itens</td><td>Portfólio · Análises · (Agentes, quando v1 existir)</td><td>Item ativo com fundo <code>accent-soft</code> + texto <code>accent-ink</code></td></tr>
+            <tr><td>Rodapé</td><td>Indicador de sessão + "Sair"</td><td>Ver Fluxo H (encerramento de sessão)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Header</h3>
+      <p>Não há um header de topo separado — o breadcrumb (abaixo) cumpre esse papel dentro da área de conteúdo, evitando uma terceira região de UI para uma ferramenta com só 2-3 destinos. Reavaliar se ações globais (busca, notificações) forem necessárias no futuro.</p>
+
+      <h3>Breadcrumbs</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Rota</th><th>Breadcrumb</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">/</td><td>Portfólio</td></tr>
+            <tr><td class="mono">/projects/Multilift</td><td>Portfólio → Multilift</td></tr>
+            <tr><td class="mono">/analyses</td><td>Análises</td></tr>
+            <tr><td class="mono">/analyses/42</td><td>Análises → #42</td></tr>
+            <tr><td class="mono">/new</td><td>Nova análise</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Navegação mobile</h3>
+      <p>Ver Decisão D6. Abaixo de 768px, a sidebar é substituída por uma barra fixa inferior com os mesmos 3 destinos (ícone+label pequeno), sempre visível, sem sobrepor conteúdo scrollável (padding-bottom reservado no container principal).</p>
+
+      <h3>Páginas de erro</h3>
+      <p>Usando as convenções de arquivos especiais do App Router (<code>not-found.tsx</code>, <code>error.tsx</code>, <code>loading.tsx</code> — a confirmar contra <code>node_modules/next/dist/docs</code> no início do Sprint 2, mesma disciplina já usada no Sprint 1 para não assumir convenções de treinamento desatualizadas nesta versão do Next.js):</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Cenário</th><th>Tratamento</th></tr></thead>
+          <tbody>
+            <tr><td><code>projectName</code> ou <code>id</code> inválido na URL</td><td><code>not-found.tsx</code> dedicado — "Nada aqui", CTA de volta ao Portfólio</td></tr>
+            <tr><td>Erro não tratado no client (exceção de render)</td><td><code>error.tsx</code> (Client Component, boundary do Next) — mensagem genérica + <code>X-Request-ID</code> se disponível + botão "tentar de novo"</td></tr>
+            <tr><td>Sem conectividade</td><td>Banner discreto via <code>navigator.onLine</code>/evento <code>offline</code> — não bloqueia a UI, só avisa</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= 3. COMPONENTES ================= -->
+    <section id="componentes" class="top-section">
+      <div class="section-head"><span class="step-no">3</span><h2>Biblioteca de Componentes Reutilizáveis</h2></div>
+      <p class="section-note">Primitivos com <span class="pill now">Atual</span> já existem em <code>components/ui/</code>, testados e verificados em navegador real no Sprint 1. Os demais são <span class="pill planned">Planejados</span>.</p>
+
+      <h3>Primitivos — <code>components/ui/</code></h3>
+
+      <div class="comp-card">
+        <div class="cc-head"><span class="cc-name">Button</span><span class="pill now">Atual</span></div>
+        <div class="cc-body"><dl>
+          <dt>Finalidade</dt><dd>Ação primária/secundária clicável, único componente para todo botão do app.</dd>
+          <dt>Propriedades</dt><dd><code>variant</code>, <code>size</code>, <code>asChild</code>, todo atributo nativo de <code>&lt;button&gt;</code>.</dd>
+          <dt>Estados</dt><dd>default, hover, focus-visible (anel accent), disabled (opacidade 50%, sem pointer events), loading (planejado: spinner inline + <code>aria-busy</code>).</dd>
+          <dt>Variações</dt><dd><code>default</code> (accent sólido) · <code>outline</code> · <code>ghost</code> · <code>destructive</code> — tamanhos <code>default</code>/<code>sm</code>/<code>lg</code>/<code>icon</code>.</dd>
+          <dt>Responsividade</dt><dd>Área de toque mínima 36px (size default) em qualquer breakpoint; <code>icon</code> exige <code>aria-label</code>.</dd>
+          <dt>Acessibilidade</dt><dd><code>&lt;button&gt;</code> nativo (não <code>div</code> com <code>onClick</code>); foco visível obrigatório; <code>disabled</code> real, não só visual.</dd>
+        </dl></div>
+      </div>
+
+      <div class="comp-card">
+        <div class="cc-head"><span class="cc-name">Card (+Header/Title/Description/Content/Footer)</span><span class="pill now">Atual</span></div>
+        <div class="cc-body"><dl>
+          <dt>Finalidade</dt><dd>Container de agrupamento visual — base de ProjectSummaryCard e itens de lista.</dd>
+          <dt>Propriedades</dt><dd><code>className</code> (composição via <code>cn()</code>), sem props de comportamento — é puramente estrutural.</dd>
+          <dt>Estados</dt><dd>Nenhum estado próprio — herda dos filhos.</dd>
+          <dt>Variações</dt><dd>Nenhuma variante formal; composição livre dos subcomponentes.</dd>
+          <dt>Responsividade</dt><dd>Largura fluida por padrão; empilha em coluna única abaixo de 768px quando usado em grid.</dd>
+          <dt>Acessibilidade</dt><dd>Sem semântica própria — o conteúdo interno é que define heading level, landmark, etc.</dd>
+        </dl></div>
+      </div>
+
+      <div class="comp-card">
+        <div class="cc-head"><span class="cc-name">Input / Textarea</span><span class="pill now">Atual</span></div>
+        <div class="cc-body"><dl>
+          <dt>Finalidade</dt><dd>Entrada de texto curto/longo — base do Composer.</dd>
+          <dt>Propriedades</dt><dd>Todo atributo nativo (<code>value</code>, <code>onChange</code>, <code>maxLength</code>, <code>placeholder</code>...).</dd>
+          <dt>Estados</dt><dd>default, focus (anel accent), disabled, inválido (planejado: borda <code>danger</code> + mensagem inline, via React Hook Form).</dd>
+          <dt>Variações</dt><dd>Nenhuma variante visual — um único estilo por design, para consistência de formulário.</dd>
+          <dt>Responsividade</dt><dd>Largura 100% do container pai por padrão.</dd>
+          <dt>Acessibilidade</dt><dd>Sempre associado a um <code>Label</code> via <code>htmlFor</code>/<code>id</code>; <code>Textarea</code> do Composer expõe contagem de caracteres também via <code>aria-describedby</code>.</dd>
+        </dl></div>
+      </div>
+
+      <div class="comp-card">
+        <div class="cc-head"><span class="cc-name">Badge</span><span class="pill now">Atual</span></div>
+        <div class="cc-body"><dl>
+          <dt>Finalidade</dt><dd>Indicador de status curto — a peça central da leitura de <code>health_status</code>.</dd>
+          <dt>Propriedades</dt><dd><code>variant</code>, <code>asChild</code>; helper <code>healthStatusVariant(status)</code> mapeia <code>green/yellow/red/null</code> → variante, sem lógica duplicada em quem consome.</dd>
+          <dt>Estados</dt><dd>Estático — não é interativo.</dd>
+          <dt>Variações</dt><dd><code>neutral</code> (status desconhecido/nulo) · <code>ok</code> · <code>warn</code> · <code>danger</code> · <code>outline</code>.</dd>
+          <dt>Responsividade</dt><dd><code>white-space: nowrap</code> — nunca quebra linha; trunca o container ao redor se necessário.</dd>
+          <dt>Acessibilidade</dt><dd>Cor nunca é o único sinal — o texto do badge (ex: "green"/"yellow"/"red" ou tradução) sempre acompanha.</dd>
+        </dl></div>
+      </div>
+
+      <div class="comp-card">
+        <div class="cc-head"><span class="cc-name">Skeleton</span><span class="pill now">Atual</span></div>
+        <div class="cc-body"><dl>
+          <dt>Finalidade</dt><dd>Placeholder de carregamento com a forma aproximada do conteúdo real.</dd>
+          <dt>Propriedades</dt><dd><code>className</code> define dimensões — não tem props de comportamento.</dd>
+          <dt>Estados</dt><dd>Só existe: em animação de pulso (<code>animate-pulse</code>).</dd>
+          <dt>Variações</dt><dd>Nenhuma — a forma vem inteiramente do <code>className</code> de quem usa.</dd>
+          <dt>Responsividade</dt><dd>Herda largura do container.</dd>
+          <dt>Acessibilidade</dt><dd>Planejado: <code>aria-busy="true"</code> na região que contém Skeletons, para leitor de tela não ler cada bloco vazio individualmente.</dd>
+        </dl></div>
+      </div>
+
+      <div class="comp-card">
+        <div class="cc-head"><span class="cc-name">Tabs</span><span class="pill now">Atual</span></div>
+        <div class="cc-body"><dl>
+          <dt>Finalidade</dt><dd>Alternância entre visões relacionadas — o seletor de tipo do Composer.</dd>
+          <dt>Propriedades</dt><dd><code>defaultValue</code>/<code>value</code>/<code>onValueChange</code> (Radix).</dd>
+          <dt>Estados</dt><dd>Trigger ativo (fundo <code>surface</code> + sombra) vs. inativo (texto <code>ink-muted</code>).</dd>
+          <dt>Variações</dt><dd>Nenhuma variante visual formal.</dd>
+          <dt>Responsividade</dt><dd>Lista de triggers com <code>flex-wrap</code> implícito do Radix; abaixo de 3 itens não há necessidade de scroll horizontal.</dd>
+          <dt>Acessibilidade</dt><dd>Navegação por seta do teclado entre triggers (nativo do Radix); <code>role="tablist"</code>/<code>tab</code>/<code>tabpanel"</code> automáticos.</dd>
+        </dl></div>
+      </div>
+
+      <div class="comp-card">
+        <div class="cc-head"><span class="cc-name">Dialog (+Close/Content/Header/Title/Description/Footer)</span><span class="pill now">Atual</span></div>
+        <div class="cc-body"><dl>
+          <dt>Finalidade</dt><dd>Confirmação ou formulário curto sobre a tela atual, sem navegar para outra rota.</dd>
+          <dt>Propriedades</dt><dd><code>open</code>/<code>onOpenChange</code> (Radix), <code>DialogClose asChild</code> para fechar a partir de qualquer botão interno.</dd>
+          <dt>Estados</dt><dd>aberto/fechado, com animação de entrada/saída respeitando <code>prefers-reduced-motion</code>.</dd>
+          <dt>Variações</dt><dd>Nenhuma variante de tamanho formal ainda — <code>max-w-lg</code> fixo hoje.</dd>
+          <dt>Responsividade</dt><dd>Centralizado com margem lateral mínima em mobile; não usa <code>max-width</code> fixo maior que a viewport.</dd>
+          <dt>Acessibilidade</dt><dd>Foco preso dentro do diálogo (focus trap nativo do Radix), <code>Esc</code> fecha, foco retorna ao elemento que abriu ao fechar. <strong>Bug real encontrado e corrigido no Sprint 1:</strong> os botões de rodapé do diálogo de demonstração não fechavam o diálogo porque <code>DialogClose</code> não estava exportado do primitivo — só o X do canto fechava. Pego pela verificação manual em navegador, não pelos checks estáticos.</dd>
+        </dl></div>
+      </div>
+
+      <div class="comp-card">
+        <div class="cc-head"><span class="cc-name">Select (+Value/Trigger/Content/Item)</span><span class="pill now">Atual</span></div>
+        <div class="cc-body"><dl>
+          <dt>Finalidade</dt><dd>Escolha única de uma lista curta e conhecida.</dd>
+          <dt>Propriedades</dt><dd><code>value</code>/<code>onValueChange</code>/<code>defaultValue</code> (Radix).</dd>
+          <dt>Estados</dt><dd>fechado/aberto, item destacado por teclado ou hover (<code>data-highlighted</code>).</dd>
+          <dt>Variações</dt><dd>Nenhuma — um único estilo.</dd>
+          <dt>Responsividade</dt><dd>Largura definida por quem usa (<code>w-fit</code> por padrão); dropdown reposiciona automaticamente perto da borda da viewport (Radix Popper).</dd>
+          <dt>Acessibilidade</dt><dd>Navegação por teclado nativa do Radix; ícone de item selecionado (<code>Check</code>) sempre acompanhado do texto do item, nunca só o ícone.</dd>
+        </dl></div>
+      </div>
+
+      <div class="comp-card">
+        <div class="cc-head"><span class="cc-name">Label</span><span class="pill now">Atual</span></div>
+        <div class="cc-body"><dl>
+          <dt>Finalidade</dt><dd>Rótulo de campo de formulário, sempre associado.</dd>
+          <dt>Propriedades</dt><dd><code>htmlFor</code>.</dd>
+          <dt>Estados</dt><dd><code>peer-disabled</code> — esmaece junto com o campo associado.</dd>
+          <dt>Variações</dt><dd>Nenhuma.</dd>
+          <dt>Responsividade</dt><dd>N/A — texto inline.</dd>
+          <dt>Acessibilidade</dt><dd>É a própria razão de existir: sem <code>Label</code> associado, um <code>Input</code> não tem nome acessível.</dd>
+        </dl></div>
+      </div>
+
+      <div class="comp-card">
+        <div class="cc-head"><span class="cc-name">Toaster (sonner)</span><span class="pill now">Atual</span></div>
+        <div class="cc-body"><dl>
+          <dt>Finalidade</dt><dd>Confirmação transitória de uma ação (ex: análise enviada com sucesso).</dd>
+          <dt>Propriedades</dt><dd>Tematizado via CSS custom properties (<code>--normal-bg</code>/<code>-text</code>/<code>-border</code>) mapeadas aos tokens da seção 1.</dd>
+          <dt>Estados</dt><dd>Entra, permanece, sai automaticamente (timeout padrão do sonner).</dd>
+          <dt>Variações</dt><dd>Padrão hoje; variantes de sucesso/erro/aviso são planejadas para o Sprint 2 (usadas no fluxo de erro do Composer).</dd>
+          <dt>Responsividade</dt><dd>Ancorado no canto da viewport, empilha múltiplos toasts.</dd>
+          <dt>Acessibilidade</dt><dd><code>role="status"</code>/<code>aria-live</code> nativo do sonner — leitor de tela anuncia sem precisar de foco.</dd>
+        </dl></div>
+      </div>
+
+      <h3>Componentes de produto — <code>components/features/</code> <span class="pill planned">Planejados</span></h3>
+
+      <div class="comp-card">
+        <div class="cc-head"><span class="cc-name">AppShell / Sidebar / Breadcrumb</span><span class="pill planned">Sprint 2</span></div>
+        <div class="cc-body"><dl>
+          <dt>Finalidade</dt><dd>Implementa a seção 2 inteira — layout persistente único.</dd>
+          <dt>Propriedades</dt><dd><code>children</code> (a rota ativa); breadcrumb derivado do <code>pathname</code>, não passado manualmente por página.</dd>
+          <dt>Estados</dt><dd>Item de nav ativo (via <code>usePathname</code>); sidebar completa vs. rail vs. bottom bar por breakpoint.</dd>
+          <dt>Variações</dt><dd>Nenhuma — um único shell para todas as rotas protegidas.</dd>
+          <dt>Responsividade</dt><dd>Implementa D6 diretamente.</dd>
+          <dt>Acessibilidade</dt><dd>Landmark <code>&lt;nav&gt;</code> para a sidebar/bottom bar; link "pular para o conteúdo" no topo, antes da nav.</dd>
+        </dl></div>
+      </div>
+
+      <div class="comp-card">
+        <div class="cc-head"><span class="cc-name">PortfolioTable / KpiSummaryRow</span><span class="pill planned">Sprint 2</span></div>
+        <div class="cc-body"><dl>
+          <dt>Finalidade</dt><dd><code>KpiSummaryRow</code> agrega os totais do array de <code>GET /api/portfolio/summary</code> no cliente (soma de <code>open_risks</code>, <code>pending_action_items</code>, contagem por <code>health_status</code>) — <strong>nenhum endpoint novo</strong>, só agregação client-side do que a API já retorna. <code>PortfolioTable</code> é a listagem detalhada abaixo.</dd>
+          <dt>Propriedades</dt><dd><code>data</code> (array tipado via OpenAPI), <code>isLoading</code>, <code>error</code>.</dd>
+          <dt>Estados</dt><dd>loading (Skeleton) · vazio (nenhum projeto ainda) · erro · sucesso.</dd>
+          <dt>Variações</dt><dd>Nenhuma.</dd>
+          <dt>Responsividade</dt><dd>Tabela vira lista de cards empilhados abaixo de 768px.</dd>
+          <dt>Acessibilidade</dt><dd><code>&lt;table&gt;</code> semântica com <code>&lt;th scope="col"&gt;</code>, não <code>div</code>s estilizados como tabela.</dd>
+        </dl></div>
+      </div>
+
+      <div class="comp-card">
+        <div class="cc-head"><span class="cc-name">ProjectSummaryCard</span><span class="pill planned">Sprint 3</span></div>
+        <div class="cc-body"><dl>
+          <dt>Finalidade</dt><dd>Resumo de um projeto — de <code>GET /api/projects/{name}/summary</code>.</dd>
+          <dt>Propriedades</dt><dd><code>projectName</code>, dados da query.</dd>
+          <dt>Estados</dt><dd><code>latest_health_status: null</code> é um estado explícito (badge neutro "sem status"), não escondido como zero.</dd>
+          <dt>Variações</dt><dd>Nenhuma.</dd>
+          <dt>Responsividade</dt><dd>Card único, largura fluida.</dd>
+          <dt>Acessibilidade</dt><dd>Título do card é um heading real (<code>h2</code>/<code>h3</code> conforme a hierarquia da página).</dd>
+        </dl></div>
+      </div>
+
+      <div class="comp-card">
+        <div class="cc-head"><span class="cc-name">AnalysisComposer</span><span class="pill planned">Sprint 3</span></div>
+        <div class="cc-body"><dl>
+          <dt>Finalidade</dt><dd>Um único componente configurável por <code>kind</code> — os três endpoints de análise têm a mesma forma.</dd>
+          <dt>Propriedades</dt><dd><code>kind: "meeting" | "risk" | "status"</code>.</dd>
+          <dt>Estados</dt><dd>idle · validando (Zod, inline) · enviando (botão loading) · sucesso (toast + redirect) · erro (ErrorBanner, ver seção 8).</dd>
+          <dt>Variações</dt><dd>Rótulo e placeholder mudam por <code>kind</code>; estrutura de campos é idêntica.</dd>
+          <dt>Responsividade</dt><dd>Textarea cresce em altura, nunca gera scroll horizontal.</dd>
+          <dt>Acessibilidade</dt><dd>Erros de validação anunciados via <code>aria-live="polite"</code>, associados ao campo via <code>aria-describedby</code>.</dd>
+        </dl></div>
+      </div>
+
+      <div class="comp-card">
+        <div class="cc-head"><span class="cc-name">AnalysisResultView / AnalysisList / ErrorBanner / RequestIdFooter / AgentTypeCard</span><span class="pill planned">Sprint 3–5</span></div>
+        <div class="cc-body"><dl>
+          <dt>Finalidade</dt><dd><code>AgentTypeCard</code> é novo nesta revisão — um card por tipo de análise (Meeting/Risk/Status) mostrando contagem via <code>GET /api/analyses?kind=X&limit=1</code> (usa o <code>total</code> implícito da paginação) e link para <code>/new?kind=X</code>. Os demais mantêm o raciocínio já registrado nas revisões anteriores.</dd>
+          <dt>Propriedades / Estados / Variações / Responsividade / Acessibilidade</dt><dd>Especificados no detalhe quando cada Sprint for aberto — manter este RFC como plano vivo, não uma promessa de detalhe que ainda não foi validado contra código real.</dd>
+        </dl></div>
+      </div>
+    </section>
+
+    <!-- ================= 4. FLUXOS ================= -->
+    <section id="fluxos" class="top-section">
+      <div class="section-head"><span class="step-no">4</span><h2>Fluxos de Usuário</h2></div>
+
+      <div class="flow-block">
+        <div class="flow-title">A · Entrada no sistema <span class="pill now">via endpoints atuais</span></div>
+        <p class="flow-goal">Objetivo: garantir que só quem conhece a senha do workspace acesse qualquer dado.</p>
+        <ol class="flow-steps">
+          <li><span class="fs-text">Acessa a URL raiz sem cookie de sessão válido</span></li>
+          <li><span class="fs-text">Redirecionado a <code>/workspace-access</code> (rota pública)</span></li>
+          <li><span class="fs-text">Informa a senha compartilhada do workspace</span></li>
+          <li><span class="fs-text">Route Handler valida contra <code>WORKSPACE_PASSPHRASE</code>, emite cookie assinado (HttpOnly)<span class="fs-sub">Senha errada: mensagem genérica, sem indicar se o workspace existe ou não</span></span></li>
+          <li><span class="fs-text">Redirecionado a <code>/</code></span></li>
+        </ol>
+      </div>
+
+      <div class="flow-block">
+        <div class="flow-title">B · Dashboard executivo <span class="pill now">via endpoint atual</span></div>
+        <p class="flow-goal">Objetivo: visão agregada em segundos, sem precisar abrir cada projeto.</p>
+        <ol class="flow-steps">
+          <li><span class="fs-text">Acessa <code>/</code> — <code>KpiSummaryRow</code> e <code>PortfolioTable</code> em loading (Skeleton) simultaneamente</span></li>
+          <li><span class="fs-text">BFF resolve <code>GET /api/portfolio/summary</code> uma única vez, ambos os componentes leem do mesmo cache do TanStack Query</span></li>
+          <li><span class="fs-text">KPIs agregados (total de riscos abertos, ações pendentes, contagem por health_status) renderizam no topo</span></li>
+          <li><span class="fs-text">Poll condicional a cada 60s enquanto a aba está visível (seção 7)</span></li>
+        </ol>
+      </div>
+
+      <div class="flow-block">
+        <div class="flow-title">C · Consulta de portfólio <span class="pill now">via endpoint atual</span></div>
+        <p class="flow-goal">Objetivo: comparar projetos lado a lado.</p>
+        <ol class="flow-steps">
+          <li><span class="fs-text">Rola a <code>PortfolioTable</code> abaixo do resumo de KPIs</span></li>
+          <li><span class="fs-text">Cada linha: nome do projeto, badge de <code>health_status</code>, contagem de riscos/ações</span></li>
+          <li><span class="fs-text">Tabela vazia (nenhuma análise no sistema ainda): estado vazio dedicado com CTA "Nova análise", nunca uma tabela em branco</span></li>
+        </ol>
+      </div>
+
+      <div class="flow-block">
+        <div class="flow-title">D · Abertura de projeto <span class="pill now">via endpoints atuais</span></div>
+        <p class="flow-goal">Objetivo: contexto completo de um projeto específico.</p>
+        <ol class="flow-steps">
+          <li><span class="fs-text">Clica numa linha da <code>PortfolioTable</code> → navega a <code>/projects/[name]</code></span></li>
+          <li><span class="fs-text">Dois <code>GET</code>s em paralelo: resumo do projeto + análises recentes filtradas por <code>project_name</code></span></li>
+          <li><span class="fs-text">Cada bloco carrega independentemente — um não bloqueia o outro</span></li>
+        </ol>
+      </div>
+
+      <div class="flow-block">
+        <div class="flow-title">E · Execução de agente <span class="pill now">v1 via endpoints atuais</span> <span class="pill blocked">v2 bloqueada</span></div>
+        <p class="flow-goal">Objetivo (v1): disparar rapidamente uma análise de um tipo conhecido. Ver Decisão D7.</p>
+        <ol class="flow-steps">
+          <li><span class="fs-text">Acessa <code>/agents</code> — três <code>AgentTypeCard</code> (Meeting Intelligence · Risk Review · Project Status), cada um com contagem de análises já feitas desse tipo</span></li>
+          <li><span class="fs-text">Clica em um card → <code>/new?kind=meeting</code> (reaproveita o Composer, não uma tela nova)</span></li>
+          <li><span class="fs-text">Preenche e envia — mesmo fluxo do Fluxo G</span></li>
+        </ol>
+        <div class="callout danger" style="margin-top:10px;"><strong>v2 bloqueada:</strong> "gerenciar" um agente (editar prompt, ver config, histórico de execução com retry) exigiria endpoints que não existem — <code>src/agents/</code> é implementação interna do backend, não um recurso da API. Fora de escopo até existir um RFC de backend para isso.</div>
+      </div>
+
+      <div class="flow-block">
+        <div class="flow-title">F · Consulta de análise <span class="pill now">via endpoint atual</span></div>
+        <p class="flow-goal">Objetivo: revisar o resultado completo de uma análise específica, de qualquer ponto de entrada.</p>
+        <ol class="flow-steps">
+          <li><span class="fs-text">Chega via <code>/analyses</code> (lista global, filtros por <code>kind</code>/período na URL) ou via a lista de análises recentes de um projeto</span></li>
+          <li><span class="fs-text">Clica numa linha → <code>/analyses/[id]</code></span></li>
+          <li><span class="fs-text"><code>model_output</code> renderiza: estruturado (lista tipada por <code>kind</code>) ou <code>raw_output</code> com aviso visual de fallback</span></li>
+          <li><span class="fs-text">Cache indefinido — análises são imutáveis no backend, revisitar não refaz a chamada</span></li>
+        </ol>
+      </div>
+
+      <div class="flow-block">
+        <div class="flow-title">G · Tratamento de erro <span class="pill now">via contrato real de erros</span></div>
+        <p class="flow-goal">Objetivo: nunca deixar o usuário sem saber o que aconteceu ou o que fazer a seguir.</p>
+        <ol class="flow-steps">
+          <li><span class="fs-text">Uma chamada falha (429/502/503/422/404 — contrato completo na seção 8)</span></li>
+          <li><span class="fs-text">ErrorBanner mostra a leitura mapeada + <code>X-Request-ID</code> visível para suporte</span></li>
+          <li><span class="fs-text"><code>GET</code>s: retry automático já rodou em background (TanStack Query); <code>POST</code> de análise: reenvio é sempre uma ação explícita, nunca automático (custo real de API)</span></li>
+        </ol>
+      </div>
+
+      <div class="flow-block">
+        <div class="flow-title">H · Encerramento de sessão <span class="pill now">via BFF atual</span></div>
+        <p class="flow-goal">Objetivo: sair do workspace de forma limpa e explícita.</p>
+        <ol class="flow-steps">
+          <li><span class="fs-text">Clica "Sair" no rodapé da sidebar</span></li>
+          <li><span class="fs-text">Route Handler invalida o cookie de sessão (nível 1) — a <code>API_KEY</code> real (nível 2) nunca foi exposta, não há nada a "revogar" do lado do usuário</span></li>
+          <li><span class="fs-text">Redirecionado a <code>/workspace-access</code></span></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ================= 5. WIREFRAMES ================= -->
+    <section id="wireframes" class="top-section">
+      <div class="section-head"><span class="step-no">5</span><h2>Wireframes de Baixa Fidelidade</h2></div>
+      <p class="section-note">Estrutural, não visual — a fidelidade visual real já existe em <code>/style-guide</code>. Telas marcadas <span class="pill blocked">Bloqueada</span> são especulativas por definição e não devem ser lidas como compromisso de entrega.</p>
+
+      <div class="wf-frame">
+        <div class="wf-title"><span>Entrada / Acesso</span><span class="pill now">Sprint 2</span></div>
+        <div class="wf-region" style="max-width:280px;margin:0 auto;">
+          <div class="wf-block short">AI PMO Copilot</div>
+          <div class="wf-block short">input: senha do workspace</div>
+          <div class="wf-block short">botão entrar</div>
+        </div>
+      </div>
+
+      <div class="wf-frame">
+        <div class="wf-title"><span>Dashboard Executivo + Portfólio (/)</span><span class="pill now">Sprint 2</span></div>
+        <div class="wf-row">
+          <div class="wf-region wf-block tall" style="max-width:110px;">nav</div>
+          <div class="wf-region" style="flex:3;">
+            <div class="wf-block short">título "Portfólio"</div>
+            <div class="wf-row">
+              <div class="wf-region wf-block short">KPI: riscos abertos</div>
+              <div class="wf-region wf-block short">KPI: ações pendentes</div>
+              <div class="wf-region wf-block short">KPI: projetos por health</div>
+            </div>
+            <div class="wf-block short">tabela: projeto · badge · riscos · ações</div>
+            <div class="wf-block short">linha · linha · linha</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wf-frame">
+        <div class="wf-title"><span>Detalhe do Projeto (/projects/[name])</span><span class="pill now">Sprint 3</span></div>
+        <div class="wf-row">
+          <div class="wf-region wf-block tall" style="max-width:110px;">nav</div>
+          <div class="wf-region" style="flex:3;">
+            <div class="wf-block short">breadcrumb: Portfólio → Multilift</div>
+            <div class="wf-region wf-block">card resumo (riscos/ações/health)</div>
+            <div class="wf-block short">lista: análises recentes deste projeto</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wf-frame">
+        <div class="wf-title"><span>Central de Agentes (/agents) — v1</span><span class="pill now">Sprint 5 · via endpoints atuais</span></div>
+        <div class="wf-row">
+          <div class="wf-region wf-block tall" style="max-width:110px;">nav</div>
+          <div class="wf-region" style="flex:3;">
+            <div class="wf-block short">título "Agentes"</div>
+            <div class="wf-row">
+              <div class="wf-region wf-block tall">Meeting Intelligence<br>N análises · [Executar]</div>
+              <div class="wf-region wf-block tall">Risk Review<br>N análises · [Executar]</div>
+              <div class="wf-region wf-block tall">Project Status<br>N análises · [Executar]</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="wf-frame blocked">
+        <div class="wf-title"><span>Central de Agentes — v2 (configuração/gestão)</span><span class="pill blocked">Bloqueada — sem endpoint</span></div>
+        <div class="wf-region wf-block tall" style="color:var(--danger);border-color:var(--danger);">requer API de gestão de agentes que não existe — não desenhado</div>
+      </div>
+
+      <div class="wf-frame">
+        <div class="wf-title"><span>Formulário de Análise (/new)</span><span class="pill now">Sprint 3</span></div>
+        <div class="wf-row">
+          <div class="wf-region wf-block tall" style="max-width:110px;">nav</div>
+          <div class="wf-region" style="flex:3;">
+            <div class="wf-block short">tabs: Reunião · Risco · Status</div>
+            <div class="wf-block short">input: nome do projeto (opcional)</div>
+            <div class="wf-block tall">textarea + contador (10–20000)</div>
+            <div class="wf-block short" style="justify-content:flex-end;">botão enviar</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wf-frame">
+        <div class="wf-title"><span>Resultado da Análise (pós-envio)</span><span class="pill now">Sprint 3</span></div>
+        <div class="wf-row">
+          <div class="wf-region wf-block tall" style="max-width:110px;">nav</div>
+          <div class="wf-region" style="flex:3;">
+            <div class="wf-block short">toast: "Análise salva" (transitório)</div>
+            <div class="wf-block short">agent · project_name · created_at</div>
+            <div class="wf-block tall">model_output (estruturado ou raw_output + aviso)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wf-frame">
+        <div class="wf-title"><span>Histórico de Análises (/analyses + /analyses/[id])</span><span class="pill now">Sprint 3</span></div>
+        <div class="wf-row">
+          <div class="wf-region wf-block tall" style="max-width:110px;">nav</div>
+          <div class="wf-region" style="flex:2;">
+            <div class="wf-block short">filtros: kind · período (na URL)</div>
+            <div class="wf-block short">linha · linha · linha</div>
+          </div>
+          <div class="wf-region" style="flex:2;">
+            <div class="wf-block short">detalhe da análise selecionada</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wf-frame">
+        <div class="wf-title"><span>Padrões de Estado — vazio, loading, erro</span><span class="pill now">Transversal a todas as telas</span></div>
+        <div class="wf-row">
+          <div class="wf-region" style="flex:1;">
+            <div class="wf-block short">VAZIO</div>
+            <div class="wf-block tall">ícone + texto explicativo + CTA</div>
+          </div>
+          <div class="wf-region" style="flex:1;">
+            <div class="wf-block short">LOADING</div>
+            <div class="wf-block tall">Skeleton na forma do conteúdo real</div>
+          </div>
+          <div class="wf-region" style="flex:1;">
+            <div class="wf-block short">ERRO</div>
+            <div class="wf-block tall">ErrorBanner + X-Request-ID + ação</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 6. ESTADO ================= -->
+    <section id="estado" class="top-section">
+      <div class="section-head"><span class="step-no">6</span><h2>Estratégia de Estado</h2></div>
+
+      <h3>Estado de servidor</h3>
+      <p>Vive exclusivamente no cache do TanStack Query. Nenhum dado vindo da API é copiado para <code>useState</code>/store — o componente lê direto do hook de query (<code>usePortfolio()</code>, <code>useProjectSummary(name)</code> etc).</p>
+
+      <h3>Estado local</h3>
+      <p><code>useState</code> por componente, para UI pura sem correspondência no servidor: aba ativa do Composer, diálogo aberto/fechado, item de tabela em hover. Nunca elevado a um contexto global — se dois componentes distantes precisarem do mesmo estado de UI, isso é sinal de que deveria estar na URL, não numa store.</p>
+
+      <h3>Estado de formulário</h3>
+      <p>React Hook Form, isolado por formulário — não compartilha estado com o restante da árvore. Validação via schema Zod, espelhando literalmente as constraints reais do backend (<code>min_length=10, max_length=20000</code>). Erros de validação vivem no estado interno do React Hook Form, nunca duplicados em <code>useState</code> paralelo.</p>
+
+      <h3>Cache</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Query</th><th><code>staleTime</code></th><th>Justificativa</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">portfolio-summary</td><td class="mono">30s</td><td>Rollup que muda com uso de outros operadores do workspace</td></tr>
+            <tr><td class="mono">project-summary(name)</td><td class="mono">30s</td><td>Mesma razão, escopo menor</td></tr>
+            <tr><td class="mono">analyses-list(filters)</td><td class="mono">30s</td><td>Complementado por invalidação sob demanda</td></tr>
+            <tr><td class="mono">analysis-detail(id)</td><td class="mono"><code>Infinity</code></td><td>Backend não tem <code>PUT</code>/<code>PATCH</code>/<code>DELETE</code> para análises — imutável por design da API</td></tr>
+            <tr><td class="mono">agent-type-counts</td><td class="mono">30s</td><td>Mesma família de <code>analyses-list</code>, só reagrupada</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Invalidação</h3>
+      <p>Um <code>POST</code> de análise bem-sucedido invalida: <code>analyses-list</code> (qualquer filtro), <code>project-summary</code> do projeto envolvido, <code>portfolio-summary</code>, e <code>agent-type-counts</code>. Nunca invalida <code>analysis-detail</code> de registros existentes.</p>
+
+      <h3>Persistência</h3>
+      <p><strong>Decisão: nenhuma persistência do cache de servidor entre sessões</strong> (sem <code>localStorage</code>/IndexedDB para o TanStack Query). Justificativa: os dados são baratos de re-buscar (a API já responde rápido para leitura), e persistir cache aumentaria o risco de mostrar dado obsoleto sem que o usuário perceba. O que persiste: o cookie de sessão de workspace (nível 1) e os filtros de <code>/analyses</code> (na URL, não em storage local).</p>
+
+      <h3>Tratamento de dados obsoletos</h3>
+      <p>Padrão stale-while-revalidate do próprio TanStack Query: dado em cache é mostrado imediatamente (mesmo se "stale"), uma revalidação em background acontece conforme a política acima, e a UI atualiza sem piscar quando o novo dado chega. Nenhum indicador de "desatualizado" é mostrado ao usuário hoje — avaliar no Sprint 2 se um rótulo discreto ("atualizado há Xmin", já usado no Design System da seção 1) é necessário no Dashboard, dado o poll de 60s.</p>
+    </section>
+
+    <!-- ================= 7. TEMPO REAL ================= -->
+    <section id="tempo-real" class="top-section">
+      <div class="section-head"><span class="step-no">7</span><h2>Atualização em Tempo Real</h2></div>
+      <h3>Comparação</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Abordagem</th><th>Exige do backend</th><th>Complexidade no BFF</th><th>Encaixe na API atual</th></tr></thead>
+          <tbody>
+            <tr><td>Polling</td><td>Nada — reusa <code>GET</code>s existentes</td><td>Nenhuma — é uma opção do TanStack Query</td><td>Total — os 4 <code>GET</code>s já existem</td></tr>
+            <tr><td>SSE</td><td>Endpoint que mantenha conexão aberta e emita eventos</td><td>Route Handler precisaria fazer streaming — não trivial em serverless</td><td>Nenhum — nenhum endpoint emite eventos</td></tr>
+            <tr><td>WebSocket</td><td>Endpoint <code>ws://</code> dedicado + gestão de conexão com estado</td><td>Alta — conexão persistente, reconexão, autenticação por conexão</td><td>Nenhum — não existe</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Decisão para o MVP</h3>
+      <p><strong>Polling condicional</strong>, só no Dashboard de portfólio: intervalo de 60s via <code>refetchInterval</code>, <code>refetchIntervalInBackground: false</code> (para quando a aba não está visível), respeitando o orçamento compartilhado do rate limit (60 req/60s por chave, dividido entre todos os usuários do workspace via BFF). Botão de atualização manual sempre disponível como mecanismo primário — o poll é um complemento, não a única forma de ver dado novo.</p>
+      <p><strong>Gatilho para reconsiderar:</strong> SSE ou WebSocket se justificam só se o backend expuser (a) análise assíncrona baseada em job com progresso incremental, ou (b) um sinal real de colaboração multi-usuário. Nenhum dos dois existe — não implementar antecipadamente.</p>
+    </section>
+
+    <!-- ================= 8. INTEGRAÇÃO BFF ================= -->
+    <section id="integracao" class="top-section">
+      <div class="section-head"><span class="step-no">8</span><h2>Integração Next.js (BFF) × FastAPI</h2></div>
+
+      <h3>Fluxo da requisição</h3>
+      <ol class="flow-steps">
+        <li><span class="fs-text">Browser chama <code>app/api/*</code> (mesma origem, cookie de sessão nível 1 enviado automaticamente)</span></li>
+        <li><span class="fs-text">Route Handler verifica o cookie — sem sessão válida, responde 401 (do BFF, não do FastAPI) antes de qualquer chamada externa</span></li>
+        <li><span class="fs-text">Com sessão válida, monta a requisição ao FastAPI: anexa <code>X-API-Key</code> (nível 2) do env server-only</span></li>
+        <li><span class="fs-text">Chama <code>PMO_API_BASE_URL</code> com <code>AbortController</code> (timeout ~65s)</span></li>
+        <li><span class="fs-text">Repassa a resposta ao browser — status e corpo preservados, exceto a reescrita de 401 (ver Mapa de erros)</span></li>
+      </ol>
+
+      <h3>Propagação de headers</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Header</th><th>Direção</th><th>Tratamento</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">X-API-Key</td><td>BFF → FastAPI</td><td>Anexado pelo Route Handler a partir do env server-only — nunca vem do browser</td></tr>
+            <tr><td class="mono">Cookie (sessão)</td><td>Browser → BFF</td><td>Consumido e verificado; <strong>nunca repassado</strong> ao FastAPI (não significa nada lá)</td></tr>
+            <tr><td class="mono">X-Request-ID</td><td>FastAPI → BFF → Browser</td><td>Repassado sem alteração — ver Correlation ID abaixo</td></tr>
+            <tr><td class="mono">Content-Type</td><td>Ambas direções</td><td>Preservado (<code>application/json</code>)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Proteção da API Key</h3>
+      <p>Ver Decisão D1 e D4. <code>PMO_API_KEY</code> é uma variável de ambiente lida apenas em código de servidor (Route Handlers, nunca em Client Components) — o Next.js só expõe ao bundle do cliente variáveis prefixadas com <code>NEXT_PUBLIC_</code>, e esta nunca é prefixada assim. Verificação de que a chave nunca vaza: inspecionar o output de <code>next build</code> (o bundle client não deve conter a string da chave) como parte do critério de aceite do Sprint 2 (seção 10).</p>
+
+      <h3>Tratamento de erros</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Status</th><th>Causa real</th><th>Leitura na UI</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">401 (do FastAPI)</td><td><code>API_KEY</code> do BFF está errada — erro de configuração do operador</td><td>Reescrito para 503 pelo BFF — "workspace indisponível, contate o operador"</td></tr>
+            <tr><td class="mono">503</td><td><code>API_KEY</code> não configurada, ou provider de IA sem config</td><td>"Serviço temporariamente indisponível"</td></tr>
+            <tr><td class="mono">429</td><td>Rate limit por chave excedido (compartilhado)</td><td>"Muitas requisições — tente novamente em instantes" (sem <code>Retry-After</code> hoje, ver Perguntas)</td></tr>
+            <tr><td class="mono">502</td><td>Chamada real à Anthropic falhou</td><td>"O motor de IA não respondeu — tente novamente"</td></tr>
+            <tr><td class="mono">422</td><td>Validação Pydantic (replicada no Zod client-side)</td><td>Erro inline — raro, já barrado antes do envio</td></tr>
+            <tr><td class="mono">404</td><td>Análise não encontrada por id</td><td>Estado vazio dedicado</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Timeout</h3>
+      <p><code>AbortController</code> no fetch do Route Handler, ~65s — acima de qualquer SLA conhecido (o backend não documenta um, ver Riscos), abaixo do timeout padrão de infraestrutura.</p>
+
+      <h3>Retry</h3>
+      <p><code>GET</code>s: retry automático do TanStack Query (3x, backoff exponencial) — seguro, idempotente. <code>POST</code>s de análise: nunca retry automático — uma chamada já pode ter custado uma chamada real à Anthropic; reenvio é sempre ação explícita do usuário.</p>
+
+      <h3>Correlation ID</h3>
+      <p>O <code>X-Request-ID</code> gerado pelo backend (US-OBS-01, já em produção) é repassado sem alteração até o browser, e exibido em todo <code>ErrorBanner</code>. Adicionalmente, o próprio BFF gera seu <em>próprio</em> <code>X-Request-ID</code> para erros que nunca chegam a sair do Next.js (ex: sessão inválida, timeout antes de qualquer resposta do FastAPI) — os dois IDs são distintos e ambos logados, para que um erro seja rastreável independente de em qual camada ele se originou.</p>
+
+      <h3>Logging</h3>
+      <p>Route Handlers logam (stdout, capturável pelo mesmo <code>docker-compose.yml</code> se o frontend ganhar um serviço lá — ver Perguntas): método, rota, status de resposta, latência, e o <code>X-Request-ID</code> relevante. Nunca logam o corpo da requisição (pode conter texto de transcrição/contexto de projeto) nem a <code>API_KEY</code>.</p>
+
+      <h3>Configuração por ambiente</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Variável</th><th>Dev</th><th>Produção</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">PMO_API_BASE_URL</td><td class="mono">http://localhost:8000</td><td>URL interna do serviço FastAPI (ex: <code>http://api:8000</code> no compose)</td></tr>
+            <tr><td class="mono">PMO_API_KEY</td><td>Chave de desenvolvimento (pode ser a mesma do <code>LLM_PROVIDER=mock</code> do backend)</td><td>Chave real de produção, gerida como secret</td></tr>
+            <tr><td class="mono">WORKSPACE_PASSPHRASE</td><td>Valor simples de dev</td><td>Secret real, rotacionável</td></tr>
+            <tr><td class="mono">SESSION_SECRET</td><td>Qualquer valor fixo de dev</td><td>Secret aleatório real</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= 9. AUTH FUTURA ================= -->
+    <section id="auth-futura" class="top-section">
+      <div class="section-head"><span class="step-no">9</span><h2>Evolução da Autenticação</h2></div>
+      <p>Só é possível responder isto sem quebra de arquitetura por causa da Decisão D4 (dois níveis). A migração troca o <em>mecanismo</em> do nível 1 — nunca o contrato entre componentes/rotas/hooks e o BFF, porque eles nunca conheceram o mecanismo, só um cookie de sessão.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Fase</th><th>Nível 1 (sessão)</th><th>Nível 2 (credencial de backend)</th><th>Impacto em rotas/componentes</th></tr></thead>
+          <tbody>
+            <tr><td><strong>0 · API Key compartilhada (hoje)</strong></td><td>N/A — não existe sessão de usuário, só a chave direta se alguém chamasse a API sem BFF</td><td><code>API_KEY</code> única</td><td>N/A</td></tr>
+            <tr><td><strong>1 · Sessão no BFF (Sprint 2)</strong></td><td>Senha compartilhada → cookie assinado</td><td><code>API_KEY</code> única, inalterada</td><td>Nenhum — é a arquitetura já descrita neste RFC</td></tr>
+            <tr><td><strong>2 · Usuários individuais</strong></td><td>Login por usuário (email/senha) → cookie com <code>user_id</code></td><td><code>API_KEY</code> ainda única — o backend precisa primeiro de uma tabela <code>User</code> (RFC de backend separado, fora deste documento)</td><td>Nenhum em <code>web/</code> além do próprio módulo de sessão — <code>lib/api-client.ts</code> continua falando só com o BFF</td></tr>
+            <tr><td><strong>3 · JWT/OIDC</strong></td><td>Redireciona a um provider (Auth0/Okta/Azure AD), troca código por token, guardado na mesma forma de cookie assinado</td><td>Route Handler anexa <code>Authorization: Bearer &lt;jwt&gt;</code> em vez de/junto com <code>X-API-Key</code> — backend precisa validar JWT (RFC de backend)</td><td>Um arquivo (<code>lib/session.ts</code>) muda o mecanismo; zero mudança em rotas/componentes/hooks</td></tr>
+            <tr><td><strong>4 · RBAC</strong></td><td>Claims de papel (<code>role: pmo_manager | executive | admin</code>) no token/sessão</td><td>Backend passa a checar permissão por rota — RFC de backend</td><td>Componentes de nav/ação passam a checar <code>useSession().role</code> para mostrar/esconder itens — aditivo, não uma reestruturação</td></tr>
+            <tr><td><strong>5 · Multi-tenant</strong></td><td>Claim de <code>tenant_id</code>; possivelmente subdomínio por tenant</td><td><code>project_name</code> hoje é texto livre global — precisaria de escopo por tenant no backend (mudança de modelo de dados, RFC de backend)</td><td>Fora do horizonte deste documento — mencionado porque foi pedido, não porque está próximo de acontecer</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Compatibilidade durante a transição</h3>
+      <p>Cada fase é aditiva sobre a anterior no nível 1 (o formato de cookie assinado não muda de forma incompatível — só ganha claims novos, com valores default para sessões antigas). No nível 2, a Fase 3 pode conviver com a Fase 1 durante uma migração gradual: o Route Handler tenta <code>Authorization: Bearer</code> se disponível, cai para <code>X-API-Key</code> caso contrário — mas isso exige que o backend aceite ambos simultaneamente, decisão de um RFC de backend, não deste documento.</p>
+      <div class="callout ok">
+        <strong>Por que isso não quebra nada:</strong> nenhum componente, rota ou hook de <code>web/</code> jamais fala diretamente com o FastAPI ou lê o cookie de sessão — todos passam por <code>lib/api-client.ts</code>. A Fase 3 é uma mudança contida a esse arquivo e ao módulo de sessão.
+      </div>
+    </section>
+
+    <!-- ================= 10. ROADMAP ================= -->
+    <section id="rollout" class="top-section">
+      <div class="section-head"><span class="step-no">10</span><h2>Roadmap Detalhado</h2></div>
+      <p class="section-note">Sequência definida pelo usuário: Design System → Dashboard → Projetos → Chat → Agentes → Documentos.</p>
+
+      <div class="decision">
+        <div class="d-title">Sprint 1 — Design System <span class="pill chosen">Concluído</span></div>
+        <dl>
+          <dt>Objetivo</dt><dd>Fundação visual e de componentes antes de qualquer tela de produto.</dd>
+          <dt>Escopo</dt><dd>Tokens, 10 primitivos, <code>/style-guide</code>.</dd>
+          <dt>Entregáveis</dt><dd>Ver seção 1 e 3 — todos implementados e testados.</dd>
+          <dt>Dependências</dt><dd class="muted">Nenhuma.</dd>
+          <dt>Critérios de aceite</dt><dd>✓ <code>tsc</code>/<code>eslint</code>/build limpos · ✓ 9 testes Vitest · ✓ verificado em navegador real (light+dark) · ✓ CI de frontend criado.</dd>
+          <dt>Riscos</dt><dd class="muted">Nenhum materializado.</dd>
+          <dt>Fora de escopo</dt><dd class="muted">Qualquer chamada de rede, qualquer formulário com submissão real.</dd>
+          <dt>Definição de pronto</dt><dd class="muted">Mergeado em <code>main</code>, CI verde em ambos os jobs (backend + frontend).</dd>
+        </dl>
+      </div>
+
+      <div class="decision">
+        <div class="d-title">Sprint 2 — Dashboard</div>
+        <dl>
+          <dt>Objetivo</dt><dd>Primeira tela com dado real, e a fundação de segurança (BFF + sessão) que todo sprint seguinte depende.</dd>
+          <dt>Escopo</dt><dd>BFF (sessão nível 1 + proxy de <code>GET /api/portfolio/summary</code>), rota <code>/</code> com <code>KpiSummaryRow</code> + <code>PortfolioTable</code>, polling condicional, <code>AppShell</code>/Sidebar.</dd>
+          <dt>Entregáveis</dt><dd><code>app/workspace-access</code>, <code>app/api/session</code>, <code>app/api/portfolio</code>, <code>app/(protected)/layout.tsx</code>, <code>app/(protected)/page.tsx</code>, <code>lib/api-client.ts</code>, <code>lib/session.ts</code>, hooks TanStack Query.</dd>
+          <dt>Dependências</dt><dd>Esta revisão do RFC aprovada.</dd>
+          <dt>Critérios de aceite</dt><dd>Visitante sem sessão redirecionado ao gate · sessão válida vê dado real do portfólio · <code>API_KEY</code> real ausente do bundle client (verificado via inspeção do output de <code>next build</code>) · os 6 estados de erro da seção 8 alcançáveis e corretos · poll respeita <code>refetchIntervalInBackground: false</code>.</dd>
+          <dt>Riscos</dt><dd class="muted">Latência de análise sem SLA conhecido não afeta este sprint (só <code>GET</code>s) — risco herdado para o Sprint 3.</dd>
+          <dt>Fora de escopo</dt><dd class="muted">Qualquer rota <code>POST</code>; <code>/agents</code>; identidade individual.</dd>
+          <dt>Definição de pronto</dt><dd class="muted">Mergeado, CI verde, verificado manualmente em navegador real (mesma disciplina do Sprint 1).</dd>
+        </dl>
+      </div>
+
+      <div class="decision">
+        <div class="d-title">Sprint 3 — Projetos</div>
+        <dl>
+          <dt>Objetivo</dt><dd>Drill-down em projetos individuais e a primeira ação de escrita (Composer).</dd>
+          <dt>Escopo</dt><dd><code>/projects/[name]</code>, <code>/analyses</code>, <code>/analyses/[id]</code>, <code>/new</code>.</dd>
+          <dt>Entregáveis</dt><dd><code>ProjectSummaryCard</code>, <code>AnalysisComposer</code>, <code>AnalysisResultView</code>, <code>AnalysisList</code>, <code>ErrorBanner</code>, <code>RequestIdFooter</code>, Route Handlers correspondentes aos 5 endpoints restantes.</dd>
+          <dt>Dependências</dt><dd>Sprint 2 (BFF, shell, padrão de hooks).</dd>
+          <dt>Critérios de aceite</dt><dd>Detalhe de projeto mostra resumo + análises recentes · Composer envia e invalida os caches corretos (seção 6) · filtros de <code>/analyses</code> refletidos na URL e restauráveis por link · nenhum retry automático em <code>POST</code>.</dd>
+          <dt>Riscos</dt><dd class="muted">Latência de análise sem SLA — precisa do estado "demorando mais que o normal" no Composer.</dd>
+          <dt>Fora de escopo</dt><dd class="muted"><code>/agents</code>, qualquer conceito de "Chat".</dd>
+          <dt>Definição de pronto</dt><dd class="muted">Mesma disciplina dos sprints anteriores + os 6 estados de erro exercitados manualmente em pelo menos um <code>POST</code> real (mock provider aceitável).</dd>
+        </dl>
+      </div>
+
+      <div class="decision">
+        <div class="d-title">Sprint 4 — Chat <span class="pill blocked">Bloqueado</span></div>
+        <dl>
+          <dt>Objetivo</dt><dd>Indefinido até a dependência ser resolvida.</dd>
+          <dt>Escopo</dt><dd class="muted">Não desenhado — desenhar um escopo de UI para uma capacidade de backend inexistente violaria "não inventar endpoints".</dd>
+          <dt>Entregáveis</dt><dd class="muted">Nenhum.</dd>
+          <dt>Dependências</dt><dd><strong>CP-001</strong> (orquestração conversacional multi-turn) — formalmente adiado em <code>docs/development/01-project-structure.md</code>. Precisa de um RFC de backend antes de qualquer RFC de frontend para esta tela.</dd>
+          <dt>Critérios de aceite</dt><dd class="muted">N/A.</dd>
+          <dt>Riscos</dt><dd class="muted">Se implementado antes da dependência existir, seria uma tela mockada sem dado real — inaceitável pela disciplina deste projeto.</dd>
+          <dt>Fora de escopo</dt><dd>Todo o sprint, até novo aviso.</dd>
+          <dt>Definição de pronto</dt><dd class="muted">N/A até o RFC de backend existir.</dd>
+        </dl>
+      </div>
+
+      <div class="decision">
+        <div class="d-title">Sprint 5 — Agentes <span class="pill chosen">v1 desbloqueado (D7)</span></div>
+        <dl>
+          <dt>Objetivo</dt><dd>Dar acesso rápido aos 3 tipos de análise conhecidos, sem esperar por gestão de agentes.</dd>
+          <dt>Escopo</dt><dd><code>/agents</code> com 3 <code>AgentTypeCard</code>, contagem via <code>GET /api/analyses?kind=X</code>, link para <code>/new?kind=X</code>.</dd>
+          <dt>Entregáveis</dt><dd><code>AgentTypeCard</code>, rota <code>/agents</code>, item de nav correspondente.</dd>
+          <dt>Dependências</dt><dd>Sprint 3 (Composer já existente, para o link de "Executar").</dd>
+          <dt>Critérios de aceite</dt><dd>3 cards renderizam com contagem real; nenhum texto ou botão sugere capacidade de configuração (v2) que não existe.</dd>
+          <dt>Riscos</dt><dd class="muted">Confundir usuário achando que pode "editar" um agente — mitigado por copy explícita ("Executar", não "Gerenciar").</dd>
+          <dt>Fora de escopo</dt><dd><strong>v2</strong> — edição de prompt, configuração, histórico de execução com retry: bloqueada, sem endpoint.</dd>
+          <dt>Definição de pronto</dt><dd class="muted">Mesma disciplina dos sprints anteriores.</dd>
+        </dl>
+      </div>
+
+      <div class="decision">
+        <div class="d-title">Sprint 6 — Documentos <span class="pill blocked">Bloqueado</span></div>
+        <dl>
+          <dt>Objetivo</dt><dd>Indefinido até a dependência ser resolvida.</dd>
+          <dt>Escopo</dt><dd class="muted">Não desenhado.</dd>
+          <dt>Entregáveis</dt><dd class="muted">Nenhum.</dd>
+          <dt>Dependências</dt><dd>Nenhuma API de upload/armazenamento/ingestão de documentos existe — <code>ingestion_pipeline.py</code> e <code>retrieval_service.py</code> foram removidos como código órfão nesta mesma sessão (TASK-KN-01). Precisa de um RFC de backend completo (armazenamento, extração, indexação) antes de qualquer RFC de frontend.</dd>
+          <dt>Critérios de aceite</dt><dd class="muted">N/A.</dd>
+          <dt>Riscos</dt><dd class="muted">Maior lacuna de backend entre os 3 sprints bloqueados — nem um v1 parcial é possível, diferente do Sprint 5.</dd>
+          <dt>Fora de escopo</dt><dd>Todo o sprint, até novo aviso.</dd>
+          <dt>Definição de pronto</dt><dd class="muted">N/A até o RFC de backend existir.</dd>
+        </dl>
+      </div>
+
+      <div class="callout"><strong>Esta revisão autoriza o início do Sprint 2</strong> assim que aprovada. Sprints 4 e 6 seguem sem autorização de design ou implementação até suas dependências de backend existirem; o Sprint 5 ganhou um escopo v1 real nesta revisão (Decisão D7) e pode ser iniciado quando sua vez chegar na sequência, sem esperar por v2.</div>
+    </section>
+
+    <section id="riscos" class="top-section">
+      <div class="section-head"><h2>Riscos Globais</h2></div>
+      <ul>
+        <li><strong>Latência de análise sem SLA conhecido</strong> — o backend não documenta um teto de tempo de resposta do provider Anthropic. Mitigação: estado "demorando mais que o normal" no Composer (Sprint 3), nunca uma barra de progresso que promete um tempo que ninguém garante.</li>
+        <li><strong>Rate limit compartilhado por todo o workspace</strong> — 60 req/60s (default) dividido entre todos os usuários simultâneos via BFF. Mitigação: polling conservador (seção 7), sem retry automático em <code>POST</code> (seção 8).</li>
+        <li><strong>Radix vendorizado, não versionado como dependência</strong> — atualizações de acessibilidade/bugfix do Radix upstream exigem merge manual dos wrappers em <code>components/ui/</code>. Aceito conscientemente (Decisão D2).</li>
+        <li><strong>Senha de workspace única não audita quem fez o quê</strong> — aceito até a Fase 2 da seção 9 (usuários individuais), que depende de backend fora do escopo deste RFC.</li>
+        <li><strong>Cobertura de contraste WCAG parcial</strong> — 5 pares verificados manualmente; os demais dependem de um gate de CI ainda não construído (seção 1).</li>
+      </ul>
+    </section>
+
+    <section id="perguntas" class="top-section">
+      <div class="section-head"><h2>Perguntas em Aberto</h2></div>
+      <ul class="question-list">
+        <li>
+          <div class="q-text">Vale a pena adicionar <code>Retry-After</code> ao 429 do backend?</div>
+          <p>Pequena mudança de backend, fora do escopo deste RFC (frontend-only). Melhoraria a UI de rate limit de "tente de novo mais tarde" para um contador real.</p>
+        </li>
+        <li>
+          <div class="q-text">Deploy: nova entrada no <code>docker-compose.yml</code> existente, ou pipeline separado?</div>
+          <p>O Next.js com Route Handlers precisa rodar como servidor Node — compatível com um terceiro serviço no <code>docker-compose.yml</code> já consertado (TASK-INF-02), mas não desenhado neste RFC.</p>
+        </li>
+        <li>
+          <div class="q-text">A senha de workspace é rotacionável sem invalidar todas as sessões?</div>
+          <p>Hoje, trocar <code>WORKSPACE_PASSPHRASE</code> não invalida cookies já emitidos (assinados com <code>SESSION_SECRET</code>, um segredo diferente) — decisão consciente para a Fase 1 da seção 9, vale confirmar se é aceitável operacionalmente antes do Sprint 2.</p>
+        </li>
+        <li>
+          <div class="q-text">O gate de contraste WCAG entra no CI do Sprint 2 ou fica para depois?</div>
+          <p>Proposto como parte do Sprint 2 (mesmo PR que cria o pipeline de CI de frontend, já existente desde o Sprint 1) — mas é uma adição de escopo que vale confirmação explícita antes de assumida.</p>
+        </li>
+      </ul>
+    </section>
+
+    <footer class="doc-footer">
+      AI PMO Copilot · RFC-001 Revisão 3 · Frontend Architecture · backend <code>main@30f6f40</code> · frontend <code>main@2afb970</code> · autor: sessão atuando como Principal Product Designer / Frontend Architect, a pedido do usuário. Nenhum código de aplicação, nenhum componente React, nenhuma mudança de backend nesta entrega.
+    </footer>
+  </main>
+</div>

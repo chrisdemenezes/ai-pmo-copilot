@@ -1,0 +1,201 @@
+<title>STRATECH BRAND FOUNDATION v1.0</title>
+<style>
+:root{
+  --bg:#F5F6F8; --surface:#FFFFFF; --surface-2:#EEF1F6;
+  --ink:#1A2130; --ink-soft:#586174; --ink-faint:#8B93A3;
+  --border:#DFE3EA; --border-soft:#EBEEF2;
+  --accent:#8A3B7A; --accent-soft:#F5E9F2; --accent-ink:#6B2C5F;
+  --ok:#1C8A5C; --ok-soft:#E4F5EC;
+  --warn:#9A6B00; --warn-soft:#FBF1DC;
+  --danger:#C23B3B; --danger-soft:#FBE8E8;
+  --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --radius:8px;
+}
+:root[data-theme="dark"]{
+  --bg:#14121A; --surface:#1C1922; --surface-2:#23202B;
+  --ink:#ECE9F0; --ink-soft:#B3AEBE; --ink-faint:#7C7889;
+  --border:#332E3D; --border-soft:#2A2632;
+  --accent:#D98FC8; --accent-soft:#2E2233; --accent-ink:#EAB4DD;
+  --ok:#4FBE8C; --ok-soft:#132A22;
+  --warn:#D6A93C; --warn-soft:#2E2612;
+  --danger:#E38080; --danger-soft:#301718;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14121A; --surface:#1C1922; --surface-2:#23202B;
+    --ink:#ECE9F0; --ink-soft:#B3AEBE; --ink-faint:#7C7889;
+    --border:#332E3D; --border-soft:#2A2632;
+    --accent:#D98FC8; --accent-soft:#2E2233; --accent-ink:#EAB4DD;
+    --ok:#4FBE8C; --ok-soft:#132A22;
+    --warn:#D6A93C; --warn-soft:#2E2612;
+    --danger:#E38080; --danger-soft:#301718;
+  }
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.65;}
+.wrap{max-width:960px;margin:0 auto;padding:44px 24px 110px;}
+header.doc-head{border-bottom:2px solid var(--ink);padding-bottom:22px;margin-bottom:10px;}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);font-weight:700;}
+h1{font-size:29px;margin:8px 0 6px;letter-spacing:-.01em;text-wrap:balance;}
+.subtitle{color:var(--ink-soft);font-size:14.5px;margin:0 0 14px;max-width:74ch;}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);font-size:12px;color:var(--ink-faint);}
+.meta-row code{color:var(--ink-soft);}
+section{margin:40px 0;}
+.section-head{display:flex;align-items:baseline;gap:10px;margin-bottom:14px;}
+.step-no{font-family:var(--mono);font-size:12px;color:var(--accent-ink);background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-weight:700;}
+h2{font-size:19px;margin:0;}
+h3{font-size:14.5px;margin:18px 0 8px;}
+p{margin:0 0 12px;max-width:76ch;}
+ul,ol{margin:0 0 12px;padding-left:22px;}
+li{margin-bottom:6px;}
+code{font-family:var(--mono);font-size:.87em;background:var(--surface-2);padding:1px 5px;border-radius:4px;}
+.callout{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 6px 6px 0;padding:13px 16px;margin:16px 0;font-size:14px;}
+.callout.danger{border-color:var(--danger);background:var(--danger-soft);}
+.callout strong{display:block;margin-bottom:3px;}
+.pill{display:inline-block;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.02em;padding:2px 8px;border-radius:999px;white-space:nowrap;}
+.pill.fact{background:var(--ok-soft);color:var(--ok);}
+.pill.infer{background:var(--warn-soft);color:var(--warn);}
+.pill.pending{background:var(--danger-soft);color:var(--danger);}
+.fact-card{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);padding:14px 18px;margin-bottom:10px;}
+.fact-card .flabel{display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:700;font-size:14px;}
+.fact-card p{margin:8px 0 0;font-size:13.8px;}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:560px;}
+thead th{text-align:left;background:var(--surface-2);font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);padding:9px 12px;border-bottom:1px solid var(--border);}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--border-soft);vertical-align:top;}
+tbody tr:last-child td{border-bottom:none;}
+.quote{font-size:17px;font-style:italic;border-left:3px solid var(--accent);padding:4px 0 4px 16px;margin:10px 0;}
+.checklist{list-style:none;padding:0;margin:0;}
+.checklist li{display:flex;gap:9px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--border-soft);font-size:13.8px;}
+.checklist li:last-child{border-bottom:none;}
+.checklist .box{flex:0 0 16px;height:16px;border:1.5px solid var(--ink-faint);border-radius:4px;margin-top:2px;}
+.doc-footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);}
+</style>
+
+<div class="wrap">
+  <header class="doc-head">
+    <div class="kicker">Stratech · Fundação de marca</div>
+    <h1>STRATECH BRAND FOUNDATION v1.0</h1>
+    <p class="subtitle">Sucede o Strattech Brand Discovery Framework. Registra apenas o que foi explicitamente fornecido ou decidido pelo Product Owner — nada além disso.</p>
+    <div class="meta-row">
+      <span>Papel: <code>Chief Brand Strategist</code></span>
+      <span>Grafia oficial: <code>STRATECH</code></span>
+      <span>Substitui: <code>"Strattech" em toda ocorrência futura</code></span>
+    </div>
+  </header>
+
+  <div class="callout danger">
+    <strong>Limitação real que preciso registrar antes de tudo.</strong>
+    Os itens 1 (logo oficial dark mode) e 2 (infográfico "Stratech em 1 página") foram <strong>referenciados</strong> como fornecidos, mas nenhum arquivo, imagem ou descrição de conteúdo desses materiais chegou até este agente nesta conversa — não há anexo, URL ou texto transcrito deles disponível. Não vou descrever paleta, estilo visual, áreas de atuação, diferenciais ou jornada de entrega "extraídos" desses materiais, porque isso seria inventar, exatamente o que foi proibido. Só o item 3 (assinatura oficial, texto) e a decisão de grafia foram efetivamente transmitidos em texto e são tratados como fato abaixo.
+  </div>
+
+  <section>
+    <div class="section-head"><span class="step-no">1</span><h2>Brand Core</h2></div>
+    <div class="fact-card">
+      <div class="flabel">Nome da marca <span class="pill fact">Fato oficial</span></div>
+      <p><code>STRATECH</code> — decisão de nomenclatura do Product Owner, substitui qualquer grafia anterior ("Strattech") em toda ocorrência futura.</p>
+    </div>
+    <div class="fact-card">
+      <div class="flabel">Assinatura oficial <span class="pill fact">Fato oficial</span></div>
+      <div class="quote">"Conecta projetos e arquitetura de soluções tecnológicas com execução técnica."</div>
+      <p>Texto exato fornecido pelo Product Owner, sem alteração.</p>
+    </div>
+    <div class="fact-card">
+      <div class="flabel">Missão / Visão / Valores <span class="pill pending">Pendente</span></div>
+      <p>Não declarados. Correspondem às Decisões D1 (Propósito e missão) do Brand Discovery Framework, exclusivas do fundador — não inferidas aqui.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">2</span><h2>Proposta de valor</h2></div>
+    <div class="fact-card">
+      <div class="flabel">Leitura da assinatura oficial <span class="pill infer">Inferência — precisa aprovação</span></div>
+      <p>A própria assinatura já condensa uma proposta de valor: a Stratech se posiciona na ponte entre <em>planejamento/arquitetura</em> e <em>execução real</em> — não apenas consultoria estratégica, nem apenas entrega operacional, mas a conexão entre as duas. Esta é uma leitura direta do texto fornecido, não um fato adicional declarado — precisa ser confirmada ou corrigida pelo Product Owner antes de virar redação oficial de proposta de valor.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">3</span><h2>Posicionamento atual</h2></div>
+    <div class="fact-card">
+      <div class="flabel">Posicionamento de produto (já existente, não é posicionamento de marca-empresa) <span class="pill fact">Fato oficial (de outro documento)</span></div>
+      <p>O Product Blueprint §1 já registra o posicionamento competitivo do <strong>AI PMO Copilot</strong> frente a Jira/ClickUp/Monday/MS Project/ChatGPT. Isso é posicionamento de <em>produto</em>, aprovado anteriormente — não é, e não deve ser confundido com, o posicionamento da <em>empresa</em> Stratech, que é a Decisão D5 do Brand Discovery Framework, ainda pendente.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">4</span><h2>Arquitetura de marca</h2></div>
+    <div class="fact-card">
+      <div class="flabel">Guarda-chuva visível vs. marcas independentes <span class="pill pending">Pendente</span></div>
+      <p>Decisão D2 do Brand Discovery Framework — o nome oficial <code>STRATECH</code> por si só não resolve se o AI PMO Copilot passa a se chamar "Stratech PMO Copilot" ou mantém nome próprio. Depende de quantos produtos futuros têm compromisso real de construção, que ainda não foi declarado.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">5</span><h2>Princípios de experiência</h2></div>
+    <div class="fact-card">
+      <div class="flabel"><span class="pill pending">Pendente</span></div>
+      <p>Dependeria do conteúdo do infográfico e/ou de uma sessão de Personalidade (Decisão D4) — nenhum dos dois está disponível a este agente. Ver Direção Visual Oficial do AI PMO Copilot (documento separado) para princípios de <em>produto</em> já grounded nos valores nomeados diretamente pelo Product Owner (confiança, arquitetura, inteligência, governança, previsibilidade, execução, simplicidade, elegância executiva) — que é distinto de "princípios de experiência da marca Stratech" em geral.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">6</span><h2>Princípios visuais</h2></div>
+    <div class="fact-card">
+      <div class="flabel">Paleta visual percebida <span class="pill pending">Pendente — materiais não recebidos</span></div>
+      <p>Exigiria ver o logo oficial (dark mode) de fato. Não descrito aqui para não inventar.</p>
+    </div>
+    <div class="fact-card">
+      <div class="flabel">Estilo visual <span class="pill pending">Pendente — materiais não recebidos</span></div>
+      <p>Mesma limitação — dependeria do infográfico e logo reais.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">7</span><h2>Tom de comunicação</h2></div>
+    <div class="fact-card">
+      <div class="flabel"><span class="pill pending">Pendente</span></div>
+      <p>A assinatura oficial (§1) é formal e técnica em registro — "conecta", "arquitetura", "execução técnica" são palavras de precisão, não de informalidade. Isso é uma <em>observação</em> sobre o único texto real disponível, não uma definição de tom aprovada; formalizar tom de voz completo exige a Decisão D4 (Personalidade).</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">8</span><h2>Relação entre Stratech, AI-PEF e AI PMO Copilot</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Ativo</th><th>Natureza</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Stratech</td><td>Empresa / contexto organizacional</td><td><span class="pill fact">Fato oficial</span> — nome confirmado; identidade de marca ainda em construção (este documento)</td></tr>
+          <tr><td>AI Product Engineering Framework</td><td>Framework de processo de engenharia, não de marca</td><td><span class="pill fact">Fato oficial</span> — real, validado por FS-001, governado por ADR-009. Nenhuma decisão de marca altera nenhum portão, papel ou template do AI-PEF</td></tr>
+          <tr><td>AI PMO Copilot</td><td>Produto nº 1</td><td><span class="pill fact">Fato oficial</span> — em implementação (Release 0.2, FS-001), não bloqueado por este documento</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">9</span><h2>Regras de aplicação da marca no produto</h2></div>
+    <div class="fact-card">
+      <div class="flabel"><span class="pill pending">Pendente na maior parte</span></div>
+      <p>Sem paleta/estilo visual confirmados (§6), não há regra de aplicação visual a definir ainda. Único ponto seguro: a assinatura oficial (§1), quando aplicada ao produto, é matéria de decisão de UX Review futura (onde aparece — rodapé, tela de entrada — não decidido aqui).</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="step-no">10</span><h2>Pendências para completar o Brand System</h2></div>
+    <ul class="checklist">
+      <li><span class="box"></span>Receber de fato o arquivo do logo oficial (dark mode) e o infográfico "Stratech em 1 página" — nenhum dos dois chegou a este agente ainda</li>
+      <li><span class="box"></span>Decisão D1 — Propósito e missão (exclusiva do fundador)</li>
+      <li><span class="box"></span>Decisão D2 — Arquitetura de marca (guarda-chuva vs. independente)</li>
+      <li><span class="box"></span>Decisão D4 — Personalidade e arquétipo</li>
+      <li><span class="box"></span>Decisão D5 — Posicionamento formal da empresa (distinto do posicionamento de produto já existente)</li>
+      <li><span class="box"></span>Confirmar ou corrigir a leitura de proposta de valor inferida em §2</li>
+      <li><span class="box"></span>Extrair paleta e tipografia reais do logo, uma vez recebido — não improvisar a partir da Direção Visual do produto (que é hipótese de design, não fato de marca)</li>
+      <li><span class="box"></span>Definir áreas de atuação e jornada de entrega em 5 etapas — nenhuma das duas foi declarada em texto até aqui</li>
+    </ul>
+  </section>
+
+  <footer class="doc-footer">
+    Stratech Brand Foundation v1.0 · Papel: Chief Brand Strategist · sucede o Brand Discovery Framework · não bloqueia FS-001 (Release 0.2 segue em paralelo, pausada em T8 concluído aguardando autorização de T9).
+  </footer>
+</div>

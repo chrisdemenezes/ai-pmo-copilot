@@ -1,0 +1,751 @@
+<title>AI PMO Copilot — Product Blueprint</title>
+<style>
+  :root {
+    --bg: #0A2540; --surface: #0F3057; --surface-2: #154070;
+    --ink: #EAF2FB; --ink-muted: #9FB8D9; --ink-faint: #6E88AC;
+    --border: #244D77; --border-strong: #35618F;
+    --accent: #6FD3FF; --accent-ink: #BFEBFF; --accent-soft: #123B5E;
+    --ok: #7FD9A6; --ok-soft: #123B2E; --warn: #F0C674; --warn-soft: #3B2E0F;
+    --danger: #FF8A80; --danger-soft: #3B1414; --crit: #FF5C5C; --crit-soft: #401212;
+    --font-display: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace;
+    --font-body: -apple-system, "Segoe UI", ui-sans-serif, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background:
+      linear-gradient(rgba(111,211,255,0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(111,211,255,0.045) 1px, transparent 1px),
+      var(--bg);
+    background-size: 28px 28px;
+    color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.6;
+    margin: 0; -webkit-font-smoothing: antialiased;
+  }
+  .page { display: grid; grid-template-columns: 260px minmax(0, 900px); gap: 44px; max-width: 1280px; margin: 0 auto; padding: 36px 24px 110px; }
+  @media (max-width: 920px) { .page { grid-template-columns: 1fr; } nav.toc { display: none; } }
+  nav.toc { position: sticky; top: 28px; align-self: start; font-size: 12px; max-height: calc(100vh - 56px); overflow-y: auto; font-family: var(--font-mono); }
+  nav.toc .toc-label { text-transform: uppercase; letter-spacing: 0.1em; font-size: 10px; color: var(--ink-faint); margin: 16px 0 6px; font-weight: 700; }
+  nav.toc .toc-label:first-child { margin-top: 0; }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; counter-reset: toc; }
+  nav.toc li { counter-increment: toc; }
+  nav.toc a { display: block; padding: 3px 0 3px 10px; border-left: 2px solid var(--border); color: var(--ink-muted); text-decoration: none; }
+  nav.toc a::before { content: counter(toc) "."; color: var(--accent); margin-right: 5px; }
+  nav.toc a:hover, nav.toc a:focus-visible { color: var(--accent); border-color: var(--accent); outline: none; }
+  nav.toc .toc-meta { color: var(--ink-faint); font-size: 11px; padding-left: 10px; line-height: 1.7; margin-top: 16px; }
+
+  header.masthead { border-bottom: 1px solid var(--border); padding-bottom: 22px; margin-bottom: 34px; }
+  .eyebrow-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; color: var(--accent); text-transform: uppercase; }
+  .status-badge { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; padding: 4px 10px; border: 1px solid var(--accent); color: var(--accent-ink); }
+  .status-badge::before { content: "◆"; }
+  header.masthead h1 { font-family: var(--font-display); font-size: clamp(21px, 3.4vw, 27px); font-weight: 700; margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.01em; }
+  header.masthead p.dek { color: var(--ink-muted); font-size: 14.5px; max-width: 70ch; margin: 0 0 14px; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 11.5px; color: var(--ink-faint); font-family: var(--font-mono); }
+
+  section { margin-bottom: 42px; scroll-margin-top: 20px; }
+  section.top { margin-bottom: 54px; padding-bottom: 38px; border-bottom: 1px dashed var(--border); }
+  section > .section-head { display: flex; align-items: baseline; gap: 12px; border-left: 3px solid var(--accent); padding-left: 14px; margin-bottom: 14px; }
+  section > .section-head .step-no { font-family: var(--font-mono); font-size: 12px; color: var(--accent); font-weight: 700; }
+  section h2 { font-family: var(--font-display); font-size: 18px; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 0.02em; }
+  section h3 { font-family: var(--font-display); font-size: 13.5px; font-weight: 700; margin: 24px 0 8px; padding-top: 12px; border-top: 1px dashed var(--border); text-transform: uppercase; letter-spacing: 0.02em; color: var(--accent-ink); }
+  section h3:first-of-type { border-top: none; padding-top: 0; margin-top: 12px; }
+  section .section-note { color: var(--ink-muted); font-size: 13px; margin: 0 0 14px; max-width: 70ch; }
+  section p { margin: 0 0 10px; }
+  section ul, section ol { margin: 0 0 10px; padding-left: 20px; }
+  section li { margin-bottom: 5px; }
+
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.02em; padding: 2px 7px; white-space: nowrap; text-transform: uppercase; border: 1px solid currentColor; }
+  .pill.now { color: var(--ok); }
+  .pill.partial { color: var(--warn); }
+  .pill.planned { color: var(--accent); }
+  .pill.blocked { color: var(--danger); }
+  .pill.crit { color: var(--crit); background: var(--crit-soft); }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); margin: 12px 0 16px; }
+  table { border-collapse: collapse; width: 100%; font-size: 12.5px; background: var(--surface); }
+  thead th { background: var(--surface-2); text-align: left; font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--accent-ink); font-weight: 700; padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  tbody td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; color: var(--ink); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--surface-2); }
+  td.mono { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-muted); }
+
+  pre.mermaid-src { font-family: var(--font-mono); font-size: 11.5px; line-height: 1.6; background: #06192E; border: 1px solid var(--border); padding: 14px 16px; overflow-x: auto; white-space: pre; color: #B9E4FF; margin: 10px 0 6px; }
+  .diagram-caption { font-size: 11.5px; color: var(--ink-faint); margin: 0 0 16px; }
+  .diagram-caption code { background: var(--surface-2); }
+
+  .decision { border: 1px solid var(--border); background: var(--surface); padding: 15px 18px; margin-bottom: 14px; }
+  .decision .d-title { font-family: var(--font-mono); font-weight: 700; font-size: 13px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.02em; color: var(--accent-ink); }
+  .decision dl { display: grid; grid-template-columns: 130px 1fr; gap: 4px 12px; margin: 0; }
+  .decision dt { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--accent); padding-top: 2px; }
+  .decision dd { margin: 0 0 8px; font-size: 13px; color: var(--ink); }
+  .decision dd.muted { color: var(--ink-muted); }
+
+  .callout { border: 1px solid var(--border-strong); border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 11px 15px; font-size: 12.5px; color: var(--ink); margin: 12px 0; }
+  .callout strong { color: var(--accent-ink); }
+  .callout.warn { border-left-color: var(--warn); background: var(--warn-soft); }
+  .callout.warn strong { color: var(--warn); }
+  .callout.crit { border-left-color: var(--crit); background: var(--crit-soft); }
+  .callout.crit strong { color: var(--crit); }
+  .callout.ok { border-left-color: var(--ok); background: var(--ok-soft); }
+  .callout.ok strong { color: var(--ok); }
+
+  .stat-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin: 20px 0 0; }
+  .stat-cell { background: var(--surface); padding: 14px 12px; }
+  .stat-cell .num { font-family: var(--font-mono); font-size: 22px; font-weight: 700; color: var(--accent-ink); }
+  .stat-cell .label { font-size: 10.5px; color: var(--ink-muted); margin-top: 2px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.02em; }
+  @media (max-width: 700px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
+
+  footer.doc-footer { margin-top: 54px; padding-top: 16px; border-top: 1px dashed var(--border); font-size: 11px; color: var(--ink-faint); font-family: var(--font-mono); }
+  a { color: var(--accent); }
+  code { font-family: var(--font-mono); font-size: 0.9em; background: var(--surface-2); padding: 1px 5px; }
+</style>
+
+<div class="page">
+  <nav class="toc" aria-label="Sumário">
+    <div class="toc-label">Base</div>
+    <ol><li><a href="#capa">Contexto</a></li></ol>
+    <div class="toc-label">1–13</div>
+    <ol>
+      <li><a href="#vision">Product Vision</a></li>
+      <li><a href="#domain">Domain Model</a></li>
+      <li><a href="#events">Event Model</a></li>
+      <li><a href="#states">State Machines</a></li>
+      <li><a href="#ux">UX Principles</a></li>
+      <li><a href="#nfr">NFRs</a></li>
+      <li><a href="#perf">Performance Targets</a></li>
+      <li><a href="#security">Security Blueprint</a></li>
+      <li><a href="#observability">Observability Blueprint</a></li>
+      <li><a href="#roadmap">Product Roadmap</a></li>
+      <li><a href="#adrs">ADRs</a></li>
+      <li><a href="#risks">Riscos Arquiteturais</a></li>
+      <li><a href="#gate">Critérios — Sprint 2</a></li>
+    </ol>
+    <div class="toc-meta">
+      Backend: <code>main@30f6f40</code><br>
+      Frontend: <code>main@2afb970</code><br>
+      RFC-001: Rev. 3, aprovado<br>
+      Entidades reais hoje: <strong style="color:var(--accent-ink)">1 / 18</strong>
+    </div>
+  </nav>
+
+  <main>
+    <header class="masthead" id="capa">
+      <div class="eyebrow-row">
+        <span class="eyebrow">Product Blueprint · v1</span>
+        <span class="status-badge">Constituição do Produto</span>
+      </div>
+      <h1>AI PMO Copilot — Product Blueprint</h1>
+      <p class="dek">Referência arquitetural definitiva, complementar ao RFC-001. Todo item é rotulado <span class="pill now">Atual</span> (implementado e verificado), <span class="pill partial">Parcial</span> (existe de forma limitada), <span class="pill planned">Planejado</span> (buildável, não construído) ou <span class="pill blocked">Bloqueado</span> (depende de trabalho externo a este documento). Nenhuma linha de código, nenhum componente, nenhuma mudança de backend ou frontend nesta entrega.</p>
+      <div class="meta-row">
+        <span><strong>Papel</strong> Chief Product Architect</span>
+        <span><strong>Escopo real hoje</strong> 1 tabela, 7 endpoints, 0 usuários individuais</span>
+        <span><strong>Horizonte</strong> multi-ano, sem reescrita arquitetural</span>
+      </div>
+      <div class="stat-row">
+        <div class="stat-cell"><div class="num">13</div><div class="label">capítulos</div></div>
+        <div class="stat-cell"><div class="num">10</div><div class="label">diagramas Mermaid</div></div>
+        <div class="stat-cell"><div class="num">8</div><div class="label">ADRs</div></div>
+        <div class="stat-cell"><div class="num">10</div><div class="label">riscos classificados</div></div>
+        <div class="stat-cell"><div class="num">1/18</div><div class="label">entidades reais</div></div>
+      </div>
+    </header>
+
+    <!-- ============ 1. PRODUCT VISION ============ -->
+    <section id="vision" class="top">
+      <div class="section-head"><span class="step-no">1</span><h2>Product Vision</h2></div>
+
+      <h3>Qual problema o produto resolve</h3>
+      <p>PMOs e gerentes de projeto gastam tempo desproporcional convertendo informação não-estruturada (transcrições de reunião, narrativas de risco, atualizações de status em prosa) em artefatos de governança estruturados — atas, registros de risco, relatórios executivos. O AI PMO Copilot automatiza essa conversão: recebe texto livre, devolve estrutura (decisões, ações, riscos classificados, status de saúde) através de agentes de IA especializados, já validados em produção.</p>
+
+      <h3>O que o produto NÃO pretende resolver</h3>
+      <ul>
+        <li><strong>Não é um sistema de registro de tarefas</strong> — não há quadro Kanban, sprint board, ou rastreamento de tempo. Ações extraídas de uma análise não viram itens acionáveis e editáveis (hoje ficam dentro do JSON da análise, imutável — ver Domain Model).</li>
+        <li><strong>Não é um chatbot genérico</strong> — mesmo quando o Chat (Release 0.4) existir, será escopado a contexto de projeto, não conversa aberta.</li>
+        <li><strong>Não substitui o julgamento do PM/PMO</strong> — produz insight estruturado a partir do que foi fornecido; não decide, não prioriza, não é fonte de verdade sobre o que realmente aconteceu no projeto.</li>
+        <li><strong>Não é (ainda) um sistema de gestão documental</strong> — Document Intelligence (Release 0.5) está bloqueado, sem API de armazenamento hoje.</li>
+      </ul>
+
+      <h3>Público-alvo</h3>
+      <p>Confirmado em <code>docs/product/03-user-personas.md</code>, sem alteração: Project Manager, PMO Analyst, IT Manager, Executive Sponsor. O RFC-001 já desenha o Dashboard (Release 0.2/0.3) primariamente para o Executive Sponsor e o PMO Analyst — as personas que precisam de agregação antes de detalhe.</p>
+
+      <h3>Diferenciais competitivos</h3>
+      <ul>
+        <li>IA nativa sobre entrada não-estruturada — não é um formulário com um botão "resumir com IA" colado por cima de um sistema de registro tradicional.</li>
+        <li>Rollup de portfólio sem agregação manual — <code>GET /api/portfolio/summary</code> computa em tempo real a partir de todas as análises, não depende de alguém preencher uma planilha.</li>
+        <li>Histórico imutável e auditável por design — uma análise, uma vez criada, não pode ser silenciosamente editada (sem <code>PUT</code>/<code>PATCH</code>/<code>DELETE</code> no schema real).</li>
+        <li>Disciplina de engenharia verificável — 98%+ de cobertura de teste no backend, toda mudança rastreável a uma evidence entry com commit e execução de CI real, não alegação.</li>
+      </ul>
+
+      <h3>Posicionamento competitivo</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Concorrente</th><th>O que fazem bem</th><th>Onde o AI PMO Copilot é diferente</th></tr></thead>
+          <tbody>
+            <tr><td>Jira / ClickUp / Monday</td><td>Sistemas de registro — quadros, tarefas, prazos, workflow de execução</td><td>Não competem em execução; o Copilot é uma camada de <em>inteligência</em> sobre o que já aconteceu, não onde o trabalho é gerenciado dia a dia</td></tr>
+            <tr><td>Microsoft Project</td><td>Planejamento e cronograma (Gantt, dependências, alocação de recursos)</td><td>Copilot não planeja cronograma — analisa o que foi relatado sobre um projeto que já existe em outro lugar</td></tr>
+            <tr><td>ChatGPT (uso genérico)</td><td>Conversação flexível, qualquer domínio</td><td>Sem schema de domínio, sem persistência estruturada, sem rollup de portfólio, sem trilha de auditoria. O Copilot é propositalmente estreito: 3 tipos de análise, contrato de API real e testado, não um assistente de propósito geral</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Implicação arquitetural direta: o Copilot deve permanecer uma camada complementar, com integrações <em>para</em> essas ferramentas (Release 0.6) em vez de tentar substituí-las — reforçado pela entidade <code>Integration</code> no Domain Model abaixo.</p>
+    </section>
+
+    <!-- ============ 2. DOMAIN MODEL ============ -->
+    <section id="domain" class="top">
+      <div class="section-head"><span class="step-no">2</span><h2>Domain Model</h2></div>
+      <div class="callout warn">
+        <strong>Estado real hoje: 1 de 18 entidades existe como tabela.</strong> <code>AnalysisRecord</code> (<code>id, kind, project_name, payload, created_at</code>) é a única. <code>Project</code> existe só como o texto livre de <code>project_name</code> — sem tabela, sem chave estrangeira. As 16 entidades restantes não têm nenhuma representação persistida; algumas existem parcialmente como campos dentro do JSON de <code>payload</code> (Risk, Action Item, Decision, Issue), sem serem consultáveis, filtráveis ou atualizáveis individualmente.
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Entidade</th><th>Status</th><th>Finalidade</th><th>Atributos principais</th><th>Relacionamentos (alvo)</th><th>Ciclo de vida</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Organization</strong></td><td><span class="pill planned">Planejada</span></td><td>Fronteira de tenant</td><td class="mono">id, name, plan_tier</td><td>1:N User, Project, Portfolio</td><td>Criada → Ativa → Suspensa → Arquivada</td></tr>
+            <tr><td><strong>User</strong></td><td><span class="pill planned">Planejada</span></td><td>Identidade individual — não existe hoje</td><td class="mono">id, org_id, email, role_id</td><td>N:1 Organization, Role; 1:N Analysis (autor)</td><td>Convidado → Ativo → Desativado</td></tr>
+            <tr><td><strong>Role</strong></td><td><span class="pill planned">Planejada</span></td><td>RBAC</td><td class="mono">id, name, permissions[]</td><td>1:N User</td><td>Definido no seed (sem CRUD no MVP)</td></tr>
+            <tr><td><strong>Project</strong></td><td><span class="pill partial">Parcial</span></td><td>Agrupamento de análises</td><td class="mono">hoje: só <code>project_name</code> (string livre)</td><td>Alvo: 1:N Analysis, Risk, ActionItem; N:1 Portfolio</td><td>Proposto → Ativo → EmRisco → Encerrado → Arquivado</td></tr>
+            <tr><td><strong>Portfolio</strong></td><td><span class="pill partial">Parcial</span></td><td>Visão executiva agregada</td><td class="mono">hoje: view computada, não tabela</td><td>Alvo: 1:N Program/Project</td><td>Criado → Mantido → Arquivado</td></tr>
+            <tr><td><strong>Program</strong></td><td><span class="pill planned">Planejada</span></td><td>Agrupamento intermediário entre Project e Portfolio</td><td class="mono">id, portfolio_id, name</td><td>1:N Project</td><td>Análogo a Project</td></tr>
+            <tr><td><strong>Analysis</strong></td><td><span class="pill now">Atual</span></td><td>Registro central — output de uma execução de agente</td><td class="mono">id, kind, project_name, payload, created_at</td><td>Nenhuma FK real hoje</td><td>Criada (POST) → <strong>imutável para sempre</strong></td></tr>
+            <tr><td><strong>Agent</strong></td><td><span class="pill partial">Parcial</span></td><td>Executor de análise</td><td class="mono">hoje: código fixo (3 classes Python), identificado só pelo valor de <code>kind</code></td><td>Alvo: 1:N Analysis; N:1 Prompt (versão ativa)</td><td>Hoje: fixo. Alvo: Registrado → Versionado → Depreciado</td></tr>
+            <tr><td><strong>Prompt</strong></td><td><span class="pill partial">Parcial</span></td><td>Template de instrução do agente</td><td class="mono">hoje: arquivo <code>.md</code> sem histórico de versão</td><td>Alvo: N:1 Agent, versionado</td><td>Rascunho → Publicado → Substituído → Arquivado</td></tr>
+            <tr><td><strong>Document</strong></td><td><span class="pill blocked">Bloqueada</span></td><td>Arquivo de origem (não iniciado — pipeline removido como código órfão, TASK-KN-01)</td><td class="mono">id, project_id, storage_url, extracted_text</td><td>N:1 Project</td><td>Enviado → Processando → Indexado → Falhou → Arquivado</td></tr>
+            <tr><td><strong>Meeting</strong></td><td><span class="pill partial">Parcial</span></td><td>Reunião analisada</td><td class="mono">hoje: só o <code>kind="meeting"</code> de Analysis; <code>summary/decisions/action_items/issues</code> dentro do payload</td><td>Alvo: entidade própria com FK para Analysis de origem</td><td>Hoje: não tem ciclo de vida próprio, herda o de Analysis</td></tr>
+            <tr><td><strong>Risk</strong></td><td><span class="pill partial">Parcial</span></td><td>Risco identificado</td><td class="mono">hoje: item de <code>risks[]</code> no payload — sem status próprio (não dá para marcar "mitigado")</td><td>Alvo: N:1 Project, N:1 Analysis (origem)</td><td>Alvo: Aberto → Mitigado → Aceito → Materializado</td></tr>
+            <tr><td><strong>Action Item</strong></td><td><span class="pill partial">Parcial</span></td><td>Ação decorrente de reunião</td><td class="mono">hoje: item de <code>action_items[]</code> — description/owner/due_date, sem persistência própria</td><td>Alvo: N:1 Project, N:1 User (owner)</td><td>Alvo: Aberto → Concluído → Cancelado</td></tr>
+            <tr><td><strong>Decision</strong></td><td><span class="pill partial">Parcial</span></td><td>Decisão registrada em reunião</td><td class="mono">hoje: item de texto livre em <code>decisions[]</code></td><td>Alvo: N:1 Meeting</td><td>Registrada (sem alteração de estado hoje ou no alvo)</td></tr>
+            <tr><td><strong>Issue</strong></td><td><span class="pill partial">Parcial</span></td><td>Problema identificado em reunião</td><td class="mono">hoje: item de texto livre em <code>issues[]</code></td><td>Alvo: N:1 Project</td><td>Alvo: Aberto → Resolvido</td></tr>
+            <tr><td><strong>Notification</strong></td><td><span class="pill blocked">Bloqueada</span></td><td>Alerta a um usuário — nenhuma infra existe (email/push/in-app)</td><td class="mono">id, user_id, channel, payload</td><td>N:1 User</td><td>Enfileirada → Enviada → Lida</td></tr>
+            <tr><td><strong>Integration</strong></td><td><span class="pill blocked">Bloqueada</span></td><td>Conexão com Jira/Slack/Teams etc. — visão de longo prazo, zero implementação</td><td class="mono">id, project_id, provider, config</td><td>N:1 Project</td><td>Configurada → Conectada → Sincronizando → Erro → Desconectada</td></tr>
+            <tr><td><strong>Audit Event</strong></td><td><span class="pill partial">Parcial</span></td><td>Trilha de auditoria de negócio</td><td class="mono">hoje: logging operacional (stdout, correlacionado por <code>X-Request-ID</code>) — não é uma entidade de domínio consultável</td><td>Alvo: N:1 User, N:1 Organization</td><td>Alvo: Registrado (imutável)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Diagrama — Domain Model alvo (Mermaid)</h3>
+      <pre class="mermaid-src">erDiagram
+    ORGANIZATION ||--o{ USER : has
+    ORGANIZATION ||--o{ PROJECT : owns
+    ORGANIZATION ||--o{ PORTFOLIO : owns
+    ROLE ||--o{ USER : assigned_to
+    PORTFOLIO ||--o{ PROGRAM : contains
+    PROGRAM ||--o{ PROJECT : contains
+    PROJECT ||--o{ ANALYSIS : has
+    PROJECT ||--o{ RISK : has
+    PROJECT ||--o{ ACTION_ITEM : has
+    PROJECT ||--o{ DOCUMENT : has
+    PROJECT ||--o{ INTEGRATION : connects_to
+    ANALYSIS ||--o{ RISK : produces
+    ANALYSIS ||--o{ ACTION_ITEM : produces
+    ANALYSIS ||--o{ DECISION : produces
+    ANALYSIS ||--o{ ISSUE : produces
+    ANALYSIS }o--|| AGENT : generated_by
+    ANALYSIS }o--|| MEETING : sourced_from
+    AGENT }o--|| PROMPT : uses_active_version
+    USER ||--o{ ANALYSIS : authors
+    USER ||--o{ NOTIFICATION : receives
+    USER ||--o{ AUDIT_EVENT : triggers
+    ORGANIZATION ||--o{ AUDIT_EVENT : scoped_to</pre>
+      <p class="diagram-caption">Sintaxe Mermaid válida (<code>erDiagram</code>) — copiável para <a href="https://mermaid.live" target="_blank" rel="noopener">mermaid.live</a>, ou renderizada automaticamente se este conteúdo for commitado como Markdown no GitHub. <strong>Este é o modelo alvo</strong> — hoje só o nó <code>ANALYSIS</code> existe como tabela real, sem nenhuma das arestas desenhadas.</p>
+    </section>
+
+    <!-- ============ 3. EVENT MODEL ============ -->
+    <section id="events" class="top">
+      <div class="section-head"><span class="step-no">3</span><h2>Event Model</h2></div>
+      <div class="callout warn">
+        <strong>Não existe barramento de eventos, fila ou pub/sub hoje.</strong> Confirmado: <code>requirements.txt</code> não tem Celery, Redis, Kafka ou qualquer dependência de mensageria. Todo "evento" abaixo é, na realidade atual, um efeito colateral síncrono dentro de uma única requisição HTTP request/response.
+      </div>
+
+      <h3>Fluxo real (síncrono) — o que de fato acontece hoje</h3>
+      <pre class="mermaid-src">sequenceDiagram
+    participant U as Usuário
+    participant BFF as Next.js BFF (planejado, Sprint 2)
+    participant API as FastAPI (real)
+    participant Agent as Agent (real)
+    participant LLM as Anthropic (real)
+    participant DB as Postgres/SQLite (real)
+
+    U->>BFF: envia formulário de análise
+    BFF->>API: POST /api/meetings/analyze (X-API-Key)
+    API->>Agent: MeetingIntelligenceAgent.analyze()
+    Agent->>LLM: generate(prompt)
+    LLM-->>Agent: raw_output
+    Agent->>Agent: parse_structured_output()
+    API->>DB: save_analysis()
+    DB-->>API: id
+    API-->>BFF: 200 {agent, project_name, model_output}
+    BFF-->>U: resultado renderizado
+    Note over U,DB: Uma única requisição HTTP.<br/>Nenhum passo é assíncrono ou desacoplado.</pre>
+      <p class="diagram-caption">Todos os participantes marcados "real" existem em produção hoje; o BFF é o Sprint 2 aprovado no RFC-001, ainda não implementado.</p>
+
+      <h3>Cadeia de eventos — visão de longo prazo (exemplo do usuário)</h3>
+      <pre class="mermaid-src">flowchart LR
+    A[Meeting Uploaded] --> B[Meeting Analyzed]
+    B --> C[Analysis Stored]
+    C --> D[Project Summary Updated]
+    D --> E[Portfolio Updated]
+    E --> F[Notification Sent]
+    F --> G[Dashboard Refreshed]</pre>
+      <p class="diagram-caption">Esta cadeia é <strong>100% aspiracional</strong>. Mapeamento contra a realidade:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Evento (visão)</th><th>Status</th><th>Realidade hoje</th></tr></thead>
+          <tbody>
+            <tr><td>Meeting Uploaded</td><td><span class="pill blocked">Bloqueado</span></td><td>Não existe upload de arquivo — só colagem de texto num formulário</td></tr>
+            <tr><td>Meeting Analyzed</td><td><span class="pill now">Atual</span></td><td><code>POST /api/meetings/analyze</code>, síncrono</td></tr>
+            <tr><td>Analysis Stored</td><td><span class="pill now">Atual</span></td><td><code>AnalysisRepository.save_analysis()</code>, mesma transação</td></tr>
+            <tr><td>Project Summary Updated</td><td><span class="pill blocked">Não é um evento</span></td><td><code>GET /api/projects/{name}/summary</code> recomputa sob demanda a cada chamada — nada é "atualizado" e persistido, é sempre calculado na hora</td></tr>
+            <tr><td>Portfolio Updated</td><td><span class="pill blocked">Não é um evento</span></td><td>Mesma situação — <code>GET /api/portfolio/summary</code> é computado, não materializado</td></tr>
+            <tr><td>Notification Sent</td><td><span class="pill blocked">Bloqueado</span></td><td>Nenhuma infraestrutura de notificação existe</td></tr>
+            <tr><td>Dashboard Refreshed</td><td><span class="pill planned">Planejado</span></td><td>Polling client-side (RFC-001 §7), não um push de servidor</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        <strong>Implicação arquitetural:</strong> introduzir um barramento de eventos real só se justifica quando pelo menos um consumidor assíncrono genuíno existir (ex: Notification, ou um rollup materializado para performance em escala). Construir a infraestrutura antes disso repetiria o erro já evitado em SSE/WebSocket no RFC-001 (Decisão D3) — arquitetura paralela sem consumidor real.
+      </div>
+    </section>
+
+    <!-- ============ 4. STATE MACHINES ============ -->
+    <section id="states" class="top">
+      <div class="section-head"><span class="step-no">4</span><h2>State Machines</h2></div>
+      <p class="section-note">6 das 7 máquinas são inteiramente planejadas — as entidades correspondentes não existem. Só <strong>Análise</strong> tem comportamento real hoje, e é uma máquina trivial de 2 estados.</p>
+
+      <h3>Análise <span class="pill now">Atual (trivial)</span></h3>
+      <pre class="mermaid-src">stateDiagram-v2
+    [*] --> Criada: POST /api/*/analyze
+    Criada --> Armazenada: save_analysis()
+    Armazenada --> [*]
+    note right of Armazenada
+        Estado terminal e permanente.
+        Sem transição de volta -- o schema
+        real não tem UPDATE nem DELETE.
+    end note</pre>
+      <p class="diagram-caption">Transição inválida por design: <code>Armazenada → Criada</code> (não existe re-processamento) e qualquer transição para um estado de edição (não há <code>PUT</code>/<code>PATCH</code> no schema real).</p>
+
+      <h3>Projeto <span class="pill planned">Planejada</span></h3>
+      <pre class="mermaid-src">stateDiagram-v2
+    [*] --> Proposto
+    Proposto --> Ativo
+    Ativo --> EmRisco
+    EmRisco --> Ativo
+    Ativo --> Encerrado
+    EmRisco --> Encerrado
+    Encerrado --> Arquivado
+    Arquivado --> [*]</pre>
+      <p class="diagram-caption">Inválida: <code>Arquivado → Ativo</code> (reabertura exigiria um novo Projeto, não uma transição). Depende da entidade Project existir de verdade (Domain Model, §2).</p>
+
+      <h3>Documento <span class="pill blocked">Bloqueada</span></h3>
+      <pre class="mermaid-src">stateDiagram-v2
+    [*] --> Enviado
+    Enviado --> Processando
+    Processando --> Indexado
+    Processando --> Falhou
+    Falhou --> Processando: retry manual
+    Indexado --> Arquivado
+    Arquivado --> [*]</pre>
+      <p class="diagram-caption">Especulativa por completo — depende de Release 0.5 (Document Intelligence), sem nenhuma API hoje.</p>
+
+      <h3>Agente <span class="pill partial">Parcial</span></h3>
+      <pre class="mermaid-src">stateDiagram-v2
+    [*] --> Registrado
+    Registrado --> Ativo
+    Ativo --> Depreciado
+    Depreciado --> Desabilitado
+    Desabilitado --> [*]
+    note right of Registrado
+        Hoje: os 3 agentes reais não têm
+        estado -- ou o código existe e roda,
+        ou não existe. Sem tabela Agent.
+    end note</pre>
+
+      <h3>Integração <span class="pill blocked">Bloqueada</span></h3>
+      <pre class="mermaid-src">stateDiagram-v2
+    [*] --> Configurada
+    Configurada --> Conectada
+    Conectada --> Sincronizando
+    Sincronizando --> Conectada
+    Conectada --> Erro
+    Erro --> Conectada: reconectar
+    Conectada --> Desconectada
+    Desconectada --> [*]</pre>
+      <p class="diagram-caption">Depende de Release 0.6 (Integrations) — nenhum trabalho de backend iniciado.</p>
+
+      <h3>Job <span class="pill blocked">Bloqueada</span></h3>
+      <pre class="mermaid-src">stateDiagram-v2
+    [*] --> Enfileirado
+    Enfileirado --> Executando
+    Executando --> Concluido
+    Executando --> Falhou
+    Falhou --> Retentando
+    Retentando --> Executando
+    Concluido --> [*]</pre>
+      <p class="diagram-caption">Não existe conceito de job assíncrono no backend — todas as 3 análises são síncronas (RFC-001 §7, Contexto §2). Só se torna relevante se/quando análises passarem a ser processadas em background.</p>
+
+      <h3>Workflow <span class="pill partial">Parcial</span></h3>
+      <pre class="mermaid-src">stateDiagram-v2
+    [*] --> Definido
+    Definido --> Disparado
+    Disparado --> EmAndamento
+    EmAndamento --> Concluido
+    EmAndamento --> Falhou
+    Concluido --> [*]
+    note right of Definido
+        src/workflows/pmo_workflow.py existe
+        como placeholder reservado desde a
+        consolidação do MVP -- nunca conectado
+        a nenhuma rota. Não remover.
+    end note</pre>
+    </section>
+
+    <!-- ============ 5. UX PRINCIPLES ============ -->
+    <section id="ux" class="top">
+      <div class="section-head"><span class="step-no">5</span><h2>UX Principles</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Princípio</th><th>Status</th><th>Justificativa arquitetural</th></tr></thead>
+          <tbody>
+            <tr><td>AI First</td><td><span class="pill now">Atual</span></td><td>O valor central é converter texto não-estruturado em insight estruturado — toda tela expõe esse valor diretamente, não o esconde atrás de CRUD manual.</td></tr>
+            <tr><td>Dashboard First</td><td><span class="pill planned">Sprint 2</span></td><td>Personas Executive/PMO precisam de visão agregada antes de drill-down — rota raiz (<code>/</code>) é o Dashboard por decisão explícita do RFC-001.</td></tr>
+            <tr><td>Chat First</td><td><span class="pill blocked">Aspiracional — Release 0.4</span></td><td><strong>Tensão real com o estado atual:</strong> o paradigma de hoje é "Structured Input First" (Composer com formulário), não conversacional. "Chat First" só se torna verdade quando CP-001 (bloqueado) existir. Registrado como princípio de release futura, não do MVP — não fingir que já se aplica.</td></tr>
+            <tr><td>Progressive Disclosure</td><td><span class="pill planned">Sprint 2-3</span></td><td>Portfólio (resumo) → Projeto (detalhe) → Análise (completo) é literalmente disclosure progressivo, já desenhado no mapa de rotas do RFC-001.</td></tr>
+            <tr><td>Mobile Responsive</td><td><span class="pill planned">Especificado, não testado</span></td><td>Bottom tab bar abaixo de 768px (RFC-001 Decisão D6) — especificado, ainda não verificado em dispositivo real.</td></tr>
+            <tr><td>Menor número de cliques</td><td><span class="pill planned">Sprint 2</span></td><td>"+ Nova análise" sempre visível na sidebar — 1 clique de qualquer tela protegida.</td></tr>
+            <tr><td>Feedback imediato</td><td><span class="pill planned">Sprint 3</span></td><td>Validação Zod inline antes do submit, toast de confirmação pós-envio — nenhuma ação some no vácuo.</td></tr>
+            <tr><td>Skeleton Loading</td><td><span class="pill now">Atual</span></td><td>Primitivo real desde o Sprint 1 — nunca um spinner cobrindo a tela toda.</td></tr>
+            <tr><td>Acessibilidade WCAG AA</td><td><span class="pill partial">Parcial</span></td><td>5 pares de contraste calculados e verificados (RFC-001 §1); cobertura completa depende de um gate de CI ainda não construído.</td></tr>
+            <tr><td>Não bloquear durante IA</td><td><span class="pill planned">Especificado</span></td><td>Estado "demorando mais que o normal" no Composer, sem overlay bloqueante — decisão de design já registrada (RFC-001 §Riscos), implementação pendente do Sprint 3.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ 6. NFR ============ -->
+    <section id="nfr" class="top">
+      <div class="section-head"><span class="step-no">6</span><h2>Non-Functional Requirements</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Categoria</th><th>Meta</th><th>Estado real hoje</th></tr></thead>
+          <tbody>
+            <tr><td>Performance</td><td>Ver §7 (metas mensuráveis)</td><td>Nenhuma instrumentação de p95/p99 existe</td></tr>
+            <tr><td>Escalabilidade</td><td>Instâncias stateless atrás de load balancer</td><td>Instância única; rate limiter é in-process (US-SEC-03) — <strong>não escala horizontalmente sem externalizar para Redis</strong></td></tr>
+            <tr><td>Disponibilidade</td><td>SLA a definir quando houver produção real (ex: 99.5%)</td><td>Sem SLA definido, sem redundância</td></tr>
+            <tr><td>Segurança</td><td>Ver §8</td><td>Ver §8</td></tr>
+            <tr><td>Observabilidade</td><td>Ver §9</td><td>Ver §9</td></tr>
+            <tr><td>Custos</td><td>Rastreamento de custo por análise, alertas de orçamento</td><td>Nenhum rastreamento — a auditoria de prontidão anterior revelou que a conta Anthropic nem tinha billing configurado</td></tr>
+            <tr><td>Portabilidade</td><td>Rodar em qualquer ambiente com Docker</td><td><code>docker-compose.yml</code> corrigido (TASK-INF-02) mas <strong>nunca executado ponta a ponta</strong> — sem daemon Docker neste ambiente de desenvolvimento</td></tr>
+            <tr><td>Confiabilidade</td><td>Cobertura de teste mantida ≥80% em todo módulo real</td><td>98%+ no backend; 0% de cobertura de integração no frontend além do Sprint 1</td></tr>
+            <tr><td>Recuperação</td><td>RPO/RTO definidos antes de dado de produção real existir</td><td><strong>Indefinido — nenhum plano de disaster recovery documentado</strong></td></tr>
+            <tr><td>Backup</td><td>Backup automatizado do banco, testado por restauração</td><td><strong>Inexistente. Nenhum mecanismo de backup do Postgres/SQLite em lugar nenhum do repositório.</strong></td></tr>
+            <tr><td>Versionamento</td><td>API versionada antes do primeiro consumidor externo</td><td><code>/api/*</code> sem prefixo de versão (<code>/v1/</code>) — <strong>qualquer mudança breaking afeta todo consumidor sem aviso</strong>, e o próprio frontend já conta como um consumidor a partir do Sprint 2</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ 7. PERFORMANCE TARGETS ============ -->
+    <section id="perf" class="top">
+      <div class="section-head"><span class="step-no">7</span><h2>Performance Targets</h2></div>
+      <div class="callout warn"><strong>Nenhuma meta abaixo é medida hoje.</strong> São metas propostas para orientar o Sprint 2 em diante — não alegações de performance atual.</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Superfície</th><th>Meta</th><th>Status da feature</th></tr></thead>
+          <tbody>
+            <tr><td>Dashboard (<code>/</code>)</td><td class="mono">&lt; 2s</td><td><span class="pill planned">Sprint 2</span></td></tr>
+            <tr><td>Portfólio (tabela completa)</td><td class="mono">&lt; 3s</td><td><span class="pill planned">Sprint 2</span></td></tr>
+            <tr><td>Consulta (<code>GET /analyses/{id}</code>, cache quente)</td><td class="mono">&lt; 300ms</td><td><span class="pill planned">Sprint 3</span></td></tr>
+            <tr><td>Resumo Executivo (<code>GET /projects/{name}/summary</code>)</td><td class="mono">&lt; 5s</td><td><span class="pill planned">Sprint 3</span></td></tr>
+            <tr><td>Upload (documento)</td><td class="mono">&lt; 10s</td><td><span class="pill blocked">Release 0.5 — meta definida antecipadamente, sem feature para medir</span></td></tr>
+            <tr><td>Chat (resposta)</td><td class="mono">&lt; 5s</td><td><span class="pill blocked">Release 0.4 — idem</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ 8. SECURITY BLUEPRINT ============ -->
+    <section id="security" class="top">
+      <div class="section-head"><span class="step-no">8</span><h2>Security Blueprint</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Dimensão</th><th>Status</th><th>Estratégia</th></tr></thead>
+          <tbody>
+            <tr><td>API Keys</td><td><span class="pill now">Atual</span></td><td><code>X-API-Key</code> única compartilhada, validada por <code>hmac.compare_digest</code> (US-SEC-01)</td></tr>
+            <tr><td>JWT</td><td><span class="pill planned">RFC-001 §9, Fase 3</span></td><td>Backend precisa emitir/validar — RFC de backend separado</td></tr>
+            <tr><td>OAuth2 / OIDC</td><td><span class="pill planned">RFC-001 §9, Fase 3</span></td><td>Integração com provider externo (Auth0/Okta/Azure AD) — não desenhado em detalhe aqui, remetido ao RFC-001</td></tr>
+            <tr><td>RBAC</td><td><span class="pill planned">RFC-001 §9, Fase 4</span></td><td>Claims de papel no token/sessão — depende de Fase 2 (usuários)</td></tr>
+            <tr><td>Multi-tenant</td><td><span class="pill blocked">Especulativo</span></td><td><code>project_name</code> hoje é texto livre global, sem escopo de tenant — mudança de modelo de dados não trivial, fora do horizonte próximo</td></tr>
+            <tr><td>LGPD</td><td><span class="pill crit">Não endereçada</span></td><td><strong>Risco real:</strong> análises são imutáveis e sem <code>DELETE</code> — se um <code>transcript</code> contiver dado pessoal, não há mecanismo de exclusão (direito ao esquecimento). Ver Riscos Arquiteturais §12, classificado Crítico.</td></tr>
+            <tr><td>OWASP</td><td><span class="pill partial">Parcial</span></td><td>Rate limiting (real) e validação de input (real, Pydantic+Zod) cobertos; sem estratégia de CSRF para o futuro cookie de sessão, sem headers CSP nas respostas do FastAPI, sem scan de dependências no CI</td></tr>
+            <tr><td>Secrets</td><td><span class="pill partial">Parcial</span></td><td>Variáveis de ambiente hoje, não um gerenciador de secrets dedicado (Vault/AWS Secrets Manager) — aceitável para o estágio atual, revisitar antes de produção real com dado sensível</td></tr>
+            <tr><td>Logs</td><td><span class="pill now">Atual</span></td><td>Correlacionados por <code>X-Request-ID</code> (US-OBS-01), nunca logam corpo de requisição ou credenciais</td></tr>
+            <tr><td>Auditoria</td><td><span class="pill partial">Parcial</span></td><td>Logging operacional existe; entidade <code>Audit Event</code> consultável (quem fez o quê) é planejada, não real (Domain Model §2)</td></tr>
+            <tr><td>Trilha de execução dos agentes</td><td><span class="pill partial">Parcial</span></td><td><code>payload</code> guarda o output bruto, mas <strong>não registra qual modelo/versão gerou o resultado</strong> — achado desta sessão, ver Riscos §12</td></tr>
+            <tr><td>Prompt Versioning</td><td><span class="pill blocked">Não implementado</span></td><td>Prompts são arquivos <code>.md</code> sem histórico — mudar um prompt não deixa rastro de qual versão gerou qual análise histórica</td></tr>
+            <tr><td>Model Versioning</td><td><span class="pill partial">Parcial</span></td><td><code>MODEL_NAME</code> agora configurável (correção recente da auditoria de prontidão), mas o valor usado não é gravado por análise — mesmo achado de "Trilha de execução"</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ 9. OBSERVABILITY BLUEPRINT ============ -->
+    <section id="observability" class="top">
+      <div class="section-head"><span class="step-no">9</span><h2>Observability Blueprint</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Dimensão</th><th>Status</th><th>Detalhe</th></tr></thead>
+          <tbody>
+            <tr><td>Logs</td><td><span class="pill now">Atual</span></td><td>Estruturados, correlacionados por <code>X-Request-ID</code> (US-OBS-01)</td></tr>
+            <tr><td>Metrics</td><td><span class="pill blocked">Não implementado</span></td><td>Sem Prometheus/StatsD, sem endpoint de métricas</td></tr>
+            <tr><td>Tracing</td><td><span class="pill blocked">Não implementado</span></td><td>Sem OpenTelemetry, sem tracing distribuído — relevante quando o BFF adicionar um hop real (Sprint 2)</td></tr>
+            <tr><td>Correlation ID</td><td><span class="pill now">Atual</span></td><td><code>X-Request-ID</code> real, ponta a ponta no backend; RFC-001 já planeja o BFF gerar o seu próprio para erros que não chegam ao FastAPI</td></tr>
+            <tr><td>Health Checks</td><td><span class="pill partial">Parcial</span></td><td><code>GET /health</code> existe, mas <strong>é estático</strong> — sempre retorna "healthy", não verifica conectividade com banco ou provider de IA</td></tr>
+            <tr><td>Readiness</td><td><span class="pill blocked">Não distinto de liveness</span></td><td>Não há separação entre "processo rodando" e "pronto para tráfego real" — achado desta sessão</td></tr>
+            <tr><td>Dashboards Operacionais</td><td><span class="pill blocked">Não implementado</span></td><td>Nenhum painel de operação (Grafana ou equivalente)</td></tr>
+            <tr><td>Alertas</td><td><span class="pill blocked">Não implementado</span></td><td>Nenhum alerta configurado para erro/latência/custo</td></tr>
+            <tr><td>Métricas de uso</td><td><span class="pill blocked">Não implementado</span></td><td>Sem contagem de análises/dia, projetos ativos, etc.</td></tr>
+            <tr><td>Custos da IA</td><td><span class="pill blocked">Não implementado</span></td><td>Sem rastreamento de custo por chamada — ligado diretamente ao gap de Custos no NFR §6</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ 10. ROADMAP ============ -->
+    <section id="roadmap" class="top">
+      <div class="section-head"><span class="step-no">10</span><h2>Product Roadmap</h2></div>
+      <p class="section-note">Reconciliado com os sprints do RFC-001: Release 0.2 cobre os Sprints 1-3 do RFC (Design System, Dashboard, Projetos); a Central de Agentes v1 (RFC-001 Decisão D7) é incorporada à Release 0.3.</p>
+
+      <div class="decision">
+        <div class="d-title">Release 0.1 — Backend MVP <span class="pill now">Concluído</span></div>
+        <dl>
+          <dt>Objetivos</dt><dd>API funcional, testada, com os 3 agentes de análise e persistência real.</dd>
+          <dt>Escopo</dt><dd>7 endpoints, auth por API key, CORS, rate limiting, logging correlacionado, migrações Alembic.</dd>
+          <dt>Critérios de aceite</dt><dd>✓ 82/82 testes · ✓ 98%+ cobertura · ✓ CI verde em <code>main</code> · ✓ validado contra Postgres real.</dd>
+          <dt>Dependências</dt><dd class="muted">Nenhuma.</dd>
+          <dt>Riscos</dt><dd class="muted">Nenhum materializado.</dd>
+          <dt>Fora de escopo</dt><dd class="muted">Qualquer interface de usuário.</dd>
+        </dl>
+      </div>
+
+      <div class="decision">
+        <div class="d-title">Release 0.2 — Frontend MVP <span class="pill partial">Em andamento (Sprint 1/3 concluído)</span></div>
+        <dl>
+          <dt>Objetivos</dt><dd>Interface funcional para Dashboard e gestão de projetos, sem expor a chave de API.</dd>
+          <dt>Escopo</dt><dd>= RFC-001 Sprints 1 (Design System, concluído) + 2 (Dashboard) + 3 (Projetos).</dd>
+          <dt>Critérios de aceite</dt><dd>RFC-001 §10 (critérios por sprint) na íntegra.</dd>
+          <dt>Dependências</dt><dd>RFC-001 aprovado (sim) · Este Product Blueprint aprovado.</dd>
+          <dt>Riscos</dt><dd class="muted">Latência de análise sem SLA conhecido (RFC-001 §Riscos).</dd>
+          <dt>Fora de escopo</dt><dd class="muted">Chat, Documentos, gestão de agentes (v2).</dd>
+        </dl>
+      </div>
+
+      <div class="decision">
+        <div class="d-title">Release 0.3 — Executive Dashboard</div>
+        <dl>
+          <dt>Objetivos</dt><dd>Aprofundar a visão executiva além do resumo pontual — inclui a Central de Agentes v1 (RFC-001 Decisão D7).</dd>
+          <dt>Escopo</dt><dd><code>KpiSummaryRow</code> avançado, <code>/agents</code> (v1, via <code>GET /api/analyses?kind=</code>), possível visão de tendência ao longo do tempo (requer decidir se o rollup passa a ser armazenado historicamente, não só computado on-demand).</dd>
+          <dt>Critérios de aceite</dt><dd>A definir em RFC específico quando este release for aberto.</dd>
+          <dt>Dependências</dt><dd>Release 0.2 concluído.</dd>
+          <dt>Riscos</dt><dd class="muted">Tendência histórica exige decisão de arquitetura de dados (materializar vs. computar) ainda não tomada.</dd>
+          <dt>Fora de escopo</dt><dd class="muted">Gestão de agentes (v2) — permanece bloqueada (sem endpoint).</dd>
+        </dl>
+      </div>
+
+      <div class="decision">
+        <div class="d-title">Release 0.4 — AI Chat <span class="pill blocked">Bloqueado</span></div>
+        <dl>
+          <dt>Objetivos</dt><dd>Indefinido até a dependência ser resolvida.</dd>
+          <dt>Escopo</dt><dd class="muted">Não desenhado.</dd>
+          <dt>Critérios de aceite</dt><dd class="muted">N/A.</dd>
+          <dt>Dependências</dt><dd><strong>CP-001</strong> (orquestração conversacional multi-turn) — adiado formalmente em <code>docs/development/01-project-structure.md</code>. Exige RFC de backend antes de qualquer RFC de frontend.</dd>
+          <dt>Riscos</dt><dd class="muted">Maior risco arquitetural do roadmap: introduzir estado conversacional pode pressionar por mensageria/sessão de longa duração, tensionando com D3 (sem push) e a persistência atual (análises são imutáveis, uma conversa não é).</dd>
+          <dt>Fora de escopo</dt><dd>Todo o release, até novo aviso.</dd>
+        </dl>
+      </div>
+
+      <div class="decision">
+        <div class="d-title">Release 0.5 — Document Intelligence <span class="pill blocked">Bloqueado</span></div>
+        <dl>
+          <dt>Objetivos</dt><dd>Indefinido até a dependência ser resolvida.</dd>
+          <dt>Escopo</dt><dd class="muted">Não desenhado.</dd>
+          <dt>Critérios de aceite</dt><dd class="muted">N/A.</dd>
+          <dt>Dependências</dt><dd>Nenhuma API de armazenamento/extração/indexação de documentos existe — <code>ingestion_pipeline.py</code> e <code>retrieval_service.py</code> foram removidos como código órfão nesta sessão. Exige RFC de backend completo.</dd>
+          <dt>Riscos</dt><dd class="muted">Maior lacuna de backend do roadmap — nem um escopo v1 parcial é possível (diferente de Agentes).</dd>
+          <dt>Fora de escopo</dt><dd>Todo o release, até novo aviso.</dd>
+        </dl>
+      </div>
+
+      <div class="decision">
+        <div class="d-title">Release 0.6 — Integrations <span class="pill blocked">Bloqueado</span></div>
+        <dl>
+          <dt>Objetivos</dt><dd>Conectar a ferramentas onde o trabalho de fato acontece (Jira, Slack, Teams) — ver Posicionamento Competitivo §1.</dd>
+          <dt>Escopo</dt><dd class="muted">Não desenhado.</dd>
+          <dt>Critérios de aceite</dt><dd class="muted">N/A.</dd>
+          <dt>Dependências</dt><dd>Entidade <code>Integration</code> não existe (Domain Model §2); exige RFC de backend e decisão de qual integração priorizar primeiro.</dd>
+          <dt>Riscos</dt><dd class="muted">Cada integração é uma superfície de segurança nova (OAuth de terceiros, tokens de longa duração) — relevante para o Security Blueprint §8.</dd>
+          <dt>Fora de escopo</dt><dd>Todo o release, até novo aviso.</dd>
+        </dl>
+      </div>
+
+      <div class="decision">
+        <div class="d-title">Release 1.0 — Enterprise <span class="pill blocked">Bloqueado</span></div>
+        <dl>
+          <dt>Objetivos</dt><dd>Maturidade para múltiplos clientes/organizações — amarra RBAC, multi-tenant, LGPD e auditoria completa (§8, §9).</dd>
+          <dt>Escopo</dt><dd class="muted">Não desenhado em detalhe — depende de todas as fases da Evolução de Auth (RFC-001 §9) estarem concluídas.</dd>
+          <dt>Critérios de aceite</dt><dd class="muted">N/A.</dd>
+          <dt>Dependências</dt><dd>Releases 0.2–0.6, mais backup/recovery (NFR §6) e o gap de LGPD (§8, Crítico) resolvidos antes de qualquer cliente real.</dd>
+          <dt>Riscos</dt><dd class="muted">Release mais distante e mais dependente de trabalho ainda não escopado.</dd>
+          <dt>Fora de escopo</dt><dd>Todo o release, até novo aviso.</dd>
+        </dl>
+      </div>
+    </section>
+
+    <!-- ============ 11. ADRs ============ -->
+    <section id="adrs" class="top">
+      <div class="section-head"><span class="step-no">11</span><h2>Architecture Decision Records</h2></div>
+      <p class="section-note">Consolida as decisões arquiteturais já tomadas ao longo do backend e do RFC-001 no formato exigido, com o campo Rollback adicional.</p>
+
+      <div class="decision">
+        <div class="d-title">ADR-001 — Persistência single-table sem normalização de domínio</div>
+        <dl>
+          <dt>Contexto</dt><dd>MVP precisava persistir resultados de análise rapidamente, sem um domain model maduro definido.</dd>
+          <dt>Problema</dt><dd>Como armazenar dado estruturado de IA sem travar o MVP num schema relacional prematuro?</dd>
+          <dt>Alternativas</dt><dd class="muted">Normalizar Risk/ActionItem/Decision como tabelas desde o início (mais trabalho, especulativo); usar um banco de documentos (NoSQL) (mudaria toda a stack já validada com SQLAlchemy/Alembic).</dd>
+          <dt>Decisão</dt><dd>Uma tabela (<code>analysis_records</code>) com <code>payload JSON</code> — o schema estruturado vive dentro do JSON, validado por Pydantic na borda da API, não pelo banco.</dd>
+          <dt>Consequências</dt><dd class="muted">Risk/ActionItem/Decision não são consultáveis individualmente hoje (Domain Model §2) — aceito conscientemente até uma feature real precisar disso.</dd>
+          <dt>Rollback</dt><dd class="muted">Migração de dados para extrair entidades do JSON para tabelas próprias — via nova migração Alembic, sem perda de dado (o JSON permanece como fonte).</dd>
+        </dl>
+      </div>
+
+      <div class="decision">
+        <div class="d-title">ADR-002 — Backend-for-Frontend (BFF) para proteger API Key compartilhada</div>
+        <dl>
+          <dt>Contexto</dt><dd>Backend usa uma única <code>API_KEY</code>; não há conta de usuário nem múltiplas chaves.</dd>
+          <dt>Problema</dt><dd>Como o frontend chama a API sem expor a chave real a qualquer navegador?</dd>
+          <dt>Alternativas</dt><dd class="muted">Guardar a chave no navegador (inseguro); pedir chave individual por usuário (backend não suporta).</dd>
+          <dt>Decisão</dt><dd>Route Handlers do Next.js seguram a chave server-side, repassam ao FastAPI — ver RFC-001 Decisão D1.</dd>
+          <dt>Consequências</dt><dd class="muted">Um hop de latência extra; habilita a evolução de auth (ADR-007) sem quebra.</dd>
+          <dt>Rollback</dt><dd class="muted">Reverter exigiria expor a chave ao cliente — inaceitável; não há rollback real, só substituição por um modelo de auth mais maduro (RFC-001 §9).</dd>
+        </dl>
+      </div>
+
+      <div class="decision">
+        <div class="d-title">ADR-003 — Processamento síncrono, sem mensageria</div>
+        <dl>
+          <dt>Contexto</dt><dd>As 3 análises de IA são requisições únicas, sem necessidade aparente de processamento em background no MVP.</dd>
+          <dt>Problema</dt><dd>Vale a pena introduzir fila/mensageria antes de haver um consumidor assíncrono real?</dd>
+          <dt>Alternativas</dt><dd class="muted">Celery+Redis desde o início (complexidade não paga pelo uso atual); SSE/WebSocket "para o futuro" (RFC-001 Decisão D3, rejeitado pela mesma razão).</dd>
+          <dt>Decisão</dt><dd>Manter síncrono até um caso de uso real exigir o contrário — ver Event Model §3.</dd>
+          <dt>Consequências</dt><dd class="muted">Notification, Job e parte de Workflow (Domain Model/State Machines) ficam bloqueados até essa decisão ser revisitada.</dd>
+          <dt>Rollback</dt><dd class="muted">Não é uma decisão reversível no sentido tradicional — é uma decisão de "ainda não", revisitável a qualquer momento sem custo de migração (nenhuma infraestrutura foi construída para desfazer).</dd>
+        </dl>
+      </div>
+
+      <div class="decision">
+        <div class="d-title">ADR-004 — Radix UI vendorizado, sem CLI do shadcn/ui</div>
+        <dl>
+          <dt>Contexto</dt><dd><code>ui.shadcn.com</code> bloqueado pela política de rede do ambiente de desenvolvimento.</dd>
+          <dt>Problema</dt><dd>Como obter primitivos acessíveis sem a ferramenta de CLI padrão do ecossistema?</dd>
+          <dt>Alternativas</dt><dd class="muted">MUI/Mantine/Chakra (linguagem visual própria); esperar liberação de rede (sem prazo).</dd>
+          <dt>Decisão</dt><dd>Instalar <code>@radix-ui/react-*</code> via npm, escrever wrappers à mão — RFC-001 Decisão D2.</dd>
+          <dt>Consequências</dt><dd class="muted">Atualizações de acessibilidade exigem merge manual.</dd>
+          <dt>Rollback</dt><dd class="muted">Migrar para a CLI do shadcn/ui a qualquer momento, se a rede for liberada — os componentes já seguem o mesmo padrão de código, troca de baixo risco.</dd>
+        </dl>
+      </div>
+
+      <div class="decision">
+        <div class="d-title">ADR-005 — Rate limiting in-process, não distribuído</div>
+        <dl>
+          <dt>Contexto</dt><dd>US-SEC-03 precisava de rate limiting funcional rapidamente, com instância única em produção.</dd>
+          <dt>Problema</dt><dd>Implementar um limitador simples agora, ou já desenhar para múltiplas instâncias?</dd>
+          <dt>Alternativas</dt><dd class="muted">Redis desde o início (infraestrutura extra não paga pelo estágio atual).</dd>
+          <dt>Decisão</dt><dd>Janela deslizante em memória, por processo.</dd>
+          <dt>Consequências</dt><dd class="muted"><strong>Risco real classificado Alto</strong> (§12): se o backend rodar em múltiplas instâncias, o limite efetivo vira N× o configurado.</dd>
+          <dt>Rollback</dt><dd class="muted">Substituir o backend do <code>RateLimiter</code> por uma implementação Redis, mesma interface pública — mudança contida a um arquivo.</dd>
+        </dl>
+      </div>
+
+      <div class="decision">
+        <div class="d-title">ADR-006 — Alembic como mecanismo de migração de schema</div>
+        <dl>
+          <dt>Contexto</dt><dd>Precisava de um caminho de evolução de schema para bancos reais (Postgres), além de <code>create_all()</code> usado em testes.</dd>
+          <dt>Problema</dt><dd>Como evoluir o schema em produção sem perder dado?</dd>
+          <dt>Alternativas</dt><dd class="muted">Só <code>create_all()</code> (não migra, recria); ferramenta proprietária de nuvem (acopla a um provedor).</dd>
+          <dt>Decisão</dt><dd>Alembic, validado contra Postgres real nesta sessão (Evidence Entry 012).</dd>
+          <dt>Consequências</dt><dd class="muted">Toda mudança de modelo exige gerar e revisar uma migração — disciplina já seguida desde a introdução.</dd>
+          <dt>Rollback</dt><dd class="muted"><code>alembic downgrade</code> nativo, já parte da ferramenta.</dd>
+        </dl>
+      </div>
+
+      <div class="decision">
+        <div class="d-title">ADR-007 — Dois níveis de autenticação (sessão de workspace vs. credencial de backend)</div>
+        <dl>
+          <dt>Contexto</dt><dd>A Revisão 1 do RFC-001 tratava "sessão" e "chave de API" como um único conceito, gerando uma leitura incorreta do erro 401.</dd>
+          <dt>Problema</dt><dd>Como modelar autenticação sem confundir "quem pode usar a ferramenta" com "a chamada ao backend está autorizada"?</dd>
+          <dt>Alternativas</dt><dd class="muted">Manter um único conceito (o erro da Revisão 1).</dd>
+          <dt>Decisão</dt><dd>Nível 1 (navegador↔BFF, sessão de workspace) separado de Nível 2 (BFF↔FastAPI, <code>API_KEY</code>) — RFC-001 Decisão D4.</dd>
+          <dt>Consequências</dt><dd class="muted">Habilita a migração para JWT/OIDC (RFC-001 §9) como mudança contida ao BFF.</dd>
+          <dt>Rollback</dt><dd class="muted">N/A — é a correção de um erro de modelagem anterior, não uma decisão a desfazer.</dd>
+        </dl>
+      </div>
+
+      <div class="decision">
+        <div class="d-title">ADR-008 — <code>web/</code> como árvore de frontend paralela a <code>src/</code></div>
+        <dl>
+          <dt>Contexto</dt><dd><code>frontend/</code> já existia no repositório, contendo só documentação de visão.</dd>
+          <dt>Problema</dt><dd>Onde colocar o código real do frontend sem misturar com docs aspiracionais?</dd>
+          <dt>Alternativas</dt><dd class="muted">Dentro de <code>frontend/</code> (misturaria app real com 3 arquivos de visão).</dd>
+          <dt>Decisão</dt><dd>Novo diretório <code>web/</code>, <code>frontend/</code> intocado — mesmo tratamento dado a <code>backend/</code> quando seu Dockerfile quebrado foi removido.</dd>
+          <dt>Consequências</dt><dd class="muted"><code>docs/development/01-project-structure.md</code> atualizado para declarar as duas árvores oficiais.</dd>
+          <dt>Rollback</dt><dd class="muted">Mover <code>web/</code> para dentro de <code>frontend/</code> é uma operação de arquivo simples, se necessário — baixo custo.</dd>
+        </dl>
+      </div>
+    </section>
+
+    <!-- ============ 12. RISCOS ============ -->
+    <section id="risks" class="top">
+      <div class="section-head"><span class="step-no">12</span><h2>Riscos Arquiteturais</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Risco</th><th>Classificação</th><th>Mitigação proposta</th></tr></thead>
+          <tbody>
+            <tr><td>Ausência total de backup do banco de dados</td><td><span class="pill crit">Crítico</span></td><td>Implementar backup automatizado (e testar a restauração) antes de qualquer dado de produção real existir</td></tr>
+            <tr><td>Sem mecanismo de exclusão (LGPD) — análises imutáveis podem conter dado pessoal sem via de remoção</td><td><span class="pill crit">Crítico</span></td><td>Avaliar necessidade de endpoint de exclusão antes de qualquer uso com dado real de cliente; documentar política de retenção</td></tr>
+            <tr><td>Rate limiter in-memory não escala horizontalmente (ADR-005)</td><td><span class="pill blocked" style="color:var(--danger)">Alto</span></td><td>Externalizar para Redis antes de qualquer deploy multi-instância</td></tr>
+            <tr><td>API sem versionamento (<code>/api/*</code>, sem <code>/v1/</code>)</td><td><span class="pill blocked" style="color:var(--danger)">Alto</span></td><td>Introduzir versionamento antes do primeiro consumidor externo — o próprio frontend do Sprint 2 já conta</td></tr>
+            <tr><td>Payload de Analysis não registra modelo/versão que gerou o resultado</td><td><span class="pill blocked" style="color:var(--danger)">Alto</span></td><td>Adicionar <code>model_version</code> ao payload na próxima mudança de schema — auditoria de qualidade de IA hoje é impossível retroativamente</td></tr>
+            <tr><td>Domain model real (1 tabela) muito distante do alvo (18 entidades)</td><td>Médio</td><td>Normalização incremental — extrair Risk/ActionItem como tabela só quando uma feature real precisar consultá-los individualmente, não antes (evita especulação prematura)</td></tr>
+            <tr><td>Prompts sem versionamento — mudança em <code>.md</code> não deixa rastro</td><td>Médio</td><td>Prompt Versioning planejado (§8) — introduzir junto com a normalização de Agent como entidade</td></tr>
+            <tr><td><code>/health</code> não verifica dependências reais (DB, provider de IA)</td><td>Médio</td><td>Separar liveness de readiness (§9) — checar conectividade real antes de reportar "pronto"</td></tr>
+            <tr><td>Model ID hardcoded — vigência na API real desconhecida</td><td>Baixo</td><td>Já parcialmente mitigado (<code>MODEL_NAME</code> configurável); confirmar quando crédito de API estiver disponível (TASK-AI-01)</td></tr>
+            <tr><td>87+ arquivos de documentação de visão sem rótulo de status</td><td>Baixo</td><td>Já registrado como débito técnico P3 em sessão anterior — sem urgência, mas cresce com o tempo</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ 13. GATE ============ -->
+    <section id="gate" class="top">
+      <div class="section-head"><span class="step-no">13</span><h2>Critérios para Início do Sprint 2</h2></div>
+      <div class="callout ok" style="font-size:15px;padding:16px 20px;">
+        <strong>O projeto está pronto para iniciar a implementação do Frontend? SIM — com pendências não-bloqueantes registradas abaixo, nenhuma delas impede especificamente o Sprint 2 (BFF + Dashboard).</strong>
+      </div>
+      <p>O raciocínio: nenhum dos dois riscos Críticos (backup, LGPD) ou Altos (rate limiter distribuído, versionamento de API, model versioning) bloqueia especificamente construir um Dashboard contra dado de desenvolvimento/mock — eles importam antes de <em>dado real de produção</em> existir, não antes da primeira tela. RFC-001 já está aprovado e detalhado em 3 revisões; este Product Blueprint fecha a lacuna de visão de produto multi-ano que faltava.</p>
+      <h3>Pendências registradas — não bloqueiam o Sprint 2, mas precisam de dono e prazo</h3>
+      <ul>
+        <li>Confirmar que nenhum dado pessoal real (PII) será usado em qualquer piloto antes do gap de LGPD (§8/§12) ser formalmente endereçado.</li>
+        <li>Decidir <code>Retry-After</code> no 429 do backend (RFC-001 Pergunta em aberto).</li>
+        <li>Decidir integração do frontend ao <code>docker-compose.yml</code> (RFC-001 Pergunta em aberto).</li>
+        <li>Confirmar se o gate de contraste WCAG entra no CI do Sprint 2 ou fica para depois (RFC-001 Pergunta em aberto).</li>
+        <li>Agendar a introdução de versionamento de API (<code>/v1/</code>) antes que o frontend se torne um segundo consumidor real do contrato atual.</li>
+        <li>Agendar backup automatizado do banco antes de qualquer ambiente com dado real (não bloqueia dev/staging).</li>
+      </ul>
+      <p>Nenhuma dessas pendências exige reabrir o RFC-001 ou este Blueprint — são itens de acompanhamento, não pré-condições.</p>
+    </section>
+
+    <footer class="doc-footer">
+      AI PMO Copilot · Product Blueprint v1 · complementa RFC-001 (Rev. 3, aprovado) · backend <code>main@30f6f40</code> · frontend <code>main@2afb970</code> · autor: sessão atuando como Chief Product Architect, a pedido do usuário. Nenhum código, componente ou mudança de backend/frontend nesta entrega.
+    </footer>
+  </main>
+</div>
