@@ -107,6 +107,7 @@
         <span><b>Origem</b> Release Plan 0.3, Épico 1</span>
         <span><b>Data</b> 2026-07-11</span>
         <span><b>Status</b> Aguardando aprovação — TIP-002 ainda não iniciado</span>
+        <span><b>Revisão</b> 2 — navegação declarativa/orientada a configuração</span>
       </div>
     </div>
 
@@ -132,6 +133,7 @@
             <tr><th>Mecanismo</th><td>Next.js nested layout — novo <code>web/app/dashboard/layout.tsx</code> envolve <code>web/app/dashboard/page.tsx</code> sem mover nenhum arquivo existente. <code>/entrar</code> não ganha layout próprio, permanece sem shell.</td></tr>
             <tr><th>Gate de sessão</th><td><code>web/proxy.ts</code> — <b>nenhuma alteração</b>. O matcher já cobre <code>/dashboard</code>; o shell só existe depois que o gate já autenticou.</td></tr>
             <tr><th>Componentes novos</th><td><code>components/shell/sidebar.tsx</code>, <code>components/shell/app-shell.tsx</code> — seguem exatamente o padrão de <code>class-variance-authority</code> + tokens já usado em <code>badge.tsx</code>/<code>button.tsx</code>. Nenhuma biblioteca nova.</td></tr>
+            <tr><th>Navegação — <span class="chip plan">revisão 2</span></th><td>Declarativa, orientada a configuração: <code>components/shell/nav-config.ts</code> exporta <code>NAV_ITEMS: NavItem[]</code> (<code>{label, href, icon}</code>); <code>Sidebar</code> faz <code>NAV_ITEMS.map(...)</code>, nunca um link escrito à mão. O array tem <b>exatamente 1 entrada</b> nesta Release — nenhum item futuro é pré-cadastrado com flag de "desabilitado", pois isso já seria implementar uma rota/rótulo futuro, ainda que oculto. Objetivo: adicionar o próximo item real é uma linha nova no array, não uma refatoração do componente.</td></tr>
             <tr><th>Header</th><td>A linha de título + botão "Atualizar" que já existe dentro de <code>dashboard/page.tsx</code> (ligada a <code>usePortfolioSummary().refetch</code>) <b>não é movida</b> para o layout — mover exigiria levantar estado de query para fora da página, risco desnecessário para uma feature "sem funcionalidade nova". O Header do shell é a moldura em volta; o conteúdo do título continua sendo responsabilidade da página.</td></tr>
             <tr><th>Rota "/"</th><td><code>app/page.tsx</code> passa a redirecionar para <code>/dashboard</code> via <code>redirect()</code> do Next.js — reaproveita o gate de sessão já existente (usuário não autenticado cai em <code>/entrar</code> normalmente, pelo mecanismo já real do <code>proxy.ts</code>).</td></tr>
             <tr><th>Contrato de API</th><td>Zero mudança. Nenhuma nova chamada de rede introduzida pelo shell.</td></tr>
