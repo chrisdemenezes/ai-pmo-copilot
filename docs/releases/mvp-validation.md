@@ -244,12 +244,20 @@ this one.
 
 ## Evidence Entry 015 - FS-001 Dashboard Executivo (Release 0.2), T1-T9
 
-- Branch: `claude/cleanup-orphaned-files-xtvwrj` (not yet merged — PR opens after Code Review, QA
-  Review, Release Review and Retrospective, per the AI-PEF gate sequence). No GitHub Actions run
-  link yet for this reason; local-equivalent checks below were run from a clean state instead.
+- Branch: `claude/cleanup-orphaned-files-xtvwrj`. Source PR: #35 -
+  [chrisdemenezes/ai-pmo-copilot#35](https://github.com/chrisdemenezes/ai-pmo-copilot/pull/35)
+  against `main` — **not yet merged**; open pending Code Review, QA Review, Release Review and
+  Retrospective per the AI-PEF gate sequence.
 - Commits (chronological): `412fa6e` (T1 session gate, T2 BFF route, T3 data layer, T4-T7 widgets),
   `63957d3` (T8 dashboard states), `cd93d1d` (fix: cached data survives a failed background
-  refetch), `9d77b59` (T9 E2E suite), `bd46fb3` (retry:false Product Behavior Decision).
+  refetch), `9d77b59` (T9 E2E suite), `bd46fb3` (retry:false Product Behavior Decision), `a716dc3`
+  (T10 docs), `2fcf329` (pre-PR wording/traceability adjustments).
+- CI evidence: GitHub Actions run
+  [29129935972](https://github.com/chrisdemenezes/ai-pmo-copilot/actions/runs/29129935972) against
+  head commit `2fcf329`, both jobs green — `validate` (backend, unaffected by this PR) and
+  `frontend` (`tsc`, `eslint`, `npm test`, `npm run build`). Note: CI's `frontend` job does not run
+  the Playwright E2E suite (`npm run test:e2e`) — that evidence is local-only, per the job
+  definition in `.github/workflows/ci.yml`. `main` unchanged by this PR (no merge performed).
 - Traceability of the process artifacts (FS-001 Revisão 5, TIP-001, UX Review): versioned in this
   repository rather than linked externally — the artifact-hosting URLs used during authoring are
   private by default and not a durable reference for a future engineer or auditor.
