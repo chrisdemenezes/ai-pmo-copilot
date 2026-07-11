@@ -1,0 +1,273 @@
+<title>FS-003 — Enterprise Dashboard Experience</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --fato:#0f6b5c; --fato-bg:#e2efe9;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --plan:#2f5f9e; --plan-bg:#e2ebf6;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --fato:#4fd6b8; --fato-bg:#173029;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --plan:#7fb4f2; --plan-bg:#1a2c42;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --fato:#4fd6b8; --fato-bg:#173029;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --plan:#7fb4f2; --plan-bg:#1a2c42;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:260px minmax(0,1fr); max-width:1300px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:4px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  .toc .toc-num{color:var(--accent); margin-right:6px;}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:56px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.7rem,4vw,2.5rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:70ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:52px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink);}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.3rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:70ch;}
+  h3{font-size:1.02rem; margin:26px 0 8px; font-weight:600;}
+  p{margin:0 0 14px; max-width:74ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:72ch;}
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:18px 22px; margin:14px 0 20px; box-shadow:var(--shadow);}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.fato{color:var(--fato); background:var(--fato-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  .chip.plan{color:var(--plan); background:var(--plan-bg);}
+  .us-card{border:1px solid var(--border); border-radius:6px; padding:16px 20px; margin-bottom:12px; background:var(--surface);}
+  .us-card .us-text{font-weight:600; margin-bottom:6px;}
+  .us-card .us-ac{color:var(--ink-dim); font-size:.87rem; margin:0;}
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">FS-003<br>Enterprise Dashboard Experience</div>
+    <nav>
+      <a href="#s1"><span class="toc-num">01</span>Contexto e Objetivo</a>
+      <a href="#s2"><span class="toc-num">02</span>Architecture Review</a>
+      <a href="#s3"><span class="toc-num">03</span>UX Review</a>
+      <a href="#s4"><span class="toc-num">04</span>Escopo</a>
+      <a href="#s5"><span class="toc-num">05</span>Fora de Escopo</a>
+      <a href="#s6"><span class="toc-num">06</span>User Stories</a>
+      <a href="#s7"><span class="toc-num">07</span>NFRs</a>
+      <a href="#s8"><span class="toc-num">08</span>Critérios de Aceite</a>
+      <a href="#s9"><span class="toc-num">09</span>Riscos</a>
+      <a href="#s10"><span class="toc-num">10</span>Checklist de Segurança</a>
+      <a href="#s11"><span class="toc-num">11</span>Rollback</a>
+      <a href="#s12"><span class="toc-num">12</span>Definition of Ready</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">Feature Specification · Release 0.3</div>
+      <h1 class="title">FS-003 — Enterprise Dashboard Experience</h1>
+      <p class="subtitle">Eleva o Dashboard Executivo ao nível visual do Figma aprovado, usando exclusivamente
+        dados e funcionalidades já existentes. Substitui a prioridade originalmente prevista no Release Plan 0.3.</p>
+      <div class="meta-row">
+        <span><b>Release</b> 0.3</span>
+        <span><b>Baseline Visual</b> Figma aprovado + FS-002 Rev.3 + TIP-002 + Visual Fidelity Report</span>
+        <span><b>Data</b> 2026-07-11</span>
+        <span><b>Status</b> Aguardando aprovação — TIP-003 ainda não iniciado</span>
+      </div>
+    </div>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Contexto e Objetivo</h2></div>
+      <p>A Sprint de Fidelidade Visual já fechou os itens <span class="chip fato">crítica</span> do Dashboard —
+        eyebrow+heading, raio/sombra dos cards, tabela densa, badge em pill (Visual Fidelity Report, commit
+        <code>321c745</code>). O que resta não foi tocado naquela Sprint porque estava fora do seu recorte
+        (<i>pure-visual, sem reorganização estrutural</i>): cabeçalhos de seção, estados de carregamento/erro/vazio,
+        e a hierarquia relativa entre os widgets que já existem. A FS-003 fecha esse restante — não reabre o que já
+        foi decidido, e não introduz nenhum widget, dado ou rota novos.</p>
+      <div class="callout">
+        A Baseline Visual da Release 0.3 (Figma aprovado + FS-002 Rev.3 + TIP-002 + Visual Fidelity Report) é a
+        referência obrigatória desta feature, por decisão do Product Owner — nenhum novo documento de tokens é
+        produzido aqui.
+      </div>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>Architecture Review</h2></div>
+      <div class="table-wrap">
+        <table>
+          <tbody>
+            <tr><th>Componentes tocados</th><td><code>app/dashboard/page.tsx</code> (ordem das seções, cabeçalhos, skeleton), <code>components/dashboard/portfolio-summary-strip.tsx</code>, <code>components/dashboard/health-status-distribution.tsx</code>, <code>components/dashboard/risk-concentration-ranking.tsx</code>, <code>app/dashboard/error.tsx</code>. Nenhum arquivo novo — apenas refinamento dos 5 já existentes.</td></tr>
+            <tr><th>Dados</th><td>Zero mudança de contrato. Todos os componentes já recebem <code>ProjectSummary[]</code> via <code>usePortfolioSummary()</code> (TanStack Query, BFF <code>/api/bff/dashboard</code>) — nenhum campo novo é lido, nenhuma chamada de rede nova é introduzida.</td></tr>
+            <tr><th>Skeleton desatualizado — achado real</th><td>O <code>DashboardSkeleton</code> em <code>page.tsx</code> ainda renderiza um grid de 3 blocos <code>h-32</code> em formato de card para a seção "Projetos" — isso representava o layout <b>pré</b>-Visual-Fidelity-Sprint. Hoje "Projetos" é uma tabela densa em md/lg e uma lista de cards só em mobile (<code>project-health-grid.tsx</code>). O skeleton ficou inconsistente com o layout real que ele deveria antecipar. Corrigir isso é <span class="chip plan">implementável nesta Feature</span> — não é mudança de dado, é o esqueleto de carregamento acompanhar a UI real.</td></tr>
+            <tr><th>Ordem das seções</th><td>Reordenar <code>&lt;section&gt;</code> dentro de <code>page.tsx</code> é troca de posição de JSX já existente — sem novo componente, sem nova query. Detalhado na Seção 3 (UX Review).</td></tr>
+            <tr><th>Section headers</th><td>Hoje "Distribuição de saúde", "Maior concentração de risco" e "Projetos" usam o mesmo <code>&lt;h2 className="text-sm font-medium text-ink-muted"&gt;</code> sem hierarquia entre si. Elevar o peso tipográfico e adicionar um subtítulo com contagem real (<code>projects.length</code>, já calculado) é troca de className + interpolação de um número já disponível — não é dado novo.</td></tr>
+            <tr><th>Contrato de API / backend</th><td>Nenhuma alteração. Nenhuma rota nova, nenhum agente de IA tocado, Demo Mode inalterado.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>UX Review</h2></div>
+      <p class="section-intro">O Figma dá ênfase clara à tabela de projetos como o conteúdo dominante da tela
+        (maior área, primeiro no fluxo visual depois dos KPIs). A implementação real hoje intercala dois widgets
+        menores (Distribuição de saúde, Maior concentração de risco) <b>antes</b> da tabela, invertendo essa
+        ênfase.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Mudança</th><th>Racional</th></tr></thead>
+          <tbody>
+            <tr><td>Reordenar: KPIs → Projetos (tabela) → Distribuição de saúde → Maior concentração de risco</td><td>Alinha a ênfase da IA real à do Figma (conteúdo tabular como âncora principal), sem remover nenhum widget existente</td></tr>
+            <tr><td>Cabeçalho de seção "Projetos" ganha peso tipográfico maior + subtítulo "N projetos"</td><td>Mesmo tratamento do Figma para o cabeçalho da tabela — usa <code>projects.length</code>, dado já real</td></tr>
+            <tr><td>Skeleton de carregamento passa a refletir o layout atual (tabela em md/lg, cards em mobile) em vez do grid de cards antigo</td><td>Consistência entre estado de loading e estado carregado — o usuário não deve ver uma forma diferente da tela real "piscando" durante o carregamento</td></tr>
+            <tr><td>Estado de erro (<code>error.tsx</code>) e estado vazio (<code>EmptyState</code> em <code>page.tsx</code>) recebem o mesmo raio/sombra de card já estabelecido pela Visual Fidelity Sprint</td><td>Hoje usam <code>border-dashed</code> genérico sem o token <code>--radius</code> atualizado — o Figma não define esses estados (é um mockup estático), então a extrapolação aqui é aplicar o mesmo sistema de tokens já real ao produto, não copiar algo que não existe na referência</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout guard">
+        <b>Limite explícito:</b> o Figma não modela estados de vazio/erro/carregamento — é uma tela estática com
+        dados preenchidos. Qualquer refinamento nesses estados nesta Feature usa o sistema de tokens já
+        estabelecido (raio, sombra, tipografia), nunca invenção de novo conteúdo visual não ancorado no que já
+        existe.
+      </div>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>Escopo</h2></div>
+      <ul>
+        <li>KPIs: nenhuma mudança visual adicional (já fechado na Visual Fidelity Sprint) — apenas manter no reposicionamento da Seção 3</li>
+        <li>Cards: nenhuma mudança adicional (raio/sombra já fechados) — aplicar o mesmo tratamento aos cards de estado vazio/erro</li>
+        <li>Grid: manter a estrutura responsiva já existente (<code>sm:grid-cols-3</code> para KPIs) — sem novas colunas</li>
+        <li>Table: nenhuma mudança estrutural (já fechada) — apenas garantir que o skeleton de loading a antecipe corretamente</li>
+        <li>Section Headers: peso tipográfico + subtítulo com contagem real para "Projetos"; avaliação do mesmo tratamento para os demais cabeçalhos de seção</li>
+        <li>Estados visuais: harmonizar loading/erro/vazio com os tokens de raio/sombra já estabelecidos</li>
+        <li>Hierarquia da informação: reordenar as seções da página para dar à tabela de projetos a mesma ênfase que tem no Figma</li>
+        <li>Refinamento dos componentes existentes: <code>portfolio-summary-strip.tsx</code>, <code>health-status-distribution.tsx</code>, <code>risk-concentration-ranking.tsx</code>, <code>error.tsx</code> — apenas estilo/organização, mesma lógica e dados</li>
+      </ul>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Fora de Escopo (explícito)</h2></div>
+      <ul>
+        <li>Qualquer novo widget, KPI, coluna de tabela ou dado — inclusive os que existem apenas no Figma (Budget Utilizado, Sprint Velocity, Capacidade Time, colunas Progresso/Cronograma/PM)</li>
+        <li>Sparklines e indicadores de tendência nos KPIs — exigem série histórica que o produto não persiste</li>
+        <li>Painel "Risk Radar" — exige nova rota de API (Release Plan 0.3, Épico 2), não é mudança visual</li>
+        <li>Busca global, notificações, "Ask Copilot", identidade de usuário nomeada — nenhuma dessas capacidades existe</li>
+        <li>Link "Ver todos" nos cabeçalhos de seção — não existe uma segunda view para linkar</li>
+        <li>Qualquer alteração de backend, contrato de API, agente de IA ou Demo Mode</li>
+        <li>Painel de marca do Login (já classificado "importante"/adiado na Visual Fidelity Sprint) — fora do recorte desta feature, que é exclusivamente Dashboard</li>
+      </ul>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>User Stories</h2></div>
+      <div class="us-card">
+        <div class="us-text">Como PMO executivo, vejo a tabela de projetos como o conteúdo principal da tela, sem precisar rolar além dos KPIs para chegar nela.</div>
+        <p class="us-ac">Critério: ordem real das seções passa a ser KPIs → Projetos → Distribuição de saúde → Maior concentração de risco.</p>
+      </div>
+      <div class="us-card">
+        <div class="us-text">Como usuário aguardando o carregamento, vejo um esqueleto que já antecipa a forma real da tela (tabela em md/lg, cards em mobile).</div>
+        <p class="us-ac">Critério: <code>DashboardSkeleton</code> não renderiza mais o grid de cards antigo para a seção de projetos.</p>
+      </div>
+      <div class="us-card">
+        <div class="us-text">Como usuário sem projetos analisados ou diante de uma falha de carregamento, vejo um estado visualmente consistente com o resto do produto.</div>
+        <p class="us-ac">Critério: <code>EmptyState</code> e <code>error.tsx</code> usam o mesmo raio/sombra de card já estabelecido, sem novo conteúdo textual além do já existente.</p>
+      </div>
+    </section>
+
+    <section id="s7">
+      <div class="section-head"><span class="section-num">07</span><h2>NFRs Aplicáveis</h2></div>
+      <ul>
+        <li>Nenhuma regressão nos 87 testes de backend</li>
+        <li>Nenhuma regressão nos testes de frontend já existentes (unit/component/E2E) — testes de ordem de seção e do novo skeleton são adicionados, não removidos</li>
+        <li>Contraste WCAG AA mantido nos cabeçalhos de seção com peso tipográfico maior, em ambos os temas</li>
+        <li>Reordenação de seções não altera a árvore de foco/tab order de forma que quebre navegação por teclado</li>
+      </ul>
+    </section>
+
+    <section id="s8">
+      <div class="section-head"><span class="section-num">08</span><h2>Critérios de Aceite</h2></div>
+      <ul>
+        <li>Ordem real das seções no DOM: KPIs, Projetos (tabela), Distribuição de saúde, Maior concentração de risco</li>
+        <li>Cabeçalho da seção "Projetos" mostra contagem real (<code>projects.length</code>) — nunca um valor fixo</li>
+        <li><code>DashboardSkeleton</code> não contém mais o grid de 3 blocos <code>h-32</code> em formato de card</li>
+        <li><code>EmptyState</code> e <code>error.tsx</code> usam <code>rounded-lg</code>/<code>shadow-md</code> consistentes com <code>Card</code></li>
+        <li>Nenhum novo campo, rota, KPI ou coluna aparece em nenhum estado da tela</li>
+        <li>Suíte completa (backend + frontend + E2E) passa sem alteração de contrato</li>
+      </ul>
+    </section>
+
+    <section id="s9">
+      <div class="section-head"><span class="section-num">09</span><h2>Riscos Específicos</h2></div>
+      <ul>
+        <li><b>Baixo risco geral</b> — reorganização de apresentação sobre dados já reais, sem mudança de contrato.</li>
+        <li><b>Reordenação de seções</b> pode exigir ajuste nos testes E2E existentes que talvez assumam a ordem atual (<code>shell.spec.ts</code>, testes de <code>page.tsx</code>) — precisa de verificação explícita, não suposição.</li>
+        <li><b>Ambiguidade do limite Figma-não-modela-estados</b> (Seção 3) — se qualquer refinamento de estado vazio/erro parecer inventar conteúdo, interromper e levar para decisão do Product Owner em vez de resolver unilateralmente.</li>
+      </ul>
+    </section>
+
+    <section id="s10">
+      <div class="section-head"><span class="section-num">10</span><h2>Checklist de Segurança (ADR-011)</h2></div>
+      <p><span class="chip fato">N/A — justificado</span> Feature puramente de apresentação sobre dados já
+        autorizados e já em tela. Não toca autenticação, sessão, credencial ou qualquer rota de API. O checklist
+        obrigatório do TIP (ADR-011) se aplica na escrita do TIP-003, sem achado esperado específico a esta
+        feature.</p>
+    </section>
+
+    <section id="s11">
+      <div class="section-head"><span class="section-num">11</span><h2>Rollback</h2></div>
+      <p>Reverter o commit desta feature restaura a ordem de seções, o skeleton e os estados de vazio/erro ao
+        estado anterior (pós Visual Fidelity Sprint). Nenhuma migração de dado, nenhuma mudança de schema —
+        rollback é reversão de código pura.</p>
+    </section>
+
+    <section id="s12">
+      <div class="section-head"><span class="section-num">12</span><h2>Definition of Ready — Próximo Gate</h2></div>
+      <div class="callout guard">
+        <b>Nenhum código foi escrito.</b> Este documento é a Feature Specification, com Architecture Review (Seção
+        2) e UX Review (Seção 3) incluídos. O Visual Gap Analysis é apresentado como documento separado. O próximo
+        passo — TIP-003 — só começa após aprovação explícita de ambos.
+      </div>
+    </section>
+
+    <footer>
+      <span>Stratech — FS-003</span>
+      <span>Release 0.3</span>
+      <span>2026-07-11</span>
+    </footer>
+  </main>
+</div>

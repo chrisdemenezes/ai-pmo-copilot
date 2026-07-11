@@ -1,0 +1,179 @@
+<title>FS-003 — Visual Gap Analysis</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --impl:#2f7a4f; --impl-bg:#e1f0e5;
+    --dep:#2f5f9e; --dep-bg:#e2ebf6;
+    --out:#6b4fa0; --out-bg:#ece5f6;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --impl:#7fd19f; --impl-bg:#1a3324;
+    --dep:#7fb4f2; --dep-bg:#1a2c42;
+    --out:#c3aef0; --out-bg:#2c2245;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --impl:#7fd19f; --impl-bg:#1a3324;
+      --dep:#7fb4f2; --dep-bg:#1a2c42;
+      --out:#c3aef0; --out-bg:#2c2245;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  main{max-width:1100px; margin:0 auto; padding:56px 40px 100px;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1{font-size:clamp(1.7rem,4vw,2.3rem); line-height:1.16; margin:0 0 14px; font-weight:600; text-wrap:balance;}
+  .subtitle{color:var(--ink-dim); max-width:74ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding:18px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim); margin-bottom:16px;}
+  .meta-row b{color:var(--ink);}
+  h2{font-size:1.25rem; margin:44px 0 6px; padding-bottom:10px; border-bottom:2px solid var(--ink);}
+  h3{font-size:1rem; margin:26px 0 8px; font-weight:600;}
+  p{margin:0 0 12px; max-width:76ch;}
+  ul{margin:0 0 14px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:74ch;}
+  table{width:100%; border-collapse:collapse; font-size:.85rem; margin:12px 0 24px;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 10px; border-bottom:1px solid var(--ink);}
+  td{padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top;}
+  td code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.impl{color:var(--impl); background:var(--impl-bg);}
+  .chip.dep{color:var(--dep); background:var(--dep-bg);}
+  .chip.out{color:var(--out); background:var(--out-bg);}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.out{border-left-color:var(--out);}
+  .callout b{color:var(--ink);}
+  .legend{display:flex; flex-wrap:wrap; gap:14px; margin:14px 0 28px; font-size:.85rem; color:var(--ink-dim);}
+  footer{border-top:1px solid var(--border); margin-top:60px; padding-top:20px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<main>
+  <div class="kicker">Chief Product Designer · FS-003 · Visual Gap Analysis</div>
+  <h1>Visual Gap Analysis — Enterprise Dashboard Experience</h1>
+  <p class="subtitle">Compara o Dashboard real (pós Visual Fidelity Sprint, commit <code>321c745</code>) contra o
+    Figma aprovado, dentro do recorte autorizado da FS-003: KPIs, Cards, Grid, Table, Section Headers, Estados
+    visuais, Hierarquia da informação, Refinamento dos componentes existentes.</p>
+  <div class="meta-row">
+    <span><b>Referência</b> Figma <code>futjiBle0AYkphK695t2a6</code></span>
+    <span><b>Baseline</b> FS-002 Rev.3 + TIP-002 + Visual Fidelity Report</span>
+    <span><b>Data</b> 2026-07-11</span>
+  </div>
+
+  <div class="legend">
+    <span class="chip impl">IMPLEMENTÁVEL NESTA FEATURE</span> visual/estrutural, usa dado já real
+    <span class="chip dep">DEPENDENTE DE FUNCIONALIDADE FUTURA</span> exige capacidade que não existe ainda
+    <span class="chip out">FORA DO ESCOPO</span> conteúdo fictício da referência — nunca implementado
+  </div>
+
+  <h2>1. KPIs</h2>
+  <table>
+    <thead><tr><th>Diferença</th><th>Classificação</th><th>Nota</th></tr></thead>
+    <tbody>
+      <tr><td>Radius/sombra dos cards</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Já fechado na Visual Fidelity Sprint — sem gap remanescente</td></tr>
+      <tr><td>Sparkline por card</td><td><span class="chip dep">DEPENDENTE</span></td><td>Exige série histórica; produto não persiste snapshots ao longo do tempo</td></tr>
+      <tr><td>Indicador de tendência ("+2 esta semana")</td><td><span class="chip dep">DEPENDENTE</span></td><td>Mesmo motivo — sem histórico</td></tr>
+      <tr><td>Barra de progresso preenchida sob o valor</td><td><span class="chip out">FORA DO ESCOPO</span></td><td>No Figma representa uma proporção (ex.: 24/31) que não existe para nenhum dos 3 KPIs reais — adicionar a barra seria inventar um denominador fictício</td></tr>
+      <tr><td>KPIs "Budget Utilizado", "Sprint Velocity", "Capacidade Time"</td><td><span class="chip out">FORA DO ESCOPO</span></td><td>Campos inexistentes no schema real — já excluídos na Sprint anterior, reafirmado aqui</td></tr>
+    </tbody>
+  </table>
+
+  <h2>2. Cards</h2>
+  <table>
+    <thead><tr><th>Diferença</th><th>Classificação</th><th>Nota</th></tr></thead>
+    <tbody>
+      <tr><td>Raio/sombra dos cards de conteúdo (KPI, tabela)</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Já fechado — sem gap</td></tr>
+      <tr><td>Card do estado vazio (<code>EmptyState</code>)</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Hoje usa borda tracejada genérica sem o token <code>--radius</code>/<code>shadow-md</code> já estabelecido. O Figma não modela esse estado — a extrapolação é aplicar o sistema de tokens já real, não copiar algo que não existe na referência</td></tr>
+      <tr><td>Card do estado de erro (<code>error.tsx</code>)</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Mesmo racional do item anterior</td></tr>
+    </tbody>
+  </table>
+
+  <h2>3. Grid</h2>
+  <table>
+    <thead><tr><th>Diferença</th><th>Classificação</th><th>Nota</th></tr></thead>
+    <tbody>
+      <tr><td>Grid de 3 colunas para os KPIs reais (<code>sm:grid-cols-3</code>)</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Já correto para 3 KPIs reais — sem gap</td></tr>
+      <tr><td>Grid de 2 colunas do Figma (tabela 2/3 + Risk Radar 1/3)</td><td><span class="chip dep">DEPENDENTE</span></td><td>Só faz sentido quando o Risk Radar existir (Release Plan 0.3, Épico 2) — criar a coluna vazia agora seria estrutura para nada</td></tr>
+    </tbody>
+  </table>
+
+  <h2>4. Table</h2>
+  <table>
+    <thead><tr><th>Diferença</th><th>Classificação</th><th>Nota</th></tr></thead>
+    <tbody>
+      <tr><td>Layout denso (md/lg) + cards empilhados (mobile)</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Já fechado — sem gap na tabela em si</td></tr>
+      <tr><td>Colunas "Progresso", "Cronograma", "PM" (com avatar)</td><td><span class="chip out">FORA DO ESCOPO</span></td><td>Nenhum desses dados é rastreado hoje</td></tr>
+      <tr><td>Skeleton de carregamento da seção</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Achado real (Architecture Review, FS-003 §2): o skeleton ainda antecipa o grid de cards pré-Sprint, não a tabela real — corrigir é consistência de loading state, não dado novo</td></tr>
+    </tbody>
+  </table>
+
+  <h2>5. Section Headers</h2>
+  <table>
+    <thead><tr><th>Diferença</th><th>Classificação</th><th>Nota</th></tr></thead>
+    <tbody>
+      <tr><td>Cabeçalho "Projetos" com peso tipográfico maior + subtítulo com contagem</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Contagem (<code>projects.length</code>) já é dado real, só não é exibida hoje</td></tr>
+      <tr><td>Subtítulo "Q3 2025" / "projetos ativos"</td><td><span class="chip out">FORA DO ESCOPO</span></td><td>Produto não tem conceito de trimestre nem status "ativo" separado de <code>latest_health_status</code></td></tr>
+      <tr><td>Link "Ver todos" no cabeçalho</td><td><span class="chip dep">DEPENDENTE</span></td><td>Não existe uma segunda view/rota de listagem completa para linkar — a tabela já mostra todos os projetos</td></tr>
+      <tr><td>Cabeçalhos "Distribuição de saúde" / "Maior concentração de risco"</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Mesma elevação tipográfica do cabeçalho de "Projetos", por consistência interna — o Figma não modela esses 2 widgets (são invenção própria do FS-001), então aqui a referência é a consistência com o resto da tela, não o Figma linha a linha</td></tr>
+    </tbody>
+  </table>
+
+  <h2>6. Estados visuais (vazio / carregamento / erro)</h2>
+  <table>
+    <thead><tr><th>Diferença</th><th>Classificação</th><th>Nota</th></tr></thead>
+    <tbody>
+      <tr><td>Harmonização de raio/sombra do estado vazio e de erro</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Ver Cards, item 2</td></tr>
+      <tr><td>Skeleton reflete o layout real (tabela, não cards)</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Ver Table, item 4</td></tr>
+      <tr><td>Qualquer novo texto, ícone ilustrativo ou CTA não existente hoje</td><td><span class="chip out">FORA DO ESCOPO</span></td><td>O Figma não modela esses estados; inventar conteúdo novo para "parecer" com uma referência que não os cobre violaria a restrição de não criar conteúdo fictício</td></tr>
+    </tbody>
+  </table>
+
+  <h2>7. Hierarquia da informação</h2>
+  <table>
+    <thead><tr><th>Diferença</th><th>Classificação</th><th>Nota</th></tr></thead>
+    <tbody>
+      <tr><td>Tabela de projetos como conteúdo dominante, logo após os KPIs</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Reordenação de seções já existentes — sem novo componente, sem nova query (FS-003 §3)</td></tr>
+      <tr><td>Risk Radar como painel de destaque ao lado da tabela</td><td><span class="chip dep">DEPENDENTE</span></td><td>Ver Grid, item 3</td></tr>
+    </tbody>
+  </table>
+
+  <h2>8. Refinamento dos componentes existentes</h2>
+  <table>
+    <thead><tr><th>Componente</th><th>Classificação</th><th>Nota</th></tr></thead>
+    <tbody>
+      <tr><td><code>portfolio-summary-strip.tsx</code></td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Sem gap adicional — já alinhado (Seção 1)</td></tr>
+      <tr><td><code>health-status-distribution.tsx</code></td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Reposicionamento + cabeçalho (Seções 5 e 7)</td></tr>
+      <tr><td><code>risk-concentration-ranking.tsx</code></td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Reposicionamento + cabeçalho (Seções 5 e 7)</td></tr>
+      <tr><td><code>error.tsx</code></td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Harmonização de card (Seção 6)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Resumo — o que entra na FS-003</h2>
+  <ul>
+    <li><b>Implementável nesta Feature (9 itens):</b> harmonização do card de estado vazio/erro; skeleton refletindo
+      o layout real; cabeçalho "Projetos" com contagem real; elevação tipográfica dos demais cabeçalhos de seção;
+      reordenação de seções (tabela como conteúdo dominante); nenhum widget, KPI, coluna ou rota novos em nenhum
+      item.</li>
+    <li><b>Dependente de funcionalidade futura (4 itens):</b> grid de 2 colunas com Risk Radar, link "Ver todos",
+      sparkline/tendência nos KPIs — todos aguardando capacidade que ainda não existe (histórico, segunda view,
+      nova rota de API).</li>
+    <li><b>Fora do escopo (5 itens):</b> barra de progresso fictícia nos KPIs, KPIs e colunas de tabela inexistentes,
+      subtítulo "Q3 2025"/"ativos", qualquer conteúdo novo inventado para os estados vazio/erro/carregamento.</li>
+  </ul>
+
+  <footer>
+    <span>Stratech — FS-003</span>
+    <span>Visual Gap Analysis</span>
+    <span>2026-07-11</span>
+  </footer>
+</main>
