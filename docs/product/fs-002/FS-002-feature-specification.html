@@ -107,7 +107,7 @@
         <span><b>Origem</b> Release Plan 0.3, Épico 1</span>
         <span><b>Data</b> 2026-07-11</span>
         <span><b>Status</b> Aguardando aprovação — TIP-002 ainda não iniciado</span>
-        <span><b>Revisão</b> 2 — navegação declarativa/orientada a configuração</span>
+        <span><b>Revisão</b> 3 — revisão arquitetural final (Chief Software Architect)</span>
       </div>
     </div>
 
@@ -133,12 +133,20 @@
             <tr><th>Mecanismo</th><td>Next.js nested layout — novo <code>web/app/dashboard/layout.tsx</code> envolve <code>web/app/dashboard/page.tsx</code> sem mover nenhum arquivo existente. <code>/entrar</code> não ganha layout próprio, permanece sem shell.</td></tr>
             <tr><th>Gate de sessão</th><td><code>web/proxy.ts</code> — <b>nenhuma alteração</b>. O matcher já cobre <code>/dashboard</code>; o shell só existe depois que o gate já autenticou.</td></tr>
             <tr><th>Componentes novos</th><td><code>components/shell/sidebar.tsx</code>, <code>components/shell/app-shell.tsx</code> — seguem exatamente o padrão de <code>class-variance-authority</code> + tokens já usado em <code>badge.tsx</code>/<code>button.tsx</code>. Nenhuma biblioteca nova.</td></tr>
-            <tr><th>Navegação — <span class="chip plan">revisão 2</span></th><td>Declarativa, orientada a configuração: <code>components/shell/nav-config.ts</code> exporta <code>NAV_ITEMS: NavItem[]</code> (<code>{label, href, icon}</code>); <code>Sidebar</code> faz <code>NAV_ITEMS.map(...)</code>, nunca um link escrito à mão. O array tem <b>exatamente 1 entrada</b> nesta Release — nenhum item futuro é pré-cadastrado com flag de "desabilitado", pois isso já seria implementar uma rota/rótulo futuro, ainda que oculto. Objetivo: adicionar o próximo item real é uma linha nova no array, não uma refatoração do componente.</td></tr>
+            <tr><th>Navegação — <span class="chip plan">revisão 3</span></th><td>Declarativa, orientada a configuração: <code>components/shell/navigation.ts</code> exporta <code>NAV_ITEMS: NavItem[]</code>; <code>types.ts</code> define <code>interface NavItem { label: string; href: string; icon: LucideIcon }</code>. <code>Sidebar</code> faz <code>NAV_ITEMS.map(...)</code>, nunca um link escrito à mão. O array tem <b>exatamente 1 entrada</b> nesta Release — nenhum item futuro é pré-cadastrado com flag de "desabilitado". Campo <code>id</code> avaliado e <b>rejeitado</b>: nenhum consumidor real hoje (sem analytics, sem RBAC, sem feature flags no produto); o único uso real — item ativo via <code>usePathname()</code> — já usa <code>href</code>, que é naturalmente único. Adicionar <code>id</code> seria uma segunda fonte de verdade sem necessidade, exatamente a arquitetura especulativa que esta revisão buscava evitar.</td></tr>
+            <tr><th>Organização de arquivos</th><td><code>components/shell/{types.ts, navigation.ts, sidebar.tsx, header.tsx, app-shell.tsx}</code> — kebab-case minúsculo, igual a 100% dos componentes já existentes (<code>badge.tsx</code>, <code>button.tsx</code>, <code>portfolio-summary-strip.tsx</code>); nenhum arquivo novo em PascalCase, para não introduzir uma segunda convenção no projeto.</td></tr>
             <tr><th>Header</th><td>A linha de título + botão "Atualizar" que já existe dentro de <code>dashboard/page.tsx</code> (ligada a <code>usePortfolioSummary().refetch</code>) <b>não é movida</b> para o layout — mover exigiria levantar estado de query para fora da página, risco desnecessário para uma feature "sem funcionalidade nova". O Header do shell é a moldura em volta; o conteúdo do título continua sendo responsabilidade da página.</td></tr>
             <tr><th>Rota "/"</th><td><code>app/page.tsx</code> passa a redirecionar para <code>/dashboard</code> via <code>redirect()</code> do Next.js — reaproveita o gate de sessão já existente (usuário não autenticado cai em <code>/entrar</code> normalmente, pelo mecanismo já real do <code>proxy.ts</code>).</td></tr>
             <tr><th>Contrato de API</th><td>Zero mudança. Nenhuma nova chamada de rede introduzida pelo shell.</td></tr>
           </tbody>
         </table>
+      </div>
+      <div class="callout">
+        <b>Decisão arquitetural registrada nesta FS (não ADR):</b> "Toda estrutura de navegação da plataforma
+        deverá ser orientada por configuração declarativa, contendo exclusivamente elementos reais e aprovados,
+        evitando tanto acoplamento quanto arquitetura especulativa." Vale para esta feature e como referência
+        para as próximas (FS-003 em diante) — formalização como princípio permanente do AI-PEF, se justificada
+        por evidência de reuso real, é decisão futura do Product Owner, não desta FS.
       </div>
     </section>
 
