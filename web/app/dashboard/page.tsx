@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Header } from "@/components/shell/header";
 import { usePortfolioSummary } from "@/lib/hooks/use-portfolio-summary";
@@ -48,16 +49,21 @@ export default function DashboardPage() {
         <>
           <PortfolioSummaryStrip projects={projects} />
           <section className="flex flex-col gap-3">
-            <h2 className="text-sm font-medium text-ink-muted">Distribuição de saúde</h2>
+            <div>
+              <h2 className="font-display text-lg font-semibold text-ink">Projetos</h2>
+              <p className="text-sm text-ink-muted">
+                {projects.length} {projects.length === 1 ? "projeto" : "projetos"}
+              </p>
+            </div>
+            <ProjectHealthGrid projects={projects} />
+          </section>
+          <section className="flex flex-col gap-3">
+            <h2 className="text-sm font-semibold text-ink-muted">Distribuição de saúde</h2>
             <HealthStatusDistribution projects={projects} />
           </section>
           <section className="flex flex-col gap-3">
-            <h2 className="text-sm font-medium text-ink-muted">Maior concentração de risco</h2>
+            <h2 className="text-sm font-semibold text-ink-muted">Maior concentração de risco</h2>
             <RiskConcentrationRanking projects={projects} />
-          </section>
-          <section className="flex flex-col gap-3">
-            <h2 className="text-sm font-medium text-ink-muted">Projetos</h2>
-            <ProjectHealthGrid projects={projects} />
           </section>
         </>
       )}
@@ -67,13 +73,15 @@ export default function DashboardPage() {
 
 function EmptyState() {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border-strong p-12 text-center">
-      <p className="font-medium">Nenhum projeto com análise registrada ainda</p>
-      <p className="text-sm text-ink-muted">
-        Assim que uma reunião, risco ou status de projeto for analisado, ele aparece aqui
-        automaticamente.
-      </p>
-    </div>
+    <Card>
+      <CardContent className="flex flex-col items-center gap-2 p-12 text-center">
+        <p className="font-medium">Nenhum projeto com análise registrada ainda</p>
+        <p className="text-sm text-ink-muted">
+          Assim que uma reunião, risco ou status de projeto for analisado, ele aparece aqui
+          automaticamente.
+        </p>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -86,14 +94,7 @@ function DashboardSkeleton() {
         <Skeleton className="h-20" />
         <Skeleton className="h-20" />
       </div>
-      <div
-        className="grid gap-4"
-        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))" }}
-      >
-        <Skeleton className="h-32" />
-        <Skeleton className="h-32" />
-        <Skeleton className="h-32" />
-      </div>
+      <Skeleton className="h-64" />
     </main>
   );
 }

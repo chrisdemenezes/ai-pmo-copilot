@@ -42,7 +42,7 @@ test("logs in with the correct password and lands on /dashboard", async ({ page 
 // 5 + 12 (sucesso). Dashboard com dados
 test("renders the portfolio widgets when the backend has data", async ({ page }) => {
   await login(page);
-  await expect(page.getByText("Multilift").first()).toBeVisible();
+  await expect(page.getByText("Multilift").filter({ visible: true }).first()).toBeVisible();
   await expect(page.getByText("Projetos").first()).toBeVisible();
 });
 
@@ -76,13 +76,13 @@ test("renders the error state when the backend times out", async ({ page }) => {
 // 9. Preservação de dados em cache durante falha de background refetch (Achado #1)
 test("keeps showing cached data when a manual refetch fails", async ({ page }) => {
   await login(page);
-  await expect(page.getByText("Multilift").first()).toBeVisible();
+  await expect(page.getByText("Multilift").filter({ visible: true }).first()).toBeVisible();
 
   await setBackendScenario("unavailable");
   await page.getByRole("button", { name: "Atualizar" }).click();
 
   // The dashboard must still show the last known-good data, not the error screen.
-  await expect(page.getByText("Multilift").first()).toBeVisible();
+  await expect(page.getByText("Multilift").filter({ visible: true }).first()).toBeVisible();
   await expect(page.getByText("Não foi possível carregar o portfólio agora")).not.toBeVisible();
 });
 
@@ -96,7 +96,7 @@ test("never exposes API_KEY or SESSION_SECRET to the browser", async ({ page }) 
   });
 
   await login(page);
-  await expect(page.getByText("Multilift").first()).toBeVisible();
+  await expect(page.getByText("Multilift").filter({ visible: true }).first()).toBeVisible();
 
   const html = await page.content();
   expect(html).not.toContain("e2e-secret-key");
@@ -130,14 +130,14 @@ test("shows the loading skeleton before the final content", async ({ page }) => 
 
   await page.waitForURL(/\/dashboard/);
   const skeleton = page.locator('[data-slot="skeleton"]');
-  const content = page.getByText("Multilift").first();
+  const content = page.getByText("Multilift").filter({ visible: true }).first();
   await expect(skeleton.first().or(content)).toBeVisible();
 });
 
 // 11. Responsividade -- roda em cada project (mobile/md/lg) via playwright.config.ts
 test("dashboard grid stacks to a single column on narrow viewports", async ({ page }, testInfo) => {
   await login(page);
-  await expect(page.getByText("Multilift").first()).toBeVisible();
+  await expect(page.getByText("Multilift").filter({ visible: true }).first()).toBeVisible();
 
   const stripCards = page.locator("main > div > div > div").first();
   const box = await stripCards.boundingBox();
