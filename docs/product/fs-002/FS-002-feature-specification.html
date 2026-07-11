@@ -1,0 +1,274 @@
+<title>FS-002 — Enterprise Application Shell</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --fato:#0f6b5c; --fato-bg:#e2efe9;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --plan:#2f5f9e; --plan-bg:#e2ebf6;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --fato:#4fd6b8; --fato-bg:#173029;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --plan:#7fb4f2; --plan-bg:#1a2c42;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --fato:#4fd6b8; --fato-bg:#173029;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --plan:#7fb4f2; --plan-bg:#1a2c42;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:260px minmax(0,1fr); max-width:1300px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:4px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  .toc .toc-num{color:var(--accent); margin-right:6px;}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:56px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.7rem,4vw,2.5rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:70ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:52px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink);}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.3rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:70ch;}
+  h3{font-size:1.02rem; margin:26px 0 8px; font-weight:600;}
+  p{margin:0 0 14px; max-width:74ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:72ch;}
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:18px 22px; margin:14px 0 20px; box-shadow:var(--shadow);}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.fato{color:var(--fato); background:var(--fato-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  .chip.plan{color:var(--plan); background:var(--plan-bg);}
+  .us-card{border:1px solid var(--border); border-radius:6px; padding:16px 20px; margin-bottom:12px; background:var(--surface);}
+  .us-card .us-text{font-weight:600; margin-bottom:6px;}
+  .us-card .us-ac{color:var(--ink-dim); font-size:.87rem; margin:0;}
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">FS-002<br>Enterprise Application Shell</div>
+    <nav>
+      <a href="#s1"><span class="toc-num">01</span>Contexto e Objetivo</a>
+      <a href="#s2"><span class="toc-num">02</span>Architecture Review</a>
+      <a href="#s3"><span class="toc-num">03</span>UX Review</a>
+      <a href="#s4"><span class="toc-num">04</span>Escopo</a>
+      <a href="#s5"><span class="toc-num">05</span>Fora de Escopo</a>
+      <a href="#s6"><span class="toc-num">06</span>User Stories</a>
+      <a href="#s7"><span class="toc-num">07</span>NFRs</a>
+      <a href="#s8"><span class="toc-num">08</span>Critérios de Aceite</a>
+      <a href="#s9"><span class="toc-num">09</span>Riscos</a>
+      <a href="#s10"><span class="toc-num">10</span>Checklist de Segurança</a>
+      <a href="#s11"><span class="toc-num">11</span>Rollback</a>
+      <a href="#s12"><span class="toc-num">12</span>Definition of Ready</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">Feature Specification · Release 0.3, Sprint 1</div>
+      <h1 class="title">FS-002 — Enterprise Application Shell</h1>
+      <p class="subtitle">Sidebar, header e navegação ao redor do Dashboard Executivo já real. Nenhuma
+        funcionalidade nova, nenhuma alteração de backend, contrato de API ou AI-PEF.</p>
+      <div class="meta-row">
+        <span><b>Release</b> 0.3 (aberta por ADR-012)</span>
+        <span><b>Origem</b> Release Plan 0.3, Épico 1</span>
+        <span><b>Data</b> 2026-07-11</span>
+        <span><b>Status</b> Aguardando aprovação — TIP-002 ainda não iniciado</span>
+      </div>
+    </div>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Contexto e Objetivo</h2></div>
+      <p>O produto hoje tem exatamente uma rota autenticada (<code>/dashboard</code>) sem nenhuma moldura de
+        navegação ao redor — o usuário chega direto no conteúdo, sem contexto de marca ou estrutura de produto.
+        Isso deixou de refletir a maturidade real do produto (Release 0.2 concluída, Demo Mode operacional,
+        Platform Blueprint aprovado). O objetivo desta feature é dar ao Dashboard uma moldura de produto Enterprise
+        — sem adicionar nenhuma tela, dado ou capacidade nova.</p>
+      <div class="callout">
+        Achado colateral: <code>web/app/page.tsx</code> (rota "/") ainda exibe um placeholder de "Sprint 1 de 6"
+        dizendo <i>"o Dashboard... ainda não existe"</i> — falso desde a Release 0.2. Corrigir isso está dentro do
+        escopo desta feature ("Integração com o Dashboard existente", Seção 4).
+      </div>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>Architecture Review</h2></div>
+      <div class="table-wrap">
+        <table>
+          <tbody>
+            <tr><th>Mecanismo</th><td>Next.js nested layout — novo <code>web/app/dashboard/layout.tsx</code> envolve <code>web/app/dashboard/page.tsx</code> sem mover nenhum arquivo existente. <code>/entrar</code> não ganha layout próprio, permanece sem shell.</td></tr>
+            <tr><th>Gate de sessão</th><td><code>web/proxy.ts</code> — <b>nenhuma alteração</b>. O matcher já cobre <code>/dashboard</code>; o shell só existe depois que o gate já autenticou.</td></tr>
+            <tr><th>Componentes novos</th><td><code>components/shell/sidebar.tsx</code>, <code>components/shell/app-shell.tsx</code> — seguem exatamente o padrão de <code>class-variance-authority</code> + tokens já usado em <code>badge.tsx</code>/<code>button.tsx</code>. Nenhuma biblioteca nova.</td></tr>
+            <tr><th>Header</th><td>A linha de título + botão "Atualizar" que já existe dentro de <code>dashboard/page.tsx</code> (ligada a <code>usePortfolioSummary().refetch</code>) <b>não é movida</b> para o layout — mover exigiria levantar estado de query para fora da página, risco desnecessário para uma feature "sem funcionalidade nova". O Header do shell é a moldura em volta; o conteúdo do título continua sendo responsabilidade da página.</td></tr>
+            <tr><th>Rota "/"</th><td><code>app/page.tsx</code> passa a redirecionar para <code>/dashboard</code> via <code>redirect()</code> do Next.js — reaproveita o gate de sessão já existente (usuário não autenticado cai em <code>/entrar</code> normalmente, pelo mecanismo já real do <code>proxy.ts</code>).</td></tr>
+            <tr><th>Contrato de API</th><td>Zero mudança. Nenhuma nova chamada de rede introduzida pelo shell.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>UX Review</h2></div>
+      <p class="section-intro">Reaproveita a Decisão D6 já registrada em RFC-001 (comportamento responsivo de
+        sidebar) — não inventa um novo padrão.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Breakpoint</th><th>Comportamento (D6, RFC-001)</th></tr></thead>
+          <tbody>
+            <tr><td>&lt;768px (mobile)</td><td>Sidebar vira barra fixa inferior — adaptada para <b>1 destino real</b> (Dashboard), não os 3 originalmente especulados em D6</td></tr>
+            <tr><td>768–1023px (md)</td><td>Sidebar colapsa para rail somente-ícone (56px)</td></tr>
+            <tr><td>≥1024px (lg)</td><td>Sidebar completa (220px, ícone+label)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout guard">
+        <b>Decisão deliberada:</b> a sidebar mostra <b>apenas</b> o item "Dashboard" — nenhum item cinza/desabilitado
+        para "Projetos", "Central de Riscos" etc., mesmo esses estando na proposta original do Visual Gap
+        Analysis. Motivo: as sessões do Protocolo de Validação estão rodando em paralelo a esta mesma release
+        (ADR-012) — um item de navegação visível, mesmo desabilitado, é exatamente o tipo de afordance que geraria
+        uma pergunta "isso existe?" contaminando a métrica de "informação procurada e não encontrada" que a
+        Validation Sprint está tentando medir honestamente. Menos é mais seguro aqui.
+      </div>
+      <p>Tokens visuais: raio 8px, sombra suave (<code>--shadow</code> já usado em cards), paleta reaproveitada
+        integralmente de <code>web/app/globals.css</code> — nenhuma cor nova introduzida nesta feature (refinamento
+        de token, se necessário, é o Épico 4 do Release Plan, tratado à parte).</p>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>Escopo</h2></div>
+      <ul>
+        <li>Sidebar com logo + nome do produto + 1 item de navegação real ("Dashboard", estado ativo)</li>
+        <li>Comportamento responsivo por breakpoint conforme D6 (Seção 3)</li>
+        <li>Layout compartilhado (<code>app/dashboard/layout.tsx</code>) envolvendo a página existente, sem
+          mover ou reescrever seu conteúdo</li>
+        <li>Correção do placeholder obsoleto em <code>app/page.tsx</code> (redirect para <code>/dashboard</code>)</li>
+        <li>Verificação de contraste WCAG AA da sidebar nos dois temas (claro/escuro)</li>
+      </ul>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Fora de Escopo (explícito)</h2></div>
+      <ul>
+        <li>Qualquer item de navegação além de "Dashboard" — mesmo desabilitado (Seção 3)</li>
+        <li>Busca global, notificações, botão de chat no header</li>
+        <li>Identidade de usuário nomeada ou avatar — sessão continua Nível 1 (senha compartilhada)</li>
+        <li>Mover o botão "Atualizar" ou qualquer lógica de <code>usePortfolioSummary</code> para o shell</li>
+        <li>Qualquer mudança em <code>proxy.ts</code>, contratos de API, ou nos 3 agentes de IA</li>
+        <li>Reorganização visual do conteúdo do Dashboard (KPIs, tabela, Risk Center) — isso é a próxima feature
+          (Dashboard Enterprise), não esta</li>
+      </ul>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>User Stories</h2></div>
+      <div class="us-card">
+        <div class="us-text">Como usuário autenticado, vejo uma sidebar com a identidade do produto ao acessar o Dashboard.</div>
+        <p class="us-ac">Critério: logo + nome do produto visíveis em lg/md; sidebar não sobrepõe conteúdo em nenhum breakpoint.</p>
+      </div>
+      <div class="us-card">
+        <div class="us-text">Como usuário em mobile, a navegação não consome espaço vertical do conteúdo.</div>
+        <p class="us-ac">Critério: sidebar vira barra inferior fixa &lt;768px, conteúdo tem padding-bottom reservado (não sobreposto).</p>
+      </div>
+      <div class="us-card">
+        <div class="us-text">Como usuário acessando "/", sou levado ao Dashboard (ou ao login, se não autenticado) em vez de ver um placeholder desatualizado.</div>
+        <p class="us-ac">Critério: <code>/</code> redireciona para <code>/dashboard</code>; usuário não autenticado cai em <code>/entrar</code> pelo gate já existente, sem nenhuma lógica nova de auth.</p>
+      </div>
+    </section>
+
+    <section id="s7">
+      <div class="section-head"><span class="section-num">07</span><h2>NFRs Aplicáveis</h2></div>
+      <ul>
+        <li>Contraste WCAG AA em ambos os temas (claro/escuro) para todo texto e ícone da sidebar</li>
+        <li>Responsividade nos 3 breakpoints do RFC-001 (mobile/md/lg), testada nos mesmos projetos do
+          Playwright já configurados (<code>web/playwright.config.ts</code>)</li>
+        <li>Nenhuma regressão de performance perceptível — o shell é CSS/layout puro, sem nova chamada de rede</li>
+        <li>Nenhuma regressão nos 87 testes de backend nem nos 53 testes de frontend já existentes</li>
+      </ul>
+    </section>
+
+    <section id="s8">
+      <div class="section-head"><span class="section-num">08</span><h2>Critérios de Aceite</h2></div>
+      <ul>
+        <li>Sidebar renderiza nos 3 breakpoints exatamente como a Seção 3 descreve</li>
+        <li>Apenas 1 item de navegação existe, e está sempre ativo (não há outra rota para desativá-lo)</li>
+        <li><code>/entrar</code> não é afetado — continua sem shell, sem regressão nos testes de sessão (<code>proxy.test.ts</code>)</li>
+        <li><code>/</code> redireciona corretamente para <code>/dashboard</code>, respeitando o gate de sessão sem lógica nova</li>
+        <li>Suíte completa (87 backend + 53 frontend) passa sem alteração de contrato</li>
+      </ul>
+    </section>
+
+    <section id="s9">
+      <div class="section-head"><span class="section-num">09</span><h2>Riscos Específicos</h2></div>
+      <ul>
+        <li><b>Baixo risco geral</b> — feature puramente de apresentação, zero mudança de contrato ou dado.</li>
+        <li><b>Redirect de "/"</b> é a única mudança de comportamento de rota — precisa de teste explícito
+          confirmando que não introduz um loop de redirecionamento com <code>proxy.ts</code>.</li>
+        <li><b>Contraste em tema escuro</b> — já sinalizado como risco no Visual Gap Analysis; precisa de
+          verificação real, não suposição.</li>
+      </ul>
+    </section>
+
+    <section id="s10">
+      <div class="section-head"><span class="section-num">10</span><h2>Checklist de Segurança (ADR-011)</h2></div>
+      <p><span class="chip fato">N/A — justificado</span> Esta feature não cria, modifica nem toca em nenhuma
+        rota de autenticação, sessão ou credencial. <code>proxy.ts</code> e <code>lib/session.ts</code>
+        permanecem inalterados. O checklist obrigatório do TIP (ADR-011) se aplica quando o TIP-002 for escrito,
+        mas nenhum item dele é esperado a ter achado nesta feature especificamente.</p>
+    </section>
+
+    <section id="s11">
+      <div class="section-head"><span class="section-num">11</span><h2>Rollback</h2></div>
+      <p>Reverter o commit desta feature restaura o comportamento atual (Dashboard sem shell, "/" com
+        placeholder). Nenhuma migração de dado, nenhuma mudança de schema — rollback é reversão de código pura,
+        sem passo adicional.</p>
+    </section>
+
+    <section id="s12">
+      <div class="section-head"><span class="section-num">12</span><h2>Definition of Ready — Próximo Gate</h2></div>
+      <div class="callout guard">
+        <b>Nenhum código foi escrito.</b> Este documento é a Feature Specification. O próximo passo — TIP-002
+        (Technical Implementation Plan) — só começa após sua aprovação explícita deste FS-002. Implementação (T1
+        em diante) só começa após aprovação do TIP-002.
+      </div>
+    </section>
+
+    <footer>
+      <span>Stratech — FS-002</span>
+      <span>Release 0.3, Sprint 1</span>
+      <span>2026-07-11</span>
+    </footer>
+  </main>
+</div>
