@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Header } from "@/components/shell/header";
 import { usePortfolioSummary } from "@/lib/hooks/use-portfolio-summary";
 import { PortfolioSummaryStrip } from "@/components/dashboard/portfolio-summary-strip";
 import { ProjectHealthGrid } from "@/components/dashboard/project-health-grid";
@@ -29,12 +30,12 @@ export default function DashboardPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 p-6">
-      <div className="flex items-center justify-between gap-4">
+      <Header>
         <h1 className="font-display text-2xl font-semibold">Dashboard Executivo</h1>
         <Button variant="ghost" size="sm" onClick={() => refetch()} disabled={isFetching}>
           {isFetching ? "Atualizando…" : "Atualizar"}
         </Button>
-      </div>
+      </Header>
 
       {projects.length === 0 ? (
         <EmptyState />

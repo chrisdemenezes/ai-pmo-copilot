@@ -1,0 +1,73 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+import { cn } from "@/lib/utils";
+import { NAV_ITEMS } from "./navigation";
+
+/**
+ * Responsive behavior reuses RFC-001 Decision D6 (already-approved sidebar
+ * breakpoint pattern), adapted to the single real nav item instead of the
+ * 3 originally speculated there: <768px bottom bar, 768-1023px icon rail,
+ * >=1024px full sidebar with labels.
+ */
+export function Sidebar() {
+  const pathname = usePathname();
+
+  return (
+    <>
+      <nav
+        data-testid="sidebar-nav"
+        aria-label="Navegação principal"
+        className="hidden shrink-0 flex-col gap-1 border-r border-border bg-surface p-2 md:flex md:w-14 lg:w-[220px]"
+      >
+        {NAV_ITEMS.map((item) => {
+          const isActive = pathname === item.href;
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={isActive ? "page" : undefined}
+              className={cn(
+                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                isActive
+                  ? "bg-accent-soft text-accent-ink"
+                  : "text-ink-muted hover:bg-surface-2 hover:text-ink",
+              )}
+            >
+              <Icon className="size-5 shrink-0" aria-hidden="true" />
+              <span className="hidden lg:inline">{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      <nav
+        data-testid="bottom-nav"
+        aria-label="Navegação principal"
+        className="fixed inset-x-0 bottom-0 z-10 flex border-t border-border bg-surface md:hidden"
+      >
+        {NAV_ITEMS.map((item) => {
+          const isActive = pathname === item.href;
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={isActive ? "page" : undefined}
+              className={cn(
+                "flex flex-1 flex-col items-center gap-1 py-2 text-xs font-medium",
+                isActive ? "text-accent-ink" : "text-ink-muted",
+              )}
+            >
+              <Icon className="size-5" aria-hidden="true" />
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
+    </>
+  );
+}
