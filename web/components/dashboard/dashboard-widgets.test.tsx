@@ -38,12 +38,15 @@ describe("PortfolioSummaryStrip", () => {
 });
 
 describe("ProjectHealthGrid", () => {
-  it("renders one card per project with its name and health badge", () => {
+  it("renders each project's name and health badge (table + mobile card views)", () => {
     render(<ProjectHealthGrid projects={projects} />);
-    expect(screen.getByText("Multilift")).toBeInTheDocument();
-    expect(screen.getByText("Aurora")).toBeInTheDocument();
-    expect(screen.getByText("Crítico")).toBeInTheDocument();
-    expect(screen.getByText("Sem dado")).toBeInTheDocument();
+    // Both the md/lg table and the mobile card list render in the DOM
+    // simultaneously -- CSS (hidden/md:block) decides which is visible per
+    // breakpoint, so each project appears twice.
+    expect(screen.getAllByText("Multilift")).toHaveLength(2);
+    expect(screen.getAllByText("Aurora")).toHaveLength(2);
+    expect(screen.getAllByText("Crítico")).toHaveLength(2);
+    expect(screen.getAllByText("Sem dado")).toHaveLength(2);
   });
 
   it("renders nothing when the portfolio is empty", () => {

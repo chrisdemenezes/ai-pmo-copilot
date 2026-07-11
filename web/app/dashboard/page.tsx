@@ -31,7 +31,12 @@ export default function DashboardPage() {
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 p-6">
       <Header>
-        <h1 className="font-display text-2xl font-semibold">Dashboard Executivo</h1>
+        <div>
+          <p className="font-mono text-xs font-semibold uppercase tracking-wide text-accent">
+            Portfólio Executivo
+          </p>
+          <h1 className="font-display text-2xl font-semibold">Dashboard Executivo</h1>
+        </div>
         <Button variant="ghost" size="sm" onClick={() => refetch()} disabled={isFetching}>
           {isFetching ? "Atualizando…" : "Atualizar"}
         </Button>

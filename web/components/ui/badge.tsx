@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
  * there is no fourth color here that would correspond to nothing real.
  */
 const badgeVariants = cva(
-  "inline-flex items-center gap-1.5 rounded-sm border px-2 py-0.5 text-xs font-mono font-semibold uppercase tracking-wide w-fit whitespace-nowrap [&_svg]:size-3",
+  "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-mono font-semibold uppercase tracking-wide w-fit whitespace-nowrap [&_svg]:size-3",
   {
     variants: {
       variant: {
