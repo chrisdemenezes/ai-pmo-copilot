@@ -1,0 +1,648 @@
+<title>Foundation Sprint — Consolidação de Ativos Permanentes</title>
+<style>
+  :root{
+    --bg:#f5f4f1;
+    --surface:#ffffff;
+    --surface-2:#ececE6;
+    --border:#d8d5cd;
+    --ink:#191712;
+    --ink-dim:#5b5648;
+    --accent:#0f6b5c;
+    --accent-ink:#ffffff;
+    --fato:#0f6b5c;
+    --fato-bg:#e2efe9;
+    --hipotese:#9a6a12;
+    --hipotese-bg:#f6ecd8;
+    --visao:#4a4f9e;
+    --visao-bg:#e8e8f6;
+    --mono-ink:#3a362c;
+    --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c;
+    --surface:#1b1813;
+    --surface-2:#221e17;
+    --border:#39352a;
+    --ink:#efece2;
+    --ink-dim:#a9a494;
+    --accent:#4fd6b8;
+    --accent-ink:#0b1310;
+    --fato:#4fd6b8;
+    --fato-bg:#173029;
+    --hipotese:#e5b862;
+    --hipotese-bg:#332a15;
+    --visao:#a6acf0;
+    --visao-bg:#232456;
+    --mono-ink:#cfcabb;
+    --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c;
+      --surface:#1b1813;
+      --surface-2:#221e17;
+      --border:#39352a;
+      --ink:#efece2;
+      --ink-dim:#a9a494;
+      --accent:#4fd6b8;
+      --accent-ink:#0b1310;
+      --fato:#4fd6b8;
+      --fato-bg:#173029;
+      --hipotese:#e5b862;
+      --hipotese-bg:#332a15;
+      --visao:#a6acf0;
+      --visao-bg:#232456;
+      --mono-ink:#cfcabb;
+      --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family: ui-serif, Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    font-size:16px;
+    line-height:1.6;
+  }
+  .doc-shell{
+    display:grid;
+    grid-template-columns: 260px minmax(0,1fr);
+    max-width:1240px;
+    margin:0 auto;
+  }
+  @media (max-width:900px){
+    .doc-shell{grid-template-columns: 1fr;}
+    .toc{position:static !important; height:auto !important;}
+  }
+  .toc{
+    position:sticky;
+    top:0;
+    height:100vh;
+    overflow-y:auto;
+    padding:32px 20px;
+    border-right:1px solid var(--border);
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size:12.5px;
+  }
+  .toc .brand{
+    font-family: ui-serif, Georgia, serif;
+    font-size:14px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin-bottom:4px;
+  }
+  .toc .doc-name{
+    color:var(--ink-dim);
+    margin-bottom:24px;
+    line-height:1.4;
+  }
+  .toc nav a{
+    display:block;
+    color:var(--ink-dim);
+    text-decoration:none;
+    padding:6px 0;
+    border-bottom:1px solid transparent;
+  }
+  .toc nav a:hover{color:var(--accent);}
+  .toc .toc-num{color:var(--accent); margin-right:6px;}
+  .toc .legend{
+    margin-top:32px;
+    padding-top:20px;
+    border-top:1px solid var(--border);
+  }
+  .toc .legend-title{
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--ink-dim);
+    font-size:10.5px;
+    margin-bottom:10px;
+  }
+  .chip{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    font-family: ui-monospace, monospace;
+    font-size:10.5px;
+    letter-spacing:.02em;
+    padding:3px 8px;
+    border-radius:3px;
+    font-weight:600;
+    white-space:nowrap;
+  }
+  .chip.fato{ color:var(--fato); background:var(--fato-bg); }
+  .chip.hipotese{ color:var(--hipotese); background:var(--hipotese-bg); }
+  .chip.visao{ color:var(--visao); background:var(--visao-bg); }
+  .legend-row{display:flex; align-items:center; gap:8px; margin-bottom:8px; color:var(--ink-dim); font-size:11px;}
+
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+
+  .masthead{margin-bottom:56px;}
+  .masthead .kicker{
+    font-family: ui-monospace, monospace;
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin-bottom:14px;
+  }
+  h1.title{
+    font-size:clamp(2rem, 4vw, 2.9rem);
+    line-height:1.12;
+    margin:0 0 16px;
+    text-wrap:balance;
+    font-weight:600;
+  }
+  .masthead .subtitle{
+    color:var(--ink-dim);
+    font-size:1.05rem;
+    max-width:60ch;
+    margin:0 0 24px;
+  }
+  .meta-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:24px;
+    padding-top:20px;
+    border-top:1px solid var(--border);
+    font-family: ui-monospace, monospace;
+    font-size:12px;
+    color:var(--ink-dim);
+  }
+  .meta-row b{color:var(--ink); font-weight:600;}
+
+  section{margin-bottom:64px; scroll-margin-top:24px;}
+  .section-head{
+    display:flex;
+    align-items:baseline;
+    gap:14px;
+    margin-bottom:8px;
+    padding-bottom:14px;
+    border-bottom:2px solid var(--ink);
+  }
+  .section-num{
+    font-family: ui-monospace, monospace;
+    font-size:1.1rem;
+    color:var(--accent);
+    font-weight:700;
+  }
+  h2{font-size:1.55rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 28px; max-width:68ch;}
+
+  h3{font-size:1.12rem; margin:32px 0 6px; font-weight:600;}
+  h3 .chip{margin-left:10px; vertical-align:2px;}
+  p{margin:0 0 14px; max-width:72ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:68ch;}
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:20px 24px;
+    margin:16px 0 24px;
+    box-shadow:var(--shadow);
+  }
+  .card-title{
+    font-family: ui-monospace, monospace;
+    font-size:11px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    margin-bottom:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:.88rem;
+    margin:16px 0 28px;
+  }
+  .table-wrap{overflow-x:auto; margin:16px 0 28px;}
+  .table-wrap table{margin:0;}
+  th{
+    text-align:left;
+    font-family: ui-monospace, monospace;
+    font-size:10.5px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    padding:10px 14px;
+    border-bottom:1px solid var(--ink);
+    white-space:nowrap;
+  }
+  td{
+    padding:10px 14px;
+    border-bottom:1px solid var(--border);
+    vertical-align:top;
+  }
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code{
+    font-family: ui-monospace, monospace;
+    font-size:.85em;
+    background:var(--code-bg);
+    color:var(--mono-ink);
+    padding:1px 5px;
+    border-radius:3px;
+  }
+
+  .callout{
+    border-left:3px solid var(--accent);
+    background:var(--surface-2);
+    padding:14px 18px;
+    margin:20px 0;
+    font-size:.94rem;
+    border-radius:0 4px 4px 0;
+  }
+  .callout.warn{border-left-color:var(--hipotese);}
+  .callout b{color:var(--ink);}
+
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  @media (max-width:700px){ .grid-2{grid-template-columns:1fr;} }
+
+  .maturity-bar{
+    display:flex;
+    height:6px;
+    border-radius:3px;
+    overflow:hidden;
+    margin:6px 0 18px;
+    border:1px solid var(--border);
+  }
+  .maturity-bar span{display:block; height:100%;}
+
+  footer{
+    border-top:1px solid var(--border);
+    margin-top:80px;
+    padding-top:24px;
+    font-family: ui-monospace, monospace;
+    font-size:11px;
+    color:var(--ink-dim);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+
+  .num-col{font-variant-numeric:tabular-nums;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">Foundation Sprint<br>Consolidação de Ativos Permanentes</div>
+    <nav>
+      <a href="#resumo"><span class="toc-num">00</span>Resumo Executivo</a>
+      <a href="#cap1"><span class="toc-num">01</span>Arquitetura Corporativa</a>
+      <a href="#cap2"><span class="toc-num">02</span>Product Portfolio Blueprint</a>
+      <a href="#cap3"><span class="toc-num">03</span>Enterprise Repository Blueprint</a>
+      <a href="#cap4"><span class="toc-num">04</span>Technical Asset Inventory</a>
+      <a href="#cap5"><span class="toc-num">05</span>Executive Roadmap</a>
+      <a href="#fechamento"><span class="toc-num">06</span>Fechamento</a>
+    </nav>
+    <div class="legend">
+      <div class="legend-title">Legenda de maturidade</div>
+      <div class="legend-row"><span class="chip fato">FATO</span> implementado e verificável em código/commit</div>
+      <div class="legend-row"><span class="chip hipotese">HIPÓTESE</span> rótulo ou intenção, sem validação</div>
+      <div class="legend-row"><span class="chip visao">VISÃO</span> direção estratégica, não iniciada</div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">Foundation Sprint · Stratech</div>
+      <h1 class="title">Consolidação dos Ativos Permanentes da Release 0.2</h1>
+      <p class="subtitle">Documento de encerramento de fase, autorizado pelo Product Owner após o fechamento formal da
+        Release 0.2. Não abre a Release 0.3, não altera código ou arquitetura, não expande o AI-PEF além do ADR-011.</p>
+      <div class="meta-row">
+        <span><b>Papel</b> Chief Product Architect</span>
+        <span><b>Data</b> 2026-07-11</span>
+        <span><b>Origem</b> Release 0.2 (FS-001 — Dashboard Executivo)</span>
+        <span><b>Status</b> Em revisão pelo Product Owner</span>
+      </div>
+    </div>
+
+    <section id="resumo">
+      <div class="section-head"><span class="section-num">00</span><h2>Resumo Executivo</h2></div>
+      <p class="section-intro">Cinco documentos consolidam, sem inventar nada além do que já existe, o que a
+        Stratech e o AI PMO Copilot realmente são hoje — e o que ainda é apenas rótulo ou intenção.</p>
+
+      <p>A Release 0.2 produziu mais do que a Feature FS-001: produziu um framework de processo versionado
+        (AI-PEF v1.1), uma identidade de marca com evidência real (Brand Foundation v1.0), uma direção visual
+        aplicada a um produto real (Visual Direction), e uma disciplina de decisão registrada (ADRs, RDR,
+        Retrospective). Este Foundation Sprint não cria nada novo — organiza o que já existe em cinco blueprints
+        e devolve ao Product Owner uma visão consolidada antes de qualquer nova Release.</p>
+
+      <div class="callout">
+        <b>Regra aplicada em todo o documento:</b> toda afirmação carrega uma etiqueta de maturidade. Onde não há
+        etiqueta, o conteúdo é fato verificado neste repositório na data acima. Nenhuma seção deste documento
+        transforma um rótulo em funcionalidade ou uma visão em plano de execução.
+      </div>
+    </section>
+
+    <section id="cap1">
+      <div class="section-head"><span class="section-num">01</span><h2>Arquitetura Corporativa da Stratech</h2></div>
+      <p class="section-intro">Oito domínios corporativos, cada um avaliado pelo que existe de verdade — não pelo
+        que seria desejável que existisse.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Domínio</th><th>Maturidade</th><th>Estado real</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Empresa</td>
+              <td><span class="chip fato">FATO (mínimo)</span></td>
+              <td>Nome oficial <b>Stratech</b>, tagline oficial "Conecta projetos e arquitetura de soluções
+                tecnológicas com execução técnica", identidade visual (logo, wordmark) confirmados pelo Product
+                Owner. Missão, visão e valores formais não existem como documento próprio.</td>
+            </tr>
+            <tr>
+              <td>Framework AI-PEF</td>
+              <td><span class="chip fato">FATO</span></td>
+              <td>v1.1 versionado em <code>docs/product/ai-pef/AI-PEF.html</code>, aplicado a um ciclo completo
+                real (Product Review → RDR) na Release 0.2. Único domínio com evidência de uso ponta a ponta.</td>
+            </tr>
+            <tr>
+              <td>Design System</td>
+              <td><span class="chip hipotese">HIPÓTESE (parcial)</span></td>
+              <td>Tokens e padrões reais existem em código (<code>web/components/ui/</code>), e a Direção Visual
+                Oficial documenta 8 valores aplicados ao Dashboard. Não existe, porém, um Design System
+                consolidado como artefato independente do produto — o que existe está embutido no AI PMO
+                Copilot, não extraído como ativo corporativo reutilizável.</td>
+            </tr>
+            <tr>
+              <td>Brand System</td>
+              <td><span class="chip hipotese">HIPÓTESE (parcial)</span></td>
+              <td>Brand Foundation v1.0 e Visual Direction são documentos reais, aprovados, com evidência
+                (logo, tagline, infográfico oficial). Aplicação a um segundo produto real ainda não existe —
+                não há evidência de que o sistema de marca funcione além do AI PMO Copilot.</td>
+            </tr>
+            <tr>
+              <td>Engineering Standards</td>
+              <td><span class="chip hipotese">Implícito, não consolidado</span></td>
+              <td>Padrões reais existem, mas espalhados: <code>CLAUDE.md</code>, <code>web/AGENTS.md</code>,
+                o checklist de segurança do TIP (ADR-011), convenções de código aplicadas mas não escritas.
+                Não há um documento único "Engineering Standards".</td>
+            </tr>
+            <tr>
+              <td>Product Standards</td>
+              <td><span class="chip hipotese">Não existe como doc próprio</span></td>
+              <td>O AI-PEF cobre parte do que seriam "Product Standards" (gates, templates), mas não há um
+                documento separado de padrões de produto independente do processo de engenharia.</td>
+            </tr>
+            <tr>
+              <td>Knowledge Base</td>
+              <td><span class="chip visao">Não existe</span></td>
+              <td>Gap já identificado no Product Blueprint (RFC-001/Blueprint, §6). Nenhuma estrutura de
+                Knowledge Base existe hoje, nem como código, nem como documento.</td>
+            </tr>
+            <tr>
+              <td>Família de Produtos</td>
+              <td><span class="chip hipotese">HIPÓTESE</span></td>
+              <td>Um produto real (AI PMO Copilot). Três rótulos adicionais existem apenas como nome
+                (ver Capítulo 2) — nenhum com propósito, problema ou público definido.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="maturity-bar">
+        <span style="width:25%; background:var(--fato)" title="2/8 Fato"></span>
+        <span style="width:50%; background:var(--hipotese)" title="4/8 Hipótese"></span>
+        <span style="width:25%; background:var(--visao)" title="1/8 sem estrutura, 1/8 fato mínimo"></span>
+      </div>
+      <p style="font-size:.85rem; color:var(--ink-dim);">2 de 8 domínios com evidência real de uso ponta a ponta
+        (Empresa em nível mínimo, AI-PEF em nível completo); os demais são parciais, implícitos ou inexistentes.</p>
+    </section>
+
+    <section id="cap2">
+      <div class="section-head"><span class="section-num">02</span><h2>Product Portfolio Blueprint</h2></div>
+      <p class="section-intro">Um produto existente. Três rótulos. Nenhuma funcionalidade nova foi criada para
+        escrever este capítulo.</p>
+
+      <h3>AI PMO Copilot <span class="chip fato">EXISTENTE</span></h3>
+      <div class="card">
+        <div class="card-title">Estado: produto real, em produção interna/piloto</div>
+        <p><b>Propósito:</b> dar visibilidade executiva ao portfólio de projetos de PMO, reduzindo o tempo entre
+          um projeto perder saúde e alguém perceber isso.</p>
+        <p><b>Problema:</b> falta de visibilidade agregada de portfólio para quem decide — validado como
+          Product Hypothesis (ADR-010) e implementado na Release 0.2 (Dashboard Executivo, FS-001).</p>
+        <p><b>Público-alvo:</b> as 4 personas registradas em <code>docs/product/03-user-personas.md</code>.</p>
+        <p><b>Relação com outros produtos:</b> nenhuma — é o único produto real da família hoje.</p>
+      </div>
+
+      <h3>Rótulos sem produto <span class="chip hipotese">HIPÓTESE / RÓTULO APENAS</span></h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Rótulo</th><th>Origem</th><th>Propósito</th><th>Problema</th><th>Público</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>AI Governance Copilot</td>
+              <td rowspan="3" style="vertical-align:middle;">Proposto originalmente como rótulo aspiracional no
+                Brand Discovery Framework (papel Chief Brand Strategist); citado explicitamente pelo Product
+                Owner na recomendação de milestone STRATECH PLATFORM v1.0.</td>
+              <td colspan="3" style="color:var(--ink-dim);">— não definido —</td>
+            </tr>
+            <tr>
+              <td>AI Architecture Copilot</td>
+              <td colspan="3" style="color:var(--ink-dim);">— não definido —</td>
+            </tr>
+            <tr>
+              <td>AI Executive Copilot</td>
+              <td colspan="3" style="color:var(--ink-dim);">— não definido —</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout warn">
+        <b>Nota de rastreabilidade:</b> os três rótulos foram nomeados pelo Product Owner nesta conversa; a
+        autoria original das palavras é deste assistente, em um documento de branding especulativo. Nomear um
+        rótulo não o transforma em produto. Nenhum dos três terá propósito, problema, público ou funcionalidade
+        definidos até que passe pelo próprio Product Review do AI-PEF — como qualquer produto novo.
+      </div>
+    </section>
+
+    <section id="cap3">
+      <div class="section-head"><span class="section-num">03</span><h2>Enterprise Repository Blueprint</h2></div>
+      <p class="section-intro">A estrutura real do repositório hoje, e uma proposta de estrutura futura —
+        claramente separadas, sem executar a segunda.</p>
+
+      <h3>Estrutura real <span class="chip fato">FATO</span></h3>
+      <p>Monorepo único (<code>ai-pmo-copilot</code>), sem separação entre ativos corporativos e ativos do
+        produto:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Caminho</th><th>Conteúdo real</th></tr></thead>
+          <tbody>
+            <tr><td><code>src/</code></td><td>Backend real (Python) — API, agents, database, LLM, prompts, services, workflows</td></tr>
+            <tr><td><code>web/</code></td><td>Frontend real (Next.js 16) — Dashboard Executivo, BFF, sessão, testes</td></tr>
+            <tr><td><code>docs/product/</code></td><td>Único diretório governado pelo AI-PEF: FS-001, TIP-001, AI-PEF, RFC-001, Blueprint, Brand</td></tr>
+            <tr><td><code>docs/releases/</code></td><td>RDR-0.2, Retrospective-0.2, evidência de release</td></tr>
+            <tr><td><code>docs/development/</code>, <code>docs/architecture/</code>, <code>docs/technical/</code>, <code>docs/functional/</code></td><td>Documentação pré-AI-PEF, ainda referenciada mas não governada pelos gates atuais</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout warn">
+        <b>Achado de inventário (novo, não corrigido neste Sprint):</b> existem 12 diretórios de topo
+        (<code>ai/</code>, <code>analytics/</code>, <code>architecture/</code>, <code>backend/</code>,
+        <code>core/</code>, <code>features/</code>, <code>frontend/</code>, <code>integrations/</code>,
+        <code>knowledge/</code>, <code>platform/</code>, <code>release/</code>, <code>roadmap/</code>,
+        <code>security/</code>) contendo 46 arquivos markdown numerados (ex.: <code>ai/71-llm-provider-foundation.md</code>,
+        <code>features/25-executive-roadmap.md</code>) que antecedem o AI-PEF e não passaram por nenhum gate de
+        governança real. Não fazem parte de <code>src/</code>, <code>web/</code> ou <code>docs/product/</code>.
+        Este documento apenas registra o achado — decidir arquivá-los, migrá-los ou mantê-los é uma decisão de
+        arquitetura fora do escopo do Foundation Sprint, que exige autorização própria do Product Owner.
+      </div>
+
+      <h3>Proposta futura <span class="chip visao">VISÃO ESTRATÉGICA — NÃO EXECUTADA</span></h3>
+      <p>Quando houver 2 ou mais produtos reais (não apenas rótulos), separar por responsabilidade em vez de
+        manter tudo em um monorepo de produto:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Repositório proposto</th><th>Conteúdo</th></tr></thead>
+          <tbody>
+            <tr><td><code>stratech/ai-pef</code></td><td>Framework de processo, templates, ADRs — hoje embutido em <code>docs/product/ai-pef/</code></td></tr>
+            <tr><td><code>stratech/design-system</code></td><td>Tokens e componentes extraídos de <code>web/components/ui/</code>, hoje acoplados ao produto</td></tr>
+            <tr><td><code>stratech/brand</code></td><td>Brand Foundation, Visual Direction, ativos de marca — hoje em <code>docs/product/stratech-brand/</code></td></tr>
+            <tr><td><code>stratech/ai-pmo-copilot</code></td><td>O produto em si — o que hoje é a raiz deste repositório</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="color:var(--ink-dim); font-size:.9rem;">Esta separação não é recomendada para execução agora —
+        seria dívida de processo prematura para um único produto real, pelo mesmo critério do ADR-009.</p>
+    </section>
+
+    <section id="cap4">
+      <div class="section-head"><span class="section-num">04</span><h2>Technical Asset Inventory</h2></div>
+      <p class="section-intro">Todo ativo permanente produzido na Release 0.2, classificado pelo que é —
+        não pelo que poderia se tornar.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Ativo</th><th>Classificação</th><th>Localização</th><th>Versionado</th></tr></thead>
+          <tbody>
+            <tr><td>AI-PEF v1.1</td><td>Framework</td><td><code>docs/product/ai-pef/AI-PEF.html</code></td><td>Sim — <code>16d84f1</code></td></tr>
+            <tr><td>ADR-009, ADR-010, ADR-011</td><td>ADR</td><td>Embutidos no AI-PEF v1.1</td><td>Sim</td></tr>
+            <tr><td>Template de Product Hypothesis</td><td>Template</td><td>Embutido no AI-PEF v1.1</td><td>Sim</td></tr>
+            <tr><td>Template de TIP (c/ checklist de segurança)</td><td>Template</td><td>Embutido no AI-PEF v1.1</td><td>Sim</td></tr>
+            <tr><td>Template + instância de RDR</td><td>Template</td><td><code>docs/releases/RDR-0.2.md</code></td><td>Sim — <code>dad96e8</code></td></tr>
+            <tr><td>Template + instância de Retrospective</td><td>Template</td><td><code>docs/releases/RETROSPECTIVE-0.2.md</code></td><td>Sim — <code>d30d82c</code></td></tr>
+            <tr><td>FS-001 (Revisão 5)</td><td>Specification</td><td><code>docs/product/fs-001/FS-001-feature-specification.html</code></td><td>Sim</td></tr>
+            <tr><td>TIP-001</td><td>Specification</td><td><code>docs/product/fs-001/TIP-001-implementation-plan.html</code></td><td>Sim</td></tr>
+            <tr><td>UX Review FS-001</td><td>Specification</td><td><code>docs/product/fs-001/UX-REVIEW-FS001.html</code></td><td>Sim</td></tr>
+            <tr><td>RFC-001 (arquitetura frontend)</td><td>RFC</td><td><code>docs/product/rfc-001/</code></td><td>Sim — <code>c46a301</code></td></tr>
+            <tr><td>Product Blueprint</td><td>Specification</td><td><code>docs/product/blueprint/</code></td><td>Sim — <code>c46a301</code></td></tr>
+            <tr><td>Brand Discovery Framework</td><td>Framework</td><td><code>docs/product/stratech-brand/</code></td><td>Sim — <code>c46a301</code></td></tr>
+            <tr><td>Brand Foundation v1.0</td><td>Corporate Asset</td><td><code>docs/product/stratech-brand/</code></td><td>Sim — <code>c46a301</code></td></tr>
+            <tr><td>Visual Direction (AI PMO Copilot)</td><td>Design Asset</td><td><code>docs/product/stratech-brand/</code></td><td>Sim — <code>c46a301</code></td></tr>
+            <tr><td><code>healthStatusLabel()</code></td><td>Reusable Component</td><td><code>web/components/ui/badge.tsx</code></td><td>Sim — <code>59f17aa</code></td></tr>
+            <tr><td>Padrão de sessão Nível 1 (proxy + HMAC cookie)</td><td>Standard</td><td><code>web/proxy.ts</code>, <code>web/lib/session.ts</code></td><td>Sim</td></tr>
+            <tr><td>Padrão BFF (Route Handlers)</td><td>Standard</td><td><code>web/app/api/bff/</code></td><td>Sim</td></tr>
+            <tr><td>Harness de E2E (mock backend + 3 breakpoints)</td><td>Template</td><td><code>web/e2e/</code>, <code>web/playwright.config.ts</code></td><td>Sim</td></tr>
+            <tr><td>46 documentos legados (<code>ai/</code>, <code>features/</code> etc.)</td><td style="color:var(--ink-dim);">Não classificado — pré-AI-PEF</td><td>12 diretórios de topo</td><td>Sim (git), não governado</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="cap5">
+      <div class="section-head"><span class="section-num">05</span><h2>Executive Roadmap</h2></div>
+      <p class="section-intro">24 meses, 4 fases. Apenas a Fase 1 tem execução real; as demais são condicionadas
+        a autorização futura do Product Owner e evidência de cada fase anterior.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Fase</th><th>Maturidade</th><th>Conteúdo</th><th>Dependências</th><th>Riscos</th><th>Critério de entrada</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>1. Foundation<br><span style="color:var(--ink-dim); font-size:.8rem;">meses 0–3</span></td>
+              <td><span class="chip fato">FATO (em curso)</span></td>
+              <td>Release 0.1/0.2, AI-PEF v1.0→v1.1, Brand Foundation v1.0, este Foundation Sprint</td>
+              <td>—</td>
+              <td>Nenhum novo — riscos já registrados no RDR-0.2</td>
+              <td>Já satisfeito (em execução)</td>
+            </tr>
+            <tr>
+              <td>2. Product Expansion<br><span style="color:var(--ink-dim); font-size:.8rem;">meses 3–9</span></td>
+              <td><span class="chip visao">VISÃO</span></td>
+              <td>Release 0.3+ do AI PMO Copilot; ainda um único produto real</td>
+              <td>Fechamento do Foundation Sprint; mitigação do Achado #1 (condição obrigatória do RDR-0.2)</td>
+              <td>Reabrir escopo sem evidência (ADR-009); adiar mitigação de segurança</td>
+              <td>Autorização explícita do PO para Release 0.3</td>
+            </tr>
+            <tr>
+              <td>3. Enterprise Platform<br><span style="color:var(--ink-dim); font-size:.8rem;">meses 9–16</span></td>
+              <td><span class="chip visao">VISÃO / HIPÓTESE</span></td>
+              <td>Possível milestone "STRATECH PLATFORM v1.0" (ver Fechamento) — consolidação versionada de
+                AI-PEF, Brand, Architecture Blueprint, Repository Blueprint, Asset Inventory e Roadmap como
+                base comum</td>
+              <td>Evidência de pelo menos uma Release 0.3 concluída; nenhum produto novo iniciado sem base comum</td>
+              <td>Formalizar plataforma sem um segundo produto real para validá-la</td>
+              <td>Autorização explícita do PO; não teve início nesta conversa</td>
+            </tr>
+            <tr>
+              <td>4. AI Ecosystem<br><span style="color:var(--ink-dim); font-size:.8rem;">meses 16–24</span></td>
+              <td><span class="chip hipotese">HIPÓTESE / RÓTULO</span></td>
+              <td>Candidatos: AI Governance Copilot, AI Architecture Copilot, AI Executive Copilot — cada um
+                nascendo do zero, com seu próprio Product Review</td>
+              <td>Fase 3 concluída; Product Review individual de cada rótulo</td>
+              <td>Tratar rótulo como compromisso de roadmap; comprometer prazo sem propósito definido</td>
+              <td>Não definido — nenhum destes produtos tem data</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout">
+        Nenhuma fase além da 1 tem prazo comprometido. As datas de "meses" acima são apenas ordenação relativa
+        entre fases, não previsão de calendário.
+      </div>
+    </section>
+
+    <section id="fechamento">
+      <div class="section-head"><span class="section-num">06</span><h2>Fechamento</h2></div>
+
+      <h3>Documentos produzidos neste Foundation Sprint</h3>
+      <ul>
+        <li>Este documento — <b>Foundation Sprint: Consolidação de Ativos Permanentes</b> (5 capítulos)</li>
+        <li>Versionamento no repositório de 5 artefatos estratégicos já existentes: RFC-001, Product Blueprint,
+          Brand Discovery Framework, Brand Foundation v1.0, Visual Direction — commit <code>c46a301</code></li>
+      </ul>
+
+      <h3>O que se torna ativo permanente da Stratech</h3>
+      <p>Todo item listado no Capítulo 4 (Technical Asset Inventory) com coluna "Versionado = Sim" passa a ser
+        ativo permanente a partir deste Sprint. Os 3 rótulos do Capítulo 2 <b>não</b> se tornam ativos — seguem
+        como hipótese registrada, sem compromisso de execução.</p>
+
+      <h3>Sobre a recomendação de milestone "STRATECH PLATFORM v1.0"</h3>
+      <p>Registrada como proposta da Fase 3 do Roadmap (Capítulo 5) — não executada, não iniciada, sem data.
+        A recomendação identifica corretamente que este Foundation Sprint já produz os seis insumos que ela
+        listaria (AI-PEF v1.1, Brand Foundation v1.0, este Blueprint corporativo, o Repository Blueprint, o
+        Asset Inventory e o Roadmap). Formalizar isso como milestone nomeado é uma decisão do Product Owner, a
+        ser tomada depois — não durante — a revisão deste Sprint, e condicionada ao mesmo princípio do ADR-009:
+        evidência real antes de mais uma camada de governança.</p>
+
+      <div class="callout warn">
+        Nenhum novo produto nasce deste documento. Nenhuma Release 0.3 foi aberta. Nenhuma mudança de código ou
+        arquitetura foi feita. O AI-PEF permanece em v1.1, sem expansão além do ADR-011.
+      </div>
+
+      <p style="margin-top:32px;"><b>Aguardando nova autorização do Product Owner.</b></p>
+    </section>
+
+    <footer>
+      <span>Stratech — Foundation Sprint v1.0</span>
+      <span>Origem: Release 0.2 (FS-001)</span>
+      <span>2026-07-11</span>
+    </footer>
+  </main>
+</div>
