@@ -1,0 +1,134 @@
+<title>TIP-004A — Executive Progress Report</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --ok:#2f7a4f; --ok-bg:#e1f0e5;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --ok:#7fd19f; --ok-bg:#1a3324;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --ok:#7fd19f; --ok-bg:#1a3324;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  main{max-width:980px; margin:0 auto; padding:56px 40px 100px;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1{font-size:clamp(1.7rem,4vw,2.3rem); line-height:1.16; margin:0 0 14px; font-weight:600; text-wrap:balance;}
+  .subtitle{color:var(--ink-dim); max-width:74ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding:18px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim); margin-bottom:16px;}
+  .meta-row b{color:var(--ink);}
+  h2{font-size:1.2rem; margin:40px 0 6px; padding-bottom:10px; border-bottom:2px solid var(--ink);}
+  p{margin:0 0 12px; max-width:76ch;}
+  ul{margin:0 0 14px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:74ch;}
+  table{width:100%; border-collapse:collapse; font-size:.85rem; margin:12px 0 24px;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 10px; border-bottom:1px solid var(--ink);}
+  td{padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top;}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.ok{color:var(--ok); background:var(--ok-bg);}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout b{color:var(--ink);}
+  footer{border-top:1px solid var(--border); margin-top:60px; padding-top:20px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<main>
+  <div class="kicker">Technical Lead · TIP-004A · Encerramento</div>
+  <h1>Executive Progress Report — Módulo Projetos</h1>
+  <p class="subtitle">Entrega ponta a ponta: Dashboard → menu Projetos → listagem real → seleção → Project
+    Intelligence Workspace. Primeiro módulo promovido do Platform Module Catalog para a Runtime Navigation.</p>
+  <div class="meta-row">
+    <span><b>Feature</b> FS-004A — Projects Navigation Experience</span>
+    <span><b>Commit</b> <code>ec21ba2</code></span>
+    <span><b>Data</b> 2026-07-12</span>
+    <span><b>Status</b> Concluído — aguardando autorização para FS-005</span>
+  </div>
+
+  <h2>O que foi entregue</h2>
+  <ul>
+    <li>Item "Projetos" na Runtime Navigation (<code>navigation.ts</code>), ícone <code>Folder</code> — zero mudança no componente <code>Sidebar</code></li>
+    <li>Rota real <code>/projects</code>, reaproveitando <code>usePortfolioSummary()</code> e <code>ProjectHealthGrid</code> verbatim — zero backend novo, zero BFF novo, zero dado novo</li>
+    <li>Busca client-side sobre dado já carregado (sem backend especulativo), com mensagem distinta para "sem resultado da busca" vs. "portfólio vazio"</li>
+    <li>Seleção de projeto navega para <code>/workspace/[projectName]</code>, <code>encodeURIComponent</code> em toda a cadeia</li>
+    <li>Estados de loading, vazio e erro — reaproveitados, mesmos componentes do Dashboard</li>
+    <li>Responsividade nos 3 breakpoints — herdada do mecanismo D6 já existente</li>
+  </ul>
+
+  <h2>Escopo obrigatório — aderência</h2>
+  <table>
+    <thead><tr><th>Requisito</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td>Item "Projetos" no Runtime Navigation</td><td><span class="chip ok">CUMPRIDO</span></td></tr>
+      <tr><td>Rota real <code>/projects</code></td><td><span class="chip ok">CUMPRIDO</span></td></tr>
+      <tr><td>Listagem exclusivamente de dado real/derivado</td><td><span class="chip ok">CUMPRIDO</span> — mesmo <code>ProjectSummary[]</code> do Dashboard</td></tr>
+      <tr><td>Busca/filtro sem backend especulativo</td><td><span class="chip ok">CUMPRIDO</span> — filtro client-side sobre dado já carregado</td></tr>
+      <tr><td>Navegação segura para "/", espaços, acentos</td><td><span class="chip ok">CUMPRIDO</span> — verificado com "Implantacao SAP S/4HANA" ponta a ponta</td></tr>
+      <tr><td>Loading, vazio, erro</td><td><span class="chip ok">CUMPRIDO</span></td></tr>
+      <tr><td>Responsividade 3 breakpoints</td><td><span class="chip ok">CUMPRIDO</span></td></tr>
+      <tr><td>Aderência à Baseline Visual</td><td><span class="chip ok">CUMPRIDO</span> — ver Visual Fidelity Report</td></tr>
+      <tr><td>Testes unit/component/E2E</td><td><span class="chip ok">CUMPRIDO</span></td></tr>
+      <tr><td>Validação contra backend real e Demo Mode</td><td><span class="chip ok">CUMPRIDO</span></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Restrições — confirmadas</h2>
+  <ul>
+    <li>Nenhuma entidade, tabela ou repositório <code>Project</code> criada</li>
+    <li>Nenhum cadastro, edição ou exclusão de projetos</li>
+    <li>Nenhum dado fictício — 100% dos números vêm de <code>GET /api/portfolio/summary</code> real</li>
+    <li>Nenhum outro módulo adicionado ao menu</li>
+    <li>FS-005 não iniciada</li>
+    <li>Nenhuma nova documentação de arquitetura produzida além dos artefatos normais da Feature</li>
+  </ul>
+
+  <h2>Achado real corrigido durante a implementação</h2>
+  <div class="callout">
+    Adicionar "Projetos" à navegação quebrou um teste E2E pré-existente do Dashboard
+    (<code>dashboard.spec.ts</code>), que usava <code>getByText("Projetos").first()</code> para localizar o
+    cabeçalho de seção "Projetos" — agora esse texto também existe no rótulo do item de menu (oculto em md/mobile,
+    <code>hidden lg:inline</code>). Corrigido apontando o teste para o role de heading, que desambigua
+    corretamente em qualquer breakpoint. Nenhum comportamento real do produto mudou — o achado é puramente de
+    precisão de seletor de teste, exatamente o tipo de regressão que a suíte automatizada existe para capturar.
+  </div>
+  <p>Também descoberto: no breakpoint <code>md</code> (rail somente-ícone), o link de navegação não tem nome
+    acessível (rótulo de texto é <code>hidden lg:inline</code>) — os novos testes E2E usam seletor por
+    <code>href</code> em vez de nome acessível para cliques de navegação, funcionando nos 3 breakpoints.</p>
+
+  <h2>Testes executados</h2>
+  <table>
+    <thead><tr><th>Gate</th><th>Resultado</th></tr></thead>
+    <tbody>
+      <tr><td>Backend — pytest</td><td>92/92 (inalterado — nenhum arquivo de backend tocado)</td></tr>
+      <tr><td>Frontend — unit/component (vitest)</td><td>116/116 (12 novos)</td></tr>
+      <tr><td>Frontend — <code>tsc --noEmit</code></td><td>limpo</td></tr>
+      <tr><td>Frontend — <code>eslint .</code></td><td>limpo</td></tr>
+      <tr><td>E2E (Playwright, 3 breakpoints)</td><td>85/85 (13 novos/atualizados), 2 skip esperados</td></tr>
+      <tr><td>Backend real, sem mock (curl)</td><td><code>GET /api/portfolio/summary</code> retornando os 6 projetos reais do Demo Mode</td></tr>
+      <tr><td>Demo Mode, navegador real</td><td>Fluxo completo Dashboard → Projetos → busca → Workspace, capturado em screenshot</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Próximo passo</h2>
+  <p>TIP-004A concluído e commitado. Interrompendo e aguardando autorização para a FS-005.</p>
+
+  <footer>
+    <span>Stratech — TIP-004A</span>
+    <span>Executive Progress Report</span>
+    <span>2026-07-12</span>
+  </footer>
+</main>
