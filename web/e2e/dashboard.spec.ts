@@ -43,7 +43,10 @@ test("logs in with the correct password and lands on /dashboard", async ({ page 
 test("renders the portfolio widgets when the backend has data", async ({ page }) => {
   await login(page);
   await expect(page.getByText("Multilift").filter({ visible: true }).first()).toBeVisible();
-  await expect(page.getByText("Projetos").first()).toBeVisible();
+  // Not getByText("Projetos") -- since TIP-004A the Sidebar's own "Projetos"
+  // nav item also matches that text (hidden at some breakpoints, not
+  // others); the section heading role disambiguates regardless of breakpoint.
+  await expect(page.getByRole("heading", { name: "Projetos" })).toBeVisible();
 });
 
 // 6 + 12 (vazio). Dashboard sem dados

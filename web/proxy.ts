@@ -13,6 +13,8 @@ export const config = {
     "/dashboard/:path*",
     "/workspace",
     "/workspace/:path*",
+    "/projects",
+    "/projects/:path*",
     "/api/bff/:path*",
   ],
 };

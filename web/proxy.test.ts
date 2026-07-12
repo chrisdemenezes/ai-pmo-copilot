@@ -66,4 +66,17 @@ describe("proxy", () => {
     const response = proxy(requestFor("/workspace/Aurora", token));
     expect(response.status).toBe(200);
   });
+
+  // TIP-004A: /projects joins the same gate, same pattern as /workspace.
+  it("redirects /projects to /entrar when there is no session cookie", async () => {
+    const response = proxy(requestFor("/projects"));
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/entrar");
+  });
+
+  it("passes /projects through with a valid session cookie", async () => {
+    const { token } = createSessionToken();
+    const response = proxy(requestFor("/projects", token));
+    expect(response.status).toBe(200);
+  });
 });
