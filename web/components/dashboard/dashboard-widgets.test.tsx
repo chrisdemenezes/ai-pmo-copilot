@@ -53,6 +53,30 @@ describe("ProjectHealthGrid", () => {
     render(<ProjectHealthGrid projects={[]} />);
     expect(screen.queryByText("Multilift")).not.toBeInTheDocument();
   });
+
+  it("links each project name to its Workspace, URL-encoded (TIP-004)", () => {
+    render(
+      <ProjectHealthGrid
+        projects={[
+          {
+            project_name: "Implantacao SAP S/4HANA",
+            total_analyses: 2,
+            open_risks: 4,
+            pending_action_items: 0,
+            latest_health_status: "red",
+          },
+        ]}
+      />,
+    );
+    const links = screen.getAllByRole("link", { name: "Implantacao SAP S/4HANA" });
+    expect(links.length).toBeGreaterThan(0);
+    for (const link of links) {
+      expect(link).toHaveAttribute(
+        "href",
+        "/workspace/Implantacao%20SAP%20S%2F4HANA",
+      );
+    }
+  });
 });
 
 describe("HealthStatusDistribution", () => {

@@ -50,4 +50,20 @@ describe("proxy", () => {
     const response = proxy(requestFor("/dashboard"));
     expect(response.status).toBe(200);
   });
+
+  // TIP-004: /workspace joins the same gate as /dashboard (config.matcher
+  // extended) -- this exercises the gate function itself; the matcher array
+  // is Next.js build config and is additionally covered by the E2E redirect
+  // test (workspace.spec.ts) against a real dev server.
+  it("redirects /workspace/:projectName to /entrar when there is no session cookie", async () => {
+    const response = proxy(requestFor("/workspace/Aurora"));
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/entrar");
+  });
+
+  it("passes /workspace/:projectName through with a valid session cookie", async () => {
+    const { token } = createSessionToken();
+    const response = proxy(requestFor("/workspace/Aurora", token));
+    expect(response.status).toBe(200);
+  });
 });

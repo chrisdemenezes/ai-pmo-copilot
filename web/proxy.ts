@@ -8,7 +8,13 @@ import { SESSION_COOKIE_NAME, verifySessionToken } from "@/lib/session";
 const LOGIN_ROUTE = "/api/bff/session";
 
 export const config = {
-  matcher: ["/dashboard", "/dashboard/:path*", "/api/bff/:path*"],
+  matcher: [
+    "/dashboard",
+    "/dashboard/:path*",
+    "/workspace",
+    "/workspace/:path*",
+    "/api/bff/:path*",
+  ],
 };
 
 export function proxy(request: NextRequest) {

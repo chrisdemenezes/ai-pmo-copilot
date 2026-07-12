@@ -1,7 +1,13 @@
+import Link from "next/link";
+
 import { cn } from "@/lib/utils";
 import { Badge, healthStatusLabel, healthStatusVariant } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import type { ProjectSummary } from "@/lib/dashboard/types";
+
+function workspaceHref(projectName: string) {
+  return `/workspace/${encodeURIComponent(projectName)}`;
+}
 
 /**
  * W2 -- FS-001 §5/§11. Redesigned to a dense table for md/lg (Visual
@@ -30,11 +36,14 @@ export function ProjectHealthGrid({ projects }: { projects: ProjectSummary[] }) 
           <tbody>
             {projects.map((project) => (
               <tr key={project.project_name} className="border-b border-border last:border-0">
-                <td
-                  className="max-w-xs truncate px-4 py-3 font-display font-semibold"
-                  title={project.project_name}
-                >
-                  {project.project_name}
+                <td className="max-w-xs truncate px-4 py-3 font-display font-semibold">
+                  <Link
+                    href={workspaceHref(project.project_name)}
+                    className="hover:text-accent hover:underline"
+                    title={project.project_name}
+                  >
+                    {project.project_name}
+                  </Link>
                 </td>
                 <td className="px-4 py-3">
                   <Badge variant={healthStatusVariant(project.latest_health_status)}>
@@ -63,9 +72,13 @@ export function ProjectHealthGrid({ projects }: { projects: ProjectSummary[] }) 
           <Card key={project.project_name}>
             <CardContent className="flex flex-col gap-3 p-4">
               <div className="flex items-start justify-between gap-2">
-                <p className="truncate font-display font-semibold" title={project.project_name}>
+                <Link
+                  href={workspaceHref(project.project_name)}
+                  className="truncate font-display font-semibold hover:text-accent hover:underline"
+                  title={project.project_name}
+                >
                   {project.project_name}
-                </p>
+                </Link>
                 <Badge variant={healthStatusVariant(project.latest_health_status)}>
                   {healthStatusLabel(project.latest_health_status)}
                 </Badge>
