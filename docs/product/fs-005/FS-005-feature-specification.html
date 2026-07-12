@@ -1,0 +1,376 @@
+<title>FS-005 — AI Experience</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --fato:#0f6b5c; --fato-bg:#e2efe9;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --plan:#2f5f9e; --plan-bg:#e2ebf6;
+    --impl:#2f7a4f; --impl-bg:#e1f0e5;
+    --dep:#1c7a8c; --dep-bg:#dcf0f2;
+    --out:#8a8478; --out-bg:#eae7df;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --fato:#4fd6b8; --fato-bg:#173029;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --plan:#7fb4f2; --plan-bg:#1a2c42;
+    --impl:#7fd19f; --impl-bg:#1a3324;
+    --dep:#6fd3e3; --dep-bg:#123338;
+    --out:#a9a494; --out-bg:#26221a;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --fato:#4fd6b8; --fato-bg:#173029;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --plan:#7fb4f2; --plan-bg:#1a2c42;
+      --impl:#7fd19f; --impl-bg:#1a3324;
+      --dep:#6fd3e3; --dep-bg:#123338;
+      --out:#a9a494; --out-bg:#26221a;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:270px minmax(0,1fr); max-width:1340px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:3px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  .toc .toc-num{color:var(--accent); margin-right:6px;}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:56px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.7rem,4vw,2.5rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:70ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:52px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink);}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.3rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:70ch;}
+  h3{font-size:1.02rem; margin:26px 0 8px; font-weight:600;}
+  p{margin:0 0 14px; max-width:74ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:72ch;}
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:18px 22px; margin:14px 0 20px; box-shadow:var(--shadow);}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.fato{color:var(--fato); background:var(--fato-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  .chip.plan{color:var(--plan); background:var(--plan-bg);}
+  .chip.impl{color:var(--impl); background:var(--impl-bg);}
+  .chip.dep{color:var(--dep); background:var(--dep-bg);}
+  .chip.out{color:var(--out); background:var(--out-bg);}
+  .us-card{border:1px solid var(--border); border-radius:6px; padding:16px 20px; margin-bottom:12px; background:var(--surface);}
+  .us-card .us-text{font-weight:600; margin-bottom:6px;}
+  .us-card .us-ac{color:var(--ink-dim); font-size:.87rem; margin:0;}
+  .flow{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:16px 0 24px; font-family: ui-monospace, monospace; font-size:12px;}
+  .flow span{background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:8px 12px; box-shadow:var(--shadow);}
+  .flow .arrow{color:var(--ink-dim); border:none; box-shadow:none; padding:0;}
+  .legend{display:flex; flex-wrap:wrap; gap:12px; margin:14px 0 20px; font-size:.85rem; color:var(--ink-dim);}
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">FS-005<br>AI Experience</div>
+    <nav>
+      <a href="#s1"><span class="toc-num">01</span>Contexto e Objetivo</a>
+      <a href="#s2"><span class="toc-num">02</span>Fluxo Atual (Mapeamento)</a>
+      <a href="#s3"><span class="toc-num">03</span>Problemas Reais Identificados</a>
+      <a href="#s4"><span class="toc-num">04</span>Classificação das Melhorias</a>
+      <a href="#s5"><span class="toc-num">05</span>Architecture Review</a>
+      <a href="#s6"><span class="toc-num">06</span>UX Review</a>
+      <a href="#s7"><span class="toc-num">07</span>Escopo</a>
+      <a href="#s8"><span class="toc-num">08</span>Fora de Escopo</a>
+      <a href="#s9"><span class="toc-num">09</span>User Stories</a>
+      <a href="#s10"><span class="toc-num">10</span>NFRs</a>
+      <a href="#s11"><span class="toc-num">11</span>Critérios de Aceite</a>
+      <a href="#s12"><span class="toc-num">12</span>Estratégia de Testes</a>
+      <a href="#s13"><span class="toc-num">13</span>Riscos</a>
+      <a href="#s14"><span class="toc-num">14</span>Checklist de Segurança</a>
+      <a href="#s15"><span class="toc-num">15</span>Rollback</a>
+      <a href="#s16"><span class="toc-num">16</span>Definition of Ready</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">Feature Specification · Release 0.3</div>
+      <h1 class="title">FS-005 — AI Experience</h1>
+      <p class="subtitle">Melhora como o usuário escolhe, aciona e acompanha os 3 agentes de IA já reais
+        (<code>project_status</code>, <code>risk_review</code>, <code>meeting_intelligence</code>), e como
+        distingue conteúdo gerado por IA de dado agregado pelo sistema. Nenhum agente novo, nenhum chat genérico,
+        nenhuma síntese entre agentes, nenhuma mudança de schema.</p>
+      <div class="meta-row">
+        <span><b>Release</b> 0.3</span>
+        <span><b>Origem</b> Autorização do Product Owner, pós-encerramento da FS-004</span>
+        <span><b>Data</b> 2026-07-12</span>
+        <span><b>Status</b> Aguardando aprovação — TIP-005 ainda não iniciado. Sem código escrito.</span>
+      </div>
+    </div>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Contexto e Objetivo</h2></div>
+      <p>Os 3 agentes de IA do produto são reais, testados e já persistem resultado estruturado em
+        <code>analysis_records</code> — mas hoje não existe nenhuma forma de acioná-los pela interface. O
+        Workspace (FS-004) já lê e exibe o resultado dessas análises com excelência, mas nunca as produz. O
+        objetivo desta feature é fechar exatamente essa lacuna: a experiência de <i>acionar</i> um agente, não a
+        de <i>ler</i> seu resultado (já resolvida).</p>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>Fluxo Atual (Mapeamento completo)</h2></div>
+      <p class="section-intro">Levantamento direto do código, antes de qualquer proposta de tela.</p>
+      <div class="flow">
+        <span>Usuário</span><span class="arrow">→</span>
+        <span>Endpoint</span><span class="arrow">→</span>
+        <span>Agente</span><span class="arrow">→</span>
+        <span>Persistência</span><span class="arrow">→</span>
+        <span>Dashboard/Workspace</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <tbody>
+            <tr><th>Usuário</th><td><span class="chip guard">Achado central</span> Não existe nenhum ponto de acionamento na UI. Os únicos invocadores reais dos 3 endpoints <code>POST /api/{"{"}meetings,risks,projects{"}"}/analyze</code> são chamada direta de API (curl) e <code>demo/seed_demo_data.py</code>. <code>web/app/style-guide/page.tsx</code> tem um <code>Textarea</code> com contador de caracteres e uma <code>Tabs</code> listando os 3 endpoints como texto estático — decorativo, sem <code>onSubmit</code> real, sem <code>fetch</code> para nenhum dos 3 endpoints.</td></tr>
+            <tr><th>Endpoint</th><td><code>POST /api/meetings/analyze</code> (<code>transcript</code>, 10–20000 chars), <code>POST /api/risks/analyze</code> e <code>POST /api/projects/analyze</code> (ambos <code>project_context</code>, mesma faixa) — todos já reais, já validados (<code>Field(min_length=10, max_length=20000)</code> + validator contra string só de espaços), já protegidos por <code>X-API-Key</code> e rate limit (60 req/60s por chave, <code>src/api/rate_limiter.py</code>).</td></tr>
+            <tr><th>Agente</th><td>Cada agente chama o LLM real (<code>claude-3-5-sonnet-20241022</code>, <code>max_tokens=1200</code>) sem timeout configurado no lado do backend — só o SDK padrão. Retorna <code>{"{"}agent, project_name, model_output{"}"}</code>, com <code>model_output.structured=false</code> como fallback caso o parse JSON falhe.</td></tr>
+            <tr><th>Persistência</th><td><code>repository.save_analysis(kind=..., payload=result, project_name=...)</code> grava em <code>analysis_records</code> — inalterado, já é exatamente a mesma tabela que a FS-004 lê.</td></tr>
+            <tr><th>Dashboard/Workspace</th><td>O Workspace já lê tudo isso (Riscos/Ações/Decisões/Recomendações/Timeline/Histórico). <span class="chip guard">Achado</span> Nenhuma seção distingue visualmente texto gerado pela IA de dado agregado pelo sistema — o "Achados-chave" (IA) e as contagens (sistema) do Executive Summary usam exatamente o mesmo <code>Card</code>, sem nenhum marcador. A única identificação de proveniência em qualquer tela é o badge genérico de <code>kind</code> ("Reunião"/"Risco"/"Status") — nunca o nome do agente, mesmo esse campo (<code>payload.agent</code>) já existindo no dado real.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>Problemas Reais Identificados</h2></div>
+      <ol>
+        <li><b>Nenhum ponto de acionamento.</b> O usuário não tem como rodar uma análise nova pela interface — a única forma é uma chamada de API manual.</li>
+        <li><b>Nenhuma captura de contexto real.</b> O <code>Textarea</code> do style-guide é decorativo; não existe formulário funcional para transcript/project_context.</li>
+        <li><b>Nenhum padrão de loading para submissão.</b> Todo o loading já construído (Workspace, Dashboard) é para leitura (<code>GET</code>); não existe padrão para "enviei algo, aguardando o agente responder" — e, sem timeout no backend, uma UI ingênua poderia esperar indefinidamente sem feedback.</li>
+        <li><b>Nenhuma distinção entre IA e agregação.</b> Achados-chave, riscos, ações, decisões e recomendações (todos texto gerado pelo LLM) aparecem com o mesmo tratamento visual que contagens calculadas pelo próprio sistema.</li>
+        <li><b>Proveniência fraca.</b> Só o <code>kind</code> (Reunião/Risco/Status) identifica uma entrada — nunca qual agente, mesmo esse dado já existindo no payload.</li>
+        <li><b>Sem confirmação de sucesso.</b> Mesmo com o <code>Toaster</code> (sonner) já montado globalmente (<code>web/app/layout.tsx</code>), nenhum fluxo real dispara um toast — não existe feedback de "análise salva com sucesso" em lugar nenhum do produto hoje.</li>
+        <li><b>Risco de duplicidade futura.</b> Sem um princípio explícito de onde a experiência de acionamento vive, ela poderia nascer espalhada entre Dashboard e Workspace, duplicando a leitura de resultado que a FS-004 já resolveu.</li>
+      </ol>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>Classificação das Melhorias</h2></div>
+      <div class="legend">
+        <span class="chip impl">IMPLEMENTÁVEL</span> com capacidades atuais
+        <span class="chip dep">DEPENDENTE</span> de backend futuro
+        <span class="chip out">FORA DE ESCOPO</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Melhoria</th><th>Classificação</th><th>Nota</th></tr></thead>
+          <tbody>
+            <tr><td>Formulário de acionamento (escolher agente + fornecer contexto) dentro do Workspace</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Os 3 endpoints já existem, validados; só falta a tela</td></tr>
+            <tr><td>Estado de loading/sucesso/erro para a submissão</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Reaproveita <code>Skeleton</code>, botão desabilitado + texto, e o <code>Toaster</code> já montado e ocioso</td></tr>
+            <tr><td>Marcador visual "gerado por IA" nas seções que exibem <code>model_output</code></td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Presentation-only sobre dado já real</td></tr>
+            <tr><td>Exibir o agente (<code>payload.agent</code>) além do <code>kind</code> genérico</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Campo já existe no payload, só não é lido hoje</td></tr>
+            <tr><td>Atualização automática do Workspace após uma análise ser salva (sem reload manual)</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Invalidação de query (TanStack Query), já a biblioteca em uso</td></tr>
+            <tr><td>Validação client-side espelhando os limites reais do backend (10–20000 caracteres)</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Mesma faixa já validada no backend</td></tr>
+            <tr><td>Mensagem amigável de rate limit (429)</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Mapeamento de status HTTP já existente, mesmo padrão do BFF</td></tr>
+            <tr><td>Progresso granular / streaming do token de resposta</td><td><span class="chip dep">DEPENDENTE</span></td><td>O backend não faz streaming; exigiria mudança na chamada ao LLM</td></tr>
+            <tr><td>Fila assíncrona / acionamento não-bloqueante para análises muito longas</td><td><span class="chip dep">DEPENDENTE</span></td><td>Hoje o endpoint é síncrono; fila exigiria infraestrutura nova</td></tr>
+            <tr><td>Confiança, previsão, ou explicação do raciocínio da IA</td><td><span class="chip out">FORA DE ESCOPO</span></td><td>Proibido pelo princípio 6 — o backend não fornece isso</td></tr>
+            <tr><td>Editar/corrigir um resultado de IA já salvo</td><td><span class="chip out">FORA DE ESCOPO</span></td><td>Sem suporte de update em <code>analysis_records</code></td></tr>
+            <tr><td>Notificação quando uma análise termina após o usuário navegar para outra tela</td><td><span class="chip out">FORA DE ESCOPO</span></td><td>Sem sistema de notificação no produto</td></tr>
+            <tr><td>Novo agente, chat genérico, síntese entre agentes</td><td><span class="chip out">FORA DE ESCOPO</span></td><td>Proibido explicitamente pelos princípios 1-3</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Architecture Review</h2></div>
+      <div class="table-wrap">
+        <table>
+          <tbody>
+            <tr><th>Onde vive o formulário</th><td>Dentro do Workspace (<code>/workspace/[projectName]</code>) — nunca uma tela própria. O <code>project_name</code> já está no contexto da URL, resolvendo "como fornece o contexto necessário" para <code>project_name</code> automaticamente; só falta o texto (transcript/project_context).</td></tr>
+            <tr><th>3 rotas BFF novas, finas (proxy puro)</th><td><code>web/app/api/bff/workspace/[projectName]/analyze/meeting/route.ts</code>, <code>.../analyze/risk/route.ts</code>, <code>.../analyze/status/route.ts</code> — uma por agente, corpo tipado (evita um parser de union discriminada), mesmo padrão de <code>X-API-Key</code>/<code>cache:"no-store"</code> das rotas BFF já existentes. Nenhum endpoint novo no backend — os 3 endpoints reais já existem.</td></tr>
+            <tr><th>Timeout do BFF para submissão</th><td>Os proxies de leitura usam 8s (adequado para uma query rápida ao banco). Uma chamada real ao LLM é mais lenta e sem timeout de backend — o BFF de submissão usa 60s, o mesmo valor já real e em uso em <code>demo/seed_demo_data.py</code> para o cliente <code>httpx</code>, não um número novo inventado.</td></tr>
+            <tr><th>Atualização do Workspace pós-submissão</th><td><code>queryClient.invalidateQueries</code> (TanStack Query, já em uso) nas chaves <code>workspace-timeline</code>/<code>workspace-latest</code> do projeto atual após sucesso — a nova análise aparece nas seções já existentes sem novo componente de exibição.</td></tr>
+            <tr><th>Marcador de proveniência de IA</th><td>Componente de apresentação reaproveitando o token de <code>Badge</code> já existente — não um novo sistema, apenas uma variante visual consistente aplicada às seções cujo conteúdo vem de <code>payload.model_output</code> (Riscos, Ações, Decisões, Recomendações, Achados-chave), nunca às contagens agregadas pelo sistema.</td></tr>
+            <tr><th>Feedback de sucesso/erro</th><td><code>sonner</code> (já montado globalmente, hoje ocioso) passa a disparar de verdade em sucesso ("Análise salva") e erro (mensagem amigável, incluindo 429 de rate limit).</td></tr>
+            <tr><th>Contrato de backend</th><td>Zero alteração. Os 3 endpoints, seus schemas de request/response, e o schema de <code>analysis_records</code> permanecem exatamente como estão.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>UX Review</h2></div>
+      <p class="section-intro">Cada um dos 8 critérios de avaliação do Product Owner, respondido diretamente:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Critério</th><th>Resposta desta FS</th></tr></thead>
+          <tbody>
+            <tr><td>Como o usuário escolhe ou aciona um agente existente</td><td>Seletor dos 3 agentes reais dentro do Workspace (reaproveita o padrão <code>Tabs</code> já existente no design system, hoje só decorativo no style-guide)</td></tr>
+            <tr><td>Como fornece o contexto necessário</td><td><code>project_name</code> já vem do Workspace; um <code>Textarea</code> (já existente) captura transcript/project_context, com contagem de caracteres espelhando o limite real (10–20000)</td></tr>
+            <tr><td>Como acompanha loading, sucesso e erro</td><td>Botão de envio desabilitado + texto de estado durante a chamada (mesmo padrão do "Atualizando…" já usado no Dashboard/Workspace); <code>toast</code> de sucesso/erro ao concluir</td></tr>
+            <tr><td>Como identifica qual agente produziu cada resultado</td><td>Rótulo de proveniência lendo <code>payload.agent</code>, além do badge de <code>kind</code> já existente</td></tr>
+            <tr><td>Como lê achados, riscos, ações, decisões e recomendações</td><td>Sem mudança — os painéis do Workspace (FS-004) já fazem isso; a nova análise só passa a aparecer neles automaticamente</td></tr>
+            <tr><td>Como diferencia conteúdo gerado pela IA de informação agregada</td><td>Marcador visual consistente (Seção 5) aplicado apenas ao conteúdo vindo de <code>model_output</code></td></tr>
+            <tr><td>Como os resultados aparecem no Workspace e no histórico</td><td>Invalidação de query após sucesso — Intelligence Timeline e Histórico completo (já existentes) mostram a nova entrada sem reload manual</td></tr>
+            <tr><td>Como evitar duplicidade entre Dashboard, Workspace e experiência de análise</td><td>Princípio explícito: o formulário de acionamento vive <b>somente</b> no Workspace. O Dashboard permanece portfólio-only, sem nenhum ponto de acionamento — evita duplicidade por construção, não por convenção informal</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        Tokens visuais: nenhum novo. <code>Textarea</code>, <code>Tabs</code>, <code>Dialog</code> e <code>sonner</code>
+        já existem no design system e estão ociosos — esta feature é majoritariamente sobre <b>ligar</b>
+        componentes já reais a um fluxo real, não criar UI nova.
+      </div>
+    </section>
+
+    <section id="s7">
+      <div class="section-head"><span class="section-num">07</span><h2>Escopo</h2></div>
+      <ul>
+        <li>Formulário de acionamento dos 3 agentes reais, dentro do Workspace</li>
+        <li>3 rotas BFF finas de submissão (proxy puro para os 3 endpoints já existentes)</li>
+        <li>Estados de loading/sucesso/erro para a submissão, incluindo rate limit (429)</li>
+        <li>Validação client-side espelhando os limites reais (10–20000 caracteres)</li>
+        <li>Marcador visual de proveniência de IA nas seções alimentadas por <code>model_output</code></li>
+        <li>Exibição do agente (<code>payload.agent</code>) nas seções que já mostram <code>kind</code></li>
+        <li>Atualização automática do Workspace (Timeline/Histórico/painéis "latest") após submissão bem-sucedida</li>
+      </ul>
+    </section>
+
+    <section id="s8">
+      <div class="section-head"><span class="section-num">08</span><h2>Fora de Escopo (explícito)</h2></div>
+      <ul>
+        <li>Qualquer agente novo, chat genérico, ou síntese entre agentes (princípios 1-3)</li>
+        <li>Qualquer alteração de schema de saída ou de contrato de análise (princípios 4-5)</li>
+        <li>Confiança, previsão, ou explicação de raciocínio da IA que o backend não fornece (princípio 6)</li>
+        <li>Streaming de resposta, fila assíncrona, ou qualquer mudança na forma como o LLM é chamado</li>
+        <li>Editar ou corrigir um resultado de IA já salvo</li>
+        <li>Notificações, sistema de identidade de usuário, ou qualquer capacidade não já existente</li>
+        <li>Qualquer ponto de acionamento fora do Workspace (ex.: um "botão de análise" no Dashboard)</li>
+        <li>Qualquer alteração em <code>src/agents/</code>, nos 3 endpoints POST, ou em <code>analysis_records</code></li>
+      </ul>
+    </section>
+
+    <section id="s9">
+      <div class="section-head"><span class="section-num">09</span><h2>User Stories</h2></div>
+      <div class="us-card">
+        <div class="us-text">Como PMO executivo dentro do Workspace de um projeto, escolho qual dos 3 agentes rodar e forneço o texto necessário, sem sair da tela.</div>
+        <p class="us-ac">Critério: os 3 agentes reais aparecem como opções; o campo de texto muda conforme o agente (transcript vs. project_context).</p>
+      </div>
+      <div class="us-card">
+        <div class="us-text">Como usuário aguardando uma análise, sei que ela está em andamento e recebo confirmação clara quando termina (ou uma mensagem honesta se falhar).</div>
+        <p class="us-ac">Critério: botão de envio mostra estado de carregamento; toast de sucesso ou erro ao concluir; erro de rate limit tem mensagem específica, não genérica.</p>
+      </div>
+      <div class="us-card">
+        <div class="us-text">Como usuário lendo o Workspace, distingo imediatamente o que a IA escreveu do que o sistema apenas contou/agregou.</div>
+        <p class="us-ac">Critério: todo conteúdo vindo de <code>model_output</code> tem o mesmo marcador visual consistente; contagens agregadas nunca o têm.</p>
+      </div>
+      <div class="us-card">
+        <div class="us-text">Como usuário que acabou de rodar uma análise, vejo o resultado aparecer no Workspace sem precisar recarregar a página manualmente.</div>
+        <p class="us-ac">Critério: Intelligence Timeline, Histórico completo, e o painel "latest" do tipo correspondente refletem a nova análise imediatamente após o sucesso da submissão.</p>
+      </div>
+    </section>
+
+    <section id="s10">
+      <div class="section-head"><span class="section-num">10</span><h2>NFRs Aplicáveis</h2></div>
+      <ul>
+        <li>Nenhuma regressão nos 92 testes de backend — nenhum arquivo de backend é tocado</li>
+        <li>Nenhuma regressão nos testes de frontend já existentes</li>
+        <li>Timeout de 60s no BFF de submissão, com mensagem honesta se estourado (não um estado de carregamento infinito)</li>
+        <li>Mensagem específica e amigável para rate limit (429), distinta de um erro genérico de backend</li>
+        <li>Contraste WCAG AA no marcador de proveniência de IA, em ambos os temas</li>
+        <li>Responsividade nos 3 breakpoints já estabelecidos</li>
+      </ul>
+    </section>
+
+    <section id="s11">
+      <div class="section-head"><span class="section-num">11</span><h2>Critérios de Aceite</h2></div>
+      <ul>
+        <li>É possível acionar qualquer um dos 3 agentes reais a partir do Workspace de um projeto, e ver o resultado aparecer nas seções já existentes sem reload manual</li>
+        <li>O formulário valida o texto (10–20000 caracteres) antes de habilitar o envio, espelhando exatamente os limites do backend</li>
+        <li>Um erro de rate limit (429) mostra uma mensagem distinta de um erro genérico de backend</li>
+        <li>Toda seção alimentada por <code>model_output</code> (Riscos, Ações, Decisões, Recomendações, Achados-chave) mostra o marcador de proveniência de IA; nenhuma seção de contagem agregada o mostra</li>
+        <li>O agente que produziu cada entrada da Timeline/Histórico é identificável além do badge genérico de <code>kind</code></li>
+        <li>Nenhum ponto de acionamento existe fora do Workspace</li>
+        <li>Zero alteração em <code>src/agents/</code>, nos 3 endpoints POST, ou no schema de <code>analysis_records</code></li>
+        <li>Suíte completa (backend + frontend + E2E) passa sem alteração de contrato de backend</li>
+      </ul>
+    </section>
+
+    <section id="s12">
+      <div class="section-head"><span class="section-num">12</span><h2>Estratégia de Testes</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Camada</th><th>O que cobrir</th></tr></thead>
+          <tbody>
+            <tr><td>Backend</td><td>Nenhum teste novo necessário — nenhum arquivo de backend muda nesta feature. Suíte existente (92 testes) roda como regressão.</td></tr>
+            <tr><td>BFF (unit)</td><td>3 rotas novas: proxy correto do corpo, propagação de erro (incluindo 429 de rate limit repassado do backend), timeout de 60s, <code>X-API-Key</code> nunca vazado — mesmo padrão já usado nas rotas BFF existentes.</td></tr>
+            <tr><td>Componentes (unit)</td><td>Formulário: validação de tamanho, troca de campo conforme agente selecionado, estados de loading/sucesso/erro isolados. Marcador de proveniência: presente nas seções de IA, ausente nas de agregação.</td></tr>
+            <tr><td>E2E (Playwright, 3 breakpoints)</td><td>Fluxo completo: escolher agente → preencher texto → enviar → ver toast de sucesso → ver a nova análise aparecer na Timeline/Histórico/painel correspondente sem reload manual. Cenário de erro (rate limit simulado no mock). Mock de backend (<code>e2e/mock-backend.mjs</code>) estendido com os 3 endpoints POST.</td></tr>
+            <tr><td>Backend real, sem mock</td><td>Mesma disciplina da correção do TIP-004: pelo menos uma submissão real contra o backend real (Demo Mode), confirmando que o resultado é persistido e aparece no Workspace.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s13">
+      <div class="section-head"><span class="section-num">13</span><h2>Riscos Específicos</h2></div>
+      <ul>
+        <li><b>Chamada ao LLM sem timeout no backend</b> — o BFF precisa de um timeout próprio (60s, proposto) para nunca deixar o usuário esperando indefinidamente; se 60s for insuficiente na prática, é um ajuste de configuração, não uma mudança de arquitetura</li>
+        <li><b>Cache desatualizado após submissão</b> — se a invalidação de query falhar silenciosamente, o usuário pode não ver o resultado sem um refresh manual; precisa de teste explícito, não suposição</li>
+        <li><b>Rate limit real durante uso legítimo</b> — 60 req/60s é generoso para um usuário humano, mas o teste deve confirmar que a mensagem de erro é honesta, não um erro genérico assustador</li>
+      </ul>
+    </section>
+
+    <section id="s14">
+      <div class="section-head"><span class="section-num">14</span><h2>Checklist de Segurança (ADR-011)</h2></div>
+      <p><span class="chip fato">Aplica-se parcialmente</span> As 3 novas rotas BFF de submissão seguem o mesmo padrão de credencial das rotas de leitura já auditadas (TIP-004): <code>API_KEY</code> só no servidor, nunca ecoado ao navegador. Nenhuma rota nova de sessão/autenticação é criada — reaproveita o gate já existente do Workspace. Nenhum dado sensível novo é introduzido (o texto submetido é o mesmo tipo de conteúdo — transcript/contexto de projeto — que já trafega via API hoje). Checklist completo a ser aplicado de fato na escrita do TIP-005.</p>
+    </section>
+
+    <section id="s15">
+      <div class="section-head"><span class="section-num">15</span><h2>Rollback</h2></div>
+      <p>Reverter o commit desta feature remove o formulário de acionamento, as 3 rotas BFF de submissão, e o
+        marcador de proveniência de IA. O Workspace volta a ser somente-leitura, exatamente como está hoje.
+        Nenhuma migração de dado, nenhuma mudança de schema — rollback é reversão de código pura.</p>
+    </section>
+
+    <section id="s16">
+      <div class="section-head"><span class="section-num">16</span><h2>Definition of Ready — Próximo Gate</h2></div>
+      <div class="callout guard">
+        <b>Nenhum código foi escrito.</b> Este documento é a Feature Specification, com Architecture Review
+        (Seção 5) e UX Review (Seção 6) incluídos. O Visual Gap Analysis é apresentado como documento separado.
+        O próximo passo — TIP-005 — só começa após aprovação explícita de ambos.
+      </div>
+    </section>
+
+    <footer>
+      <span>Stratech — FS-005</span>
+      <span>Release 0.3</span>
+      <span>2026-07-12</span>
+    </footer>
+  </main>
+</div>
