@@ -171,11 +171,16 @@ def get_analysis(
     return record
 
 
-@router.get("/projects/{project_name}/summary", response_model=ProjectSummaryResponse)
+@router.get("/projects/summary", response_model=ProjectSummaryResponse)
 def get_project_summary(
     project_name: str,
     service: ProjectSummaryService = Depends(build_project_summary_service),
 ):
+    # project_name is a query parameter, not a path segment -- Starlette's
+    # default path converter cannot capture a literal "/" in a {name}
+    # segment (the ASGI server decodes %2F before route matching, so no
+    # client-side encoding can work around it). Query parameters don't have
+    # this restriction, matching the already-working GET /analyses design.
     logger.info("Summarizing project_name=%s", project_name)
     return service.summarize(project_name=project_name)
 

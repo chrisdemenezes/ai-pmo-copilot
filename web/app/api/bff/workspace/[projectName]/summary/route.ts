@@ -28,18 +28,23 @@ export async function GET(
   const { projectName: rawProjectName } = await params;
   const projectName = decodeURIComponent(rawProjectName);
 
+  // project_name travels as a query parameter, not a path segment -- the
+  // backend route was migrated off /projects/{project_name}/summary because
+  // Starlette's path converter can't capture a literal "/" no matter how
+  // the client encodes it. URLSearchParams.set() encodes correctly here,
+  // matching the already-working /api/analyses BFF route.
+  const backendUrlObj = new URL(`${backendUrl}/api/projects/summary`);
+  backendUrlObj.searchParams.set("project_name", projectName);
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), BACKEND_TIMEOUT_MS);
 
   try {
-    const backendResponse = await fetch(
-      `${backendUrl}/api/projects/${encodeURIComponent(projectName)}/summary`,
-      {
-        headers: { "X-API-Key": apiKey },
-        signal: controller.signal,
-        cache: "no-store",
-      },
-    );
+    const backendResponse = await fetch(backendUrlObj, {
+      headers: { "X-API-Key": apiKey },
+      signal: controller.signal,
+      cache: "no-store",
+    });
 
     if (!backendResponse.ok) {
       return errorResponse(

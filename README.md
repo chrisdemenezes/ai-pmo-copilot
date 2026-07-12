@@ -111,7 +111,7 @@ Project summary (aggregated counts across every stored analysis for a project â€
 `docs/technical/04-api-design.md#project-summary-api`):
 
 ```bash
-curl -H "X-API-Key: $API_KEY" http://localhost:8000/api/projects/Multilift/summary
+curl -G -H "X-API-Key: $API_KEY" http://localhost:8000/api/projects/summary --data-urlencode "project_name=Multilift"
 ```
 
 Portfolio summary (the same aggregation for every project in one call â€” see

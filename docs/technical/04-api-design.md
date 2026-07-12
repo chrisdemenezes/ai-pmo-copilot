@@ -94,7 +94,13 @@ complete agent result (`payload`), unlike the summary returned by `GET /api/anal
 
 ### Project Summary API
 
-GET /api/projects/{project_name}/summary
+GET /api/projects/summary?project_name={project_name}
+
+`project_name` is a required query parameter, not a path segment — a path segment (the original
+design) cannot capture a literal `/` no matter how the client encodes it, because ASGI servers
+decode `%2F` before Starlette's router matches path segments against it. This surfaced for real
+with a project literally named `Implantacao SAP S/4HANA`. `GET /api/analyses` already used a query
+parameter for `project_name` and was unaffected; this endpoint was migrated to match.
 
 Aggregates every stored analysis for a project into executive-level counts, so a PMO Manager
 doesn't have to read individual analyses. Built by `ProjectSummaryService`

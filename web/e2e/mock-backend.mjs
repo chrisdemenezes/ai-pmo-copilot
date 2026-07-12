@@ -175,11 +175,14 @@ const server = http.createServer((req, res) => {
     return send(res, 200, scenario === "empty" ? [] : SAMPLE);
   }
 
-  const summaryMatch = url.pathname.match(/^\/api\/projects\/(.+)\/summary$/);
-  if (summaryMatch) {
+  // project_name is a query param here, not a path segment -- matches the
+  // real backend's route shape after the TIP-004 follow-up migration
+  // (GET /api/projects/{name}/summary could never actually serve a "/" in
+  // the name, regardless of client-side encoding; query params can).
+  if (url.pathname === "/api/projects/summary") {
     if (applyScenario(res, "summary")) return;
-    const projectName = decodeURIComponent(summaryMatch[1]);
-    const found = WORKSPACE_SUMMARY[projectName];
+    const projectName = url.searchParams.get("project_name");
+    const found = projectName ? WORKSPACE_SUMMARY[projectName] : undefined;
     if (!found) return send(res, 404, { detail: "not found" });
     return send(res, 200, found);
   }

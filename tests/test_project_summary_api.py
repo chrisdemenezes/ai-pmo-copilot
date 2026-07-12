@@ -30,7 +30,7 @@ def test_get_project_summary_returns_service_result():
     app.dependency_overrides[intelligence.build_project_summary_service] = lambda: fake_service
 
     client = TestClient(app)
-    response = client.get("/api/projects/Multilift/summary")
+    response = client.get("/api/projects/summary", params={"project_name": "Multilift"})
 
     assert response.status_code == 200
     assert response.json() == fake_summary
@@ -42,7 +42,7 @@ def test_get_project_summary_returns_service_result():
 def test_get_project_summary_for_unknown_project_returns_zeros():
     client = TestClient(app)
 
-    response = client.get("/api/projects/DoesNotExist/summary")
+    response = client.get("/api/projects/summary", params={"project_name": "DoesNotExist"})
 
     assert response.status_code == 200
     body = response.json()
@@ -51,6 +51,81 @@ def test_get_project_summary_for_unknown_project_returns_zeros():
     assert body["open_risks"] == 0
     assert body["pending_action_items"] == 0
     assert body["latest_health_status"] is None
+
+
+def test_get_project_summary_requires_project_name():
+    client = TestClient(app)
+
+    response = client.get("/api/projects/summary")
+
+    assert response.status_code == 422
+
+
+# Real hazard this endpoint was migrated to fix (TIP-004 follow-up): a
+# project_name containing "/" 404'd unconditionally as a path segment, no
+# matter how the client encoded it, because Starlette's default path
+# converter cannot capture a literal slash. Query parameters don't have
+# this restriction. Each case below is a real character class already
+# present in this product's own data (the "Implantacao SAP S/4HANA" demo
+# project) or realistically expected (accented Portuguese project names).
+def test_get_project_summary_handles_a_project_name_containing_a_slash():
+    fake_service = FakeService(
+        {
+            "project_name": "Implantacao SAP S/4HANA",
+            "total_analyses": 6,
+            "open_risks": 12,
+            "pending_action_items": 0,
+            "latest_health_status": "red",
+        }
+    )
+    app.dependency_overrides[intelligence.build_project_summary_service] = lambda: fake_service
+
+    client = TestClient(app)
+    response = client.get(
+        "/api/projects/summary", params={"project_name": "Implantacao SAP S/4HANA"}
+    )
+
+    assert response.status_code == 200
+    assert response.json()["project_name"] == "Implantacao SAP S/4HANA"
+    assert fake_service.received_project_name == "Implantacao SAP S/4HANA"
+
+    app.dependency_overrides.clear()
+
+
+def test_get_project_summary_handles_a_project_name_with_spaces():
+    client = TestClient(app)
+
+    response = client.get(
+        "/api/projects/summary", params={"project_name": "Migracao de Data Center"}
+    )
+
+    assert response.status_code == 200
+    assert response.json()["project_name"] == "Migracao de Data Center"
+
+
+def test_get_project_summary_handles_a_project_name_with_accents():
+    client = TestClient(app)
+
+    response = client.get(
+        "/api/projects/summary", params={"project_name": "Programa de Governança de Dados"}
+    )
+
+    assert response.status_code == 200
+    assert response.json()["project_name"] == "Programa de Governança de Dados"
+
+
+def test_get_project_summary_handles_a_manually_percent_encoded_query_string():
+    client = TestClient(app)
+
+    # Built by hand (not via `params=`) to exercise the exact wire format a
+    # browser's fetch(), URLSearchParams, or curl --data-urlencode produces --
+    # %20 for space, %2F for slash -- rather than TestClient's own encoding.
+    response = client.get(
+        "/api/projects/summary?project_name=Implantacao%20SAP%20S%2F4HANA"
+    )
+
+    assert response.status_code == 200
+    assert response.json()["project_name"] == "Implantacao SAP S/4HANA"
 
 
 def test_get_portfolio_summary_returns_service_result():
