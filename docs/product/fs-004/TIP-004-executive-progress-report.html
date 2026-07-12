@@ -1,0 +1,169 @@
+<title>TIP-004 — Executive Progress Report</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --ok:#2f7a4f; --ok-bg:#e1f0e5;
+    --warn:#9a6a12; --warn-bg:#f6ecd8;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --ok:#7fd19f; --ok-bg:#1a3324;
+    --warn:#e5b862; --warn-bg:#332a15;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --ok:#7fd19f; --ok-bg:#1a3324;
+      --warn:#e5b862; --warn-bg:#332a15;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  main{max-width:980px; margin:0 auto; padding:56px 40px 100px;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1{font-size:clamp(1.7rem,4vw,2.3rem); line-height:1.16; margin:0 0 14px; font-weight:600; text-wrap:balance;}
+  .subtitle{color:var(--ink-dim); max-width:74ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding:18px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim); margin-bottom:16px;}
+  .meta-row b{color:var(--ink);}
+  h2{font-size:1.2rem; margin:40px 0 6px; padding-bottom:10px; border-bottom:2px solid var(--ink);}
+  p{margin:0 0 12px; max-width:76ch;}
+  ul{margin:0 0 14px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:74ch;}
+  table{width:100%; border-collapse:collapse; font-size:.85rem; margin:12px 0 24px;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 10px; border-bottom:1px solid var(--ink);}
+  td{padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top;}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.ok{color:var(--ok); background:var(--ok-bg);}
+  .chip.warn{color:var(--warn); background:var(--warn-bg);}
+  .score-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin:16px 0 8px;}
+  .score-card{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px; box-shadow:var(--shadow);}
+  .score-card .label{font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-dim); margin-bottom:8px;}
+  .score-card .value{font-family: ui-monospace, monospace; font-size:1.6rem; font-weight:700; color:var(--ink); line-height:1;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.warn{border-left-color:var(--warn);}
+  .callout b{color:var(--ink);}
+  footer{border-top:1px solid var(--border); margin-top:60px; padding-top:20px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<main>
+  <div class="kicker">Technical Lead · TIP-004 · Encerramento</div>
+  <h1>Executive Progress Report — Project Intelligence Workspace</h1>
+  <p class="subtitle">TIP-004 implementou a FS-004 completa: rota <code>/workspace/[projectName]</code> construída
+    exclusivamente por agregação de <code>analysis_records</code> já existentes, em 3 painéis independentes,
+    zero mudança de backend além da extensão do gate de sessão.</p>
+  <div class="meta-row">
+    <span><b>Feature</b> FS-004 — Project Intelligence Workspace</span>
+    <span><b>Commit</b> <code>1b91819</code></span>
+    <span><b>Data</b> 2026-07-12</span>
+    <span><b>Status</b> Concluído — aguardando autorização para FS-005</span>
+  </div>
+
+  <h2>O que foi entregue</h2>
+  <ul>
+    <li>Rota <code>/workspace/[projectName]</code>, protegida pelo mesmo gate de sessão do Dashboard</li>
+    <li>3 rotas BFF finas (proxy puro) para os 3 endpoints de backend já existentes — zero endpoint novo no backend</li>
+    <li>3 painéis de dados independentes (React Query), cada um com seu próprio estado de loading/erro/sucesso, nenhum bloqueando os demais</li>
+    <li>8 seções na sequência executiva definida: Cabeçalho, Executive Summary, Intelligence Timeline, Riscos, Ações, Decisões, Recomendações, Histórico completo</li>
+    <li>Dashboard: cada linha/card de projeto agora linka para seu Workspace, com <code>project_name</code> codificado</li>
+  </ul>
+
+  <h2>Diretrizes do TIP-004 — aderência</h2>
+  <div class="score-grid">
+    <div class="score-card">
+      <div class="label">Painéis independentes</div>
+      <div class="value">3<span style="font-size:1rem;color:var(--ink-dim);">/3</span></div>
+    </div>
+    <div class="score-card">
+      <div class="label">Executive Summary</div>
+      <div class="value">100%</div>
+    </div>
+    <div class="score-card">
+      <div class="label">Entidades novas de domínio</div>
+      <div class="value">0</div>
+    </div>
+  </div>
+  <table>
+    <thead><tr><th>Diretriz</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td>As 3 consultas do Workspace são independentes; nenhum painel bloqueia os demais</td><td><span class="chip ok">CUMPRIDO</span></td></tr>
+      <tr><td>Cada seção possui seu próprio estado de loading/erro/sucesso</td><td><span class="chip ok">CUMPRIDO</span></td></tr>
+      <tr><td>Executive Summary mostra apenas informações existentes/derivadas, contagens, datas, estados — nenhuma interpretação, previsão, tendência ou síntese</td><td><span class="chip ok">CUMPRIDO</span></td></tr>
+      <tr><td>Toda agregação é efêmera — nenhuma informação derivada persistida</td><td><span class="chip ok">CUMPRIDO</span></td></tr>
+      <tr><td>Nenhuma entidade de domínio nova (tabela/repositório/endpoint Project)</td><td><span class="chip ok">CUMPRIDO</span></td></tr>
+      <tr><td>Nenhuma alteração em <code>analysis_records</code> ou em qualquer endpoint de backend</td><td><span class="chip ok">CUMPRIDO</span></td></tr>
+      <tr><td><code>encodeURIComponent</code> obrigatório em toda a cadeia Dashboard → Workspace → BFF</td><td><span class="chip ok">CUMPRIDO</span></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Achado real durante a verificação — fora do escopo do TIP-004</h2>
+  <div class="callout warn">
+    <b>O endpoint <code>GET /api/projects/{"{"}project_name{"}"}/summary</code> tem uma limitação pré-existente:
+    não consegue servir nenhum projeto cujo nome contenha "/", mesmo com o nome corretamente codificado.</b>
+    Confirmado direto contra o backend real:
+    <pre style="white-space:pre-wrap; font-size:.8rem; background:var(--code-bg); padding:10px; border-radius:4px; margin:10px 0;">curl -H "X-API-Key: ..." ".../api/projects/Implantacao%2520SAP%2520S%252F4HANA/summary"
+→ {"detail":"Not Found"}
+
+curl -G -H "X-API-Key: ..." ".../api/analyses" --data-urlencode "project_name=Implantacao SAP S/4HANA"
+→ 200 OK, resultado correto</pre>
+    A causa é estrutural: <code>{"{"}project_name{"}"}</code> é um segmento de path único (conversor padrão do
+    Starlette), que não pode capturar uma barra literal — nenhuma codificação do lado do cliente resolve isso,
+    porque o roteamento acontece <i>depois</i> da decodificação percent-encoding pelo servidor ASGI. O ajuste da
+    Seção 2 do FS-003 (codificar a barra em chamadas <code>curl</code>) evitou o sintoma imediato daquele
+    incidente, mas não corrigia a causa raiz — esta é a primeira vez que o endpoint é exercitado ponta a ponta o
+    suficiente para expor isso.
+  </div>
+  <p><b>Por que isso não bloqueou o TIP-004:</b> é exatamente o cenário que a diretriz de painéis independentes
+    foi desenhada para tolerar. O Painel A (contagens/cabeçalho, que usa esse endpoint) degrada para um estado de
+    erro explícito — e os Painéis B e C (que usam <code>GET /api/analyses</code>, com <code>project_name</code>
+    como query param, imune a esse bug) continuam funcionando normalmente. As capturas de tela abaixo mostram
+    exatamente esse comportamento acontecendo ao vivo contra o backend real.</p>
+  <p><b>Não corrigido nesta feature</b>, por estar fora do escopo autorizado (nenhuma alteração de backend/API).
+    Candidato real para uma correção futura — ex.: mover <code>project_name</code> para query param nesse
+    endpoint também, espelhando o padrão já usado em <code>/api/analyses</code>.</p>
+
+  <h2>Testes executados</h2>
+  <table>
+    <thead><tr><th>Gate</th><th>Resultado</th></tr></thead>
+    <tbody>
+      <tr><td>Backend — pytest</td><td>87/87 passando (nenhum arquivo de backend tocado)</td></tr>
+      <tr><td>Frontend — unit/component (vitest)</td><td>100/100 passando (41 novos)</td></tr>
+      <tr><td>Frontend — <code>tsc --noEmit</code></td><td>limpo</td></tr>
+      <tr><td>Frontend — <code>eslint .</code></td><td>limpo</td></tr>
+      <tr><td>E2E (Playwright, 3 breakpoints)</td><td>64/64 passando (10 novos), 2 skip esperados</td></tr>
+    </tbody>
+  </table>
+  <div class="callout">
+    <b>Bug real corrigido antes do commit:</b> esta versão do Next.js não decodifica automaticamente segmentos de
+    rota dinâmica — tanto <code>page.tsx</code> quanto as 3 rotas BFF estavam recebendo <code>project_name</code>
+    já codificado e o codificando de novo (dupla codificação), quebrando exatamente o caso "Implantacao SAP
+    S/4HANA". Corrigido decodificando uma única vez em cada ponto de entrada; os testes unitários das rotas foram
+    atualizados para simular o parâmetro bruto que o Next.js realmente entrega, fechando a lacuna que permitia
+    esse tipo de bug passar despercebido sem depender de E2E.</p>
+  </div>
+  <div class="callout warn">
+    <b>Limite honesto da suíte E2E:</b> o mock de backend usado pelo Playwright (<code>e2e/mock-backend.mjs</code>)
+    não reproduz o comportamento real de roteamento do Starlette/FastAPI para barras codificadas — por isso os 64
+    testes E2E passam mesmo com o achado acima presente no backend real. A verificação manual contra o backend
+    real (demo local) foi o que revelou o problema; os testes automatizados sozinhos não teriam capturado.</p>
+  </div>
+
+  <h2>Próximo passo</h2>
+  <p>TIP-004 concluído e commitado. Interrompendo e aguardando autorização para a FS-005.</p>
+
+  <footer>
+    <span>Stratech — TIP-004</span>
+    <span>Executive Progress Report</span>
+    <span>2026-07-12</span>
+  </footer>
+</main>
