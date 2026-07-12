@@ -1,0 +1,138 @@
+<title>TIP-005 — Executive Progress Report</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --ok:#2f7a4f; --ok-bg:#e1f0e5;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --ok:#7fd19f; --ok-bg:#1a3324;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --ok:#7fd19f; --ok-bg:#1a3324;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  main{max-width:980px; margin:0 auto; padding:56px 40px 100px;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1{font-size:clamp(1.7rem,4vw,2.3rem); line-height:1.16; margin:0 0 14px; font-weight:600; text-wrap:balance;}
+  .subtitle{color:var(--ink-dim); max-width:74ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding:18px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim); margin-bottom:16px;}
+  .meta-row b{color:var(--ink);}
+  h2{font-size:1.2rem; margin:40px 0 6px; padding-bottom:10px; border-bottom:2px solid var(--ink);}
+  p{margin:0 0 12px; max-width:76ch;}
+  ul{margin:0 0 14px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:74ch;}
+  table{width:100%; border-collapse:collapse; font-size:.85rem; margin:12px 0 24px;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 10px; border-bottom:1px solid var(--ink);}
+  td{padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top;}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.ok{color:var(--ok); background:var(--ok-bg);}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout b{color:var(--ink);}
+  footer{border-top:1px solid var(--border); margin-top:60px; padding-top:20px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<main>
+  <div class="kicker">Technical Lead · TIP-005 · Encerramento</div>
+  <h1>Executive Progress Report — Analisar Projeto (Status Executivo)</h1>
+  <p class="subtitle">Primeira jornada completa de Inteligência da plataforma: abrir um projeto, executar uma
+    análise real de IA, ver o resultado no Workspace e no Dashboard, sem sair da tela e sem reload manual.</p>
+  <div class="meta-row">
+    <span><b>Feature</b> FS-005 Rev. 2 — Analisar Projeto: Status Executivo</span>
+    <span><b>Data</b> 2026-07-12</span>
+    <span><b>Status</b> Concluído — template de referência para risk_review e meeting_intelligence</span>
+  </div>
+
+  <h2>O que foi entregue</h2>
+  <ul>
+    <li>Botão "Analisar Projeto" no <code>WorkspaceHeader</code>, ao lado de "Atualizar" — nenhuma rota nova, nenhum item novo no menu principal</li>
+    <li><code>Dialog</code> reaproveitado verbatim (mesmo componente do drill-down do Histórico, TIP-004): "Tipo de análise: Status Executivo", <code>Textarea</code> de contexto (10–20.000 caracteres), estados de loading/sucesso/erro</li>
+    <li>Catálogo tipado <code>ANALYSIS_CATALOG</code> (<code>web/lib/workspace/analysis-catalog.ts</code>) — 1 entrada real hoje; Avaliação de Riscos e Inteligência da Reunião entram como novas entradas, não como redesenho</li>
+    <li>Rota BFF nova <code>POST /api/bff/workspace/[projectName]/analyze/status</code>, proxy fino para <code>POST /api/projects/analyze</code>, timeout de 60s, validação de tamanho espelhada, mapeamento de 429/422/timeout para mensagens específicas</li>
+    <li>Hook <code>useSubmitProjectStatus</code> (<code>useMutation</code>) — invalida exatamente as 4 query keys da FS-005 §3 no sucesso, nenhuma no erro</li>
+    <li>Linguagem orientada a objetivo em toda a UI (Rev. 2): "Analisar Projeto" / "Status Executivo" — o nome técnico <code>project_status</code> nunca aparece na interface</li>
+    <li>Zero mudança de backend, zero mudança de schema — <code>ruff check</code> e a suíte de 92 testes de backend passam inalterados, como regressão</li>
+  </ul>
+
+  <h2>Escopo obrigatório (FS-005) — aderência</h2>
+  <table>
+    <thead><tr><th>Requisito</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td>Ação acontece dentro do Workspace, sem rota nova</td><td><span class="chip ok">CUMPRIDO</span></td></tr>
+      <tr><td>Linguagem orientada a objetivo, não nome técnico do agente</td><td><span class="chip ok">CUMPRIDO</span> — "Analisar Projeto" / "Status Executivo" (Rev. 2)</td></tr>
+      <tr><td>Reutiliza endpoint e schema reais de <code>project_status</code></td><td><span class="chip ok">CUMPRIDO</span> — <code>POST /api/projects/analyze</code> inalterado</td></tr>
+      <tr><td>Persistência automática pelo fluxo já existente</td><td><span class="chip ok">CUMPRIDO</span> — verificado contra o backend real (curl)</td></tr>
+      <tr><td>Invalidação/atualização das query keys reais</td><td><span class="chip ok">CUMPRIDO</span> — 4 keys exatas, testadas</td></tr>
+      <tr><td>Estados claros de execução (loading/sucesso/erro)</td><td><span class="chip ok">CUMPRIDO</span></td></tr>
+      <tr><td>Tratamento de timeout e falha, texto do usuário preservado</td><td><span class="chip ok">CUMPRIDO</span></td></tr>
+      <tr><td>Confirmação visual de sucesso</td><td><span class="chip ok">CUMPRIDO</span> — toast (sonner), primeiro uso real (não decorativo)</td></tr>
+      <tr><td>Sem Central de Agentes, sem item novo no menu, sem chat/síntese</td><td><span class="chip ok">CUMPRIDO</span></td></tr>
+      <tr><td>Sem mudança de schema/contrato/backend</td><td><span class="chip ok">CUMPRIDO</span> — 92/92 testes de backend inalterados</td></tr>
+      <tr><td>Sem WebSocket/polling/nova arquitetura global</td><td><span class="chip ok">CUMPRIDO</span></td></tr>
+      <tr><td>Baseline Visual preservada</td><td><span class="chip ok">CUMPRIDO</span> — ver Visual Fidelity Report</td></tr>
+      <tr><td>Template reutilizável para risk_review/meeting_intelligence</td><td><span class="chip ok">CUMPRIDO</span> — catálogo + convenção de rota/hook documentados na FS-005 §2</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Critério principal de sucesso (Founder) — verificado</h2>
+  <div class="callout">
+    "Entrar em um projeto → Clicar em 'Analisar Projeto' → Executar uma análise → Visualizar o resultado → Ver o
+    Workspace atualizado → Retornar ao Dashboard percebendo a atualização da plataforma." Executado contra o
+    <b>backend real</b> em Demo Mode (não o mock de E2E): "Implantacao SAP S/4HANA" foi de <code>CRÍTICO</code>
+    para <code>ATENÇÃO</code> após uma análise real, refletido no Workspace sem reload e no Dashboard na
+    navegação seguinte. Evidência completa no Visual Fidelity Report.
+  </div>
+
+  <h2>Testes executados</h2>
+  <table>
+    <thead><tr><th>Gate</th><th>Resultado</th></tr></thead>
+    <tbody>
+      <tr><td>Backend — <code>ruff check src tests</code></td><td>limpo (nenhum arquivo de backend tocado)</td></tr>
+      <tr><td>Backend — <code>pytest</code></td><td>92/92 (regressão, inalterado)</td></tr>
+      <tr><td>Frontend — unit/component (vitest)</td><td>133/133 (17 novos: rota BFF, hook, componente)</td></tr>
+      <tr><td>Frontend — <code>tsc --noEmit</code></td><td>limpo</td></tr>
+      <tr><td>Frontend — <code>eslint .</code></td><td>limpo</td></tr>
+      <tr><td>E2E (Playwright, 3 breakpoints)</td><td>94/94 (9 novos: fluxo completo, validação, erro), 2 skip esperados</td></tr>
+      <tr><td>Backend real, sem mock (Demo Mode)</td><td>Fluxo completo executado no navegador contra o backend real; persistência confirmada via <code>curl</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Achado real corrigido durante a implementação</h2>
+  <div class="callout">
+    O mock de E2E (<code>mock-backend.mjs</code>) é um processo único, compartilhado por todos os arquivos de
+    spec e pelos 3 breakpoints dentro de uma mesma execução do Playwright. A nova rota
+    <code>POST /api/projects/analyze</code> muta o estado fictício (<code>SAMPLE</code>,
+    <code>WORKSPACE_SUMMARY</code>, <code>ANALYSES</code>) em memória para provar a jornada — mas sem reset,
+    essa mutação vazava para testes de <em>outros</em> arquivos de spec (Dashboard, Projetos) que corriam depois,
+    na mesma execução. Corrigido com um endpoint <code>__control/reset-fixtures</code> que restaura snapshots
+    imutáveis capturados na inicialização do mock, chamado no <code>beforeEach</code> dos 3 arquivos de spec que
+    dependem desses dados — não só do arquivo que introduziu a mutação. Sem esse achado, a suíte teria ficado
+    dependente da ordem de execução dos testes, um risco de flakiness silencioso.
+  </div>
+
+  <h2>Próximo passo</h2>
+  <p>TIP-005 concluído e commitado. A Seção 2 da FS-005 é agora o template de referência — Avaliação de Riscos
+    (risk_review) e Inteligência da Reunião (meeting_intelligence) entram como novas entradas no mesmo catálogo,
+    seguindo a mesma convenção de rota BFF e hook, sem reabrir esta arquitetura.</p>
+
+  <footer>
+    <span>Stratech — TIP-005</span>
+    <span>Executive Progress Report</span>
+    <span>2026-07-12</span>
+  </footer>
+</main>

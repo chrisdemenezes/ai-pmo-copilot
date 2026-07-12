@@ -87,3 +87,10 @@ export interface WorkspaceErrorBody {
   error: string;
   detail: string;
 }
+
+/** Mirrors ProjectStatusAgent.analyze's return shape (src/agents/project_status/agent.py). */
+export interface AnalyzeProjectStatusResponse {
+  agent: string;
+  project_name: string | null;
+  model_output: StatusModelOutput | UnstructuredModelOutput;
+}

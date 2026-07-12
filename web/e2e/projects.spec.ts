@@ -18,7 +18,15 @@ async function login(page: import("@playwright/test").Page) {
   await page.waitForURL(/\/dashboard/);
 }
 
+async function resetFixtures() {
+  const ctx = await playwrightRequest.newContext();
+  await ctx.post(`${MOCK_BACKEND_URL}/__control/reset-fixtures`);
+  await ctx.dispose();
+}
+
 test.beforeEach(async () => {
+  // See dashboard.spec.ts -- same shared mock server, same reset requirement.
+  await resetFixtures();
   await setBackendScenario("data");
 });
 

@@ -1,4 +1,4 @@
-<title>FS-005 — Nova Análise: Project Status</title>
+<title>FS-005 — Analisar Projeto: Status Executivo</title>
 <style>
   :root{
     --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
@@ -83,7 +83,7 @@
 <div class="doc-shell">
   <aside class="toc">
     <div class="brand">Stratech</div>
-    <div class="doc-name">FS-005<br>Nova Análise: Project Status</div>
+    <div class="doc-name">FS-005<br>Analisar Projeto: Status Executivo</div>
     <nav>
       <a href="#s1"><span class="toc-num">01</span>Contexto e Objetivo</a>
       <a href="#s2"><span class="toc-num">02</span>Architecture Review</a>
@@ -104,18 +104,29 @@
 
   <main>
     <div class="masthead">
-      <div class="kicker">Feature Specification · Release 0.3 · Substitui a versão anterior desta FS</div>
-      <h1 class="title">FS-005 — Nova Análise: Project Status</h1>
-      <p class="subtitle">Dentro do Workspace de um projeto, o usuário aciona "Nova Análise", fornece contexto,
+      <div class="kicker">Feature Specification · Release 0.3 · Substitui a versão anterior desta FS · Rev. 2</div>
+      <h1 class="title">FS-005 — Analisar Projeto: Status Executivo</h1>
+      <p class="subtitle">Dentro do Workspace de um projeto, o usuário aciona "Analisar Projeto", fornece contexto,
         executa o agente <code>project_status</code> real, e vê o resultado refletido no Workspace e no Dashboard
-        sem reload manual. Recorte deliberado: só Project Status — <code>risk_review</code> e
-        <code>meeting_intelligence</code> ficam para incrementos seguintes, mesmo padrão, escopo menor.</p>
+        sem reload manual. Recorte deliberado: só Status Executivo — Avaliação de Riscos e Inteligência da
+        Reunião ficam para incrementos seguintes, mesmo padrão, escopo menor.</p>
       <div class="meta-row">
         <span><b>Release</b> 0.3</span>
         <span><b>Origem</b> User Workflow Discovery + decisão do Founder</span>
         <span><b>Data</b> 2026-07-12</span>
-        <span><b>Status</b> Aguardando aprovação — TIP-005 ainda não iniciado. Sem código escrito.</span>
+        <span><b>Status</b> Aprovada e implementada — TIP-005 concluído</span>
       </div>
+    </div>
+
+    <div class="callout" style="margin-bottom:40px;">
+      <b>Rev. 2 — refinamento de linguagem (pré-TIP-005, decisão do Founder):</b> a interface passa a falar em
+      objetivos do usuário, nunca em nomes técnicos de agente. O botão primário é <b>"Analisar Projeto"</b> (não
+      "Nova Análise"); dentro do modal, "Tipo de análise" mostra <b>"Status Executivo"</b> (não "Project Status").
+      Os identificadores técnicos (<code>project_status</code>, <code>status</code>, as rotas, os hooks)
+      permanecem só como implementação, nunca como texto de interface. A arquitetura da Seção 2 não muda — é
+      exatamente por já estar desenhada como catálogo (<code>ANALYSIS_CATALOG</code>) que esse refinamento não
+      reabriu nenhuma decisão: risk_review e meeting_intelligence vão entrar como "Avaliação de Riscos" e
+      "Inteligência da Reunião", novas entradas no mesmo catálogo.
     </div>
 
     <section id="s1">
@@ -132,7 +143,7 @@
       <p><b>Restrição arquitetural para o que vem depois (decisão do Founder):</b> após este incremento,
         <code>risk_review</code> e <code>meeting_intelligence</code> entram como <b>extensões do mesmo padrão</b>
         estabelecido aqui — não como experiências reinventadas do zero. Concretamente, isso significa: mesmo
-        gatilho ("Nova Análise" no <code>WorkspaceHeader</code>, mesmo <code>Dialog</code>), mesma convenção de
+        gatilho ("Analisar Projeto" no <code>WorkspaceHeader</code>, mesmo <code>Dialog</code>), mesma convenção de
         nomeação de rota BFF (<code>.../analyze/&#123;kind&#125;/route.ts</code>), mesmo formato de hook de
         submissão (<code>useSubmitX</code> via <code>useMutation</code>), e a mesma forma de tabela de
         invalidação de query keys da Seção 3 — adaptada ao schema de cada agente, nunca redesenhada. A Seção 2
@@ -145,9 +156,9 @@
       <div class="table-wrap">
         <table>
           <tbody>
-            <tr><th>Onde vive a ação</th><td>Botão "Nova Análise" no <code>WorkspaceHeader</code>, ao lado de "Atualizar". Abre um <code>Dialog</code> — <b>não</b> uma rota nova, <b>não</b> um formulário inline empurrando as 8 seções existentes para baixo.</td></tr>
+            <tr><th>Onde vive a ação</th><td>Botão "Analisar Projeto" no <code>WorkspaceHeader</code>, ao lado de "Atualizar". Abre um <code>Dialog</code> — <b>não</b> uma rota nova, <b>não</b> um formulário inline empurrando as 8 seções existentes para baixo.</td></tr>
             <tr><th>Por que Dialog (justificativa de UX)</th><td><code>components/ui/dialog.tsx</code> já existe e já é usado neste mesmo Workspace (drill-down do Histórico completo, TIP-004) — mesma linguagem visual, mesmo componente, zero padrão de interação novo. Um modal contém a ação sem perturbar o layout de leitura já estabelecido, e é naturalmente dispensável — apropriado para uma ação pontual, não uma navegação.</td></tr>
-            <tr><th>"Selecionar Project Status" (Passo 3)</th><td>Sem seletor de agente — só há 1 opção real. O título do modal já comunica isso ("Nova Análise — Status do Projeto"), rotulado para o usuário, nunca o nome técnico <code>project_status</code>. Um seletor com 1 opção seria ruído; a Central de Agentes (múltiplos tipos) fica para uma Feature futura, quando houver mais de 1 opção real a mostrar.</td></tr>
+            <tr><th>"Tipo de análise" (Passo 3, linguagem orientada a objetivo — Rev. 2)</th><td>Sem seletor clicável — só há 1 opção real hoje. O modal mostra "Tipo de análise: <b>Status Executivo</b>" como confirmação, nunca o nome técnico <code>project_status</code>. Fonte única: <code>ANALYSIS_CATALOG</code> (<code>web/lib/workspace/analysis-catalog.ts</code>), um catálogo tipado <code>{"{"}kind, goalLabel, description{"}"}</code> com 1 entrada hoje — Avaliação de Riscos e Inteligência da Reunião entram como novas entradas nesse mesmo catálogo, não como um seletor redesenhado. Forçar um clique numa lista de 1 item seria ruído; a Central de Agentes (múltiplos tipos, escolha ativa) fica para quando houver mais de 1 opção real.</td></tr>
             <tr><th>BFF novo — proxy fino</th><td><code>web/app/api/bff/workspace/[projectName]/analyze/status/route.ts</code>. Recebe <code>{"{"}project_context{"}"}</code> do cliente, adiciona <code>project_name</code> a partir do segmento de rota (já decodificado, mesmo padrão do TIP-004/TIP-004A), encaminha para <code>POST /api/projects/analyze</code>. Nenhum endpoint novo no backend, nenhuma mudança de schema.</td></tr>
             <tr><th>Timeout do BFF</th><td>60s — mesmo valor já real, usado pelo cliente <code>httpx</code> em <code>demo/seed_demo_data.py</code>, não um número novo inventado. A chamada ao LLM não tem timeout próprio no backend (SDK padrão); o BFF precisa do seu.</td></tr>
             <tr><th>Erro — reuso, não novo tipo</th><td><code>parseWorkspaceResponse</code>/<code>WorkspaceFetchError</code> (já existentes, <code>lib/hooks/workspace-fetch-error.ts</code>) reaproveitados sem alteração — a nova rota BFF retorna o mesmo formato <code>{"{"}error, detail{"}"}</code> das rotas já existentes.</td></tr>
@@ -209,8 +220,8 @@
       <p class="section-intro">Os 11 passos da jornada, cada um respondido diretamente.</p>
       <div class="flow">
         <span>1 Abrir projeto</span><span class="arrow">→</span>
-        <span>2 "Nova Análise"</span><span class="arrow">→</span>
-        <span>3 Status do Projeto</span><span class="arrow">→</span>
+        <span>2 "Analisar Projeto"</span><span class="arrow">→</span>
+        <span>3 Status Executivo</span><span class="arrow">→</span>
         <span>4 Contexto</span><span class="arrow">→</span>
         <span>5 Executar</span><span class="arrow">→</span>
         <span>6 Loading/sucesso/erro</span><span class="arrow">→</span>
@@ -222,8 +233,8 @@
         <table>
           <tbody>
             <tr><td>1. Abrir projeto</td><td>Já real (TIP-004A) — sem mudança</td></tr>
-            <tr><td>2. Acionar "Nova Análise"</td><td>Botão no <code>WorkspaceHeader</code>, mesmo peso visual do botão "Atualizar" já existente</td></tr>
-            <tr><td>3. Selecionar Project Status</td><td>Implícito no título do modal — sem seletor (Seção 2)</td></tr>
+            <tr><td>2. Acionar "Analisar Projeto"</td><td>Botão no <code>WorkspaceHeader</code>, mesmo peso visual do botão "Atualizar" já existente</td></tr>
+            <tr><td>3. Selecionar Status Executivo</td><td>Confirmado no corpo do modal ("Tipo de análise: Status Executivo") — sem seletor clicável (Seção 2)</td></tr>
             <tr><td>4. Fornecer contexto</td><td><code>Textarea</code> já existente, contador de caracteres espelhando 10–20.000 (mesma faixa do backend), botão desabilitado fora da faixa</td></tr>
             <tr><td>5. Executar</td><td>Botão "Executar Análise" — muda para estado de carregamento ao clicar</td></tr>
             <tr><td>6. Acompanhar loading/sucesso/erro</td><td>Loading: botão com spinner + texto, campo desabilitado, sem duplo envio. Sucesso: modal fecha, <code>toast</code> (sonner, já montado) confirma. Erro: modal <b>permanece aberto</b>, mensagem inline, texto do usuário preservado — nunca perder o que foi digitado</td></tr>
@@ -240,7 +251,7 @@
     <section id="s5">
       <div class="section-head"><span class="section-num">05</span><h2>Escopo</h2></div>
       <ul>
-        <li>Botão "Nova Análise" no <code>WorkspaceHeader</code></li>
+        <li>Botão "Analisar Projeto" no <code>WorkspaceHeader</code></li>
         <li>Modal (<code>Dialog</code>) com <code>Textarea</code> de contexto, validação de 10–20.000 caracteres</li>
         <li>1 rota BFF nova, proxy fino, para <code>POST /api/projects/analyze</code></li>
         <li>Estados de loading, sucesso (toast) e erro (inline, sem perder o texto digitado)</li>
@@ -266,8 +277,8 @@
     <section id="s7">
       <div class="section-head"><span class="section-num">07</span><h2>User Stories</h2></div>
       <div class="us-card">
-        <div class="us-text">Como Diretor de PMO dentro do Workspace de um projeto, aciono "Nova Análise" e rodo uma análise de status real, sem sair da tela.</div>
-        <p class="us-ac">Critério: modal abre sobre o Workspace, título "Nova Análise — Status do Projeto".</p>
+        <div class="us-text">Como Diretor de PMO dentro do Workspace de um projeto, aciono "Analisar Projeto" e rodo uma análise de status real, sem sair da tela.</div>
+        <p class="us-ac">Critério: modal abre sobre o Workspace, título "Analisar Projeto", tipo de análise "Status Executivo".</p>
       </div>
       <div class="us-card">
         <div class="us-text">Como usuário enviando um contexto muito curto ou muito longo, sou impedido de enviar antes mesmo de tentar.</div>
@@ -298,7 +309,7 @@
     <section id="s9">
       <div class="section-head"><span class="section-num">09</span><h2>Critérios de Aceite</h2></div>
       <ul>
-        <li>"Nova Análise" abre um modal sobre o Workspace atual — nenhuma navegação, nenhuma rota nova</li>
+        <li>"Analisar Projeto" abre um modal sobre o Workspace atual — nenhuma navegação, nenhuma rota nova</li>
         <li>Envio bloqueado fora de 10–20.000 caracteres, com feedback visível antes do clique</li>
         <li>Estado de carregamento visível durante a chamada; duplo envio impossível</li>
         <li>Sucesso: modal fecha, toast confirma, nenhum dado inventado é exibido</li>
@@ -320,7 +331,7 @@
             <tr><td>BFF (unit)</td><td>Rota nova: injeta <code>project_name</code> da URL no corpo, propaga erro (incluindo 429), timeout de 60s, <code>X-API-Key</code> nunca vazado — mesmo padrão das rotas BFF já existentes.</td></tr>
             <tr><td>Hook (unit)</td><td><code>useSubmitProjectStatus</code>: chama a rota BFF correta, dispara as 4 invalidações exatas da Seção 3 em sucesso, nenhuma invalidação em erro.</td></tr>
             <tr><td>Componentes (unit)</td><td>Modal: validação de tamanho, estado de loading, sucesso fecha + toast, erro mantém aberto com texto preservado, mensagem de erro específica por tipo.</td></tr>
-            <tr><td>E2E (Playwright, 3 breakpoints)</td><td>Fluxo completo: abrir projeto → "Nova Análise" → preencher → executar → ver toast → ver painéis do Workspace atualizados sem reload → navegar ao Dashboard → ver refletido. Cenário de erro (rate limit simulado no mock). Mock de backend estendido com <code>POST /api/projects/analyze</code>.</td></tr>
+            <tr><td>E2E (Playwright, 3 breakpoints)</td><td>Fluxo completo: abrir projeto → "Analisar Projeto" → preencher → executar → ver toast → ver painéis do Workspace atualizados sem reload → navegar ao Dashboard → ver refletido. Cenário de erro (rate limit simulado no mock). Mock de backend estendido com <code>POST /api/projects/analyze</code>.</td></tr>
             <tr><td>Backend real, sem mock</td><td>Pelo menos uma submissão real contra o backend real (Demo Mode), confirmando persistência e reflexo no produto — mesma disciplina já aplicada no TIP-004/TIP-004A.</td></tr>
           </tbody>
         </table>
@@ -347,7 +358,7 @@
 
     <section id="s13">
       <div class="section-head"><span class="section-num">13</span><h2>Rollback</h2></div>
-      <p>Reverter o commit desta feature remove o botão "Nova Análise", o modal, a rota BFF, e o hook de
+      <p>Reverter o commit desta feature remove o botão "Analisar Projeto", o modal, a rota BFF, e o hook de
         submissão. O Workspace volta a ser somente-leitura para Project Status, exatamente como está hoje.
         Nenhuma migração de dado, nenhuma mudança de schema.</p>
     </section>
@@ -355,10 +366,10 @@
     <section id="s14">
       <div class="section-head"><span class="section-num">14</span><h2>Definition of Ready — Próximo Gate</h2></div>
       <div class="callout guard">
-        <b>Nenhum código foi escrito.</b> Este documento é a Feature Specification, com Architecture Review
-        (Seção 2), mapeamento de query keys e estratégia de invalidação (Seção 3), e UX Review (Seção 4)
-        incluídos. O Visual Gap Analysis é apresentado como documento separado. O próximo passo — TIP-005 — só
-        começa após aprovação explícita.
+        <b>Encerrado — TIP-005 concluído.</b> Este documento serviu como Feature Specification, com Architecture
+        Review (Seção 2), mapeamento de query keys e estratégia de invalidação (Seção 3), e UX Review (Seção 4).
+        O Visual Gap Analysis foi apresentado como documento separado. Ver TIP-005 Executive Progress Report e
+        Visual Fidelity Report para a evidência de implementação, testes e verificação contra o backend real.
       </div>
     </section>
 

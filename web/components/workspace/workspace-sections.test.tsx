@@ -11,14 +11,27 @@ import { RecommendationsPanel } from "./recommendations-panel";
 import { useWorkspaceSummary } from "@/lib/hooks/use-workspace-summary";
 import { useWorkspaceTimeline } from "@/lib/hooks/use-workspace-timeline";
 import { useWorkspaceLatestByKind } from "@/lib/hooks/use-workspace-latest";
+import { useSubmitProjectStatus } from "@/lib/hooks/use-submit-project-status";
 
 vi.mock("@/lib/hooks/use-workspace-summary", () => ({ useWorkspaceSummary: vi.fn() }));
 vi.mock("@/lib/hooks/use-workspace-timeline", () => ({ useWorkspaceTimeline: vi.fn() }));
 vi.mock("@/lib/hooks/use-workspace-latest", () => ({ useWorkspaceLatestByKind: vi.fn() }));
+// WorkspaceHeader mounts AnalyzeProjectDialog (TIP-005), which calls this
+// mutation hook -- mocked here for the same reason as the 3 query hooks
+// above: this file exercises the panels in isolation, not the real network.
+vi.mock("@/lib/hooks/use-submit-project-status", () => ({ useSubmitProjectStatus: vi.fn() }));
 
 const mockedSummary = vi.mocked(useWorkspaceSummary);
 const mockedTimeline = vi.mocked(useWorkspaceTimeline);
 const mockedLatest = vi.mocked(useWorkspaceLatestByKind);
+const mockedSubmit = vi.mocked(useSubmitProjectStatus);
+mockedSubmit.mockReturnValue({
+  mutate: vi.fn(),
+  reset: vi.fn(),
+  isPending: false,
+  isError: false,
+  error: null,
+} as never);
 
 const PENDING = { isPending: true, isError: false, data: undefined, refetch: vi.fn(), isFetching: false } as never;
 const ERROR = { isPending: false, isError: true, data: undefined, refetch: vi.fn(), isFetching: false } as never;

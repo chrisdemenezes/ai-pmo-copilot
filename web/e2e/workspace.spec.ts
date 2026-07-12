@@ -10,8 +10,8 @@ async function setBackendScenario(scenario: "data" | "empty" | "unavailable" | "
 }
 
 async function setWorkspaceScenario(
-  endpoint: "summary" | "analyses" | "detail",
-  scenario: "data" | "unavailable" | "timeout",
+  endpoint: "summary" | "analyses" | "detail" | "analyze",
+  scenario: "data" | "unavailable" | "timeout" | "rate_limited",
 ) {
   const ctx = await playwrightRequest.newContext();
   await ctx.post(`${MOCK_BACKEND_URL}/__control/workspace-scenario`, {
@@ -31,11 +31,23 @@ async function login(page: import("@playwright/test").Page) {
   await page.waitForURL(/\/dashboard/);
 }
 
+async function resetFixtures() {
+  const ctx = await playwrightRequest.newContext();
+  await ctx.post(`${MOCK_BACKEND_URL}/__control/reset-fixtures`);
+  await ctx.dispose();
+}
+
 test.beforeEach(async () => {
+  // /api/projects/analyze (TIP-005) mutates the mock's fixture data in
+  // place, and the mock server process is shared across every spec file and
+  // breakpoint project in the run -- reset before every test, not just this
+  // file's, so a previous "Analisar Projeto" success never leaks forward.
+  await resetFixtures();
   await setBackendScenario("data");
   await setWorkspaceScenario("summary", "data");
   await setWorkspaceScenario("analyses", "data");
   await setWorkspaceScenario("detail", "data");
+  await setWorkspaceScenario("analyze", "data");
 });
 
 test("redirects unauthenticated access to /workspace/:projectName to the login page", async ({
@@ -101,4 +113,91 @@ test("opening an item in Histórico completo shows its detail in a dialog", asyn
   await historyButtons.first().click();
 
   await expect(page.getByRole("dialog")).toBeVisible();
+});
+
+// TIP-005 -- "Analisar Projeto" (Project Status), a jornada de 11 passos da
+// FS-005 §4, ponta a ponta contra o mock: abrir projeto -> "Analisar
+// Projeto" -> Tipo de análise (Status Executivo, já implícito) -> contexto
+// -> executar -> loading/sucesso -> painéis atualizados sem reload ->
+// Dashboard reflete o resultado na próxima navegação.
+test.describe("Analisar Projeto (TIP-005)", () => {
+  test("runs a full Project Status analysis and reflects it in the Workspace and the Dashboard", async ({
+    page,
+  }) => {
+    await login(page);
+    // Starts "Atenção" (yellow) -- the mock always answers a successful
+    // analysis with health_status "green", so this project makes the
+    // before/after state change visible, not just present.
+    await page.goto("/workspace/Implantacao%20SAP%20S%2F4HANA");
+    await expect(page.getByText("Atenção").first()).toBeVisible();
+
+    await page.getByRole("button", { name: "Analisar Projeto" }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByText("Status Executivo")).toBeVisible();
+    // Goal-oriented language only -- the technical agent name never appears.
+    await expect(dialog.getByText("project_status", { exact: false })).toHaveCount(0);
+
+    await dialog
+      .getByLabel("Contexto do projeto")
+      .fill("Equipe recuperou o atraso no cronograma de testes na última sprint.");
+    await dialog.getByRole("button", { name: "Executar Análise" }).click();
+
+    await expect(page.getByText("Análise concluída")).toBeVisible();
+    await expect(dialog).not.toBeVisible();
+
+    // Workspace reflects the new result without a manual reload.
+    await expect(page.getByText("Saudável").first()).toBeVisible();
+    await expect(
+      page.getByText("Cronograma recuperado após a última análise"),
+    ).toBeVisible();
+
+    // Dashboard reflects it too, on the next client-side navigation --
+    // same shared QueryClient, no WebSocket/polling (FS-005 §3). href-based
+    // locator, filtered to visible: the Sidebar (md+) and the mobile bottom
+    // tab bar both render a[href="/dashboard"] simultaneously, one of them
+    // always display:none at any given breakpoint (TIP-004A precedent).
+    await page.locator('a[href="/dashboard"]').filter({ visible: true }).first().click();
+    await expect(page).toHaveURL(/\/dashboard/);
+    // ProjectHealthGrid renders both a desktop table and a mobile card list
+    // simultaneously (one always display:none); scope to whichever is
+    // actually visible at this breakpoint instead of assuming the table.
+    // "Implantacao SAP S/4HANA" is the only "Atenção" (yellow) project in
+    // the fixture, so its absence after the analysis is an unambiguous,
+    // breakpoint-independent signal that the Dashboard picked up the change.
+    const visibleGrid = page
+      .locator('[data-testid="project-table"], [data-testid="project-cards"]')
+      .filter({ visible: true });
+    await expect(visibleGrid.getByText("Atenção")).toHaveCount(0);
+  });
+
+  test("keeps Executar Análise disabled below the 10-character minimum", async ({ page }) => {
+    await login(page);
+    await page.goto("/workspace/Aurora");
+
+    await page.getByRole("button", { name: "Analisar Projeto" }).click();
+    const dialog = page.getByRole("dialog");
+    const submit = dialog.getByRole("button", { name: "Executar Análise" });
+    await expect(submit).toBeDisabled();
+
+    await dialog.getByLabel("Contexto do projeto").fill("curto");
+    await expect(submit).toBeDisabled();
+  });
+
+  test("on failure, keeps the modal open and preserves the typed context", async ({ page }) => {
+    await setWorkspaceScenario("analyze", "rate_limited");
+    await login(page);
+    await page.goto("/workspace/Aurora");
+
+    await page.getByRole("button", { name: "Analisar Projeto" }).click();
+    const dialog = page.getByRole("dialog");
+    const context = "Contexto detalhado o suficiente para passar da validação de tamanho mínimo.";
+    await dialog.getByLabel("Contexto do projeto").fill(context);
+    await dialog.getByRole("button", { name: "Executar Análise" }).click();
+
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByLabel("Contexto do projeto")).toHaveValue(context);
+    await expect(
+      dialog.getByText("Muitas análises em pouco tempo. Aguarde e tente novamente."),
+    ).toBeVisible();
+  });
 });

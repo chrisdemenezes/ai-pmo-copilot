@@ -15,7 +15,18 @@ async function login(page: import("@playwright/test").Page, password = WORKSPACE
   await page.getByRole("button", { name: "Entrar" }).click();
 }
 
+async function resetFixtures() {
+  const ctx = await playwrightRequest.newContext();
+  await ctx.post(`${MOCK_BACKEND_URL}/__control/reset-fixtures`);
+  await ctx.dispose();
+}
+
 test.beforeEach(async () => {
+  // The mock server process is shared across every spec file and breakpoint
+  // project in a run -- workspace.spec.ts's "Analisar Projeto" (TIP-005)
+  // tests mutate portfolio fixture data in place, so this resets it before
+  // every Dashboard test too, regardless of run order.
+  await resetFixtures();
   await setBackendScenario("data");
 });
 

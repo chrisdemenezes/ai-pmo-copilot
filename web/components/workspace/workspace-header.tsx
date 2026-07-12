@@ -7,6 +7,7 @@ import { Badge, healthStatusLabel, healthStatusVariant } from "@/components/ui/b
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Header } from "@/components/shell/header";
+import { AnalyzeProjectDialog } from "@/components/workspace/analyze-project-dialog";
 import { useWorkspaceSummary } from "@/lib/hooks/use-workspace-summary";
 
 /** Seção 1 -- Cabeçalho do Projeto. Painel A, independente das demais seções. */
@@ -43,9 +44,12 @@ export function WorkspaceHeader({ projectName }: { projectName: string }) {
           </div>
         )}
       </div>
-      <Button variant="ghost" size="sm" onClick={() => refetch()} disabled={isFetching}>
-        {isFetching ? "Atualizando…" : "Atualizar"}
-      </Button>
+      <div className="flex items-center gap-2">
+        <AnalyzeProjectDialog projectName={projectName} />
+        <Button variant="ghost" size="sm" onClick={() => refetch()} disabled={isFetching}>
+          {isFetching ? "Atualizando…" : "Atualizar"}
+        </Button>
+      </div>
     </Header>
   );
 }
