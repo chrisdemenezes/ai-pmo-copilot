@@ -1,0 +1,286 @@
+<title>User Workflow Discovery — Como um Diretor de PMO usa IA para decidir</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --yes:#2f7a4f; --yes-bg:#e1f0e5;
+    --partial:#9a6a12; --partial-bg:#f6ecd8;
+    --no:#a13d2f; --no-bg:#f6e2dd;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --yes:#7fd19f; --yes-bg:#1a3324;
+    --partial:#e5b862; --partial-bg:#332a15;
+    --no:#e8897a; --no-bg:#3a2018;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --yes:#7fd19f; --yes-bg:#1a3324;
+      --partial:#e5b862; --partial-bg:#332a15;
+      --no:#e8897a; --no-bg:#3a2018;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:270px minmax(0,1fr); max-width:1340px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:3px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  .toc .toc-num{color:var(--accent); margin-right:6px;}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:56px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.7rem,4vw,2.4rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.03rem; max-width:74ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:48px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink);}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.25rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:74ch;}
+  h3{font-size:1rem; margin:22px 0 8px; font-weight:600;}
+  p{margin:0 0 14px; max-width:76ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:72ch;}
+  .step-card{background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:16px 20px; margin:12px 0 16px; box-shadow:var(--shadow);}
+  .step-card .step-title{font-weight:600; margin-bottom:8px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  pre{background:var(--code-bg); color:var(--mono-ink); padding:14px 16px; border-radius:8px; overflow-x:auto; font-size:.8rem; line-height:1.5; margin:12px 0 20px;}
+  pre code{background:none; padding:0;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.yes{color:var(--yes); background:var(--yes-bg);}
+  .chip.partial{color:var(--partial); background:var(--partial-bg);}
+  .chip.no{color:var(--no); background:var(--no-bg);}
+  .legend{display:flex; flex-wrap:wrap; gap:12px; margin:14px 0 20px; font-size:.85rem; color:var(--ink-dim);}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+
+  .level-map{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin:16px 0 20px;}
+  .level-card{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px; box-shadow:var(--shadow);}
+  .level-card.active{border-color:var(--accent); box-shadow:0 0 0 2px var(--accent) inset, var(--shadow);}
+  .level-card h4{margin:0 0 6px; font-size:.78rem; font-family: ui-monospace, monospace; letter-spacing:.05em; text-transform:uppercase; color:var(--accent);}
+  .level-card p{margin:0 0 8px; font-size:.85rem; color:var(--ink-dim);}
+  .level-card ul{margin:0; padding-left:18px; font-size:.85rem;}
+
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">User Workflow Discovery<br>Diretor de PMO + IA</div>
+    <nav>
+      <a href="#s0"><span class="toc-num">00</span>O Método</a>
+      <a href="#s1"><span class="toc-num">01</span>Aplicação à FS-005</a>
+      <a href="#s2"><span class="toc-num">02</span>Nível de Maturidade</a>
+      <a href="#s3"><span class="toc-num">03</span>Os 10 Passos</a>
+      <a href="#s4"><span class="toc-num">04</span>Riscos Técnicos Reais</a>
+      <a href="#s5"><span class="toc-num">05</span>Síntese</a>
+      <a href="#s6"><span class="toc-num">06</span>Próximo Passo</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">Chief Product Architect · User Workflow Discovery · Pré-FS-005</div>
+      <h1 class="title">User Workflow Discovery</h1>
+      <p class="subtitle">Precede toda Feature Specification a partir de agora — a pergunta não é mais "qual
+        tela?", é "qual trabalho o usuário consegue fazer depois desta Sprint que não conseguia antes?". Aplicado
+        aqui à FS-005: <b>"Como um Diretor de PMO utiliza Inteligência Artificial para tomar decisões dentro da
+        plataforma?"</b></p>
+      <div class="meta-row">
+        <span><b>Origem</b> Founder / CEO / Chief Product Officer</span>
+        <span><b>Data</b> 2026-07-12</span>
+        <span><b>Status</b> Precede a FS-005 — nenhum código escrito</span>
+      </div>
+    </div>
+
+    <section id="s0">
+      <div class="section-head"><span class="section-num">00</span><h2>O Método — reutilizável para toda Feature futura</h2></div>
+      <p class="section-intro">5 perguntas, nesta ordem, antes de qualquer tela, componente ou arquitetura:</p>
+      <ol>
+        <li><b>Quem inicia a jornada?</b></li>
+        <li><b>Qual problema está tentando resolver?</b></li>
+        <li><b>Quais passos executa?</b></li>
+        <li><b>Quais informações precisa?</b></li>
+        <li><b>Qual decisão consegue tomar no final?</b></li>
+      </ol>
+    </section>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Aplicação à FS-005</h2></div>
+      <div class="table-wrap">
+        <table>
+          <tbody>
+            <tr><th>Quem inicia</th><td>Um Diretor de PMO já dentro do Workspace de um projeto real (chegou lá via Dashboard ou Projetos, TIP-004A)</td></tr>
+            <tr><th>Qual problema</th><td>Precisa de uma leitura de IA sobre o projeto (status, riscos, ou uma reunião) para decidir o próximo passo — e hoje não tem como pedir essa leitura pela interface, só por chamada de API</td></tr>
+            <tr><th>Quais passos</th><td>Os 10 passos da Seção 3</td></tr>
+            <tr><th>Quais informações precisa</th><td>Já tem o projeto selecionado (contexto automático); precisa fornecer o texto de entrada (transcript de reunião ou contexto do projeto) — nada além do que os 3 endpoints já pedem hoje</td></tr>
+            <tr><th>Qual decisão consegue tomar no final</th><td>Escalar um risco, agir sobre uma recomendação, ou confirmar que o projeto está saudável — decisão real, apoiada em achados, riscos e recomendações gerados pela IA e já persistidos, sem depender de outra ferramenta</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>Nível de Maturidade</h2></div>
+      <p class="section-intro">A FS-005 evolui exatamente um nível — Nível 2, Analisar — sem tocar nos demais.</p>
+      <div class="level-map">
+        <div class="level-card">
+          <h4>Nível 1 — Observar</h4>
+          <p>O usuário entende seu portfólio</p>
+          <ul><li>Dashboard <span class="chip yes">real</span></li><li>Projetos <span class="chip yes">real</span></li><li>Workspace <span class="chip yes">real</span></li></ul>
+        </div>
+        <div class="level-card active">
+          <h4>Nível 2 — Analisar <span class="chip partial">FS-005</span></h4>
+          <p>O usuário usa IA para compreender seus projetos</p>
+          <ul><li>Project Status <span class="chip partial">backend real, sem UI</span></li><li>Risk Review <span class="chip partial">backend real, sem UI</span></li><li>Meeting Intelligence <span class="chip partial">backend real, sem UI</span></li></ul>
+        </div>
+        <div class="level-card">
+          <h4>Nível 3 — Decidir</h4>
+          <p>O usuário transforma análises em decisões</p>
+          <ul><li>Plano de Ação <span class="chip no">futuro</span></li><li>Recomendações <span class="chip no">futuro</span></li><li>Central de Riscos <span class="chip no">futuro</span></li><li>Timeline <span class="chip no">futuro</span></li></ul>
+        </div>
+        <div class="level-card">
+          <h4>Nível 4 — Governar</h4>
+          <p>O usuário governa seu portfólio</p>
+          <ul><li>Analytics <span class="chip no">futuro</span></li><li>Integrações <span class="chip no">futuro</span></li><li>Aprovações <span class="chip no">futuro</span></li><li>Configurações <span class="chip no">futuro</span></li></ul>
+        </div>
+      </div>
+      <div class="callout">
+        A FS-005 fecha o Nível 2 inteiro com os 3 agentes já reais — não abre o Nível 3. "Recomendações" e
+        "Central de Riscos" já aparecem como <i>painéis de leitura</i> dentro do Workspace (TIP-004); virarem um
+        módulo próprio do Nível 3 é decisão de uma Feature futura, não desta.
+      </div>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>Os 10 Passos — verificados contra o código real</h2></div>
+      <div class="legend">
+        <span class="chip yes">JÁ REAL</span> só falta ligar
+        <span class="chip partial">PARCIAL</span> parte existe, parte falta
+        <span class="chip no">NÃO EXISTE</span> a construir nesta Feature
+      </div>
+
+      <div class="step-card">
+        <div class="step-title"><span class="chip yes">1 · Escolha um projeto</span></div>
+        <p>Entregue no TIP-004A. <code>project_name</code> já é contexto automático dentro do Workspace.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-title"><span class="chip no">2 · Escolha um tipo de análise</span></div>
+        <p>Nenhum seletor existe. Candidato: <code>Tabs</code> (já no design system, hoje decorativo em <code>style-guide/page.tsx</code>), com os 3 agentes reais como opções.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-title"><span class="chip no">3 · Forneça o contexto</span></div>
+        <p>Endpoints já validam (10–20.000 caracteres, rejeita string vazia). Candidato: <code>Textarea</code> já existente, mesmo limite espelhado no cliente.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-title"><span class="chip yes">4 · Execute a IA</span></div>
+        <p>Os 3 <code>POST /api/{"{"}meetings,risks,projects{"}"}/analyze</code> já chamam o LLM real e retornam o resultado completo. Zero mudança de contrato.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-title"><span class="chip no">5 · Acompanhe a execução</span></div>
+        <p>Nenhum padrão de loading para submissão existe (só para leitura). Sem timeout no backend para a chamada ao LLM — a UI precisa do seu próprio limite. <code>Toaster</code> (sonner) já montado, hoje ocioso.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-title"><span class="chip partial">6 · Visualize claramente o resultado</span></div>
+        <p>A resposta do <code>POST</code> já contém o resultado inteiro — pode ser mostrado no instante em que chega, sem esperar uma segunda leitura.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-title"><span class="chip partial">7 · Compreenda os riscos</span></div>
+        <p>O painel Riscos do Workspace (TIP-004) já existe e já inclui a Matriz de Riscos derivada
+          (probabilidade × impacto) — real, testado, em produção. Falta só ele refletir uma análise recém-executada
+          sem reload manual (mesma invalidação do Passo 9).</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-title"><span class="chip partial">8 · Compreenda as recomendações</span></div>
+        <p>O painel Recomendações do Workspace já existe e já lê <code>recommendations[]</code> real. Mesmo gap:
+          falta a atualização automática pós-submissão.</p>
+        <p><b>Achado adicional real:</b> <code>meeting_intelligence.summary</code> e
+          <code>meeting_intelligence.issues</code> existem no payload persistido mas <b>nenhum painel os exibe
+          hoje</b> — gap real a fechar nesta Feature, não um novo dado, apenas um campo já real sem lugar na tela.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-title"><span class="chip partial">9 · Impacto imediato no Workspace</span></div>
+        <p><code>queryClient.invalidateQueries</code> (já em uso) sobre as chaves já existentes
+          (<code>workspace-latest</code>, <code>workspace-timeline</code>, <code>workspace-summary</code>) resolve
+          isso sem nova arquitetura de cache.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-title"><span class="chip partial">10 · Impacto imediato no Dashboard</span></div>
+        <p><b>Verificado:</b> <code>app/providers.tsx</code> cria um único <code>QueryClient</code> no
+          <code>RootLayout</code> — o mesmo cache é compartilhado entre Dashboard, Projetos e Workspace durante
+          toda a sessão. Invalidar <code>["portfolio-summary"]</code> funciona mesmo com o Dashboard desmontado —
+          a próxima montagem já busca o dado atualizado.</p>
+      </div>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>Riscos Técnicos Reais</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Risco</th><th>Mitigação</th></tr></thead>
+          <tbody>
+            <tr><td>Chamada ao LLM sem timeout no backend</td><td>BFF de submissão usa 60s — mesmo valor já real, usado por <code>demo/seed_demo_data.py</code></td></tr>
+            <tr><td>Invalidação de cache esquecida ou parcial</td><td>Teste E2E cobrindo Passos 9 e 10 juntos — submeter e verificar Workspace <b>e</b> Dashboard sem reload manual</td></tr>
+            <tr><td><code>summary</code>/<code>issues</code> de meeting_intelligence sem lugar na tela</td><td>Fechar dentro da FS-005 — é dado já real, é literalmente os Passos 7-8 da jornada</td></tr>
+            <tr><td>Rate limit (60 req/60s) durante uso legítimo</td><td>Mensagem específica e honesta, não erro genérico</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Síntese</h2></div>
+      <div class="callout">
+        <b>Os 10 passos são implementáveis com as capacidades atuais.</b> Nenhum depende de backend futuro,
+        agente novo, ou mudança de contrato/schema. O que falta é inteiramente do lado do cliente: seletor de
+        agente, formulário de contexto, estados de loading/sucesso/erro, e invalidação de cache coordenada entre
+        Workspace e Dashboard — mais fechar 1 gap real de leitura (<code>summary</code>/<code>issues</code>).
+      </div>
+      <p>Ao final da Sprint, um Diretor de PMO abre o navegador, escolhe um projeto real, roda uma análise real,
+        acompanha a execução, lê o resultado completo (riscos com matriz, recomendações, achados, decisões,
+        ações), vê tudo refletido no Workspace e no Dashboard sem reload manual — e toma uma decisão real. Isso é
+        demonstrável para um cliente real, não infraestrutura.</p>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>Próximo Passo</h2></div>
+      <p>Este documento precede a Feature Specification. A FS-005 será desenhada em torno dos 10 passos, com
+        Architecture Review e UX Review próprios, seguida do TIP-005 apenas após aprovação.</p>
+    </section>
+
+    <footer>
+      <span>Stratech — User Workflow Discovery</span>
+      <span>Pré-FS-005</span>
+      <span>2026-07-12</span>
+    </footer>
+  </main>
+</div>
