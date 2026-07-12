@@ -1,0 +1,148 @@
+<title>Platform Navigation Architecture — STRATECH Intelligent PMO Platform</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --available:#2f7a4f; --available-bg:#e1f0e5;
+    --evolving:#9a6a12; --evolving-bg:#f6ecd8;
+    --planned:#6b4fa0; --planned-bg:#ece5f6;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --available:#7fd19f; --available-bg:#1a3324;
+    --evolving:#e5b862; --evolving-bg:#332a15;
+    --planned:#c3aef0; --planned-bg:#2c2245;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --available:#7fd19f; --available-bg:#1a3324;
+      --evolving:#e5b862; --evolving-bg:#332a15;
+      --planned:#c3aef0; --planned-bg:#2c2245;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  main{max-width:900px; margin:0 auto; padding:56px 40px 100px;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1{font-size:clamp(1.7rem,4vw,2.3rem); line-height:1.16; margin:0 0 14px; font-weight:600; text-wrap:balance;}
+  .subtitle{color:var(--ink-dim); max-width:74ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding:18px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim); margin-bottom:16px;}
+  .meta-row b{color:var(--ink);}
+  h2{font-size:1.2rem; margin:40px 0 6px; padding-bottom:10px; border-bottom:2px solid var(--ink);}
+  p{margin:0 0 12px; max-width:76ch;}
+  ul,ol{margin:0 0 14px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:74ch;}
+  table{width:100%; border-collapse:collapse; font-size:.85rem; margin:12px 0 24px;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 10px; border-bottom:1px solid var(--ink);}
+  td{padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top;}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  pre{background:var(--code-bg); color:var(--mono-ink); padding:14px 16px; border-radius:8px; overflow-x:auto; font-size:.8rem; line-height:1.5; margin:12px 0 20px;}
+  pre code{background:none; padding:0;}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.available{color:var(--available); background:var(--available-bg);}
+  .chip.evolving{color:var(--evolving); background:var(--evolving-bg);}
+  .chip.planned{color:var(--planned); background:var(--planned-bg);}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout b{color:var(--ink);}
+  footer{border-top:1px solid var(--border); margin-top:60px; padding-top:20px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<main>
+  <div class="kicker">Product Architect · Arquitetura de Plataforma · Curta e Operacional</div>
+  <h1>Platform Navigation Architecture</h1>
+  <p class="subtitle">Versão revisada — curta e operacional, por decisão do Founder. Substitui integralmente a
+    primeira versão deste documento, que propunha itens de menu e landing pages institucionais para módulos
+    ainda não implementados. Essa proposta foi explicitamente rejeitada: a navegação visível mostra somente o
+    que é real.</p>
+  <div class="meta-row">
+    <span><b>Autorização</b> Founder / Chief Product Officer</span>
+    <span><b>Data</b> 2026-07-12</span>
+    <span><b>Status</b> Aguardando aprovação — FS-004A retoma logo após</span>
+  </div>
+
+  <h2>1. Dois conceitos separados</h2>
+  <table>
+    <thead><tr><th></th><th>Platform Module Catalog</th><th>Runtime Navigation</th></tr></thead>
+    <tbody>
+      <tr><td>O que é</td><td>Artefato interno de planejamento de produto</td><td>O que a Sidebar realmente renderiza</td></tr>
+      <tr><td>Onde vive</td><td>Documentação (este documento + futuras atualizações) — <b>não é código</b> nesta fase</td><td><code>web/components/shell/navigation.ts</code> — já existe, inalterado em estrutura</td></tr>
+      <tr><td>Estados possíveis</td><td><span class="chip available">Disponível</span> <span class="chip evolving">Em evolução</span> <span class="chip planned">Planejado</span> Visão</td><td>Só existe o que está lá — sem conceito de estado, porque tudo que está lá já é real</td></tr>
+      <tr><td>Determina o menu?</td><td><b>Não</b> — atualizar o catálogo nunca, por si só, altera o que o usuário vê</td><td>Sim — é a única fonte da navegação visível</td></tr>
+    </tbody>
+  </table>
+  <div class="callout guard">
+    Promover um módulo do Catálogo para a Navegação Visível é sempre um ato deliberado — editar
+    <code>navigation.ts</code> dentro de uma Feature real e aprovada — nunca uma consequência automática de mudar
+    um status no catálogo. Isso é o que impede, estruturalmente, um "menu cenográfico": não existe caminho
+    automatizado do catálogo para a tela do usuário.
+  </div>
+
+  <h2>2. Regra de entrada na Runtime Navigation</h2>
+  <p>Idêntica à Regra Permanente já registrada na FS-004A — reafirmada aqui, não reinventada. Um módulo só entra
+    em <code>navigation.ts</code> quando possuir, todos ao mesmo tempo:</p>
+  <ul>
+    <li>rota real</li>
+    <li>experiência funcional</li>
+    <li>dados reais ou derivados</li>
+    <li>estados de loading, vazio e erro</li>
+    <li>testes</li>
+    <li>aderência à Baseline Visual</li>
+  </ul>
+  <p><code>NavItem</code> permanece exatamente como definido na FS-002 — <code>{"{"}label, href, icon{"}"}</code>,
+    sem campo <code>id</code>, sem status, sem metadado de ciclo de vida. A primeira versão deste documento havia
+    proposto reintroduzir um campo <code>id</code> para o registro de módulos; essa proposta caduca aqui — a
+    Runtime Navigation não precisa de referência cruzada nem de landing page, então o motivo que justificaria o
+    campo não existe no runtime. Ele poderia voltar a fazer sentido dentro do Catálogo (documentação), nunca em
+    <code>navigation.ts</code>.</p>
+
+  <h2>3. Módulos contextuais — o caso Workspace</h2>
+  <p>Workspace é real (FS-004) mas exige <code>project_name</code> — não tem uma rota utilizável sem esse
+    parâmetro, então nunca recebe item próprio na Runtime Navigation. É alcançado a partir de Projetos e,
+    quando aplicável, do Dashboard — exatamente como já funciona hoje. Nenhuma mudança sobre isso.</p>
+
+  <h2>4. Organização progressiva dos grupos</h2>
+  <p>Os 5 grupos (Core, Intelligence, Operations, Analytics, Administration) organizam o <b>Catálogo</b>, para
+    planejamento. A Sidebar não precisa de cabeçalhos de grupo enquanto a Runtime Navigation tiver poucos itens —
+    hoje 1, em breve 2. Agrupamento visual na Sidebar é decisão adiada até existir volume real de itens visíveis
+    que justifique — não implementado, não desenhado agora.</p>
+  <table>
+    <thead><tr><th>Navegação visível</th><th>Quando</th></tr></thead>
+    <tbody>
+      <tr><td>Dashboard</td><td><span class="chip available">Já disponível</span></td></tr>
+      <tr><td>Projetos</td><td><span class="chip evolving">Assim que a FS-004A for implementada</span></td></tr>
+      <tr><td>Agentes IA</td><td>Quando a FS-005 entregar experiência utilizável</td></tr>
+      <tr><td>Central de Riscos</td><td>Quando houver módulo funcional</td></tr>
+      <tr><td>Timeline</td><td>Quando houver visão transversal funcional</td></tr>
+      <tr><td>Demais módulos do Catálogo</td><td>Somente quando estiverem prontos para uso</td></tr>
+    </tbody>
+  </table>
+
+  <h2>5. Como novos módulos entram sem refatorar a Sidebar</h2>
+  <p><code>Sidebar</code> já mapeia <code>NAV_ITEMS</code> genericamente (FS-002) — adicionar um módulo real é
+    sempre uma linha nova no array, nunca uma mudança de componente. Confirmado, não modificado, por esta
+    arquitetura.</p>
+  <pre><code>export const NAV_ITEMS: NavItem[] = [
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  // + "Projetos" quando a FS-004A for implementada -- mesma forma, uma linha
+];</code></pre>
+
+  <footer>
+    <span>Stratech — Platform Navigation Architecture</span>
+    <span>Revisão curta e operacional</span>
+    <span>2026-07-12</span>
+  </footer>
+</main>
