@@ -1,0 +1,308 @@
+<title>FS-004 — Project Intelligence Workspace</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --fato:#0f6b5c; --fato-bg:#e2efe9;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --plan:#2f5f9e; --plan-bg:#e2ebf6;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --fato:#4fd6b8; --fato-bg:#173029;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --plan:#7fb4f2; --plan-bg:#1a2c42;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --fato:#4fd6b8; --fato-bg:#173029;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --plan:#7fb4f2; --plan-bg:#1a2c42;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:260px minmax(0,1fr); max-width:1300px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:4px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  .toc .toc-num{color:var(--accent); margin-right:6px;}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:56px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.7rem,4vw,2.5rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:70ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:52px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink);}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.3rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:70ch;}
+  h3{font-size:1.02rem; margin:26px 0 8px; font-weight:600;}
+  p{margin:0 0 14px; max-width:74ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:72ch;}
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:18px 22px; margin:14px 0 20px; box-shadow:var(--shadow);}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.fato{color:var(--fato); background:var(--fato-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  .chip.plan{color:var(--plan); background:var(--plan-bg);}
+  .us-card{border:1px solid var(--border); border-radius:6px; padding:16px 20px; margin-bottom:12px; background:var(--surface);}
+  .us-card .us-text{font-weight:600; margin-bottom:6px;}
+  .us-card .us-ac{color:var(--ink-dim); font-size:.87rem; margin:0;}
+  .flow{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:16px 0 24px; font-family: ui-monospace, monospace; font-size:12px;}
+  .flow span{background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:8px 12px; box-shadow:var(--shadow);}
+  .flow .arrow{color:var(--ink-dim); border:none; box-shadow:none; padding:0;}
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">FS-004<br>Project Intelligence Workspace</div>
+    <nav>
+      <a href="#s1"><span class="toc-num">01</span>Contexto e Objetivo</a>
+      <a href="#s2"><span class="toc-num">02</span>Architecture Review</a>
+      <a href="#s3"><span class="toc-num">03</span>UX Review</a>
+      <a href="#s4"><span class="toc-num">04</span>Escopo</a>
+      <a href="#s5"><span class="toc-num">05</span>Fora de Escopo</a>
+      <a href="#s6"><span class="toc-num">06</span>User Stories</a>
+      <a href="#s7"><span class="toc-num">07</span>NFRs</a>
+      <a href="#s8"><span class="toc-num">08</span>Critérios de Aceite</a>
+      <a href="#s9"><span class="toc-num">09</span>Riscos</a>
+      <a href="#s10"><span class="toc-num">10</span>Checklist de Segurança</a>
+      <a href="#s11"><span class="toc-num">11</span>Rollback</a>
+      <a href="#s12"><span class="toc-num">12</span>Definition of Ready</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">Feature Specification · Release 0.3</div>
+      <h1 class="title">FS-004 — Project Intelligence Workspace</h1>
+      <p class="subtitle">Tela de drill-down por projeto, construída exclusivamente por agregação e derivação
+        das análises já existentes em <code>analysis_records</code>. Nenhuma entidade, tabela, repositório ou
+        endpoint de "Project" é criado.</p>
+      <div class="meta-row">
+        <span><b>Release</b> 0.3</span>
+        <span><b>Origem</b> Workspace Discovery (aprovado)</span>
+        <span><b>Data</b> 2026-07-12</span>
+        <span><b>Status</b> Aguardando aprovação — TIP-004 ainda não iniciado</span>
+      </div>
+    </div>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Contexto e Objetivo</h2></div>
+      <p>O Workspace Discovery mapeou 16 seções candidatas contra o backend real e aprovou 8 para esta feature —
+        todas classificadas <code>já existe</code> ou <code>pode ser derivada</code>. O Chief Product Architect
+        formalizou o princípio arquitetural que governa toda esta FS:</p>
+      <div class="callout">
+        <b>"O Project Workspace não representa uma entidade Project persistida. Ele representa uma visão agregada
+        das análises existentes para um mesmo <code>project_name</code>."</b>
+      </div>
+      <p>Isso significa que o Workspace é uma tela nova, não um domínio novo. A fonte de verdade continua sendo
+        a mesma tabela única <code>analysis_records</code> já usada pelo Dashboard — o Workspace apenas
+        recorta, agrega e apresenta essas mesmas linhas filtradas por um <code>project_name</code>.</p>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>Architecture Review</h2></div>
+      <div class="table-wrap">
+        <table>
+          <tbody>
+            <tr><th>Consequências do princípio</th><td>Nenhuma entidade <code>Project</code>, nenhuma tabela <code>projects</code>, nenhum <code>ProjectRepository</code>, nenhum endpoint de backend novo. Os 3 endpoints já existentes (<code>GET /api/projects/{"{"}project_name{"}"}/summary</code>, <code>GET /api/analyses</code>, <code>GET /api/analyses/{"{"}id{"}"}</code>) são os únicos consumidos. Zero linha nova em <code>src/database/</code>, <code>src/api/</code> ou <code>src/services/</code>.</td></tr>
+            <tr><th>Rota nova</th><td><code>web/app/workspace/[projectName]/page.tsx</code> — rota dinâmica. <code>web/app/workspace/[projectName]/layout.tsx</code> reaproveita o <code>&lt;AppShell&gt;</code> já existente (mesmo componente do <code>dashboard/layout.tsx</code>), sem duplicar sidebar/header.</td></tr>
+            <tr><th>Gate de sessão — <span class="chip guard">única mudança em proxy.ts</span></th><td><code>web/proxy.ts</code> precisa estender o <code>matcher</code> de <code>["/dashboard", "/dashboard/:path*", "/api/bff/:path*"]</code> para incluir <code>"/workspace", "/workspace/:path*"</code>. É a única mudança fora de <code>web/app/workspace/</code> e <code>web/lib/workspace/</code> nesta feature — sem ela, o Workspace ficaria acessível sem autenticação.</td></tr>
+            <tr><th>BFF — 3 rotas finas, proxy puro</th><td><code>web/app/api/bff/workspace/[projectName]/summary/route.ts</code> (proxia <code>/api/projects/{"{"}project_name{"}"}/summary</code>), <code>.../analyses/route.ts</code> (proxia <code>GET /api/analyses?project_name=...</code>, reaproveitando os filtros já existentes de tipo/período/paginação), <code>.../analyses/[analysisId]/route.ts</code> (proxia <code>GET /api/analyses/{"{"}id{"}"}</code>). Seguem exatamente o padrão de <code>api/bff/dashboard/route.ts</code>: timeout de 8s, <code>X-API-Key</code> nunca exposto ao navegador, <code>cache: "no-store"</code>. Nenhuma agregação de negócio acontece no BFF — ele só repassa.</td></tr>
+            <tr><th>Agregação/derivação — no frontend, não no backend</th><td><code>web/lib/workspace/aggregate.ts</code> (novo, mesma pasta-padrão de <code>lib/dashboard/aggregate.ts</code>) computa a Intelligence Timeline (ordena análises por <code>created_at</code>, anota <code>health_status</code> nas de tipo <code>"status"</code>) e a Matriz de Riscos (agrupa <code>probability</code>×<code>impact</code> dos riscos já carregados) — puramente client-side, sobre payloads já buscados, sem persistir nada novo. Isso satisfaz literalmente "não duplicar dados já existentes em <code>analysis_records</code>": nada é copiado para um novo lugar, só recalculado a cada carregamento.</td></tr>
+            <tr><th>Tipos — sem entidade Project</th><td><code>web/lib/workspace/types.ts</code> define <code>WorkspaceSummary</code>, <code>AnalysisListItem</code>, <code>AnalysisDetail</code> — todos espelhando 1:1 os schemas reais do backend (<code>ProjectSummaryResponse</code>, <code>AnalysisSummary</code>, <code>AnalysisDetail</code>). Nenhum tipo <code>Project</code> é declarado.</td></tr>
+            <tr><th><span class="chip guard">Achado crítico</span> — codificação de <code>project_name</code></th><td>O portfólio real já contém um projeto chamado <code>"Implantacao SAP S/4HANA"</code> — o caractere <code>/</code> no nome já quebrou uma chamada de API real nesta mesma Release (barra não codificada em <code>curl .../{"{"}project_name{"}"}/summary</code> virou 3 segmentos de rota em vez de 2). O link do Dashboard para o Workspace, a rota dinâmica <code>[projectName]</code>, e as 3 chamadas do BFF ao backend devem usar <code>encodeURIComponent(project_name)</code> de forma consistente em toda a cadeia — coberto por teste explícito (Seção 9).</td></tr>
+            <tr><th>Ponto de entrada</th><td><code>components/dashboard/project-health-grid.tsx</code> — cada linha da tabela (md/lg) e cada card (mobile) passa a ser um <code>Link</code> para <code>/workspace/{"{"}encodeURIComponent(project_name){"}"}</code>. Único touch no Dashboard já existente; nenhuma coluna ou dado novo é adicionado a essas visualizações.</td></tr>
+            <tr><th>Navegação (sidebar)</th><td><code>NAV_ITEMS</code> permanece com exatamente 1 entrada ("Dashboard"). O Workspace é uma tela de drill-down, não um destino de navegação persistente — mesma decisão deliberada já registrada na FS-002 (menos itens visíveis = menos afordance especulativa).</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>UX Review</h2></div>
+      <p class="section-intro">Sequência recomendada pelo Chief Product Architect, mapeada 1:1 às seções aprovadas
+        no Workspace Discovery. "Decisões" (6) absorve também "Dependências" — o Discovery já classificou os dois
+        arrays (<code>decisions[]</code>, <code>dependencies[]</code>) como vindos do mesmo payload de reunião;
+        separar em duas seções distintas duplicaria cabeçalho sem separar dado real.</p>
+      <div class="flow">
+        <span>1 · Cabeçalho</span><span class="arrow">→</span>
+        <span>2 · Executive Summary</span><span class="arrow">→</span>
+        <span>3 · Intelligence Timeline</span><span class="arrow">→</span>
+        <span>4 · Riscos</span><span class="arrow">→</span>
+        <span>5 · Ações</span><span class="arrow">→</span>
+        <span>6 · Decisões (+ Dependências)</span><span class="arrow">→</span>
+        <span>7 · Recomendações</span><span class="arrow">→</span>
+        <span>8 · Histórico completo</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Seção</th><th>Fonte real</th></tr></thead>
+          <tbody>
+            <tr><td>1. Cabeçalho do Projeto</td><td><code>GET .../summary</code>: nome, saúde atual, contagens</td></tr>
+            <tr><td>2. Executive Summary</td><td>Mesma resposta de <code>.../summary</code> + <code>key_findings</code>/<code>health_status</code> da análise <code>"status"</code> mais recente — <b>apresentação</b> de dado já real, não uma nova síntese de IA (essa é a distinção explícita com a Seção P do Discovery, "Síntese de IA entre Análises", que continua fora de escopo)</td></tr>
+            <tr><td>3. Intelligence Timeline</td><td><code>GET .../analyses</code> + enriquecimento client-side com <code>health_status</code> das entradas <code>"status"</code> — Seção G do Discovery (derivada)</td></tr>
+            <tr><td>4. Riscos</td><td><code>payload.model_output.risks[]</code> da análise <code>"risk"</code> mais recente, com a Matriz (Seção I do Discovery, derivada) como sub-visualização</td></tr>
+            <tr><td>5. Ações</td><td><code>payload.model_output.action_items[]</code> da análise <code>"meeting"</code> mais recente</td></tr>
+            <tr><td>6. Decisões (+ Dependências)</td><td><code>decisions[]</code> + <code>dependencies[]</code> da mesma análise <code>"meeting"</code></td></tr>
+            <tr><td>7. Recomendações</td><td><code>recommendations[]</code> da análise <code>"status"</code> mais recente</td></tr>
+            <tr><td>8. Histórico completo</td><td><code>GET .../analyses</code> paginado (reaproveita <code>limit</code>/<code>offset</code> já existentes) + drill-down para <code>GET .../analyses/{"{"}id{"}"}</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Estados de carregamento, vazio e erro reaproveitam integralmente o padrão já estabelecido no TIP-003:
+        <code>Card</code> para vazio/erro, <code>Skeleton</code> proporcional à forma real de cada seção. Um
+        projeto sem nenhuma análise de um tipo (ex.: nunca teve reunião analisada) mostra um estado vazio
+        <b>por seção</b>, não a tela inteira — cada uma das 8 seções degrada independentemente.</p>
+      <div class="callout guard">
+        <b>Decisão deliberada:</b> se um projeto não tem nenhuma análise <code>"status"</code>, a seção 2
+        (Executive Summary) mostra um estado vazio explícito — nunca um resumo inventado a partir de dados de
+        outro tipo de análise. O mesmo vale para as seções 4-7 quando o tipo de análise correspondente nunca
+        rodou para aquele projeto.
+      </div>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>Escopo</h2></div>
+      <ul>
+        <li>Rota <code>/workspace/[projectName]</code>, protegida pelo mesmo gate de sessão do Dashboard</li>
+        <li>8 seções na sequência definida (Seção 3), cada uma alimentada por dado já real ou derivado</li>
+        <li>3 rotas BFF finas (proxy puro, sem lógica de negócio) para os 3 endpoints já existentes</li>
+        <li><code>lib/workspace/aggregate.ts</code> para Intelligence Timeline e Matriz de Riscos (derivação client-side)</li>
+        <li>Link de cada linha/card do Dashboard para o Workspace correspondente, com <code>project_name</code> corretamente codificado</li>
+        <li>Estados de vazio/erro/carregamento por seção, reaproveitando <code>Card</code>/<code>Skeleton</code> já existentes</li>
+        <li>Extensão do <code>matcher</code> de <code>proxy.ts</code> para cobrir <code>/workspace</code></li>
+      </ul>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Fora de Escopo (explícito)</h2></div>
+      <ul>
+        <li>Qualquer entidade, tabela, repositório ou endpoint de "Project" no backend — proibido pelo princípio arquitetural desta FS</li>
+        <li>Responsável/Time do projeto, Documentos/Anexos, Comentários/Colaboração, Notificações/Alertas, Integrações externas, Progresso/Cronograma/Orçamento — todas classificadas "fora de escopo R0.3" pelo Workspace Discovery</li>
+        <li>Síntese de IA entre análises (um agente que combine reunião+risco+status em uma narrativa nova) — classificada "depende de IA futura"; a seção "Executive Summary" desta FS usa apenas dado já existente, nunca uma síntese nova</li>
+        <li>Status individual de risco ou ação (aberto/mitigado/concluído) rastreado ao longo do tempo — exigiria schema novo, já sinalizado como limite real no Discovery</li>
+        <li>Transcript bruto da reunião — não persistido hoje</li>
+        <li>Qualquer alteração em <code>src/database/</code>, <code>src/api/</code> ou <code>src/services/</code> além do consumo já existente dos 3 endpoints</li>
+        <li>Qualquer alteração nos 3 agentes de IA ou no Demo Mode</li>
+      </ul>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>User Stories</h2></div>
+      <div class="us-card">
+        <div class="us-text">Como PMO executivo, clico em um projeto no Dashboard e vejo um panorama completo dele em uma tela dedicada.</div>
+        <p class="us-ac">Critério: clicar em qualquer linha/card de <code>ProjectHealthGrid</code> navega para <code>/workspace/{"{"}project_name{"}"}</code>, inclusive para projetos com <code>/</code> no nome.</p>
+      </div>
+      <div class="us-card">
+        <div class="us-text">Como PMO executivo, vejo a saúde do projeto ao longo do tempo, não só o valor atual.</div>
+        <p class="us-ac">Critério: a Intelligence Timeline lista as análises em ordem cronológica com o <code>health_status</code> de cada análise <code>"status"</code> visível.</p>
+      </div>
+      <div class="us-card">
+        <div class="us-text">Como PMO executivo, acesso os riscos, ações, decisões e recomendações mais recentes sem precisar abrir cada análise manualmente.</div>
+        <p class="us-ac">Critério: as seções 4-7 mostram o conteúdo da análise mais recente de cada tipo, já extraído do payload.</p>
+      </div>
+      <div class="us-card">
+        <div class="us-text">Como PMO executivo, consigo abrir qualquer análise antiga para ver o detalhe completo daquele momento.</div>
+        <p class="us-ac">Critério: a seção 8 lista todo o histórico paginado, e cada item abre o payload completo via <code>GET .../analyses/{"{"}id{"}"}</code>.</p>
+      </div>
+    </section>
+
+    <section id="s7">
+      <div class="section-head"><span class="section-num">07</span><h2>NFRs Aplicáveis</h2></div>
+      <ul>
+        <li>Nenhuma regressão nos 87 testes de backend — nenhum arquivo de backend é tocado</li>
+        <li>Nenhuma regressão nos testes de frontend já existentes</li>
+        <li>Contraste WCAG AA em ambos os temas nas 8 novas seções</li>
+        <li>Responsividade nos 3 breakpoints já estabelecidos (RFC-001 D6)</li>
+        <li>O Workspace não é otimizado para portfólios com centenas de análises por projeto nesta primeira versão — o volume real atual do produto (dezenas de análises por projeto) não justifica paginação agressiva na Intelligence Timeline; otimização futura (se necessária) é decisão de uma próxima feature, não desta</li>
+        <li><code>project_name</code> com caracteres especiais (<code>/</code>, espaços, acentos) deve navegar e carregar corretamente de ponta a ponta — teste explícito com <code>"Implantacao SAP S/4HANA"</code>, o caso real já conhecido</li>
+      </ul>
+    </section>
+
+    <section id="s8">
+      <div class="section-head"><span class="section-num">08</span><h2>Critérios de Aceite</h2></div>
+      <ul>
+        <li>As 8 seções renderizam na ordem definida, cada uma com dado real ou estado vazio explícito</li>
+        <li>Nenhuma seção 9-16 do Workspace Discovery (fora de escopo / depende de IA futura) aparece na tela</li>
+        <li><code>/workspace/[projectName]</code> não é acessível sem sessão válida — mesmo comportamento de redirect para <code>/entrar</code> já testado em <code>/dashboard</code></li>
+        <li>Navegar para um projeto com <code>/</code> no nome (ex.: "Implantacao SAP S/4HANA") funciona sem erro 404 em nenhuma das 3 chamadas de BFF</li>
+        <li>Zero linha nova em <code>src/database/</code>, <code>src/api/</code>, <code>src/services/</code></li>
+        <li>Suíte completa (backend + frontend + E2E) passa sem alteração de contrato de backend</li>
+      </ul>
+    </section>
+
+    <section id="s9">
+      <div class="section-head"><span class="section-num">09</span><h2>Riscos Específicos</h2></div>
+      <ul>
+        <li><b>Codificação de <code>project_name</code></b> (Seção 2) — risco já materializado uma vez nesta Release; precisa de teste E2E dedicado, não apenas revisão de código</li>
+        <li><b>N+1 requisições para a Intelligence Timeline</b> — buscar o payload de cada análise <code>"status"</code> individualmente para montar a série histórica gera múltiplas chamadas ao backend por carregamento de tela. Aceitável no volume atual (Demo Mode, portfólio real pequeno); risco de degradação se o volume crescer significativamente — não resolvido nesta FS, por decisão explícita (NFR, Seção 7)</li>
+        <li><b>Extensão do <code>matcher</code> de <code>proxy.ts</code></b> — única mudança fora da árvore nova; erro de configuração deixaria <code>/workspace</code> acessível sem autenticação. Precisa de teste E2E explícito de redirect não-autenticado, espelhando o já existente para <code>/dashboard</code></li>
+        <li><b>Seções vazias mal distinguidas de erro</b> — um projeto real sem análise de um tipo específico não é um erro; a UI precisa deixar essa diferença clara (Seção 3, UX Review)</li>
+      </ul>
+    </section>
+
+    <section id="s10">
+      <div class="section-head"><span class="section-num">10</span><h2>Checklist de Segurança (ADR-011)</h2></div>
+      <p>Diferente da FS-002/FS-003, esta feature <b>toca</b> o gate de sessão — checklist aplicado de fato, não
+        N/A:</p>
+      <ul>
+        <li><span class="chip fato">Verificado</span> As 3 novas rotas BFF seguem exatamente o padrão de <code>api/bff/dashboard/route.ts</code>: <code>API_KEY</code> só existe no servidor, nunca é serializado na resposta ao navegador</li>
+        <li><span class="chip fato">Verificado</span> <code>matcher</code> de <code>proxy.ts</code> estendido, não substituído — <code>/dashboard</code> e <code>/api/bff/:path*</code> continuam cobertos sem alteração de comportamento</li>
+        <li><span class="chip fato">A verificar no TIP-004</span> teste E2E confirmando que acesso não-autenticado a <code>/workspace/qualquer-coisa</code> redireciona para <code>/entrar</code>, e que o cookie de sessão continua <code>httpOnly</code></li>
+        <li><span class="chip fato">A verificar no TIP-004</span> <code>project_name</code> vindo da URL nunca é interpolado diretamente em HTML sem sanitização padrão do React (proteção XSS já garantida pelo framework, mas validar que nenhum <code>dangerouslySetInnerHTML</code> é introduzido)</li>
+      </ul>
+    </section>
+
+    <section id="s11">
+      <div class="section-head"><span class="section-num">11</span><h2>Rollback</h2></div>
+      <p>Reverter o commit desta feature remove a rota <code>/workspace</code>, as 3 rotas BFF, e reverte o
+        <code>matcher</code> de <code>proxy.ts</code> ao estado atual. O link adicionado em
+        <code>project-health-grid.tsx</code> também é revertido — o Dashboard volta a não ter nenhum link de
+        drill-down. Nenhuma migração de dado, nenhuma mudança de schema — rollback é reversão de código pura.</p>
+    </section>
+
+    <section id="s12">
+      <div class="section-head"><span class="section-num">12</span><h2>Definition of Ready — Próximo Gate</h2></div>
+      <div class="callout guard">
+        <b>Nenhum código foi escrito.</b> Este documento é a Feature Specification, incorporando o princípio
+        arquitetural do Chief Product Architect e a sequência narrativa das 8 seções. O próximo passo — TIP-004 —
+        só começa após aprovação explícita desta FS-004.
+      </div>
+    </section>
+
+    <footer>
+      <span>Stratech — FS-004</span>
+      <span>Release 0.3</span>
+      <span>2026-07-12</span>
+    </footer>
+  </main>
+</div>
