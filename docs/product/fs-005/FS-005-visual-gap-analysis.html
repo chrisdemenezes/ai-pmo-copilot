@@ -57,48 +57,61 @@
 
 <main>
   <div class="kicker">Chief Product Designer · FS-005 · Visual Gap Analysis</div>
-  <h1>Visual Gap Analysis — AI Experience</h1>
-  <p class="subtitle">O Figma aprovado (<code>futjiBle0AYkphK695t2a6</code>) nunca modelou um fluxo de acionamento de
-    agente — cobre apenas Sidebar, Dashboard e Login. Não existe comparação Figma×proposta possível para esta
-    feature. Este documento mede, em vez disso, aderência à Baseline Visual da Release 0.3 e confirma que a FS-005
-    é, majoritariamente, a ativação de componentes já existentes e ociosos no design system.</p>
+  <h1>Visual Gap Analysis — Nova Análise: Project Status</h1>
+  <p class="subtitle">Diferente da FS-004A, esta Feature não introduz nenhuma tela nova nem item de navegação. O
+    Figma aprovado não modela um modal de "Nova Análise" — a comparação aqui é entre a proposta e o próprio
+    Design System já em produção (<code>components/ui/</code>), reaproveitado sem alteração.</p>
   <div class="meta-row">
-    <span><b>Baseline</b> Figma aprovado + FS-002 Rev.3 + TIP-002 + Visual Fidelity Reports</span>
+    <span><b>Referência</b> Baseline Visual (Visual Fidelity Sprint) + <code>components/ui/</code> em produção</span>
+    <span><b>Escopo visual</b> 1 botão, 1 <code>Dialog</code>, 1 <code>Textarea</code>, 3 estados, 1 <code>toast</code></span>
     <span><b>Data</b> 2026-07-12</span>
   </div>
 
-  <h2>1. Componentes necessários — já existem, hoje ociosos</h2>
+  <h2>1. Botão "Nova Análise"</h2>
   <table>
-    <thead><tr><th>Necessidade da FS-005</th><th>Componente</th><th>Estado atual</th></tr></thead>
+    <thead><tr><th>Elemento</th><th>Classificação</th><th>Nota</th></tr></thead>
     <tbody>
-      <tr><td>Selecionar qual dos 3 agentes acionar</td><td><code>components/ui/tabs.tsx</code></td><td><span class="chip impl">Já existe</span> — hoje só usado decorativamente em <code>style-guide/page.tsx</code></td></tr>
-      <tr><td>Capturar transcript/project_context</td><td><code>components/ui/textarea.tsx</code></td><td><span class="chip impl">Já existe</span> — mesmo caso, decorativo no style-guide</td></tr>
-      <tr><td>Feedback de sucesso/erro da submissão</td><td><code>components/ui/sonner.tsx</code> (Toaster)</td><td><span class="chip impl">Já montado globalmente</span> — nenhum fluxo real dispara um toast hoje</td></tr>
-      <tr><td>Botão de envio com estado de carregamento</td><td><code>components/ui/button.tsx</code></td><td><span class="chip impl">Já existe</span> — mesmo padrão do botão "Atualizar" já em produção</td></tr>
-      <tr><td>Cards de contexto/resultado</td><td><code>components/ui/card.tsx</code></td><td><span class="chip impl">Já existe</span> — mesmo componente usado em todo o Workspace</td></tr>
-      <tr><td>Marcador de proveniência de IA</td><td><code>components/ui/badge.tsx</code> (nova variante de uso, não de token)</td><td><span class="chip impl">Componente já existe</span> — aplicação nova, sem token novo</td></tr>
+      <tr><td>Posicionamento no <code>WorkspaceHeader</code></td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Ao lado do botão "Atualizar" já existente (TIP-004) — mesma linha, mesmo agrupamento de ações</td></tr>
+      <tr><td>Peso visual (variante do <code>Button</code>)</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Mesma variante primária já usada em ações equivalentes no Workspace — nenhuma variante nova de botão</td></tr>
+      <tr><td>Ícone</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td><code>Plus</code> ou <code>Sparkles</code> (lucide-react, já na dependência) — biblioteca de ícones inalterada</td></tr>
     </tbody>
   </table>
+
+  <h2>2. Modal "Nova Análise — Status do Projeto"</h2>
+  <table>
+    <thead><tr><th>Elemento</th><th>Classificação</th><th>Nota</th></tr></thead>
+    <tbody>
+      <tr><td>Contêiner modal (overlay, painel, fechamento por ESC/clique fora)</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td><code>components/ui/dialog.tsx</code> reaproveitado verbatim — mesmo componente já usado no drill-down do Histórico completo (TIP-004)</td></tr>
+      <tr><td>Título e descrição do modal</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Tipografia padrão do <code>DialogHeader</code>/<code>DialogTitle</code>, sem estilo novo</td></tr>
+      <tr><td>Campo de contexto (textarea + contador de caracteres)</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td><code>components/ui/textarea.tsx</code> reaproveitado; contador de caracteres é texto simples com o token de cor <code>--ink-dim</code> já em uso em metadados no restante do produto</td></tr>
+      <tr><td>Botão "Executar Análise" (estado desabilitado fora da faixa 10–20.000)</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Estado <code>disabled</code> do <code>Button</code> já definido no Design System — sem novo token de opacidade/cor</td></tr>
+      <tr><td>Estado de carregamento (spinner + texto no botão)</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Mesmo padrão de spinner inline já usado nos estados de loading do Dashboard/Workspace (TIP-003/TIP-004)</td></tr>
+      <tr><td>Mensagem de erro inline (validação / rate limit / timeout)</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Reaproveita o texto de erro já usado nos painéis do Workspace via <code>WorkspaceFetchError</code> — cor de alerta já existente, nenhum token novo</td></tr>
+    </tbody>
+  </table>
+
+  <h2>3. Confirmação de sucesso</h2>
+  <table>
+    <thead><tr><th>Elemento</th><th>Classificação</th><th>Nota</th></tr></thead>
+    <tbody>
+      <tr><td>Toast de confirmação</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td><code>components/ui/sonner.tsx</code> — já montado globalmente no <code>RootLayout</code>, atualmente ocioso em produção (só usado em uma demonstração decorativa em <code>style-guide/page.tsx</code>); esta é sua primeira chamada real via <code>toast()</code></td></tr>
+      <tr><td>Painéis do Workspace atualizados (badge de saúde, achados, recomendações)</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Mesmos componentes visuais já renderizados hoje para dados de Project Status — a mudança é a origem do dado (invalidação de cache), não a aparência</td></tr>
+    </tbody>
+  </table>
+
   <div class="callout">
-    <b>Nenhum componente de UI novo é necessário.</b> A FS-005 é, em grande parte, sobre conectar 4 componentes já
-    prontos (<code>Tabs</code>, <code>Textarea</code>, <code>sonner</code>, <code>Badge</code>) a um fluxo de
-    dados real — não desenhar nada do zero.
+    <b>Resultado:</b> 100% dos elementos visuais necessários já existem em <code>components/ui/</code> e já estão
+    em produção. Zero token novo de cor, espaçamento, raio ou tipografia. Zero componente novo. A única peça
+    genuinamente nova é a composição — este modal específico montado a partir de peças existentes — e o primeiro
+    uso real (não decorativo) do <code>Toaster</code> global.
   </div>
 
-  <h2>2. Tokens visuais</h2>
-  <table>
-    <thead><tr><th>Token</th><th>Origem</th><th>Uso na FS-005</th></tr></thead>
-    <tbody>
-      <tr><td>Raio, sombra, cor de superfície</td><td>Visual Fidelity Sprint</td><td><span class="chip impl">Herdado</span> — nenhum ajuste</td></tr>
-      <tr><td>Cores semânticas (ok/warn/danger)</td><td>Design system já existente</td><td><span class="chip impl">Herdado</span> — erro de submissão usa <code>danger</code>, sucesso usa <code>ok</code>, já mapeados em <code>badge.tsx</code></td></tr>
-      <tr><td>Tipografia mono para dado/contagem</td><td>Dashboard/Workspace já existentes</td><td><span class="chip impl">Herdado</span> — contador de caracteres do Textarea usa a mesma convenção</td></tr>
-    </tbody>
-  </table>
-
-  <h2>3. O que não pode ser avaliado ainda</h2>
-  <p>Sem Figma de referência e sem código escrito nesta fase (FS, não TIP), o desenho exato do marcador de
-    proveniência de IA (ícone vs. texto vs. cor) será decidido durante o TIP-005, dentro dos tokens já
-    estabelecidos — não uma decisão desta Gap Analysis.</p>
+  <div class="callout">
+    <b>Precedente para os próximos incrementos:</b> como esta composição (Dialog + Textarea + Button + Toast) é o
+    padrão de referência para <code>risk_review</code> e <code>meeting_intelligence</code> (FS-005, Seção 1), a
+    conclusão deste Gap Analysis também se generaliza — nenhum token ou componente novo deve ser necessário
+    quando esses dois incrementos forem especificados, apenas a troca do schema de resposta renderizado.
+  </div>
 
   <footer>
     <span>Stratech — FS-005</span>
