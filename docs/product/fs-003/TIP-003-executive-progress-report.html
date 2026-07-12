@@ -1,0 +1,122 @@
+<title>TIP-003 — Executive Progress Report</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --ok:#2f7a4f; --ok-bg:#e1f0e5;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --ok:#7fd19f; --ok-bg:#1a3324;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --ok:#7fd19f; --ok-bg:#1a3324;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  main{max-width:960px; margin:0 auto; padding:56px 40px 100px;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1{font-size:clamp(1.7rem,4vw,2.3rem); line-height:1.16; margin:0 0 14px; font-weight:600; text-wrap:balance;}
+  .subtitle{color:var(--ink-dim); max-width:74ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding:18px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim); margin-bottom:16px;}
+  .meta-row b{color:var(--ink);}
+  h2{font-size:1.2rem; margin:40px 0 6px; padding-bottom:10px; border-bottom:2px solid var(--ink);}
+  p{margin:0 0 12px; max-width:76ch;}
+  ul{margin:0 0 14px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:74ch;}
+  table{width:100%; border-collapse:collapse; font-size:.85rem; margin:12px 0 24px;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 10px; border-bottom:1px solid var(--ink);}
+  td{padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top;}
+  td code, p code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.ok{color:var(--ok); background:var(--ok-bg);}
+  .score-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin:16px 0 8px;}
+  .score-card{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px; box-shadow:var(--shadow);}
+  .score-card .label{font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-dim); margin-bottom:8px;}
+  .score-card .value{font-family: ui-monospace, monospace; font-size:1.6rem; font-weight:700; color:var(--ink); line-height:1;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout b{color:var(--ink);}
+  footer{border-top:1px solid var(--border); margin-top:60px; padding-top:20px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<main>
+  <div class="kicker">Technical Lead · TIP-003 · Encerramento</div>
+  <h1>Executive Progress Report — Enterprise Dashboard Experience</h1>
+  <p class="subtitle">TIP-003 implementou os 9 itens classificados "implementável nesta feature" pela FS-003 Visual
+    Gap Analysis. Nenhum widget, dado, rota ou capacidade nova foi introduzido — apenas reorganização e
+    refinamento visual do Dashboard já real.</p>
+  <div class="meta-row">
+    <span><b>Feature</b> FS-003 — Enterprise Dashboard Experience</span>
+    <span><b>Commit</b> <code>0f44b50</code></span>
+    <span><b>Data</b> 2026-07-11</span>
+    <span><b>Status</b> Concluído — aguardando autorização para FS-004</span>
+  </div>
+
+  <h2>O que mudou</h2>
+  <ul>
+    <li>Tabela de Projetos passa a renderizar imediatamente após os KPIs — antes vinha depois de dois widgets menores, invertendo a ênfase do Figma</li>
+    <li>Cabeçalho "Projetos" ganhou peso tipográfico maior e um subtítulo com a contagem real (<code>projects.length</code>)</li>
+    <li>Cabeçalhos "Distribuição de saúde" e "Maior concentração de risco" receberam elevação tipográfica modesta (<code>font-medium</code> → <code>font-semibold</code>)</li>
+    <li>O skeleton de carregamento foi corrigido — antes ainda antecipava o grid de cards que existia antes da Sprint de Fidelidade Visual, hoje reflete a forma real (tabela)</li>
+    <li>Estado vazio e estado de erro do Dashboard agora reutilizam o componente <code>Card</code> já existente, herdando automaticamente o raio e a sombra já estabelecidos</li>
+  </ul>
+
+  <h2>Aderência à FS-003</h2>
+  <div class="score-grid">
+    <div class="score-card">
+      <div class="label">Itens implementáveis</div>
+      <div class="value">9<span style="font-size:1rem;color:var(--ink-dim);">/9</span></div>
+    </div>
+    <div class="score-card">
+      <div class="label">Aderência</div>
+      <div class="value">100%</div>
+    </div>
+    <div class="score-card">
+      <div class="label">Restrições violadas</div>
+      <div class="value">0</div>
+    </div>
+  </div>
+  <p>Os itens "dependente de funcionalidade futura" (4) e "fora do escopo" (5) da Gap Analysis permanecem
+    intencionalmente não implementados — ver o Visual Fidelity Report atualizado para o detalhamento completo.</p>
+
+  <h2>Testes executados</h2>
+  <table>
+    <thead><tr><th>Gate</th><th>Resultado</th></tr></thead>
+    <tbody>
+      <tr><td>Backend — pytest</td><td><span class="chip ok">87/87</span></td></tr>
+      <tr><td>Frontend — unit/component (vitest)</td><td><span class="chip ok">59/59</span></td></tr>
+      <tr><td>Frontend — <code>tsc --noEmit</code></td><td><span class="chip ok">limpo</span></td></tr>
+      <tr><td>Frontend — <code>eslint .</code></td><td><span class="chip ok">limpo</span></td></tr>
+      <tr><td>E2E (Playwright, 3 breakpoints)</td><td><span class="chip ok">46/46</span> passando, 2 skip esperados</td></tr>
+    </tbody>
+  </table>
+  <div class="callout">
+    <b>Achado corrigido durante a implementação:</b> a reordenação de seções expôs uma fragilidade pré-existente
+    em 4 asserções E2E de <code>dashboard.spec.ts</code>, que assumiam que a primeira ocorrência de "Multilift" no
+    DOM estaria sempre visível. Como <code>ProjectHealthGrid</code> já renderiza tabela (desktop) e cards (mobile)
+    simultaneamente — escondendo um via CSS conforme o breakpoint — a nova ordem passou a colocar o elemento
+    oculto primeiro no DOM em mobile. Corrigido filtrando as asserções para elementos visíveis
+    (<code>.filter({ visible: true })</code>), sem alterar o comportamento real do produto.
+  </div>
+
+  <h2>Próximo passo</h2>
+  <p>TIP-003 concluído e commitado. Interrompendo e aguardando autorização para a FS-004.</p>
+
+  <footer>
+    <span>Stratech — TIP-003</span>
+    <span>Executive Progress Report</span>
+    <span>2026-07-11</span>
+  </footer>
+</main>
