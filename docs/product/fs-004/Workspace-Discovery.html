@@ -1,0 +1,368 @@
+<title>Workspace Discovery — Project Intelligence Workspace</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --yes:#2f7a4f; --yes-bg:#e1f0e5;
+    --der:#1c7a8c; --der-bg:#dcf0f2;
+    --bend:#2f5f9e; --bend-bg:#e2ebf6;
+    --ai:#7a3f9e; --ai-bg:#efe2f6;
+    --out:#8a8478; --out-bg:#eae7df;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --yes:#7fd19f; --yes-bg:#1a3324;
+    --der:#6fd3e3; --der-bg:#123338;
+    --bend:#7fb4f2; --bend-bg:#1a2c42;
+    --ai:#cd9bf0; --ai-bg:#2c2038;
+    --out:#a9a494; --out-bg:#26221a;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --yes:#7fd19f; --yes-bg:#1a3324;
+      --der:#6fd3e3; --der-bg:#123338;
+      --bend:#7fb4f2; --bend-bg:#1a2c42;
+      --ai:#cd9bf0; --ai-bg:#2c2038;
+      --out:#a9a494; --out-bg:#26221a;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:260px minmax(0,1fr); max-width:1320px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:3px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  .toc .toc-num{color:var(--accent); margin-right:6px;}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1{font-size:clamp(1.7rem,4vw,2.4rem); line-height:1.16; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:72ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding:18px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim); margin-bottom:16px;}
+  .meta-row b{color:var(--ink);}
+  h2{font-size:1.25rem; margin:48px 0 6px; padding-bottom:10px; border-bottom:2px solid var(--ink); scroll-margin-top:20px;}
+  h3{font-size:1rem; margin:28px 0 8px; font-weight:600;}
+  p{margin:0 0 12px; max-width:76ch;}
+  ul,ol{margin:0 0 14px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:74ch;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:12px 0 26px;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 10px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:9px 10px; border-bottom:1px solid var(--border); vertical-align:top;}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:9.5px; letter-spacing:.02em; padding:3px 7px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.yes{color:var(--yes); background:var(--yes-bg);}
+  .chip.der{color:var(--der); background:var(--der-bg);}
+  .chip.bend{color:var(--bend); background:var(--bend-bg);}
+  .chip.ai{color:var(--ai); background:var(--ai-bg);}
+  .chip.out{color:var(--out); background:var(--out-bg);}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout b{color:var(--ink);}
+  .legend{display:flex; flex-wrap:wrap; gap:12px; margin:14px 0 28px; font-size:.82rem; color:var(--ink-dim);}
+  .section-summary{background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:16px 20px; margin:10px 0 22px; box-shadow:var(--shadow);}
+  .section-summary .verdict{font-family: ui-monospace, monospace; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-dim); margin-bottom:6px;}
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">Workspace Discovery<br>Project Intelligence Workspace</div>
+    <nav>
+      <a href="#s1"><span class="toc-num">00</span>Método</a>
+      <a href="#sA">A · Cabeçalho do Projeto</a>
+      <a href="#sB">B · Histórico de Análises</a>
+      <a href="#sC">C · Riscos Identificados</a>
+      <a href="#sD">D · Ações Pendentes</a>
+      <a href="#sE">E · Decisões &amp; Dependências</a>
+      <a href="#sF">F · Achados-chave &amp; Recomendações</a>
+      <a href="#sG">G · Linha do Tempo de Saúde</a>
+      <a href="#sH">H · Detalhe de uma Análise</a>
+      <a href="#sI">I · Matriz de Riscos</a>
+      <a href="#sJ">J · Responsável / Time</a>
+      <a href="#sK">K · Documentos &amp; Anexos</a>
+      <a href="#sL">L · Comentários &amp; Colaboração</a>
+      <a href="#sM">M · Notificações &amp; Alertas</a>
+      <a href="#sN">N · Integrações Externas</a>
+      <a href="#sO">O · Progresso / Cronograma / Orçamento</a>
+      <a href="#sP">P · Síntese de IA entre Análises</a>
+      <a href="#s2"><span class="toc-num">01</span>Resumo — Escopo Habilitado para FS-004</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">Chief Product Architect · Workspace Discovery · Pré-FS-004</div>
+      <h1 class="title">Workspace Discovery — Project Intelligence Workspace</h1>
+      <p class="subtitle">Mapeia exclusivamente o que já existe hoje no backend real e o que pode ser derivado
+        dele, para cada seção candidata de um Workspace de projeto individual. Nenhum dado, endpoint ou integração
+        novos são propostos aqui — apenas classificação do estado real.</p>
+      <div class="meta-row">
+        <span><b>Fonte</b> <code>src/database/repository.py</code>, <code>src/api/routes/intelligence.py</code>, <code>src/agents/*/prompts/analysis.md</code></span>
+        <span><b>Data</b> 2026-07-12</span>
+        <span><b>Status</b> Discovery — antecede a FS-004</span>
+      </div>
+    </div>
+
+    <section id="s1">
+      <div class="section-head"><h2>00 · Método</h2></div>
+      <p>Cada seção candidata do Workspace foi verificada diretamente contra o schema real do banco, os endpoints
+        reais e os prompts reais dos 3 agentes — não contra o Figma, não contra suposição. Classificação:</p>
+      <div class="legend">
+        <span class="chip yes">JÁ EXISTE</span> dado real, alcançável hoje via API
+        <span class="chip der">PODE SER DERIVADA</span> calculável a partir de dados já reais, sem novo dado/endpoint
+        <span class="chip bend">DEPENDE DE BACKEND FUTURO</span> exige coluna/tabela/endpoint que não existe
+        <span class="chip ai">DEPENDE DE IA FUTURA</span> exige capacidade de agente que não existe
+        <span class="chip out">FORA DE ESCOPO R0.3</span> exige sistema inteiro ausente (identidade, storage, integrações)
+      </div>
+      <div class="callout">
+        <b>Fato estrutural que condiciona tudo abaixo:</b> não existe uma tabela <code>Project</code>. Todo o
+        produto hoje é uma tabela única, <code>analysis_records</code> (<code>id, kind, project_name, payload
+        JSON, created_at</code>) — <code>project_name</code> é uma string livre, não uma chave estrangeira. Um
+        "Project Intelligence Workspace" real, portanto, é uma <b>agregação de análises</b> filtradas por
+        <code>project_name</code>, não a página de uma entidade própria com seu próprio ID.
+      </div>
+    </section>
+
+    <section id="sA">
+      <div class="section-head"><h2>A · Cabeçalho do Projeto</h2></div>
+      <p>Nome do projeto, saúde atual, contagem de análises/riscos/ações.</p>
+      <div class="section-summary">
+        <div class="verdict"><span class="chip yes">JÁ EXISTE</span></div>
+        <p style="margin:0;">Idêntico ao já usado no Dashboard: <code>GET /api/projects/{project_name}/summary</code>
+          retorna <code>project_name, total_analyses, open_risks, pending_action_items, latest_health_status</code>.
+          Já real, já reachable — só não está renderizado em nenhuma tela própria de projeto hoje.</p>
+      </div>
+    </section>
+
+    <section id="sB">
+      <div class="section-head"><h2>B · Histórico de Análises</h2></div>
+      <p>Lista cronológica das execuções (reunião, risco, status) de um projeto.</p>
+      <div class="section-summary">
+        <div class="verdict"><span class="chip yes">JÁ EXISTE</span></div>
+        <p style="margin:0;"><code>GET /api/analyses</code> retorna <code>id, kind, project_name, created_at</code>
+          por execução (sem o payload pesado). Filtrável por projeto e por tipo/período (já entregue em releases
+          anteriores). Isso é literalmente a lista de "execuções" que um histórico de Workspace precisa.</p>
+      </div>
+    </section>
+
+    <section id="sC">
+      <div class="section-head"><h2>C · Riscos Identificados</h2></div>
+      <p>Lista estruturada de riscos (descrição, probabilidade, impacto, mitigação) da análise de risco mais
+        recente do projeto.</p>
+      <div class="section-summary">
+        <div class="verdict"><span class="chip yes">JÁ EXISTE</span></div>
+        <p style="margin:0;">Dentro do <code>payload.model_output.risks[]</code> da análise mais recente do tipo
+          <code>"risk"</code>, acessível via <code>GET /api/analyses/{id}</code>. Cada item já tem
+          <code>description, probability (low/medium/high), impact (low/medium/high), mitigation</code>.
+          <code>escalation_recommendation</code> também já vem no mesmo payload.</p>
+      </div>
+      <div class="callout">
+        <b>Limite real a documentar, não a resolver aqui:</b> não existe campo de status por risco
+        (aberto/mitigado/fechado) — todo risco presente no payload mais recente é contado como "aberto"
+        implicitamente. Rastrear o ciclo de vida de um risco individual ao longo de múltiplas análises é
+        <span class="chip bend">DEPENDE DE BACKEND FUTURO</span> (exigiria uma tabela própria de riscos com
+        estado, não um blob JSON por execução).
+      </div>
+    </section>
+
+    <section id="sD">
+      <div class="section-head"><h2>D · Ações Pendentes</h2></div>
+      <p>Lista de action items (descrição, responsável, prazo) da análise de reunião mais recente.</p>
+      <div class="section-summary">
+        <div class="verdict"><span class="chip yes">JÁ EXISTE</span></div>
+        <p style="margin:0;"><code>payload.model_output.action_items[]</code> de uma análise <code>"meeting"</code>
+          já traz <code>description, owner (string|null), due_date (string|null)</code>.</p>
+      </div>
+      <div class="callout">
+        <b>Limite real:</b> <code>owner</code> é texto livre, não vinculado a nenhuma identidade de usuário — e
+        não há campo de conclusão (feito/pendente) rastreado por item. Marcar uma ação como concluída é
+        <span class="chip bend">DEPENDE DE BACKEND FUTURO</span>.
+      </div>
+    </section>
+
+    <section id="sE">
+      <div class="section-head"><h2>E · Decisões &amp; Dependências</h2></div>
+      <p>Decisões registradas e dependências identificadas na reunião mais recente.</p>
+      <div class="section-summary">
+        <div class="verdict"><span class="chip yes">JÁ EXISTE</span></div>
+        <p style="margin:0;"><code>payload.model_output.decisions[]</code> e
+          <code>payload.model_output.dependencies[]</code> — ambos arrays de string, já presentes no payload de
+          toda análise <code>"meeting"</code>.</p>
+      </div>
+    </section>
+
+    <section id="sF">
+      <div class="section-head"><h2>F · Achados-chave &amp; Recomendações</h2></div>
+      <p>Principais achados e recomendações da análise de status mais recente.</p>
+      <div class="section-summary">
+        <div class="verdict"><span class="chip yes">JÁ EXISTE</span></div>
+        <p style="margin:0;"><code>payload.model_output.key_findings[]</code> e
+          <code>payload.model_output.recommendations[]</code> de uma análise <code>"status"</code> — já reais.</p>
+      </div>
+    </section>
+
+    <section id="sG">
+      <div class="section-head"><h2>G · Linha do Tempo de Saúde</h2></div>
+      <p>Evolução do <code>health_status</code> do projeto ao longo do tempo (série histórica, não um único
+        valor atual).</p>
+      <div class="section-summary">
+        <div class="verdict"><span class="chip der">PODE SER DERIVADA</span></div>
+        <p style="margin:0;">Diferente do sparkline de KPI do portfólio (recusado na FS-003 por falta de série
+          histórica agregada), aqui cada análise individual do tipo <code>"status"</code> já carrega seu próprio
+          <code>created_at</code> e <code>payload.model_output.health_status</code>. Buscar todas as análises
+          <code>"status"</code> de um projeto via <code>GET /api/analyses</code> e montar a série ordenada por
+          data é <b>agregação sobre dados já reais</b> — nenhum novo dado, nenhuma nova coluna, nenhum novo
+          endpoint.</p>
+      </div>
+    </section>
+
+    <section id="sH">
+      <div class="section-head"><h2>H · Detalhe de uma Análise</h2></div>
+      <p>Abrir uma execução específica do histórico (Seção B) e ver seu payload completo.</p>
+      <div class="section-summary">
+        <div class="verdict"><span class="chip yes">JÁ EXISTE</span></div>
+        <p style="margin:0;"><code>GET /api/analyses/{id}</code> retorna o registro completo, incluindo
+          <code>payload</code> — exatamente o drill-down que esta seção precisa.</p>
+      </div>
+      <div class="callout">
+        <b>Limite real:</b> não há transcript bruto persistido como texto pesquisável — só existe o que o LLM
+        ecoou de volta dentro de <code>payload.model_output</code>, e os prompts atuais não pedem isso. Exibir a
+        transcrição original de uma reunião é <span class="chip bend">DEPENDE DE BACKEND FUTURO</span> (exigiria
+        uma coluna dedicada para persistir o texto de entrada).
+      </div>
+    </section>
+
+    <section id="sI">
+      <div class="section-head"><h2>I · Matriz de Riscos (Probabilidade × Impacto)</h2></div>
+      <p>Agrupamento visual dos riscos por severidade.</p>
+      <div class="section-summary">
+        <div class="verdict"><span class="chip der">PODE SER DERIVADA</span></div>
+        <p style="margin:0;"><code>probability</code> e <code>impact</code> já existem por risco individual
+          (Seção C) — agrupar/contar riscos em uma grade 3×3 é agregação client-side sobre dado já real, sem novo
+          campo.</p>
+      </div>
+    </section>
+
+    <section id="sJ">
+      <div class="section-head"><h2>J · Responsável / Time do Projeto</h2></div>
+      <p>Um PM ou dono nomeado para o projeto como um todo (não por action item).</p>
+      <div class="section-summary">
+        <div class="verdict"><span class="chip out">FORA DE ESCOPO R0.3</span></div>
+        <p style="margin:0;">Não existe identidade de usuário no produto — sessão é Nível 1 (senha única
+          compartilhada, sem login individual). <code>owner</code> em action items é texto livre por item, não um
+          responsável do projeto. Introduzir isso exige um sistema de identidade que a Release 0.3 não tem.</p>
+      </div>
+    </section>
+
+    <section id="sK">
+      <div class="section-head"><h2>K · Documentos &amp; Anexos</h2></div>
+      <div class="section-summary">
+        <div class="verdict"><span class="chip out">FORA DE ESCOPO R0.3</span></div>
+        <p style="margin:0;">Não há storage de arquivos no produto.</p>
+      </div>
+    </section>
+
+    <section id="sL">
+      <div class="section-head"><h2>L · Comentários &amp; Colaboração</h2></div>
+      <div class="section-summary">
+        <div class="verdict"><span class="chip out">FORA DE ESCOPO R0.3</span></div>
+        <p style="margin:0;">Não há tabela de comentários/threads. Exigiria também identidade de usuário (Seção J).</p>
+      </div>
+    </section>
+
+    <section id="sM">
+      <div class="section-head"><h2>M · Notificações &amp; Alertas</h2></div>
+      <div class="section-summary">
+        <div class="verdict"><span class="chip out">FORA DE ESCOPO R0.3</span></div>
+        <p style="margin:0;">Não existe sistema de notificação no produto.</p>
+      </div>
+    </section>
+
+    <section id="sN">
+      <div class="section-head"><h2>N · Integrações Externas (Jira, Azure DevOps, SAP)</h2></div>
+      <div class="section-summary">
+        <div class="verdict"><span class="chip out">FORA DE ESCOPO R0.3</span></div>
+        <p style="margin:0;">Não existem — conteúdo exclusivamente fictício do Figma de referência, já sinalizado
+          como tal na Visual Fidelity Sprint.</p>
+      </div>
+    </section>
+
+    <section id="sO">
+      <div class="section-head"><h2>O · Progresso, Cronograma e Orçamento</h2></div>
+      <div class="section-summary">
+        <div class="verdict"><span class="chip out">FORA DE ESCOPO R0.3</span></div>
+        <p style="margin:0;">Nenhum desses campos existe no schema — nenhum agente produz progresso percentual,
+          data de início/fim ou valores de orçamento.</p>
+      </div>
+    </section>
+
+    <section id="sP">
+      <div class="section-head"><h2>P · Síntese de IA entre Análises</h2></div>
+      <p>Um resumo consolidado que combine achados da reunião + risco + status mais recentes em uma única
+        narrativa.</p>
+      <div class="section-summary">
+        <div class="verdict"><span class="chip ai">DEPENDE DE IA FUTURA</span></div>
+        <p style="margin:0;">Os 3 agentes operam de forma isolada — não existe um agente ou prompt que leia
+          múltiplas análises e produza uma síntese entre elas. Diferente das Seções C–F (que já são o output
+          direto de um agente existente), isto exigiria uma nova capacidade de IA, não apenas reorganizar dado já
+          real.</p>
+      </div>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><h2>01 · Resumo — Escopo Habilitado para FS-004</h2></div>
+      <p>Por decisão do Product Owner, apenas <span class="chip yes">JÁ EXISTE</span> e
+        <span class="chip der">PODE SER DERIVADA</span> podem nascer na FS-004. As demais permanecem de fora,
+        sem exceção.</p>
+      <table>
+        <thead><tr><th>Seção</th><th>Classificação</th></tr></thead>
+        <tbody>
+          <tr><td>A · Cabeçalho do Projeto</td><td><span class="chip yes">JÁ EXISTE</span></td></tr>
+          <tr><td>B · Histórico de Análises</td><td><span class="chip yes">JÁ EXISTE</span></td></tr>
+          <tr><td>C · Riscos Identificados</td><td><span class="chip yes">JÁ EXISTE</span></td></tr>
+          <tr><td>D · Ações Pendentes</td><td><span class="chip yes">JÁ EXISTE</span></td></tr>
+          <tr><td>E · Decisões &amp; Dependências</td><td><span class="chip yes">JÁ EXISTE</span></td></tr>
+          <tr><td>F · Achados-chave &amp; Recomendações</td><td><span class="chip yes">JÁ EXISTE</span></td></tr>
+          <tr><td>G · Linha do Tempo de Saúde</td><td><span class="chip der">PODE SER DERIVADA</span></td></tr>
+          <tr><td>H · Detalhe de uma Análise</td><td><span class="chip yes">JÁ EXISTE</span></td></tr>
+          <tr><td>I · Matriz de Riscos</td><td><span class="chip der">PODE SER DERIVADA</span></td></tr>
+          <tr><td>J · Responsável / Time</td><td><span class="chip out">FORA DE ESCOPO</span></td></tr>
+          <tr><td>K · Documentos &amp; Anexos</td><td><span class="chip out">FORA DE ESCOPO</span></td></tr>
+          <tr><td>L · Comentários &amp; Colaboração</td><td><span class="chip out">FORA DE ESCOPO</span></td></tr>
+          <tr><td>M · Notificações &amp; Alertas</td><td><span class="chip out">FORA DE ESCOPO</span></td></tr>
+          <tr><td>N · Integrações Externas</td><td><span class="chip out">FORA DE ESCOPO</span></td></tr>
+          <tr><td>O · Progresso / Cronograma / Orçamento</td><td><span class="chip out">FORA DE ESCOPO</span></td></tr>
+          <tr><td>P · Síntese de IA entre Análises</td><td><span class="chip ai">DEPENDE DE IA FUTURA</span></td></tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        <b>8 seções habilitadas para a FS-004:</b> A, B, C, D, E, F, G, H, I — cabeçalho do projeto, histórico de
+        análises, riscos, ações pendentes, decisões/dependências, achados-chave/recomendações, linha do tempo de
+        saúde derivada, detalhe de análise individual, e matriz de riscos derivada. Juntas, elas descrevem um
+        Workspace real: drill-down de um projeto a partir dos dados que os 3 agentes já produzem hoje, sem
+        inventar nenhum dado, endpoint ou integração.
+      </div>
+      <p>7 seções permanecem explicitamente de fora da FS-004: responsável/time, documentos, comentários,
+        notificações, integrações externas, progresso/cronograma/orçamento (todas <span class="chip out">FORA DE
+        ESCOPO R0.3</span>), e síntese de IA entre análises (<span class="chip ai">DEPENDE DE IA FUTURA</span>).</p>
+    </section>
+
+    <footer>
+      <span>Stratech — Workspace Discovery</span>
+      <span>Pré-FS-004</span>
+      <span>2026-07-12</span>
+    </footer>
+  </main>
+</div>
