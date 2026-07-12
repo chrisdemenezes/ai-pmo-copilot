@@ -1,0 +1,282 @@
+<title>FS-004A — Projects Navigation Experience</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --fato:#0f6b5c; --fato-bg:#e2efe9;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --plan:#2f5f9e; --plan-bg:#e2ebf6;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --fato:#4fd6b8; --fato-bg:#173029;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --plan:#7fb4f2; --plan-bg:#1a2c42;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --fato:#4fd6b8; --fato-bg:#173029;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --plan:#7fb4f2; --plan-bg:#1a2c42;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:260px minmax(0,1fr); max-width:1300px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:4px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  .toc .toc-num{color:var(--accent); margin-right:6px;}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:56px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.7rem,4vw,2.5rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:70ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:52px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink);}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.3rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:70ch;}
+  h3{font-size:1.02rem; margin:26px 0 8px; font-weight:600;}
+  p{margin:0 0 14px; max-width:74ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:72ch;}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.fato{color:var(--fato); background:var(--fato-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  .chip.plan{color:var(--plan); background:var(--plan-bg);}
+  .us-card{border:1px solid var(--border); border-radius:6px; padding:16px 20px; margin-bottom:12px; background:var(--surface);}
+  .us-card .us-text{font-weight:600; margin-bottom:6px;}
+  .us-card .us-ac{color:var(--ink-dim); font-size:.87rem; margin:0;}
+  .gate-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; margin:16px 0 20px;}
+  .gate-card{background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:12px 14px; box-shadow:var(--shadow); font-size:.85rem;}
+  .gate-card .g-label{font-family: ui-monospace, monospace; font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-dim); margin-bottom:4px;}
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">FS-004A<br>Projects Navigation Experience</div>
+    <nav>
+      <a href="#s1"><span class="toc-num">01</span>Contexto e Objetivo</a>
+      <a href="#s2"><span class="toc-num">02</span>Architecture Review</a>
+      <a href="#s3"><span class="toc-num">03</span>UX Review</a>
+      <a href="#s4"><span class="toc-num">04</span>Escopo</a>
+      <a href="#s5"><span class="toc-num">05</span>Fora de Escopo</a>
+      <a href="#s6"><span class="toc-num">06</span>User Stories</a>
+      <a href="#s7"><span class="toc-num">07</span>NFRs</a>
+      <a href="#s8"><span class="toc-num">08</span>Critérios de Aceite</a>
+      <a href="#s9"><span class="toc-num">09</span>Riscos</a>
+      <a href="#s10"><span class="toc-num">10</span>Checklist de Segurança</a>
+      <a href="#s11"><span class="toc-num">11</span>Rollback</a>
+      <a href="#s12"><span class="toc-num">12</span>Definition of Ready</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">Feature Specification · Release 0.3 · Complementar à FS-004</div>
+      <h1 class="title">FS-004A — Projects Navigation Experience</h1>
+      <p class="subtitle">Adiciona "Projetos" à navegação principal e uma rota real de listagem — construída
+        inteiramente por reuso de dado e componente já existentes, sem backend novo, sem entidade Project.</p>
+      <div class="meta-row">
+        <span><b>Release</b> 0.3</span>
+        <span><b>Origem</b> Autorização do Product Owner, entre a FS-004 e a FS-005</span>
+        <span><b>Data</b> 2026-07-12</span>
+        <span><b>Status</b> Aguardando aprovação — TIP-004A ainda não iniciado. Sem código escrito.</span>
+      </div>
+    </div>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Contexto e Objetivo</h2></div>
+      <p>Na FS-002, <code>NAV_ITEMS</code> ficou limitado a "Dashboard" porque nenhuma outra rota real existia.
+        Com a FS-004 concluída, <code>/workspace/[projectName]</code> é uma experiência real — mas só é alcançável
+        clicando em uma linha da tabela do Dashboard, nunca por navegação direta. Esta feature fecha essa lacuna
+        com o menor incremento possível: um item de menu e uma rota, sem inventar nada que não exista.</p>
+      <div class="callout">
+        <b>Regra permanente registrada pelo Product Owner:</b> um item só entra no menu principal quando tem rota
+        real, experiência utilizável, dados/capacidade reais, estados de loading/vazio/erro, testes, e aderência
+        à Baseline Visual. A Seção 8 (Critérios de Aceite) desta FS é, literalmente, essa regra aplicada a
+        "Projetos".
+      </div>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>Architecture Review</h2></div>
+      <div class="table-wrap">
+        <table>
+          <tbody>
+            <tr><th><code>NAV_ITEMS</code></th><td><code>web/components/shell/navigation.ts</code> ganha uma 2ª entrada: <code>{"{"}label: "Projetos", href: "/projects", icon: Folder{"}"}</code>. <code>Sidebar</code> já mapeia <code>NAV_ITEMS</code> genericamente (desktop e bottom-bar) — <b>zero mudança em <code>sidebar.tsx</code></b>. Ícone <code>Folder</code> (lucide-react, já a biblioteca em uso) reaproveita a linguagem visual do item "Projetos" no Figma aprovado, sem replicar o badge numérico fictício ("12") que lá aparece — contagem fictícia, fora de escopo.</td></tr>
+            <tr><th>Rota nova</th><td><code>web/app/projects/page.tsx</code> + <code>web/app/projects/layout.tsx</code> (envolve <code>&lt;AppShell&gt;</code>, mesmo padrão de <code>dashboard/layout.tsx</code> e <code>workspace/[projectName]/layout.tsx</code> — nenhum layout compartilhado novo, mesma duplicação já aceita nesses dois precedentes).</td></tr>
+            <tr><th>Dado — <span class="chip fato">zero novo</span></th><td>A página reaproveita <code>usePortfolioSummary()</code> (já existe, já testado, já usado pelo Dashboard) e o componente <code>ProjectHealthGrid</code> (já existe, já responsivo, já linka para <code>/workspace/[projectName]</code> com <code>encodeURIComponent</code> desde o TIP-004). <b>Nenhuma rota de backend nova, nenhum BFF novo</b> — a mesma <code>GET /api/bff/dashboard</code> → <code>GET /api/portfolio/summary</code> já em produção.</td></tr>
+            <tr><th>Gate de sessão</th><td><code>web/proxy.ts</code> — <code>matcher</code> estendido para incluir <code>"/projects", "/projects/:path*"</code>, mesmo padrão já usado para adicionar <code>/workspace</code> no TIP-004.</td></tr>
+            <tr><th>Estados de tela</th><td>Loading (<code>Skeleton</code>), vazio (<code>Card</code>, mesmo componente/texto-padrão do <code>EmptyState</code> do Dashboard) e erro (<code>error.tsx</code>, mesma estrutura de <code>dashboard/error.tsx</code>) — todos componentes já existentes, sem padrão novo.</td></tr>
+            <tr><th>Sobreposição com o Dashboard — <span class="chip plan">decisão registrada</span></th><td>O Dashboard já mostra a tabela de projetos como uma de suas seções. "/projects" reaproveita o <b>mesmo</b> componente (<code>ProjectHealthGrid</code>) como conteúdo único e primário da tela — não é um recurso novo, é o mesmo dado com um propósito de navegação diferente: o Dashboard é visão executiva agregada (KPIs + distribuição + tabela como uma seção entre várias); "/projects" é o diretório dedicado para encontrar e abrir um projeto. A duplicação de apresentação é intencional e mínima — nenhum dado ou lógica é duplicado, apenas a mesma tabela é montada em dois contextos de página.</td></tr>
+            <tr><th>Contrato de API / backend</th><td>Zero alteração — confirma a restrição "não alterar backend se os dados atuais forem suficientes": são.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>UX Review</h2></div>
+      <p class="section-intro">Responsividade reaproveita a Decisão D6 (RFC-001) já em produção — nenhum
+        comportamento novo, apenas mais um item passando pelo mesmo mecanismo.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Breakpoint</th><th>Comportamento (já existente, D6)</th></tr></thead>
+          <tbody>
+            <tr><td>&lt;768px (mobile)</td><td>Barra fixa inferior — passa a mostrar 2 destinos (Dashboard, Projetos) em vez de 1</td></tr>
+            <tr><td>768–1023px (md)</td><td>Rail somente-ícone — 2 ícones (<code>LayoutDashboard</code>, <code>Folder</code>)</td></tr>
+            <tr><td>≥1024px (lg)</td><td>Sidebar completa — 2 itens com ícone+label</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Página "/projects": cabeçalho com o título "Projetos" (mesmo tratamento tipográfico do cabeçalho de
+        seção já estabelecido no TIP-003), seguido do <code>ProjectHealthGrid</code> — tabela em md/lg, cards em
+        mobile, idêntico ao já usado no Dashboard. Clicar em um projeto navega para
+        <code>/workspace/{"{"}encodeURIComponent(project_name){"}"}</code>, mesmo link já implementado no
+        componente.</p>
+      <div class="callout guard">
+        <b>Decisão deliberada:</b> nenhum outro item do menu do Figma (Chat IA, Central de Riscos, Timeline,
+        Documentos, Aprovações, Analytics, Configurações, seção Workspaces) é adicionado nesta feature — cada um
+        deles ainda não atende à Regra Permanente (Seção 1). Ficam para a fase "Navigation &amp; Module Expansion".
+      </div>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>Escopo</h2></div>
+      <ul>
+        <li>Item "Projetos" em <code>NAV_ITEMS</code>, ícone <code>Folder</code>, sem badge numérico</li>
+        <li>Rota <code>/projects</code>, protegida pelo mesmo gate de sessão do Dashboard/Workspace</li>
+        <li>Listagem via reuso de <code>usePortfolioSummary()</code> + <code>ProjectHealthGrid</code> — zero dado novo</li>
+        <li>Navegação de um projeto para <code>/workspace/[projectName]</code>, com <code>encodeURIComponent</code></li>
+        <li>Estados de loading, vazio e erro, reaproveitando os componentes já existentes</li>
+        <li>Responsividade nos 3 breakpoints, via o mecanismo já existente do Sidebar</li>
+      </ul>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Fora de Escopo (explícito)</h2></div>
+      <ul>
+        <li>Qualquer entidade, tabela, repositório ou modelo <code>Project</code></li>
+        <li>Cadastro, edição ou exclusão de projetos</li>
+        <li>Qualquer dado novo — nenhuma coluna, contagem ou capacidade além do que <code>ProjectSummary</code> já tem</li>
+        <li>Qualquer outro item do menu do Figma (Chat IA, Central de Riscos, Timeline, Documentos, Aprovações, Analytics, Configurações, Workspaces)</li>
+        <li>Badge numérico no item "Projetos" (o "12" do Figma é contagem fictícia)</li>
+        <li>Busca, filtro ou ordenação na listagem — não autorizado nesta feature</li>
+        <li>Qualquer alteração de backend, contrato de API, ou nos 3 agentes de IA</li>
+      </ul>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>User Stories</h2></div>
+      <div class="us-card">
+        <div class="us-text">Como PMO executivo, acesso a lista de projetos diretamente pela navegação principal, sem precisar passar pelo Dashboard primeiro.</div>
+        <p class="us-ac">Critério: "Projetos" aparece na sidebar/rail/bottom-bar nos 3 breakpoints e navega para <code>/projects</code>.</p>
+      </div>
+      <div class="us-card">
+        <div class="us-text">Como usuário em "/projects", escolho um projeto e vou direto para seu Workspace.</div>
+        <p class="us-ac">Critério: clicar em qualquer projeto navega para <code>/workspace/{"{"}project_name{"}"}</code> corretamente codificado, inclusive para nomes com "/".</p>
+      </div>
+      <div class="us-card">
+        <div class="us-text">Como usuário sem nenhum projeto analisado ainda, vejo um estado vazio claro em vez de uma tela quebrada.</div>
+        <p class="us-ac">Critério: "/projects" reaproveita o mesmo <code>EmptyState</code> do Dashboard quando o portfólio está vazio.</p>
+      </div>
+    </section>
+
+    <section id="s7">
+      <div class="section-head"><span class="section-num">07</span><h2>NFRs Aplicáveis</h2></div>
+      <ul>
+        <li>Nenhuma regressão nos 92 testes de backend — nenhum arquivo de backend é tocado</li>
+        <li>Nenhuma regressão nos testes de frontend já existentes</li>
+        <li>Contraste WCAG AA no item de navegação e na listagem, em ambos os temas</li>
+        <li>Responsividade nos 3 breakpoints já estabelecidos (RFC-001 D6)</li>
+        <li><code>project_name</code> com "/", espaços e acentos navega corretamente — mesma disciplina de <code>encodeURIComponent</code> já aplicada em toda a cadeia Dashboard→Workspace</li>
+      </ul>
+    </section>
+
+    <section id="s8">
+      <div class="section-head"><span class="section-num">08</span><h2>Critérios de Aceite</h2></div>
+      <p>Aplicação direta da Regra Permanente (Seção 1) a "Projetos":</p>
+      <div class="gate-grid">
+        <div class="gate-card"><div class="g-label">Rota real</div><code>/projects</code>, protegida pelo gate de sessão</div>
+        <div class="gate-card"><div class="g-label">Experiência utilizável</div>Lista, seleciona, navega para o Workspace — fim a fim</div>
+        <div class="gate-card"><div class="g-label">Dados/capacidade reais</div><code>usePortfolioSummary()</code>, zero dado novo</div>
+        <div class="gate-card"><div class="g-label">Loading/vazio/erro</div>3 estados reais, reaproveitados</div>
+        <div class="gate-card"><div class="g-label">Testes</div>Unit + component + E2E, 3 breakpoints</div>
+        <div class="gate-card"><div class="g-label">Baseline Visual</div>100% reuso — zero token/componente novo</div>
+      </div>
+      <ul>
+        <li>Nenhum badge numérico ou placeholder aparece no item "Projetos"</li>
+        <li>Nenhum outro item do menu do Figma é adicionado</li>
+        <li>Zero linha nova em <code>src/database/</code>, <code>src/api/</code>, <code>src/services/</code></li>
+        <li>Suíte completa (backend + frontend + E2E) passa sem alteração de contrato de backend</li>
+      </ul>
+    </section>
+
+    <section id="s9">
+      <div class="section-head"><span class="section-num">09</span><h2>Riscos Específicos</h2></div>
+      <ul>
+        <li><b>Baixo risco geral</b> — reuso quase total de componentes e dados já testados em produção.</li>
+        <li><b>Testes E2E existentes que assumem exatamente 1 item de navegação</b> (<code>shell.spec.ts</code> — "renders exactly one nav item, active, pointing at Dashboard") precisam de atualização explícita para 2 itens; risco de regressão silenciosa se esquecido.</li>
+        <li><b>Extensão do <code>matcher</code> de <code>proxy.ts</code></b> — mesmo padrão de risco já mitigado no TIP-004 (teste E2E de redirect não-autenticado obrigatório para <code>/projects</code> também).</li>
+      </ul>
+    </section>
+
+    <section id="s10">
+      <div class="section-head"><span class="section-num">10</span><h2>Checklist de Segurança (ADR-011)</h2></div>
+      <p><span class="chip fato">N/A — justificado</span> Nenhuma rota de autenticação, sessão ou credencial é
+        criada ou modificada além da extensão do <code>matcher</code> já auditada no padrão do TIP-004. Nenhum
+        dado sensível novo é exposto — mesmo payload de <code>ProjectSummary</code> já trafegado pelo Dashboard.</p>
+    </section>
+
+    <section id="s11">
+      <div class="section-head"><span class="section-num">11</span><h2>Rollback</h2></div>
+      <p>Reverter o commit desta feature remove o item "Projetos" de <code>NAV_ITEMS</code>, a rota
+        <code>/projects</code>, e a extensão do <code>matcher</code>. A navegação volta a ter exatamente 1 item,
+        exatamente como está hoje. Nenhuma migração de dado, nenhuma mudança de schema.</p>
+    </section>
+
+    <section id="s12">
+      <div class="section-head"><span class="section-num">12</span><h2>Definition of Ready — Próximo Gate</h2></div>
+      <div class="callout guard">
+        <b>Nenhum código foi escrito.</b> Este documento é a Feature Specification, com Architecture Review
+        (Seção 2) e UX Review (Seção 3) incluídos. O Visual Gap Analysis é apresentado como documento separado.
+        O próximo passo — TIP-004A — só começa após aprovação explícita de ambos. A FS-005 permanece pausada até
+        o encerramento desta feature.
+      </div>
+    </section>
+
+    <footer>
+      <span>Stratech — FS-004A</span>
+      <span>Release 0.3</span>
+      <span>2026-07-12</span>
+    </footer>
+  </main>
+</div>

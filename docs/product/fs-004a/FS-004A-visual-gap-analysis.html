@@ -1,0 +1,106 @@
+<title>FS-004A — Visual Gap Analysis</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --impl:#2f7a4f; --impl-bg:#e1f0e5;
+    --dep:#1c7a8c; --dep-bg:#dcf0f2;
+    --out:#8a8478; --out-bg:#eae7df;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --impl:#7fd19f; --impl-bg:#1a3324;
+    --dep:#6fd3e3; --dep-bg:#123338;
+    --out:#a9a494; --out-bg:#26221a;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --impl:#7fd19f; --impl-bg:#1a3324;
+      --dep:#6fd3e3; --dep-bg:#123338;
+      --out:#a9a494; --out-bg:#26221a;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  main{max-width:1100px; margin:0 auto; padding:56px 40px 100px;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1{font-size:clamp(1.7rem,4vw,2.3rem); line-height:1.16; margin:0 0 14px; font-weight:600; text-wrap:balance;}
+  .subtitle{color:var(--ink-dim); max-width:74ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding:18px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim); margin-bottom:16px;}
+  .meta-row b{color:var(--ink);}
+  h2{font-size:1.25rem; margin:44px 0 6px; padding-bottom:10px; border-bottom:2px solid var(--ink);}
+  p{margin:0 0 12px; max-width:76ch;}
+  ul{margin:0 0 14px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:74ch;}
+  table{width:100%; border-collapse:collapse; font-size:.85rem; margin:12px 0 24px;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 10px; border-bottom:1px solid var(--ink);}
+  td{padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top;}
+  td code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.impl{color:var(--impl); background:var(--impl-bg);}
+  .chip.dep{color:var(--dep); background:var(--dep-bg);}
+  .chip.out{color:var(--out); background:var(--out-bg);}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout b{color:var(--ink);}
+  footer{border-top:1px solid var(--border); margin-top:60px; padding-top:20px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<main>
+  <div class="kicker">Chief Product Designer · FS-004A · Visual Gap Analysis</div>
+  <h1>Visual Gap Analysis — Projects Navigation Experience</h1>
+  <p class="subtitle">Diferente da FS-004 e da FS-005, o Figma aprovado (<code>futjiBle0AYkphK695t2a6</code>)
+    <b>modela</b> o item "Projetos" na sidebar — é o segundo item, logo abaixo de "Dashboard". Esta é a primeira
+    comparação Figma×proposta real desde a Visual Fidelity Sprint.</p>
+  <div class="meta-row">
+    <span><b>Referência</b> Figma <code>futjiBle0AYkphK695t2a6</code>, sidebar</span>
+    <span><b>Baseline</b> FS-002 Rev.3 + TIP-002 + Visual Fidelity Reports</span>
+    <span><b>Data</b> 2026-07-12</span>
+  </div>
+
+  <h2>1. O item "Projetos" na sidebar</h2>
+  <table>
+    <thead><tr><th>Elemento</th><th>Classificação</th><th>Nota</th></tr></thead>
+    <tbody>
+      <tr><td>Posição (2º item, logo após Dashboard)</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Ordem exata do Figma — <code>NAV_ITEMS</code> recebe a entrada na 2ª posição</td></tr>
+      <tr><td>Ícone de pasta/projetos</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td><code>Folder</code> (lucide-react) — mesma linguagem visual do ícone do Figma, sem tentar replicar pixel a pixel um ícone de outra biblioteca</td></tr>
+      <tr><td>Rótulo "Projetos"</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Texto real, idêntico ao Figma</td></tr>
+      <tr><td>Comportamento responsivo (ícone-only no rail, ícone+label no lg, aba na bottom-bar)</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Já herdado do mecanismo D6 — nenhum ajuste visual novo</td></tr>
+      <tr><td>Badge numérico "12"</td><td><span class="chip out">FORA DE ESCOPO</span></td><td>Contagem fictícia no Figma — o produto não tem (nem deveria simular) um conceito de "projetos não lidos/pendentes"; adicionar o badge sem dado real violaria a restrição explícita "não exibir menus desabilitados ou placeholders"</td></tr>
+    </tbody>
+  </table>
+
+  <h2>2. A tela "/projects"</h2>
+  <p>O Figma não modela uma tela dedicada de listagem de projetos — apenas o item de menu. A tela proposta nesta
+    FS reaproveita integralmente o tratamento visual já estabelecido para o Dashboard (mesmo <code>ProjectHealthGrid</code>,
+    mesmos tokens de raio/sombra/tipografia da Visual Fidelity Sprint e do TIP-003).</p>
+  <table>
+    <thead><tr><th>Elemento</th><th>Classificação</th><th>Nota</th></tr></thead>
+    <tbody>
+      <tr><td>Cabeçalho "Projetos" (peso tipográfico, sem eyebrow)</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Mesmo tratamento do cabeçalho de seção "Projetos" já usado no Dashboard (TIP-003)</td></tr>
+      <tr><td>Tabela densa (md/lg) / cards empilhados (mobile)</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td><code>ProjectHealthGrid</code> reaproveitado sem nenhuma alteração de código</td></tr>
+      <tr><td>Estados vazio/erro/loading</td><td><span class="chip impl">IMPLEMENTÁVEL</span></td><td>Mesmos componentes já estabelecidos (<code>Card</code>, <code>Skeleton</code>)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <b>Resultado:</b> 100% dos elementos visuais necessários já existem no design system ou já estão modelados
+    no Figma aprovado. Nenhum token, componente ou padrão novo é necessário — a única peça genuinamente nova é o
+    ícone <code>Folder</code> associado ao item de navegação.
+  </div>
+
+  <footer>
+    <span>Stratech — FS-004A</span>
+    <span>Visual Gap Analysis</span>
+    <span>2026-07-12</span>
+  </footer>
+</main>
