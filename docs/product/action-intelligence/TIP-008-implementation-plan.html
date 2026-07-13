@@ -1,0 +1,272 @@
+<title>TIP-008 — Action Intelligence</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --fato:#0f6b5c; --fato-bg:#e2efe9;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --plan:#2f5f9e; --plan-bg:#e2ebf6;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --fato:#4fd6b8; --fato-bg:#173029;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --plan:#7fb4f2; --plan-bg:#1a2c42;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --fato:#4fd6b8; --fato-bg:#173029;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --plan:#7fb4f2; --plan-bg:#1a2c42;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:270px minmax(0,1fr); max-width:1340px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:4px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:40px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.7rem,4vw,2.5rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:70ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:52px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink);}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.3rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:70ch;}
+  h3{font-size:1.02rem; margin:26px 0 8px; font-weight:600;}
+  p{margin:0 0 14px; max-width:74ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:72ch;}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout.fato{border-left-color:var(--fato);}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.fato{color:var(--fato); background:var(--fato-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  .chip.plan{color:var(--plan); background:var(--plan-bg);}
+  .value-card{border:1px solid var(--border); border-radius:8px; padding:18px 22px; margin-bottom:14px; background:var(--surface);}
+  .value-card .value-q{font-family: ui-monospace, monospace; font-size:11px; text-transform:uppercase; letter-spacing:.03em; color:var(--accent); margin-bottom:8px;}
+  .value-card .value-a{margin:0;}
+  .slice{border:1px solid var(--border); border-radius:8px; padding:16px 20px; margin-bottom:16px; background:var(--surface);}
+  .slice h4{margin:0 0 4px; font-size:1rem;}
+  .slice .slice-tag{font-family: ui-monospace, monospace; font-size:10px; text-transform:uppercase; color:var(--fato); margin-bottom:8px; display:block;}
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">TIP-008<br>Action Intelligence</div>
+    <nav>
+      <a href="#s0">00 Guardian Check</a>
+      <a href="#s1">01 Entrega de Valor</a>
+      <a href="#s2">02 Time To Decision (TTD)</a>
+      <a href="#s3">03 Princípios Preservados</a>
+      <a href="#s4">04 Fatias de Valor Incremental</a>
+      <a href="#s5">05 Tarefas Técnicas</a>
+      <a href="#s6">06 Ordem de Execução</a>
+      <a href="#s7">07 Critérios de Conclusão</a>
+      <a href="#s8">08 Próximo Gate</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">Technical Implementation Plan · STRATECH V1 — Product Core · Etapa 6 de 10</div>
+      <h1 class="title">TIP-008 — Action Intelligence</h1>
+      <p class="subtitle">Decompõe FS-007 (aprovada) e a Architecture Review (aprovada) em tarefas técnicas
+        executáveis -- organizadas, pela primeira vez neste projeto, por entrega de valor incremental, não
+        só por camada técnica. <span style="color:var(--ink-dim);font-size:.85rem;">Nota de numeração:
+        "TIP-007" já foi usado por Meeting Intelligence -- este documento é TIP-008, mantendo a numeração
+        sequencial do projeto.</span></p>
+      <div class="meta-row">
+        <span><b>Origem</b> FS-007 + Architecture Review, ambas aprovadas</span>
+        <span><b>Data</b> 2026-07-13</span>
+        <span><b>Status</b> Plano — aguardando aprovação do Founder antes da implementação</span>
+      </div>
+    </div>
+
+    <section id="s0">
+      <div class="section-head"><span class="section-num">00</span><h2>Guardian Check</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Verificação</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr><td>Conflito com Strategy/Constitution/Vision/Decision Framework?</td><td>SEM CONFLITO — nenhum documento normativo ainda existe em <code>docs/strategy/</code>.</td></tr>
+            <tr><td>Este plano altera o escopo já aprovado em FS-007/Architecture Review?</td><td>NÃO — reorganiza a ordem de construção, não o conteúdo.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Entrega de Valor</h2></div>
+      <div class="value-card">
+        <p class="value-q">1. Em qual momento o usuário começa a perceber valor?</p>
+        <p class="value-a">Assim que a seção "Ações" existir dentro do Workspace de um projeto já real --
+          não é preciso esperar a página de portfólio, o item de navegação novo, ou as linhas de contexto
+          nos 3 Briefs. É o menor incremento que já responde, para um projeto, as 3 perguntas fixas da
+          FS-007 §01.</p>
+      </div>
+      <div class="value-card">
+        <p class="value-q">2. Qual será a primeira funcionalidade utilizável?</p>
+        <p class="value-a">A seção "Ações" do Workspace, com os itens de reunião já reais daquele projeto,
+          agrupados por urgência. Funciona sozinha, de ponta a ponta (backend → BFF → hook →
+          <code>action-momentum.ts</code> → componente), sem depender de nenhuma outra fatia desta Feature.</p>
+      </div>
+      <div class="value-card">
+        <p class="value-q">3. Como organizar para entregar valor incremental mantendo a arquitetura completa?</p>
+        <p class="value-a">3 fatias (Seção 4), cada uma shippable e demonstrável sozinha, nenhuma delas
+          exigindo retrabalho da anterior -- a lógica de dado (serviço, rota, hook, <code>action-momentum.ts</code>)
+          é construída uma única vez na Fatia 1 e só reaproveitada, nunca duplicada ou reescrita, nas Fatias
+          2 e 3. Ao final da Fatia 3, o escopo integral da FS-007 está entregue -- as fatias são uma ordem
+          de construção, não um corte de escopo.</p>
+      </div>
+      <div class="value-card">
+        <p class="value-q">4. Qual é o caminho mais curto entre abrir a STRATECH e tomar uma decisão executiva?</p>
+        <p class="value-a">Hoje: Login → Dashboard → Projetos → escolher um projeto → Workspace → ler o
+          Brief inteiro. Depois desta Feature (Fatia 3): Login → Dashboard → clicar no KPI "Ações pendentes"
+          → tela "Ações" já com o item mais urgente do portfólio inteiro destacado no topo. Primeira vez que
+          uma decisão executiva não exige escolher um projeto antes.</p>
+      </div>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>Time To Decision (TTD) -- registro conceitual</h2></div>
+      <div class="callout fato">
+        <b>Novo princípio de produto, registrado apenas conceitualmente</b> -- nenhuma métrica implementada,
+        nenhuma telemetria criada nesta Feature ou em qualquer código desta entrega.<br/><br/>
+        <b>Definição:</b> tempo necessário para que um executivo abra a STRATECH, compreenda sua situação, e
+        consiga tomar uma decisão.<br/><br/>
+        <b>Por que registrar agora:</b> a resposta à pergunta 4 (Seção 1) é, na prática, uma descrição
+        qualitativa do TTD -- esta Feature é a primeira a encurtar esse caminho de forma mensurável no
+        futuro (menos passos de navegação até uma decisão). Registrar o princípio agora, sem instrumentá-lo,
+        significa que decisões futuras de UX podem ser avaliadas contra ele explicitamente, mesmo antes de
+        existir uma métrica real. Instrumentação real (telemetria, dashboards de produto) permanece uma
+        evolução futura, fora do escopo de qualquer Capability atual -- não faz parte de Enterprise
+        Essentials nem de Enterprise Expansion no STRATECH V1 Completion Board; seria registrado ali quando
+        priorizado.
+      </div>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>Princípios Preservados</h2></div>
+      <ul>
+        <li><b>Executive Questions Framework</b> -- já aplicado em Architecture Review §02; nenhuma tarefa abaixo o contradiz.</li>
+        <li><b>A plataforma organiza o trabalho executivo</b> -- nenhuma tarefa introduz filtro, tag ou view configurável pelo usuário.</li>
+        <li><b>Action Intelligence não é um gerenciador de tarefas</b> -- nenhuma tarefa cria botão de criar/editar/atribuir.</li>
+        <li><b>Arquitetura evolutiva para leitura/escrita</b> -- <code>ActionStatus</code> declarado e não usado (FS-007 §2.6), nenhuma tarefa antecipa persistência.</li>
+        <li><b>Reutilização máxima da arquitetura existente</b> -- toda tarefa abaixo reaproveita um padrão já real (serviço, router, BFF, hook, Design System); nenhuma arquitetura paralela.</li>
+      </ul>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>Fatias de Valor Incremental</h2></div>
+      <div class="slice">
+        <span class="slice-tag">Fatia 1 -- demonstrável isoladamente</span>
+        <h4>Ações no Workspace de um projeto</h4>
+        <p>Backend (serviço + rota) → BFF → hook → <code>action-momentum.ts</code> → seção "Ações" no
+          Workspace, escopada a <code>projectName</code>. Ao final desta fatia, um PM/PMO já consegue abrir
+          um projeto e ver seus compromissos agrupados por urgência -- valor real entregue, nada provisório
+          a refazer depois.</p>
+      </div>
+      <div class="slice">
+        <span class="slice-tag">Fatia 2 -- reaproveita 100% da Fatia 1</span>
+        <h4>Ações no portfólio (nova página + navegação)</h4>
+        <p>Mesmo hook (<code>useActionItems</code>, agora sem <code>projectName</code>), mesmo
+          <code>action-momentum.ts</code>, mesmo componente de lista/card da Fatia 1 -- só a página muda.
+          Novo item "Ações" em <code>navigation.ts</code> (regra de entrada já cumprida). Zero lógica de
+          dado nova.</p>
+      </div>
+      <div class="slice">
+        <span class="slice-tag">Fatia 3 -- integração, puramente aditiva</span>
+        <h4>Dashboard + 3 Executive Briefs</h4>
+        <p>KPI "Ações pendentes" vira link (Fatia 2 já existe para receber o clique). Linha de contexto nos
+          3 Briefs, reaproveitando <code>useActionItems</code> (Fatia 1) -- <code>RisksPanel</code> e
+          <code>CommunicationBrief</code> passam a chamá-lo, <code>ExecutiveBrief</code> idem. Nenhum
+          componente das Fatias 1-2 é alterado -- só consumido em mais lugares.</p>
+      </div>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Tarefas Técnicas</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Tarefa</th><th>Fatia</th><th>Detalhe</th></tr></thead>
+          <tbody>
+            <tr><td>T1</td><td>Backend -- <code>ProjectSummaryService.list_action_items()</code></td><td>1</td><td>FS-007 §2.1 -- testes unitários (formato inválido excluído, ordenação)</td></tr>
+            <tr><td>T2</td><td>Backend -- <code>GET /api/action-items</code></td><td>1</td><td>FS-007 §2.2 -- testes de integração (com/sem <code>project_name</code>, auth)</td></tr>
+            <tr><td>T3</td><td>BFF -- <code>web/app/api/bff/action-items/route.ts</code></td><td>1</td><td>Proxy fino, mesmo padrão de erro/timeout já existente</td></tr>
+            <tr><td>T4</td><td>Hook -- <code>useActionItems(projectName?)</code></td><td>1</td><td>TanStack Query, mesma cache key de FS-007 §03</td></tr>
+            <tr><td>T5</td><td><code>web/lib/workspace/action-momentum.ts</code></td><td>1</td><td><code>bucketByUrgency</code>, <code>attentionHeadline</code>, <code>suggestedNextAction</code> -- testes unitários dos 4 buckets + casos de sugestão</td></tr>
+            <tr><td>T6</td><td>Componente -- seção "Ações" (Workspace)</td><td>1</td><td>Estados loading/erro/vazio, mesma composição Card já estabelecida</td></tr>
+            <tr><td>T7</td><td>E2E -- Fatia 1</td><td>1</td><td>Fluxo completo dentro de um Workspace, backend real em Demo Mode</td></tr>
+            <tr><td>T8</td><td>Página "Ações" (portfólio) + item em <code>navigation.ts</code></td><td>2</td><td>Reaproveita T4-T6 sem alteração</td></tr>
+            <tr><td>T9</td><td>E2E -- Fatia 2</td><td>2</td><td>Sidebar → "Ações" → itens de múltiplos projetos agrupados</td></tr>
+            <tr><td>T10</td><td>Dashboard -- KPI "Ações pendentes" vira link</td><td>3</td><td>Aponta para a página da Fatia 2</td></tr>
+            <tr><td>T11</td><td>Linha de contexto nos 3 Briefs</td><td>3</td><td>FS-007 §2.7 -- presente só quando contagem &gt; 0</td></tr>
+            <tr><td>T12</td><td>E2E -- Fatia 3</td><td>3</td><td>Dashboard → Ações; Brief → linha de contexto → Ações do Workspace</td></tr>
+            <tr><td>T13</td><td>Verificação real (Demo Mode)</td><td>1-3</td><td>Ao menos uma passada completa contra o backend real, mesma disciplina das Features anteriores</td></tr>
+            <tr><td>T14</td><td>Documentação e evidência</td><td>1-3</td><td>Executive Progress Report + Visual Fidelity Report (Etapas 8-9)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>Ordem de Execução</h2></div>
+      <p>T1 → T2 → T3 → T4 → T5 → T6 → T7 (Fatia 1, sequencial -- cada uma depende da anterior) → T8 → T9
+        (Fatia 2) → T10 → T11 → T12 (Fatia 3, T10 e T11 podem ser paralelas entre si) → T13 → T14. Nenhuma
+        tarefa de uma fatia posterior bloqueia a conclusão e demonstração da fatia anterior -- por desenho
+        (Seção 4), não por coincidência.</p>
+    </section>
+
+    <section id="s7">
+      <div class="section-head"><span class="section-num">07</span><h2>Critérios de Conclusão</h2></div>
+      <ul>
+        <li>Todos os critérios de aceite da FS-007 §09 cumpridos</li>
+        <li>Cada fatia (Seção 4) demonstrável isoladamente durante a implementação, não só ao final</li>
+        <li>Zero regressão nos 92 testes de backend além dos novos testes de T1/T2</li>
+        <li>Zero regressão nos testes de frontend já existentes (206 hoje)</li>
+        <li>Nenhum campo de <code>ActionStatus</code> lido ou gravado em código real (FS-007 §2.6)</li>
+      </ul>
+    </section>
+
+    <section id="s8">
+      <div class="section-head"><span class="section-num">08</span><h2>Próximo Gate</h2></div>
+      <p>Plano concluído. Nenhuma linha de código escrita ainda. Aguardando aprovação explícita do Founder
+        antes do início da implementação (Etapa 7 de 10).</p>
+    </section>
+
+    <footer>
+      <span>Stratech — TIP-008</span>
+      <span>Action Intelligence</span>
+      <span>2026-07-13</span>
+    </footer>
+  </main>
+</div>
