@@ -94,11 +94,18 @@ describe("AnalyzeProjectDialog", () => {
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
-  it("closes the modal and confirms via toast on success", async () => {
+  it("closes the modal and previews the verdict via toast on success (Decision Momentum, Rev. 2)", async () => {
     const { toast } = await import("sonner");
-    const mutate = vi.fn((_context: string, options?: { onSuccess?: () => void }) => {
-      options?.onSuccess?.();
-    });
+    const response = {
+      agent: "project_status",
+      project_name: "Aurora",
+      model_output: { structured: true, health_status: "yellow", key_findings: [], recommendations: [] },
+    };
+    const mutate = vi.fn(
+      (_context: string, options?: { onSuccess?: (data: typeof response) => void }) => {
+        options?.onSuccess?.(response);
+      },
+    );
     mockedSubmit.mockReturnValue(baseMutation({ mutate: mutate as never }));
 
     render(<AnalyzeProjectDialog projectName="Aurora" />);
@@ -109,7 +116,33 @@ describe("AnalyzeProjectDialog", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(toast).toHaveBeenCalledWith(
       "Análise concluída",
-      expect.objectContaining({ description: expect.stringContaining("Aurora") }),
+      expect.objectContaining({ description: 'Status Executivo de "Aurora": Atenção.' }),
+    );
+  });
+
+  it("falls back to a mute confirmation when the response is unstructured", async () => {
+    const { toast } = await import("sonner");
+    const response = {
+      agent: "project_status",
+      project_name: "Aurora",
+      model_output: { structured: false, raw_output: "not json" },
+    };
+    const mutate = vi.fn(
+      (_context: string, options?: { onSuccess?: (data: typeof response) => void }) => {
+        options?.onSuccess?.(response);
+      },
+    );
+    mockedSubmit.mockReturnValue(baseMutation({ mutate: mutate as never }));
+
+    render(<AnalyzeProjectDialog projectName="Aurora" />);
+    await userEvent.click(screen.getByRole("button", { name: "Analisar Projeto" }));
+    await userEvent.type(screen.getByLabelText("Contexto do projeto"), LONG_ENOUGH);
+    await userEvent.click(screen.getByRole("button", { name: "Executar Análise" }));
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(toast).toHaveBeenCalledWith(
+      "Análise concluída",
+      expect.objectContaining({ description: 'Status Executivo de "Aurora" atualizado.' }),
     );
   });
 });

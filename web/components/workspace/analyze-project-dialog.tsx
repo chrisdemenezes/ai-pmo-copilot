@@ -5,6 +5,7 @@ import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { healthStatusLabel } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -48,9 +49,15 @@ export function AnalyzeProjectDialog({ projectName }: { projectName: string }) {
   function handleSubmit() {
     if (!isValid || mutation.isPending) return;
     mutation.mutate(context, {
-      onSuccess: () => {
+      // Decision Momentum (Decision Experience Review, Rev. 2): the
+      // confirmation previews the verdict instead of a mute "concluído" --
+      // health_status is already in the mutation response, zero new call.
+      onSuccess: (data) => {
+        const healthStatus = data.model_output.structured ? data.model_output.health_status : null;
         toast("Análise concluída", {
-          description: `Status Executivo de "${projectName}" atualizado.`,
+          description: healthStatus
+            ? `Status Executivo de "${projectName}": ${healthStatusLabel(healthStatus)}.`
+            : `Status Executivo de "${projectName}" atualizado.`,
         });
         setOpen(false);
       },

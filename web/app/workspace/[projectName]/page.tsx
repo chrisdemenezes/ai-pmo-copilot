@@ -1,10 +1,9 @@
 import { WorkspaceHeader } from "@/components/workspace/workspace-header";
-import { ExecutiveSummary } from "@/components/workspace/executive-summary";
+import { ExecutiveBrief } from "@/components/workspace/executive-brief";
 import { IntelligenceTimeline } from "@/components/workspace/intelligence-timeline";
 import { RisksPanel } from "@/components/workspace/risks-panel";
 import { ActionsPanel } from "@/components/workspace/actions-panel";
 import { DecisionsPanel } from "@/components/workspace/decisions-panel";
-import { RecommendationsPanel } from "@/components/workspace/recommendations-panel";
 import { AnalysisHistory } from "@/components/workspace/analysis-history";
 
 /**
@@ -30,12 +29,11 @@ export default async function WorkspacePage({
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 p-6">
       <WorkspaceHeader projectName={projectName} />
-      <ExecutiveSummary projectName={projectName} />
+      <ExecutiveBrief projectName={projectName} />
       <IntelligenceTimeline projectName={projectName} />
       <RisksPanel projectName={projectName} />
       <ActionsPanel projectName={projectName} />
       <DecisionsPanel projectName={projectName} />
-      <RecommendationsPanel projectName={projectName} />
       <AnalysisHistory projectName={projectName} />
     </main>
   );

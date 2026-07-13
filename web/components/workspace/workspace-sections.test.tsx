@@ -2,12 +2,11 @@ import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 import { WorkspaceHeader } from "./workspace-header";
-import { ExecutiveSummary } from "./executive-summary";
+import { ExecutiveBrief } from "./executive-brief";
 import { IntelligenceTimeline } from "./intelligence-timeline";
 import { RisksPanel } from "./risks-panel";
 import { ActionsPanel } from "./actions-panel";
 import { DecisionsPanel } from "./decisions-panel";
-import { RecommendationsPanel } from "./recommendations-panel";
 import { useWorkspaceSummary } from "@/lib/hooks/use-workspace-summary";
 import { useWorkspaceTimeline } from "@/lib/hooks/use-workspace-timeline";
 import { useWorkspaceLatestByKind } from "@/lib/hooks/use-workspace-latest";
@@ -71,8 +70,8 @@ describe("WorkspaceHeader (Painel A, independente)", () => {
   });
 });
 
-describe("ExecutiveSummary (Painéis A + C, cada um com estado próprio)", () => {
-  it("renders the counts card even while the findings card is still loading", () => {
+describe("ExecutiveBrief (Painéis A + C fundidos, cada um com estado próprio -- Decision Momentum Rev. 2)", () => {
+  it("renders the counts card even while the brief body is still loading", () => {
     mockedSummary.mockReturnValue(
       summaryState({
         data: {
@@ -86,12 +85,11 @@ describe("ExecutiveSummary (Painéis A + C, cada um com estado próprio)", () =>
     );
     mockedLatest.mockReturnValue(PENDING);
 
-    render(<ExecutiveSummary projectName="Aurora" />);
+    render(<ExecutiveBrief projectName="Aurora" />);
     expect(screen.getByText("4")).toBeInTheDocument();
-    expect(screen.getAllByText("Achados-chave").length).toBeGreaterThan(0);
   });
 
-  it("renders findings even while the counts card errored -- neither blocks the other", () => {
+  it("renders the brief body even while the counts card errored -- neither blocks the other", () => {
     mockedSummary.mockReturnValue(ERROR);
     mockedLatest.mockReturnValue(
       summaryState({
@@ -109,7 +107,7 @@ describe("ExecutiveSummary (Painéis A + C, cada um com estado próprio)", () =>
       }),
     );
 
-    render(<ExecutiveSummary projectName="Aurora" />);
+    render(<ExecutiveBrief projectName="Aurora" />);
     expect(screen.getByText("Achado real")).toBeInTheDocument();
     expect(screen.getByText("Não foi possível carregar as contagens.")).toBeInTheDocument();
   });
@@ -118,8 +116,110 @@ describe("ExecutiveSummary (Painéis A + C, cada um com estado próprio)", () =>
     mockedSummary.mockReturnValue(summaryState({ data: { project_name: "Aurora", total_analyses: 0, open_risks: 0, pending_action_items: 0, latest_health_status: null } }));
     mockedLatest.mockReturnValue(summaryState({ data: null }));
 
-    render(<ExecutiveSummary projectName="Aurora" />);
+    render(<ExecutiveBrief projectName="Aurora" />);
     expect(screen.getByText("Nenhuma análise de status registrada ainda.")).toBeInTheDocument();
+  });
+
+  it.each([
+    ["red", "Pontos de atenção", "Escalar ao patrocinador"],
+    ["yellow", "Pontos de atenção", "Acompanhar de perto"],
+    ["green", "Notas do período", "Manter o curso atual"],
+  ] as const)(
+    "health_status=%s drives the Contexto heading and Decisão sugerida via a fixed UI rule, never the AI",
+    (healthStatus, expectedHeading, expectedDecision) => {
+      mockedSummary.mockReturnValue(
+        summaryState({
+          data: {
+            project_name: "Aurora",
+            total_analyses: 1,
+            open_risks: 0,
+            pending_action_items: 0,
+            latest_health_status: healthStatus,
+          },
+        }),
+      );
+      mockedLatest.mockReturnValue(
+        summaryState({
+          data: {
+            id: 1,
+            kind: "status",
+            project_name: "Aurora",
+            created_at: "2026-07-01T00:00:00Z",
+            payload: {
+              agent: "project_status",
+              project_name: "Aurora",
+              model_output: { structured: true, health_status: healthStatus, key_findings: ["Achado"], recommendations: [] },
+            },
+          },
+        }),
+      );
+
+      render(<ExecutiveBrief projectName="Aurora" />);
+      expect(screen.getByText(expectedHeading)).toBeInTheDocument();
+      expect(screen.getByText(expectedDecision)).toBeInTheDocument();
+    },
+  );
+
+  it("promotes the first recommendation to Próximo passo, keeps the rest under Também recomendado -- editorial convention, not AI ranking", () => {
+    mockedSummary.mockReturnValue(
+      summaryState({
+        data: { project_name: "Aurora", total_analyses: 1, open_risks: 0, pending_action_items: 0, latest_health_status: "yellow" },
+      }),
+    );
+    mockedLatest.mockReturnValue(
+      summaryState({
+        data: {
+          id: 1,
+          kind: "status",
+          project_name: "Aurora",
+          created_at: "2026-07-01T00:00:00Z",
+          payload: {
+            agent: "project_status",
+            project_name: "Aurora",
+            model_output: {
+              structured: true,
+              health_status: "yellow",
+              key_findings: [],
+              recommendations: ["Confirmar cronograma com o patrocinador", "Revisar escopo restante"],
+            },
+          },
+        },
+      }),
+    );
+
+    render(<ExecutiveBrief projectName="Aurora" />);
+    expect(screen.getByText("Confirmar cronograma com o patrocinador")).toBeInTheDocument();
+    expect(screen.getByText("Também recomendado")).toBeInTheDocument();
+    expect(screen.getByText("Revisar escopo restante")).toBeInTheDocument();
+  });
+
+  it("falls back to an honest continuity statement when recommendations is empty -- never fabricates one", () => {
+    mockedSummary.mockReturnValue(
+      summaryState({
+        data: { project_name: "Aurora", total_analyses: 1, open_risks: 0, pending_action_items: 0, latest_health_status: "green" },
+      }),
+    );
+    mockedLatest.mockReturnValue(
+      summaryState({
+        data: {
+          id: 1,
+          kind: "status",
+          project_name: "Aurora",
+          created_at: "2026-07-01T00:00:00Z",
+          payload: {
+            agent: "project_status",
+            project_name: "Aurora",
+            model_output: { structured: true, health_status: "green", key_findings: [], recommendations: [] },
+          },
+        },
+      }),
+    );
+
+    render(<ExecutiveBrief projectName="Aurora" />);
+    expect(
+      screen.getByText("Nenhuma recomendação registrada nesta análise — continue acompanhando o projeto."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Também recomendado")).not.toBeInTheDocument();
   });
 });
 
@@ -220,27 +320,5 @@ describe("ActionsPanel and DecisionsPanel (share the 'meeting' query, independen
     render(<DecisionsPanel projectName="Aurora" />);
     expect(screen.getByText("Decisão A")).toBeInTheDocument();
     expect(screen.getByText("Aprovação jurídica")).toBeInTheDocument();
-  });
-});
-
-describe("RecommendationsPanel (Painel C, 'status')", () => {
-  it("renders recommendations verbatim", () => {
-    mockedLatest.mockReturnValue(
-      summaryState({
-        data: {
-          id: 3,
-          kind: "status",
-          project_name: "Aurora",
-          created_at: "2026-07-01T00:00:00Z",
-          payload: {
-            agent: "project_status",
-            project_name: "Aurora",
-            model_output: { structured: true, health_status: "yellow", key_findings: [], recommendations: ["Revisar cronograma"] },
-          },
-        },
-      }),
-    );
-    render(<RecommendationsPanel projectName="Aurora" />);
-    expect(screen.getByText("Revisar cronograma")).toBeInTheDocument();
   });
 });
