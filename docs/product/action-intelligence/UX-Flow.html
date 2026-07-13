@@ -1,0 +1,295 @@
+<title>UX Flow — Action Intelligence</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --ok:#2f7a4f; --ok-bg:#e1f0e5;
+    --warn:#a3742f; --warn-bg:#f3e9d8;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --ok:#7fd19f; --ok-bg:#1a3324;
+    --warn:#e0b567; --warn-bg:#332711;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --ok:#7fd19f; --ok-bg:#1a3324;
+      --warn:#e0b567; --warn-bg:#332711;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:270px minmax(0,1fr); max-width:1340px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:4px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  .toc .toc-num{color:var(--accent); margin-right:6px;}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:40px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.7rem,4vw,2.5rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:70ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:52px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink);}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.3rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:70ch;}
+  h3{font-size:1.02rem; margin:26px 0 8px; font-weight:600;}
+  p{margin:0 0 14px; max-width:74ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:72ch;}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout.warn{border-left-color:var(--warn);}
+  .callout.ok{border-left-color:var(--ok);}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.ok{color:var(--ok); background:var(--ok-bg);}
+  .chip.warn{color:var(--warn); background:var(--warn-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  .wireflow{display:flex; gap:20px; flex-wrap:wrap; margin:16px 0 24px;}
+  .wire-card{flex:1; min-width:260px; border:1px solid var(--border); border-radius:8px; padding:16px 18px; background:var(--surface);}
+  .wire-card h4{margin:0 0 10px; font-family: ui-monospace, monospace; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-dim);}
+  .wire-row{display:flex; justify-content:space-between; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); font-size:.85rem;}
+  .wire-row:last-child{border-bottom:none;}
+  .wire-tag{font-family: ui-monospace, monospace; font-size:9px; text-transform:uppercase; padding:2px 6px; border-radius:3px; white-space:nowrap; height:fit-content;}
+  .wire-tag.late{color:var(--guard); background:var(--guard-bg);}
+  .wire-tag.soon{color:var(--warn); background:var(--warn-bg);}
+  .wire-tag.ok{color:var(--ok); background:var(--ok-bg);}
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">STRATECH V1 — Product Core<br>Action Intelligence</div>
+    <nav>
+      <a href="#s0"><span class="toc-num">00</span>Guardian Check</a>
+      <a href="#s1"><span class="toc-num">01</span>Princípio</a>
+      <a href="#s2"><span class="toc-num">02</span>Como o usuário organiza o dia</a>
+      <a href="#s3"><span class="toc-num">03</span>Diálogo com Dashboard/Workspace/Brief</a>
+      <a href="#s4"><span class="toc-num">04</span>Prioridade sem complexidade visual</a>
+      <a href="#s5"><span class="toc-num">05</span>Evolução para leitura e escrita</a>
+      <a href="#s6"><span class="toc-num">06</span>Não é um gerenciador de tarefas</a>
+      <a href="#s7"><span class="toc-num">07</span>Integração contextual (avaliação)</a>
+      <a href="#s8"><span class="toc-num">08</span>Wireflow</a>
+      <a href="#s9"><span class="toc-num">09</span>Fora de Escopo</a>
+      <a href="#s10"><span class="toc-num">10</span>Próximo Gate</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">STRATECH V1 · Product Core · Etapa 3 de 10 — UX Flow</div>
+      <h1 class="title">UX Flow — Action Intelligence</h1>
+      <p class="subtitle">Nenhuma implementação. O objetivo desta etapa foi ampliado pelo Founder: não é
+        desenhar uma lista de ações -- é desenhar o primeiro módulo de trabalho contínuo da STRATECH, sob um
+        princípio único: <b>a plataforma organiza o trabalho executivo; o usuário não organiza a
+        plataforma.</b></p>
+      <div class="meta-row">
+        <span><b>Módulo</b> Action Intelligence</span>
+        <span><b>Origem</b> Ampliação de objetivo do Founder, pré-UX Flow</span>
+        <span><b>Data</b> 2026-07-13</span>
+        <span><b>Status</b> Aguardando aprovação — nenhuma Feature Specification ou código ainda</span>
+      </div>
+    </div>
+
+    <section id="s0">
+      <div class="section-head"><span class="section-num">00</span><h2>Guardian Check</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Verificação</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr><td>Conflito com Strategy/Constitution/Vision/Decision Framework?</td><td>SEM CONFLITO — nenhum ainda escrito.</td></tr>
+            <tr><td>Conflito com a Opção 1 aprovada (Discovery §04) ou a condição de evolução (Journey §05)?</td><td>SEM CONFLITO — nenhuma seção abaixo introduz escrita, migração ou novo endpoint.</td></tr>
+            <tr><td>Este refinamento melhora alguma decisão do usuário?</td><td>SIM — a pergunta "o que precisa ser feito agora" só tem valor executivo real se a resposta já vier priorizada, não como mais uma lista para o usuário organizar sozinho.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Princípio</h2></div>
+      <p class="section-intro"><b>A plataforma organiza o trabalho executivo. O usuário não organiza a
+        plataforma.</b> Mesma família de princípio da Rev. 3 de Communication Intelligence ("o usuário nunca
+        escolhe agentes") -- aqui aplicado à forma, não ao conteúdo. Corolários concretos, que valem para
+        toda decisão de design desta UX Flow:</p>
+      <ul>
+        <li>Nenhum filtro customizável, nenhuma tag, nenhuma view salva pelo usuário.</li>
+        <li>Nenhuma reordenação manual -- a ordem (por urgência) é sempre a mesma regra fixa, nunca uma
+          preferência configurável.</li>
+        <li>Nenhuma criação de item, nenhuma edição de campo -- reafirma a Opção 1 (Discovery §04) por um
+          ângulo de UX, não só de arquitetura.</li>
+        <li>O usuário lê e decide o que fazer <i>fora</i> da tela; a tela nunca pede para ele arrumar a
+          própria tela.</li>
+      </ul>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>Como o usuário organiza seu dia utilizando este módulo?</h2></div>
+      <p>Ele não organiza -- a tela já chega organizada. O padrão de uso esperado: "Ações" é o primeiro
+        lugar que um PM/PMO abre, antes de entrar em qualquer projeto específico -- o mesmo papel que o
+        Dashboard já cumpre para "como estão meus projetos", agora para "o que eu preciso fazer com eles". A
+        tela mostra, sem exigir nenhuma configuração:</p>
+      <ol>
+        <li>O que está atrasado, primeiro, sempre.</li>
+        <li>O que vence em breve, em seguida.</li>
+        <li>O resto, visível mas deliberadamente menos proeminente -- mesmo princípio de "Também
+          identificado" já usado em Riscos, nunca escondido, nunca com o mesmo peso do que exige atenção.</li>
+      </ol>
+      <p>Terminada a leitura de "Ações", o usuário navega para o projeto específico que precisa de atenção
+        -- o módulo é um ponto de partida do dia, não um lugar onde ele fica trabalhando dentro da
+        plataforma (reforça: não é um gerenciador de tarefas, Seção 6).</p>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>Como esse módulo conversa com Dashboard, Workspace e Executive Brief?</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Superfície</th><th>Conversa hoje</th><th>Conversa proposta</th></tr></thead>
+          <tbody>
+            <tr><td>Dashboard</td><td>KPI "Ações pendentes" -- só um número, sem destino</td><td>O mesmo número passa a ter para onde ir -- clicar leva à visão de portfólio de "Ações". Mesmo dado (<code>pending_action_items</code>), zero agregação nova</td></tr>
+            <tr><td>Workspace</td><td>"Responsabilidades" só na última reunião analisada (Communication Brief)</td><td>Seção "Ações" própria do projeto (já desenhada na User Journey §1-2) -- o rollup completo, não só a última reunião</td></tr>
+            <tr><td>Executive Brief (os 3 -- Status, Risco, Comunicação)</td><td>Nenhuma referência cruzada entre eles hoje</td><td>Avaliado, não decidido -- ver Seção 7</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>O fio condutor: em nenhum lugar dessas três superfícies o usuário digita ou configura algo para
+        que essa conversa aconteça -- toda ponte é um link para um dado que já existe, calculado do mesmo
+        jeito em todo lugar.</p>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>Como o usuário percebe prioridade, urgência e impacto sem aumentar a complexidade visual?</h2></div>
+      <ul>
+        <li><b>Zero vocabulário visual novo.</b> Mesmo <code>Badge</code>, mesmo <code>Card</code>, mesma
+          lógica de "zona de atenção primeiro, resto visível mas discreto" já usada em Riscos -- nenhum
+          semáforo novo, nenhuma escala de cor inventada.</li>
+        <li><b>Urgência é a única dimensão exposta.</b> Não existe pontuação de "impacto" nem "prioridade"
+          como número -- seria inventar um dado que o schema não sustenta (mesma disciplina de honestidade
+          da Discovery §03/§05 de Communication Intelligence, "Impacto" nunca é uma nota inventada). Impacto
+          é comunicado pela contagem e pelo agrupamento (quantos atrasados, em quantos projetos), nunca por
+          um score.</li>
+        <li><b>Densidade igual às Briefs já existentes.</b> Lista curta, não uma tabela densa -- mesmo
+          padrão de "Decisão sugerida" + "Próximo passo" ancorando a leitura no que importa primeiro.</li>
+      </ul>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Como a experiência preparada hoje evoluirá naturalmente para leitura e escrita?</h2></div>
+      <p>Detalhado arquiteturalmente na User Journey (Etapa 2, Seção 5) -- aqui, o mesmo compromisso pelo
+        ângulo de percepção do usuário: o indicador de urgência que ele já vê hoje (Atrasado / Vence em
+        breve / No prazo) é visualmente o mesmo espaço onde, no futuro, "Concluído" vai aparecer. O usuário
+        de hoje já está, sem saber, olhando para o layout final -- só um dos estados possíveis daquele
+        indicador ainda não existe. Nenhuma segunda versão da tela será necessária; a mesma tela ganha um
+        comportamento novo (marcar como feito) no mesmo lugar onde hoje só se lê o estado.</p>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>Como evitar que este módulo seja percebido como um gerenciador de tarefas genérico?</h2></div>
+      <ul>
+        <li><b>Vocabulário:</b> nunca "tarefa" -- sempre "ação" ou "compromisso", palavras que carregam a
+          origem real (algo que alguém disse numa reunião real), não um item que o usuário criou do nada.</li>
+        <li><b>Proveniência sempre visível:</b> todo item aponta para a reunião de origem (Journey, passo 5)
+          -- diferente de um gerenciador de tarefas genérico, onde o item não tem "de onde veio".</li>
+        <li><b>Nenhum botão de criar.</b> A ausência mais importante desta tela -- reforça que ela reflete
+          compromissos já assumidos, não um lugar para planejar novos.</li>
+        <li><b>Nenhuma atribuição pela interface.</b> <code>owner</code> vem só do que a IA já extraiu de
+          uma transcrição real -- o usuário nunca atribui algo a alguém pela tela.</li>
+        <li><b>Moldura da pergunta:</b> "o que já foi comprometido e está em aberto", não "o que eu ainda
+          preciso planejar" -- retrospectivo e factual, não prospectivo e criativo.</li>
+      </ul>
+    </section>
+
+    <section id="s7">
+      <div class="section-head"><span class="section-num">07</span><h2>Integração contextual: Executive Brief → Action Intelligence (avaliação)</h2></div>
+      <p class="section-intro">Por instrução explícita do Founder: avaliação apenas, nenhuma implementação
+        nesta etapa.</p>
+      <div class="callout ok">
+        <b>Viável, e barato.</b> <code>ExecutiveBrief</code> (Status) já busca <code>useWorkspaceSummary</code>,
+        que já retorna <code>pending_action_items</code> -- uma linha como "N ações relacionadas exigem
+        atenção", com link para a seção "Ações" do Workspace, é reaproveitamento puro do dado já buscado,
+        zero chamada nova. <code>RisksPanel</code> e <code>CommunicationBrief</code> hoje não chamam
+        <code>useWorkspaceSummary</code> -- adicionar essa chamada é o mesmo hook já usado em outro lugar,
+        não um endpoint novo.
+      </div>
+      <p>Recomendação para a Feature Specification avaliar formalmente: aplicar a mesma linha de contexto
+        <b>nos 3 Briefs</b>, não só em Comunicação -- o usuário pode estar olhando Status ou Risco de um
+        projeto que também tem ações em aberto vindas de uma reunião; o princípio "a plataforma organiza"
+        (Seção 1) sugere avisar independente de qual Brief ele está lendo, não só naquele que originou o
+        dado. Risco identificado: se a contagem for zero, a linha não deve aparecer -- reforça "nunca
+        listar tudo com o mesmo peso", mesmo quando o "tudo" é zero.</p>
+    </section>
+
+    <section id="s8">
+      <div class="section-head"><span class="section-num">08</span><h2>Wireflow (baixa fidelidade)</h2></div>
+      <p class="section-intro">Mostra a estrutura da conversa entre superfícies, não a Baseline Visual.</p>
+      <div class="wireflow">
+        <div class="wire-card">
+          <h4>Dashboard</h4>
+          <div class="wire-row"><span>Ações pendentes</span><span>7 →</span></div>
+          <p style="font-size:.75rem;color:var(--ink-dim);margin:8px 0 0;">Clicável, leva a "Ações" (portfólio)</p>
+        </div>
+        <div class="wire-card">
+          <h4>Ações (portfólio, nova)</h4>
+          <div class="wire-row"><span>Confirmar substituição do fornecedor -- SAP S/4HANA</span><span class="wire-tag late">ATRASADO</span></div>
+          <div class="wire-row"><span>Atualizar cronograma de testes -- SAP S/4HANA</span><span class="wire-tag soon">VENCE EM BREVE</span></div>
+          <div class="wire-row"><span>Validar escopo de autenticação -- Portal 2.0</span><span class="wire-tag ok">NO PRAZO</span></div>
+        </div>
+        <div class="wire-card">
+          <h4>Executive Brief (qualquer um)</h4>
+          <div class="wire-row"><span>...conteúdo do Brief...</span><span></span></div>
+          <div class="wire-row"><span>3 ações relacionadas exigem atenção →</span><span></span></div>
+          <p style="font-size:.75rem;color:var(--ink-dim);margin:8px 0 0;">Seção 7 -- avaliado, não implementado</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="s9">
+      <div class="section-head"><span class="section-num">09</span><h2>Fora de Escopo (confirmado)</h2></div>
+      <ul>
+        <li>Nenhuma implementação nesta etapa -- inclusive a integração contextual da Seção 7, que fica só
+          avaliada.</li>
+        <li>Nenhum filtro, tag ou view customizável pelo usuário (Seção 1).</li>
+        <li>Nenhum campo de status persistido, nenhuma escrita -- reafirma Discovery §04 e Journey §05/§06.</li>
+        <li>Nenhuma pontuação numérica de "impacto" ou "prioridade" -- só agrupamento por urgência real.</li>
+      </ul>
+    </section>
+
+    <section id="s10">
+      <div class="section-head"><span class="section-num">10</span><h2>Próximo Gate</h2></div>
+      <p>Nenhum código escrito. Esta é a UX Flow (Etapa 3 de 10). A Feature Specification (Etapa 4) só
+        começa após aprovação explícita do Founder.</p>
+    </section>
+
+    <footer>
+      <span>Stratech — STRATECH V1 · Product Core</span>
+      <span>UX Flow</span>
+      <span>2026-07-13</span>
+    </footer>
+  </main>
+</div>
