@@ -34,6 +34,49 @@ class ProjectSummaryService:
         logger.info("Summarized portfolio: %d projects", len(summaries))
         return summaries
 
+    def list_action_items(self, project_name: str | None = None) -> list[dict]:
+        # Same call already used by summarize()/summarize_portfolio() -- zero
+        # new query, zero new table (FS-007 §2.1). One fetch, flattened in
+        # memory, never one query per meeting.
+        records = self._repository.list_analyses(
+            project_name=project_name,
+            kind="meeting",
+            limit=None,
+        )
+
+        items: list[dict] = []
+        for record in records:
+            model_output = (record.payload or {}).get("model_output")
+            if not isinstance(model_output, dict) or not model_output.get("structured"):
+                continue
+
+            for item in model_output.get("action_items") or []:
+                # A malformed item from one specific meeting is excluded from
+                # the rollup, never allowed to break it -- same schema-robustness
+                # discipline as _aggregate.
+                if not isinstance(item, dict) or not isinstance(item.get("description"), str):
+                    continue
+                owner = item.get("owner")
+                due_date = item.get("due_date")
+                items.append(
+                    {
+                        "project_name": record.project_name,
+                        "description": item["description"],
+                        "owner": owner if isinstance(owner, str) else None,
+                        "due_date": due_date if isinstance(due_date, str) else None,
+                        "source_analysis_id": record.id,
+                        "source_created_at": record.created_at,
+                    }
+                )
+
+        logger.info(
+            "Listed %d action items project_name=%s from %d meeting analyses",
+            len(items),
+            project_name,
+            len(records),
+        )
+        return items
+
     @staticmethod
     def _aggregate(project_name: str, records: list[AnalysisRecord]) -> dict:
         open_risks = 0

@@ -69,6 +69,18 @@ class ProjectSummaryResponse(BaseModel):
     latest_health_status: str | None
 
 
+class ActionItemResponse(BaseModel):
+    project_name: str | None
+    description: str
+    # due_date stays a plain string, never parsed to a date here -- it's
+    # free text extracted by the AI (FS-007 §11); the frontend treats an
+    # unparseable value as "sem prazo" instead of the API rejecting it.
+    owner: str | None
+    due_date: str | None
+    source_analysis_id: int
+    source_created_at: datetime
+
+
 def build_prompt_registry() -> PromptRegistry:
     return PromptRegistry(base_path="src/agents")
 
@@ -169,6 +181,17 @@ def get_analysis(
     if record is None:
         raise HTTPException(status_code=404, detail="Analysis not found")
     return record
+
+
+@router.get("/action-items", response_model=list[ActionItemResponse])
+def list_action_items(
+    project_name: str | None = None,
+    service: ProjectSummaryService = Depends(build_project_summary_service),
+):
+    # project_name is optional: present = Workspace view, absent = portfolio
+    # view (FS-007 §2.2) -- same query-parameter design as GET /analyses.
+    logger.info("Listing action items project_name=%s", project_name)
+    return service.list_action_items(project_name=project_name)
 
 
 @router.get("/projects/summary", response_model=ProjectSummaryResponse)

@@ -3,6 +3,7 @@ import { ExecutiveBrief } from "@/components/workspace/executive-brief";
 import { IntelligenceTimeline } from "@/components/workspace/intelligence-timeline";
 import { RisksPanel } from "@/components/workspace/risks-panel";
 import { CommunicationBrief } from "@/components/workspace/communication-brief";
+import { ActionsSection } from "@/components/workspace/actions-section";
 import { AnalysisHistory } from "@/components/workspace/analysis-history";
 
 /**
@@ -32,6 +33,7 @@ export default async function WorkspacePage({
       <IntelligenceTimeline projectName={projectName} />
       <RisksPanel projectName={projectName} />
       <CommunicationBrief projectName={projectName} />
+      <ActionsSection projectName={projectName} />
       <AnalysisHistory projectName={projectName} />
     </main>
   );

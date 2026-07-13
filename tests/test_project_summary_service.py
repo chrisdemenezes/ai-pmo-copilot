@@ -145,3 +145,139 @@ def test_summarize_portfolio_returns_empty_list_when_no_analyses_exist():
     repository = _repository()
 
     assert ProjectSummaryService(repository).summarize_portfolio() == []
+
+
+def test_list_action_items_flattens_items_from_meeting_analyses():
+    repository = _repository()
+    analysis_id = repository.save_analysis(
+        kind="meeting",
+        project_name="Multilift",
+        payload={
+            "model_output": {
+                "structured": True,
+                "action_items": [
+                    {"description": "Atualizar cronograma", "owner": "Ana", "due_date": "2026-07-20"},
+                    {"description": "Cobrar fornecedor", "owner": None, "due_date": None},
+                ],
+            }
+        },
+    )
+
+    items = ProjectSummaryService(repository).list_action_items("Multilift")
+
+    assert len(items) == 2
+    first, second = items
+    assert first["description"] == "Atualizar cronograma"
+    assert first["owner"] == "Ana"
+    assert first["due_date"] == "2026-07-20"
+    assert first["project_name"] == "Multilift"
+    assert first["source_analysis_id"] == analysis_id
+    assert first["source_created_at"] is not None
+    assert second["description"] == "Cobrar fornecedor"
+    assert second["owner"] is None
+    assert second["due_date"] is None
+
+
+def test_list_action_items_without_project_name_spans_the_portfolio():
+    repository = _repository()
+    repository.save_analysis(
+        kind="meeting",
+        project_name="Multilift",
+        payload={"model_output": {"structured": True, "action_items": [{"description": "a"}]}},
+    )
+    repository.save_analysis(
+        kind="meeting",
+        project_name="Medlog",
+        payload={"model_output": {"structured": True, "action_items": [{"description": "b"}]}},
+    )
+
+    items = ProjectSummaryService(repository).list_action_items()
+
+    assert sorted(item["project_name"] for item in items) == ["Medlog", "Multilift"]
+
+
+def test_list_action_items_scopes_to_the_requested_project():
+    repository = _repository()
+    repository.save_analysis(
+        kind="meeting",
+        project_name="Multilift",
+        payload={"model_output": {"structured": True, "action_items": [{"description": "a"}]}},
+    )
+    repository.save_analysis(
+        kind="meeting",
+        project_name="Medlog",
+        payload={"model_output": {"structured": True, "action_items": [{"description": "b"}]}},
+    )
+
+    items = ProjectSummaryService(repository).list_action_items("Medlog")
+
+    assert [item["description"] for item in items] == ["b"]
+
+
+def test_list_action_items_ignores_non_meeting_and_unstructured_analyses():
+    repository = _repository()
+    repository.save_analysis(
+        kind="risk",
+        project_name="Multilift",
+        payload={"model_output": {"structured": True, "risks": [{"description": "r"}]}},
+    )
+    repository.save_analysis(
+        kind="meeting",
+        project_name="Multilift",
+        payload={"model_output": {"structured": False, "raw_output": "not json"}},
+    )
+
+    assert ProjectSummaryService(repository).list_action_items("Multilift") == []
+
+
+def test_list_action_items_excludes_a_malformed_item_without_dropping_the_rest():
+    repository = _repository()
+    repository.save_analysis(
+        kind="meeting",
+        project_name="Multilift",
+        payload={
+            "model_output": {
+                "structured": True,
+                "action_items": [
+                    "not a dict",
+                    {"owner": "Ana"},
+                    {"description": "Item válido", "owner": 42, "due_date": ["not", "a", "string"]},
+                ],
+            }
+        },
+    )
+
+    items = ProjectSummaryService(repository).list_action_items("Multilift")
+
+    # Only the item with a real description survives; its non-string
+    # owner/due_date degrade to None instead of breaking the rollup.
+    assert len(items) == 1
+    assert items[0]["description"] == "Item válido"
+    assert items[0]["owner"] is None
+    assert items[0]["due_date"] is None
+
+
+def test_list_action_items_orders_newest_meeting_first_preserving_item_order():
+    repository = _repository()
+    first_id = repository.save_analysis(
+        kind="meeting",
+        project_name="Multilift",
+        payload={
+            "model_output": {
+                "structured": True,
+                "action_items": [{"description": "antiga-1"}, {"description": "antiga-2"}],
+            }
+        },
+    )
+    second_id = repository.save_analysis(
+        kind="meeting",
+        project_name="Multilift",
+        payload={"model_output": {"structured": True, "action_items": [{"description": "recente"}]}},
+    )
+    assert second_id > first_id
+
+    items = ProjectSummaryService(repository).list_action_items("Multilift")
+
+    # Repository streams analyses newest-first; within one meeting, the
+    # items keep the order the agent extracted them in.
+    assert [item["description"] for item in items] == ["recente", "antiga-1", "antiga-2"]

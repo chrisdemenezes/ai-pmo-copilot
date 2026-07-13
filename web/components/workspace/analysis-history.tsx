@@ -104,7 +104,12 @@ function HistoryRow({ item, onOpen }: { item: AnalysisListItem; onOpen: () => vo
   );
 }
 
-function AnalysisDetailDialog({
+/**
+ * Exported for reuse by the "Ações" surfaces (FS-007 §04): clicking an
+ * action item leads to its meeting analysis of origin (source_analysis_id)
+ * through this same drill-down, not a parallel one.
+ */
+export function AnalysisDetailDialog({
   projectName,
   analysisId,
   onClose,

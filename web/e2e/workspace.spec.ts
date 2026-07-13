@@ -10,7 +10,14 @@ async function setBackendScenario(scenario: "data" | "empty" | "unavailable" | "
 }
 
 async function setWorkspaceScenario(
-  endpoint: "summary" | "analyses" | "detail" | "analyze" | "analyzeRisk" | "analyzeMeeting",
+  endpoint:
+    | "summary"
+    | "analyses"
+    | "detail"
+    | "analyze"
+    | "analyzeRisk"
+    | "analyzeMeeting"
+    | "actionItems",
   scenario: "data" | "unavailable" | "timeout" | "rate_limited",
 ) {
   const ctx = await playwrightRequest.newContext();
@@ -50,6 +57,7 @@ test.beforeEach(async () => {
   await setWorkspaceScenario("analyze", "data");
   await setWorkspaceScenario("analyzeRisk", "data");
   await setWorkspaceScenario("analyzeMeeting", "data");
+  await setWorkspaceScenario("actionItems", "data");
 });
 
 test("redirects unauthenticated access to /workspace/:projectName to the login page", async ({
@@ -102,9 +110,60 @@ test("Riscos and Comunicação sections render real content from the mocked anal
 
   await expect(page.getByText("Atraso na entrega")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Comunicação" })).toBeVisible();
-  await expect(page.getByText("Atualizar cronograma")).toBeVisible();
+  // .first(): desde TIP-008 o mesmo item também aparece na seção "Ações".
+  await expect(page.getByText("Atualizar cronograma").first()).toBeVisible();
   await expect(page.getByText("Adiar o go-live em 1 semana")).toBeVisible();
   await expect(page.getByText("Manter cadência atual")).toBeVisible();
+});
+
+// TIP-008, Incremento 1 -- seção "Ações" do Workspace, de ponta a ponta
+// (backend → BFF → hook → action-momentum → componente).
+test("Ações section shows the project's meeting commitments grouped by urgency", async ({
+  page,
+}) => {
+  await login(page);
+  await page.goto("/workspace/Aurora");
+
+  const section = page.locator("section", { has: page.locator("#actions-heading") });
+  await section.scrollIntoViewIfNeeded();
+
+  // "O que exige minha atenção hoje?" -- contagem real: 1 atrasada (reunião
+  // 204) e 1 vencendo em breve (reunião 202), nunca uma nota inventada.
+  await expect(section.getByText("1 atrasada(s) · 1 vence(m) em breve")).toBeVisible();
+
+  // Agrupamento fixo por urgência, atrasado sempre primeiro.
+  await expect(section.getByText("Atrasado", { exact: true })).toBeVisible();
+  await expect(
+    section.getByText("Cobrar plano de contingência do fornecedor").first(),
+  ).toBeVisible();
+  await expect(section.getByText("Vence em breve", { exact: true })).toBeVisible();
+  await expect(section.getByText("Atualizar cronograma", { exact: true })).toBeVisible();
+  await expect(section.getByText("Sem prazo", { exact: true })).toBeVisible();
+  await expect(section.getByText("Documentar acordos da reunião")).toBeVisible();
+});
+
+test("clicking an action item opens its meeting analysis of origin", async ({ page }) => {
+  await login(page);
+  await page.goto("/workspace/Aurora");
+
+  const section = page.locator("section", { has: page.locator("#actions-heading") });
+  await section.scrollIntoViewIfNeeded();
+  await section.getByRole("button", { name: /Documentar acordos da reunião/ }).click();
+
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByText("Reunião de alinhamento com o fornecedor.")).toBeVisible();
+});
+
+test("a failing Ações section does not block the other Workspace panels", async ({ page }) => {
+  await setWorkspaceScenario("actionItems", "unavailable");
+
+  await login(page);
+  await page.goto("/workspace/Aurora");
+
+  await expect(page.getByText("Não foi possível carregar as ações.")).toBeVisible();
+  // Painel C (Riscos) continua renderizando dado real.
+  await expect(page.getByText("Atraso na entrega")).toBeVisible();
 });
 
 test("opening an item in Histórico completo shows its detail in a dialog", async ({ page }) => {

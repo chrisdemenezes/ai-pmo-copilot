@@ -19,7 +19,17 @@ const workspaceScenario = {
   analyze: "data",
   analyzeRisk: "data",
   analyzeMeeting: "data",
+  actionItems: "data",
 };
+
+// Action Intelligence buckets (atrasado / vence em breve / ...) are computed
+// against the real "today" at render time -- fixture due dates must be
+// relative to the run date, never hardcoded, or the E2E assertions rot.
+function daysFromNow(days) {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return date.toISOString().slice(0, 10);
+}
 
 let nextAnalysisId = 1000;
 
@@ -98,7 +108,7 @@ const ANALYSES = [
         structured: true,
         summary: "Reunião semanal de acompanhamento.",
         decisions: ["Adiar o go-live em 1 semana"],
-        action_items: [{ description: "Atualizar cronograma", owner: "Ana", due_date: "2026-07-15" }],
+        action_items: [{ description: "Atualizar cronograma", owner: "Ana", due_date: daysFromNow(2) }],
         issues: [],
         dependencies: ["Aprovação do cliente"],
       },
@@ -117,6 +127,30 @@ const ANALYSES = [
         health_status: "green",
         key_findings: ["Projeto dentro do prazo"],
         recommendations: ["Manter cadência atual"],
+      },
+    },
+  },
+  // Older Aurora meeting (TIP-008): keeps id 202 as the latest meeting the
+  // Comunicação brief reads, while giving GET /api/action-items an overdue
+  // item and a no-deadline item to bucket.
+  {
+    id: 204,
+    kind: "meeting",
+    project_name: "Aurora",
+    created_at: "2026-07-05T10:00:00Z",
+    payload: {
+      agent: "meeting_intelligence",
+      project_name: "Aurora",
+      model_output: {
+        structured: true,
+        summary: "Reunião de alinhamento com o fornecedor.",
+        decisions: [],
+        action_items: [
+          { description: "Cobrar plano de contingência do fornecedor", owner: "Bruno", due_date: daysFromNow(-3) },
+          { description: "Documentar acordos da reunião", owner: null, due_date: null },
+        ],
+        issues: [],
+        dependencies: [],
       },
     },
   },
@@ -245,6 +279,38 @@ const server = http.createServer((req, res) => {
       created_at,
     }));
     return send(res, 200, page);
+  }
+
+  // TIP-008 -- Action Intelligence. Mirrors GET /api/action-items
+  // (src/api/routes/intelligence.py): derived from the same meeting
+  // analyses, flattened newest-first, malformed items excluded -- never a
+  // separate store the real backend doesn't have.
+  if (url.pathname === "/api/action-items") {
+    if (applyScenario(res, "actionItems")) return;
+    const projectName = url.searchParams.get("project_name");
+    const meetings = ANALYSES.filter(
+      (a) => a.kind === "meeting" && (!projectName || a.project_name === projectName),
+    )
+      .slice()
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    const items = [];
+    for (const record of meetings) {
+      const modelOutput = record.payload?.model_output;
+      if (!modelOutput || modelOutput.structured !== true) continue;
+      for (const item of modelOutput.action_items ?? []) {
+        if (typeof item?.description !== "string") continue;
+        items.push({
+          project_name: record.project_name,
+          description: item.description,
+          owner: typeof item.owner === "string" ? item.owner : null,
+          due_date: typeof item.due_date === "string" ? item.due_date : null,
+          source_analysis_id: record.id,
+          source_created_at: record.created_at,
+        });
+      }
+    }
+    return send(res, 200, items);
   }
 
   const detailMatch = url.pathname.match(/^\/api\/analyses\/(\d+)$/);
