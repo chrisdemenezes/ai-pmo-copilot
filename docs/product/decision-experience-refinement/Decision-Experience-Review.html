@@ -98,6 +98,7 @@
       <a href="#s2"><span class="toc-num">02</span>Pontos de Atrito</a>
       <a href="#s3"><span class="toc-num">03</span>Oportunidades</a>
       <a href="#s4"><span class="toc-num">04</span>Proposta da Nova Experiência</a>
+      <a href="#s4b"><span class="toc-num">04B</span>Decision Momentum · Rev. 2</a>
       <a href="#s5"><span class="toc-num">05</span>Wireflow</a>
       <a href="#s6"><span class="toc-num">06</span>Impacto Esperado</a>
       <a href="#s7"><span class="toc-num">07</span>Critérios de Aceite</a>
@@ -118,7 +119,7 @@
         <span><b>Ordem</b> Decisão → Jornada → Experiência → Interface → Engenharia</span>
         <span><b>Origem</b> Founder — Chief Product Engineer / Chief Experience Engineer</span>
         <span><b>Data</b> 2026-07-13</span>
-        <span><b>Status</b> Aguardando aprovação — nenhum código escrito</span>
+        <span><b>Status</b> Aprovada, Rev. 2 (Decision Momentum) incorporada — TIP autorizado</span>
       </div>
     </div>
 
@@ -241,6 +242,51 @@
       </div>
     </section>
 
+    <section id="s4b">
+      <div class="section-head"><span class="section-num">04B</span><h2>Decision Momentum — Rev. 2 (Founder)</h2></div>
+      <p class="section-intro">Refinamento conceitual, incorporado antes do TIP por decisão do Founder: o
+        Executive Brief não é um relatório reorganizado. É <b>o momento central da tomada de decisão</b>.</p>
+
+      <div class="callout">
+        <b>Sentimento-alvo, verbatim do Founder:</b> "Agora sei exatamente o que está acontecendo e qual deve ser
+        meu próximo passo."
+      </div>
+
+      <h3>Diretrizes (normativas a partir desta revisão)</h3>
+      <ul>
+        <li>Utilizar somente dados reais já disponíveis — nenhum campo novo, nenhuma chamada nova.</li>
+        <li>Não inventar conclusões — toda frase no Brief rastreia a um campo real ou a uma regra de UI documentada como tal.</li>
+        <li>Não inventar priorizações inexistentes — nenhum item individual de <code>key_findings</code> ou <code>recommendations</code> é apresentado como "mais importante que os outros" pela IA (ver nota da Seção 4: promover o primeiro item é convenção editorial, não ranking).</li>
+        <li>Manter explícita a separação entre fato e apresentação — no código, todo texto derivado (Decisão sugerida, título do bloco "Contexto") vive isolado em uma função pura e documentada; nunca concatenado dentro da mesma string que o texto verbatim da IA.</li>
+        <li>Privilegiar clareza em vez de quantidade de informação — nenhum dado real deixa de ser mostrado, mas a ordem de leitura é curada (veredito → contexto → recomendação → decisão → próximo passo), não um despejo de tudo de uma vez.</li>
+        <li>Toda análise conduz naturalmente para uma próxima ação — ver Decision Momentum abaixo.</li>
+      </ul>
+
+      <h3>O conceito: Decision Momentum</h3>
+      <p>Nenhuma experiência da plataforma termina apenas mostrando resultado. Toda experiência termina
+        orientando o próximo passo. Isso se torna o <b>último elemento visual, sempre presente</b>, do Executive
+        Brief — nunca uma seção opcional que só aparece quando conveniente.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Caso</th><th>Próximo passo mostrado</th></tr></thead>
+          <tbody>
+            <tr><td><code>recommendations</code> tem ao menos 1 item</td><td>O primeiro item, promovido a destaque como "Próximo passo" (convenção editorial já descrita na Seção 4) — real, verbatim.</td></tr>
+            <tr><td><code>recommendations</code> vazio</td><td><b>Não inventar uma recomendação.</b> Registrar o ponto de continuidade, honesto sobre a ausência: <i>"Nenhuma recomendação registrada nesta análise — continue acompanhando o projeto."</i> Isso ainda é Decision Momentum: orienta o usuário a continuar acompanhando, sem fabricar conteúdo.</td></tr>
+            <tr><td>Ação futura ainda não existe na plataforma (ex.: "criar tarefa a partir da recomendação")</td><td>Fora de escopo desta Sprint — apenas <b>registrado como ponto de continuidade</b> nesta Review (ver Seção 8), nenhuma funcionalidade nova implementada agora.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout guard">
+        <b>Ponto de continuidade registrado, não implementado:</b> o Executive Brief hoje termina em um texto —
+        "Decisão sugerida" + "Próximo passo". Ele não termina em uma ação clicável (criar tarefa, agendar
+        follow-up, notificar o patrocinador) porque essa capacidade não existe na plataforma ainda. Quando
+        existir, o Decision Momentum já reserva o lugar visual — o final do Brief — para ela. Isso é
+        intencionalmente <b>registrado aqui, não construído agora</b>, por instrução explícita do Founder.
+      </div>
+    </section>
+
     <section id="s5">
       <div class="section-head"><span class="section-num">05</span><h2>Wireflow</h2></div>
       <p class="section-intro">Antes (2 seções distantes) → Depois (1 bloco "Executive Brief"). Baixa fidelidade
@@ -304,7 +350,10 @@
         <li>Estados de loading/erro/vazio preservados, mesmos componentes (<code>Skeleton</code>, mensagens já estabelecidas).</li>
         <li>Baseline Visual preservada — mesmos tokens de cor/tipografia/raio, nenhum componente novo além de composição dos já existentes (<code>Card</code>, <code>Badge</code>).</li>
         <li>Toast de sucesso reaproveita o <code>health_status</code> já presente na resposta da mutation.</li>
-        <li>Testes: component cobrindo as 3 variações de <code>health_status</code> (título do bloco, rótulo de decisão), E2E atualizado para os novos textos, backend/pytest inalterado (regressão).</li>
+        <li>O Brief sempre termina em um bloco "Próximo passo" (Decision Momentum, Rev. 2) — nunca ausente, nunca opcional.</li>
+        <li>Quando <code>recommendations</code> está vazio, o "Próximo passo" mostra a mensagem de continuidade honesta ("Nenhuma recomendação registrada... continue acompanhando"), nunca uma recomendação fabricada.</li>
+        <li>No código, todo texto derivado (Decisão sugerida, título do bloco "Contexto", fallback de continuidade) vive em função(ões) pura(s) isolada(s) e documentada(s) como regra de UI — nunca concatenado na mesma string que texto verbatim da IA.</li>
+        <li>Testes: component cobrindo as 3 variações de <code>health_status</code> (título do bloco, rótulo de decisão) e o caso de <code>recommendations</code> vazio (fallback de continuidade), E2E atualizado para os novos textos, backend/pytest inalterado (regressão).</li>
         <li>Verificação real contra Demo Mode, mesma disciplina do TIP-005.</li>
       </ul>
     </section>
@@ -317,15 +366,17 @@
         <li>Nenhuma mudança nas Seções 3–6 (Timeline, Riscos, Ações, Decisões) do Workspace.</li>
         <li>Nenhuma métrica de produto nova instrumentada nesta Sprint.</li>
         <li>Nenhum score de confiança, previsão ou interpretação além do que os 3 campos reais + 2 contagens reais já sustentam.</li>
+        <li><b>Ponto de continuidade registrado, não implementado (Decision Momentum, Rev. 2):</b> ações clicáveis a partir do "Próximo passo" (criar tarefa, agendar follow-up, notificar o patrocinador) não existem na plataforma hoje. O lugar visual para elas já é reservado pelo Decision Momentum; construí-las é uma Feature futura, fora desta Sprint.</li>
       </ul>
     </section>
 
     <section id="s9">
       <div class="section-head"><span class="section-num">09</span><h2>Definition of Ready — Próximo Gate</h2></div>
-      <div class="callout guard">
-        <b>Nenhum código foi escrito.</b> Este documento é a Decision Experience Review completa: análise
-        crítica, pontos de atrito, oportunidades, proposta mapeada pergunta a pergunta, wireflow, impacto
-        esperado e critérios de aceite. O TIP correspondente só começa após aprovação explícita do Founder.
+      <div class="callout ok" style="border-left-color:var(--ok);">
+        <b>Aprovada, com Decision Momentum (Rev. 2) incorporado.</b> Este documento é a Decision Experience
+        Review completa: análise crítica, pontos de atrito, oportunidades, proposta mapeada pergunta a pergunta,
+        Decision Momentum, wireflow, impacto esperado e critérios de aceite. TIP correspondente autorizado —
+        ver Executive Progress Report e Visual Fidelity Report para a evidência de implementação.
       </div>
     </section>
 
