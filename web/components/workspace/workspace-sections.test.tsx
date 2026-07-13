@@ -11,20 +11,31 @@ import { useWorkspaceSummary } from "@/lib/hooks/use-workspace-summary";
 import { useWorkspaceTimeline } from "@/lib/hooks/use-workspace-timeline";
 import { useWorkspaceLatestByKind } from "@/lib/hooks/use-workspace-latest";
 import { useSubmitProjectStatus } from "@/lib/hooks/use-submit-project-status";
+import { useSubmitRiskReview } from "@/lib/hooks/use-submit-risk-review";
 
 vi.mock("@/lib/hooks/use-workspace-summary", () => ({ useWorkspaceSummary: vi.fn() }));
 vi.mock("@/lib/hooks/use-workspace-timeline", () => ({ useWorkspaceTimeline: vi.fn() }));
 vi.mock("@/lib/hooks/use-workspace-latest", () => ({ useWorkspaceLatestByKind: vi.fn() }));
-// WorkspaceHeader mounts AnalyzeProjectDialog (TIP-005), which calls this
-// mutation hook -- mocked here for the same reason as the 3 query hooks
-// above: this file exercises the panels in isolation, not the real network.
+// WorkspaceHeader mounts AnalyzeProjectDialog (TIP-005/TIP-006), which calls
+// these mutation hooks -- mocked here for the same reason as the 3 query
+// hooks above: this file exercises the panels in isolation, not the real
+// network.
 vi.mock("@/lib/hooks/use-submit-project-status", () => ({ useSubmitProjectStatus: vi.fn() }));
+vi.mock("@/lib/hooks/use-submit-risk-review", () => ({ useSubmitRiskReview: vi.fn() }));
 
 const mockedSummary = vi.mocked(useWorkspaceSummary);
 const mockedTimeline = vi.mocked(useWorkspaceTimeline);
 const mockedLatest = vi.mocked(useWorkspaceLatestByKind);
-const mockedSubmit = vi.mocked(useSubmitProjectStatus);
-mockedSubmit.mockReturnValue({
+const mockedSubmitStatus = vi.mocked(useSubmitProjectStatus);
+const mockedSubmitRisk = vi.mocked(useSubmitRiskReview);
+mockedSubmitStatus.mockReturnValue({
+  mutate: vi.fn(),
+  reset: vi.fn(),
+  isPending: false,
+  isError: false,
+  error: null,
+} as never);
+mockedSubmitRisk.mockReturnValue({
   mutate: vi.fn(),
   reset: vi.fn(),
   isPending: false,
@@ -118,6 +129,34 @@ describe("ExecutiveBrief (Painéis A + C fundidos, cada um com estado próprio -
 
     render(<ExecutiveBrief projectName="Aurora" />);
     expect(screen.getByText("Nenhuma análise de status registrada ainda.")).toBeInTheDocument();
+  });
+
+  it("treats structured=true with a mismatched shape (real Demo Mode failure mode, TIP-006) the same as unstructured -- never crashes", () => {
+    mockedSummary.mockReturnValue(
+      summaryState({
+        data: { project_name: "Aurora", total_analyses: 1, open_risks: 0, pending_action_items: 0, latest_health_status: "green" },
+      }),
+    );
+    mockedLatest.mockReturnValue(
+      summaryState({
+        data: {
+          id: 1,
+          kind: "status",
+          project_name: "Aurora",
+          created_at: "2026-07-01T00:00:00Z",
+          // structured: true, but shaped like a risk_review response instead
+          // of project_status -- confirmed real failure mode, not hypothetical.
+          payload: {
+            agent: "project_status",
+            project_name: "Aurora",
+            model_output: { structured: true, risks: [], escalation_recommendation: null },
+          },
+        },
+      }),
+    );
+
+    render(<ExecutiveBrief projectName="Aurora" />);
+    expect(screen.getByText("Resposta da IA não estruturada nesta análise.")).toBeInTheDocument();
   });
 
   it.each([
@@ -285,6 +324,109 @@ describe("RisksPanel (Painel C, 'risk')", () => {
     );
     render(<RisksPanel projectName="Aurora" />);
     expect(screen.getByText("Resposta da IA não estruturada nesta análise.")).toBeInTheDocument();
+  });
+
+  it("treats structured=true with a mismatched shape (real Demo Mode failure mode, TIP-006) the same as unstructured -- never crashes", () => {
+    mockedLatest.mockReturnValue(
+      summaryState({
+        data: {
+          id: 1,
+          kind: "risk",
+          project_name: "Aurora",
+          created_at: "2026-07-01T00:00:00Z",
+          // structured: true, but shaped like a project_status response
+          // instead of risk_review -- confirmed real failure mode.
+          payload: {
+            agent: "risk_review",
+            project_name: "Aurora",
+            model_output: { structured: true, health_status: "green", key_findings: [], recommendations: [] },
+          },
+        },
+      }),
+    );
+    render(<RisksPanel projectName="Aurora" />);
+    expect(screen.getByText("Resposta da IA não estruturada nesta análise.")).toBeInTheDocument();
+  });
+
+  it("promotes only high-attention risks (red zone), keeps the rest under Também identificado -- never hides real data", () => {
+    mockedLatest.mockReturnValue(
+      summaryState({
+        data: {
+          id: 2,
+          kind: "risk",
+          project_name: "Aurora",
+          created_at: "2026-07-01T00:00:00Z",
+          payload: {
+            agent: "risk_review",
+            project_name: "Aurora",
+            model_output: {
+              structured: true,
+              risks: [
+                { description: "Atraso crítico", probability: "high", impact: "high", mitigation: "Escalar" },
+                { description: "Custo baixo", probability: "low", impact: "low", mitigation: "Monitorar" },
+              ],
+              escalation_recommendation: null,
+            },
+          },
+        },
+      }),
+    );
+    render(<RisksPanel projectName="Aurora" />);
+    expect(screen.getByText("Riscos que exigem atenção")).toBeInTheDocument();
+    expect(screen.getByText("Atraso crítico")).toBeInTheDocument();
+    expect(screen.getByText("Também identificado")).toBeInTheDocument();
+    expect(screen.getByText("Custo baixo")).toBeInTheDocument();
+    expect(screen.getByText("Priorizar mitigação imediata")).toBeInTheDocument();
+  });
+
+  it("shows the honest 'no critical risk' framing when nothing is in the attention zone", () => {
+    mockedLatest.mockReturnValue(
+      summaryState({
+        data: {
+          id: 3,
+          kind: "risk",
+          project_name: "Aurora",
+          created_at: "2026-07-01T00:00:00Z",
+          payload: {
+            agent: "risk_review",
+            project_name: "Aurora",
+            model_output: {
+              structured: true,
+              risks: [{ description: "Risco leve", probability: "low", impact: "medium", mitigation: "Acompanhar" }],
+              escalation_recommendation: null,
+            },
+          },
+        },
+      }),
+    );
+    render(<RisksPanel projectName="Aurora" />);
+    expect(screen.getByText("Sem riscos críticos no momento")).toBeInTheDocument();
+    expect(screen.getByText("Manter monitoramento de rotina")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Nenhuma recomendação de escalonamento registrada nesta análise — continue monitorando os riscos identificados.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("never invents a risk -- shows a plain empty state when the analysis found none", () => {
+    mockedLatest.mockReturnValue(
+      summaryState({
+        data: {
+          id: 4,
+          kind: "risk",
+          project_name: "Aurora",
+          created_at: "2026-07-01T00:00:00Z",
+          payload: {
+            agent: "risk_review",
+            project_name: "Aurora",
+            model_output: { structured: true, risks: [], escalation_recommendation: null },
+          },
+        },
+      }),
+    );
+    render(<RisksPanel projectName="Aurora" />);
+    expect(screen.getByText("Nenhum risco identificado nesta análise.")).toBeInTheDocument();
   });
 });
 

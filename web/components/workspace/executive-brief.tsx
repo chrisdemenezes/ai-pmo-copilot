@@ -10,6 +10,7 @@ import {
   contextHeading,
   suggestedDecision,
 } from "@/lib/workspace/decision-momentum";
+import { hasStatusShape, type StatusModelOutput } from "@/lib/workspace/types";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("pt-BR", {
@@ -86,7 +87,7 @@ export function ExecutiveBrief({ projectName }: { projectName: string }) {
             <p className="text-sm text-danger">Não foi possível carregar a análise.</p>
           ) : !latestStatus.data ? (
             <p className="text-sm text-ink-muted">Nenhuma análise de status registrada ainda.</p>
-          ) : latestStatus.data.payload.model_output.structured === false ? (
+          ) : !hasStatusShape(latestStatus.data.payload.model_output) ? (
             <p className="text-sm text-ink-muted">Resposta da IA não estruturada nesta análise.</p>
           ) : (
             <ExecutiveBriefBody
@@ -104,7 +105,7 @@ function ExecutiveBriefBody({
   modelOutput,
   analyzedAt,
 }: {
-  modelOutput: { health_status: "green" | "yellow" | "red"; key_findings: string[]; recommendations: string[] };
+  modelOutput: StatusModelOutput;
   analyzedAt: string;
 }) {
   const [nextStep, ...otherRecommendations] = modelOutput.recommendations;

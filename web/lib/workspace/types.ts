@@ -29,6 +29,22 @@ export interface RiskModelOutput {
   escalation_recommendation: string | null;
 }
 
+/**
+ * parse_structured_output (src/agents/shared/output_parser.py) only checks
+ * that the LLM's raw text is valid JSON -- "structured: true" never
+ * guarantees the parsed object actually has the fields this schema expects.
+ * Confirmed against the real backend: Demo Mode's MockLLMProvider replays
+ * whatever response_file was last written, independent of which agent is
+ * called, so a live call can return "structured: true" JSON shaped like a
+ * different agent's schema entirely. Never trust risks/escalation_recommendation
+ * without this check first.
+ */
+export function hasRiskShape(
+  modelOutput: RiskModelOutput | UnstructuredModelOutput,
+): modelOutput is RiskModelOutput {
+  return modelOutput.structured === true && Array.isArray((modelOutput as RiskModelOutput).risks);
+}
+
 export interface ActionItem {
   description: string;
   owner: string | null;
@@ -49,6 +65,19 @@ export interface StatusModelOutput {
   health_status: "green" | "yellow" | "red";
   key_findings: string[];
   recommendations: string[];
+}
+
+/** Same reasoning as hasRiskShape above -- "structured: true" alone is not enough. */
+export function hasStatusShape(
+  modelOutput: StatusModelOutput | UnstructuredModelOutput,
+): modelOutput is StatusModelOutput {
+  const candidate = modelOutput as StatusModelOutput;
+  return (
+    modelOutput.structured === true &&
+    ["green", "yellow", "red"].includes(candidate.health_status) &&
+    Array.isArray(candidate.key_findings) &&
+    Array.isArray(candidate.recommendations)
+  );
 }
 
 /** parse_structured_output falls back to this on any LLM parse failure. */
@@ -93,4 +122,11 @@ export interface AnalyzeProjectStatusResponse {
   agent: string;
   project_name: string | null;
   model_output: StatusModelOutput | UnstructuredModelOutput;
+}
+
+/** Mirrors RiskReviewAgent.analyze's return shape (src/agents/risk_review/agent.py). */
+export interface AnalyzeRiskReviewResponse {
+  agent: string;
+  project_name: string | null;
+  model_output: RiskModelOutput | UnstructuredModelOutput;
 }

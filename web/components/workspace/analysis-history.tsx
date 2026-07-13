@@ -148,6 +148,13 @@ function AnalysisDetailBody({
 }) {
   const output = payload.model_output;
 
+  // "structured: true" only means the LLM's raw text was valid JSON
+  // (parse_structured_output) -- it never guarantees the parsed object
+  // actually matches the schema this branch expects. Confirmed against the
+  // real backend (TIP-006): a live call can come back "structured: true"
+  // shaped like a different agent's output entirely. Array.isArray, not
+  // just "key" in output, so a present-but-wrong-typed field falls through
+  // to the raw-JSON fallback instead of crashing.
   if (output.structured === false) {
     return (
       <pre className="max-h-80 overflow-auto whitespace-pre-wrap rounded-md bg-surface-2 p-3 text-xs">
@@ -156,7 +163,7 @@ function AnalysisDetailBody({
     );
   }
 
-  if ("risks" in output) {
+  if ("risks" in output && Array.isArray(output.risks)) {
     return (
       <div className="flex max-h-80 flex-col gap-2 overflow-auto text-sm">
         {output.risks.map((risk, index) => (
@@ -168,7 +175,7 @@ function AnalysisDetailBody({
     );
   }
 
-  if ("action_items" in output) {
+  if ("action_items" in output && Array.isArray(output.action_items)) {
     return (
       <div className="flex max-h-80 flex-col gap-2 overflow-auto text-sm">
         <p className="font-medium">{output.summary}</p>
@@ -181,12 +188,20 @@ function AnalysisDetailBody({
     );
   }
 
+  if ("key_findings" in output && Array.isArray(output.key_findings)) {
+    return (
+      <div className="flex max-h-80 flex-col gap-2 overflow-auto text-sm">
+        <p>Saúde: {output.health_status}</p>
+        {output.key_findings.map((finding, index) => (
+          <p key={index}>{finding}</p>
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <div className="flex max-h-80 flex-col gap-2 overflow-auto text-sm">
-      <p>Saúde: {output.health_status}</p>
-      {output.key_findings.map((finding, index) => (
-        <p key={index}>{finding}</p>
-      ))}
-    </div>
+    <pre className="max-h-80 overflow-auto whitespace-pre-wrap rounded-md bg-surface-2 p-3 text-xs">
+      {JSON.stringify(output, null, 2)}
+    </pre>
   );
 }

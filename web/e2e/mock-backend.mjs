@@ -12,7 +12,13 @@ let scenario = "data";
 // §1) -- lets an E2E test make one panel slow/error while the others
 // succeed, to prove none of them blocks the others. "analyze" added in
 // TIP-005 for the Analisar Projeto (project_status) submission flow.
-const workspaceScenario = { summary: "data", analyses: "data", detail: "data", analyze: "data" };
+const workspaceScenario = {
+  summary: "data",
+  analyses: "data",
+  detail: "data",
+  analyze: "data",
+  analyzeRisk: "data",
+};
 
 let nextAnalysisId = 1000;
 
@@ -301,6 +307,77 @@ const server = http.createServer((req, res) => {
 
       return send(res, 200, {
         agent: "project_status",
+        project_name: projectName,
+        model_output: modelOutput,
+      });
+    });
+    return;
+  }
+
+  // TIP-006 -- Avaliação de Riscos (risk_review), same pattern as
+  // /api/projects/analyze above. open_risks is cumulative across every risk
+  // analysis ever run for the project (src/services/project_summary_service.py
+  // sums risks[] length over all "risk" records, not just the latest), so
+  // the mock increments rather than replaces it.
+  if (req.method === "POST" && url.pathname === "/api/risks/analyze") {
+    if (workspaceScenario.analyzeRisk === "timeout") return; // never respond
+    if (workspaceScenario.analyzeRisk === "rate_limited") {
+      return send(res, 429, { detail: "Rate limit exceeded" });
+    }
+    if (workspaceScenario.analyzeRisk === "unavailable") {
+      return send(res, 500, { detail: "internal error" });
+    }
+
+    let raw = "";
+    req.on("data", (chunk) => (raw += chunk));
+    req.on("end", () => {
+      const { project_context: projectContext, project_name: projectName } = JSON.parse(raw);
+      if (!projectContext || projectContext.trim().length < 10) {
+        return send(res, 422, { detail: "project_context inválido" });
+      }
+
+      const id = nextAnalysisId++;
+      const createdAt = new Date().toISOString();
+      const modelOutput = {
+        structured: true,
+        risks: [
+          {
+            description: "Atraso no fornecedor de middleware compromete o go-live",
+            probability: "high",
+            impact: "high",
+            mitigation: "Escalar ao patrocinador executivo do fornecedor",
+          },
+          {
+            description: "Pequeno atraso na documentação de testes",
+            probability: "low",
+            impact: "low",
+            mitigation: "Acompanhar na reunião semanal",
+          },
+        ],
+        escalation_recommendation: "Escalar o atraso do fornecedor ao comitê executivo",
+      };
+
+      ANALYSES.push({
+        id,
+        kind: "risk",
+        project_name: projectName,
+        created_at: createdAt,
+        payload: { agent: "risk_review", project_name: projectName, model_output: modelOutput },
+      });
+
+      const summary = WORKSPACE_SUMMARY[projectName];
+      if (summary) {
+        summary.total_analyses += 1;
+        summary.open_risks += modelOutput.risks.length;
+      }
+      const portfolioEntry = SAMPLE.find((p) => p.project_name === projectName);
+      if (portfolioEntry) {
+        portfolioEntry.total_analyses += 1;
+        portfolioEntry.open_risks += modelOutput.risks.length;
+      }
+
+      return send(res, 200, {
+        agent: "risk_review",
         project_name: projectName,
         model_output: modelOutput,
       });

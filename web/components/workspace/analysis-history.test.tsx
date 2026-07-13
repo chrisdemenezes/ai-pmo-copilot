@@ -82,4 +82,34 @@ describe("AnalysisHistory (Painel B, paginado)", () => {
     await user.click(screen.getByRole("button", { name: /01\/07\/2026/ }));
     expect(screen.getByText("Achado histórico")).toBeInTheDocument();
   });
+
+  it("falls back to raw JSON, never crashes, when structured=true but the shape matches no known schema (TIP-006)", async () => {
+    mockedTimeline.mockReturnValue(
+      state({
+        data: [{ id: 1, kind: "status", project_name: "Aurora", created_at: "2026-07-01T10:00:00Z" }],
+      }),
+    );
+    mockedDetail.mockReturnValue(
+      state({
+        data: {
+          id: 1,
+          kind: "status",
+          project_name: "Aurora",
+          created_at: "2026-07-01T10:00:00Z",
+          payload: {
+            agent: "project_status",
+            project_name: "Aurora",
+            // structured: true, but none of risks/action_items/key_findings
+            // present -- the real Demo Mode failure mode this guards.
+            model_output: { structured: true, unexpected_field: "x" },
+          },
+        },
+      }),
+    );
+
+    const user = userEvent.setup();
+    render(<AnalysisHistory projectName="Aurora" />);
+    await user.click(screen.getByRole("button", { name: /01\/07\/2026/ }));
+    expect(screen.getByText(/unexpected_field/)).toBeInTheDocument();
+  });
 });

@@ -10,7 +10,7 @@ async function setBackendScenario(scenario: "data" | "empty" | "unavailable" | "
 }
 
 async function setWorkspaceScenario(
-  endpoint: "summary" | "analyses" | "detail" | "analyze",
+  endpoint: "summary" | "analyses" | "detail" | "analyze" | "analyzeRisk",
   scenario: "data" | "unavailable" | "timeout" | "rate_limited",
 ) {
   const ctx = await playwrightRequest.newContext();
@@ -48,6 +48,7 @@ test.beforeEach(async () => {
   await setWorkspaceScenario("analyses", "data");
   await setWorkspaceScenario("detail", "data");
   await setWorkspaceScenario("analyze", "data");
+  await setWorkspaceScenario("analyzeRisk", "data");
 });
 
 test("redirects unauthenticated access to /workspace/:projectName to the login page", async ({
@@ -190,6 +191,74 @@ test.describe("Analisar Projeto (TIP-005)", () => {
 
     await page.getByRole("button", { name: "Analisar Projeto" }).click();
     const dialog = page.getByRole("dialog");
+    const context = "Contexto detalhado o suficiente para passar da validação de tamanho mínimo.";
+    await dialog.getByLabel("Contexto do projeto").fill(context);
+    await dialog.getByRole("button", { name: "Executar Análise" }).click();
+
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByLabel("Contexto do projeto")).toHaveValue(context);
+    await expect(
+      dialog.getByText("Muitas análises em pouco tempo. Aguarde e tente novamente."),
+    ).toBeVisible();
+  });
+});
+
+// TIP-006 -- segundo agente (Avaliação de Riscos), mesmo padrão do Status
+// Executivo (TIP-005/TIP-005A): mesmo Dialog, agora com Tabs (Design System
+// já existente) porque há 2 opções reais; mesmo Executive Brief + Decision
+// Momentum, aplicado à zona de atenção real da matriz probabilidade x
+// impacto em vez de health_status.
+test.describe("Avaliação de Riscos (TIP-006)", () => {
+  test("runs a full risk analysis via the Avaliação de Riscos tab and reflects it in the Workspace and the Dashboard", async ({
+    page,
+  }) => {
+    await login(page);
+    await page.goto("/workspace/Aurora");
+
+    await page.getByRole("button", { name: "Analisar Projeto" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByRole("tab", { name: "Avaliação de Riscos" }).click();
+    await dialog
+      .getByLabel("Contexto do projeto")
+      .fill("Fornecedor de middleware sinalizou atraso na integração fiscal.");
+    await dialog.getByRole("button", { name: "Executar Análise" }).click();
+
+    await expect(page.getByText("Análise concluída")).toBeVisible();
+    await expect(dialog).not.toBeVisible();
+
+    // Riscos panel reflects the new result without a manual reload --
+    // the high-attention risk promoted, the low one demoted, real data.
+    await expect(page.getByText("Riscos que exigem atenção")).toBeVisible();
+    await expect(
+      page.getByText("Atraso no fornecedor de middleware compromete o go-live"),
+    ).toBeVisible();
+    await expect(page.getByText("Também identificado")).toBeVisible();
+    await expect(page.getByText("Priorizar mitigação imediata")).toBeVisible();
+    await expect(
+      page.getByText("Escalar o atraso do fornecedor ao comitê executivo"),
+    ).toBeVisible();
+
+    // Dashboard reflects it too, on the next client-side navigation -- the
+    // portfolio-wide "Riscos identificados" strip is a single instance (not
+    // duplicated per breakpoint like the grid), so the exact new total
+    // (Multilift 3 + Aurora 0+2 + Implantacao SAP 1 = 6) is an unambiguous
+    // signal that this specific submission's 2 risks were counted.
+    await page.locator('a[href="/dashboard"]').filter({ visible: true }).first().click();
+    await expect(page).toHaveURL(/\/dashboard/);
+    const riscosCard = page.getByText("Riscos identificados").locator("xpath=..");
+    await expect(riscosCard.getByText("6")).toBeVisible();
+  });
+
+  test("on failure while on the Avaliação de Riscos tab, keeps the modal open and preserves the typed context", async ({
+    page,
+  }) => {
+    await setWorkspaceScenario("analyzeRisk", "rate_limited");
+    await login(page);
+    await page.goto("/workspace/Aurora");
+
+    await page.getByRole("button", { name: "Analisar Projeto" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByRole("tab", { name: "Avaliação de Riscos" }).click();
     const context = "Contexto detalhado o suficiente para passar da validação de tamanho mínimo.";
     await dialog.getByLabel("Contexto do projeto").fill(context);
     await dialog.getByRole("button", { name: "Executar Análise" }).click();
