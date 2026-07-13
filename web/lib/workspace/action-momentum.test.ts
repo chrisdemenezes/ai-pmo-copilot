@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   URGENCY_ORDER,
+  actionsContextLine,
+  attentionCount,
   attentionHeadline,
   bucketByUrgency,
   suggestedNextAction,
@@ -91,6 +93,33 @@ describe("suggestedNextAction", () => {
     const valid = item({ description: "válida", due_date: "2026-07-16" });
     const items = [item({ due_date: "texto livre" }), valid];
     expect(suggestedNextAction(items)).toBe(valid);
+  });
+});
+
+describe("attentionCount", () => {
+  it("counts only atrasado + vence_em_breve, never the raw total (FS-007 §2.7)", () => {
+    const items = [
+      item({ due_date: "2026-07-10" }), // atrasado
+      item({ due_date: "2026-07-18" }), // vence_em_breve
+      item({ due_date: "2026-08-01" }), // no_prazo
+      item({ due_date: null }), // sem_prazo
+    ];
+    expect(attentionCount(items, TODAY)).toBe(2);
+  });
+
+  it("returns 0 for an empty list", () => {
+    expect(attentionCount([], TODAY)).toBe(0);
+  });
+});
+
+describe("actionsContextLine", () => {
+  it("uses singular phrasing for exactly 1", () => {
+    expect(actionsContextLine(1)).toBe("1 ação exige atenção");
+  });
+
+  it("uses plural phrasing for any other count", () => {
+    expect(actionsContextLine(0)).toBe("0 ações exigem atenção");
+    expect(actionsContextLine(3)).toBe("3 ações exigem atenção");
   });
 });
 

@@ -2,6 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ActionsContextLine } from "@/components/workspace/actions-context-line";
 import { useWorkspaceLatestByKind } from "@/lib/hooks/use-workspace-latest";
 import {
   NEXT_STEP_FALLBACK_MEETING,
@@ -31,6 +32,7 @@ export function CommunicationBrief({ projectName }: { projectName: string }) {
       </h2>
       <Card>
         <CardContent className="flex flex-col gap-5 p-5">
+          <ActionsContextLine projectName={projectName} />
           {latestMeeting.isPending ? (
             <div className="flex flex-col gap-2">
               <Skeleton className="h-16 w-full" />

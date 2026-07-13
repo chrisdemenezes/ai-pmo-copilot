@@ -9,6 +9,7 @@ import { CommunicationBrief } from "./communication-brief";
 import { useWorkspaceSummary } from "@/lib/hooks/use-workspace-summary";
 import { useWorkspaceTimeline } from "@/lib/hooks/use-workspace-timeline";
 import { useWorkspaceLatestByKind } from "@/lib/hooks/use-workspace-latest";
+import { useActionItems } from "@/lib/hooks/use-action-items";
 import { useSubmitProjectStatus } from "@/lib/hooks/use-submit-project-status";
 import { useSubmitRiskReview } from "@/lib/hooks/use-submit-risk-review";
 import { useSubmitMeetingIntelligence } from "@/lib/hooks/use-submit-meeting-intelligence";
@@ -16,6 +17,10 @@ import { useSubmitMeetingIntelligence } from "@/lib/hooks/use-submit-meeting-int
 vi.mock("@/lib/hooks/use-workspace-summary", () => ({ useWorkspaceSummary: vi.fn() }));
 vi.mock("@/lib/hooks/use-workspace-timeline", () => ({ useWorkspaceTimeline: vi.fn() }));
 vi.mock("@/lib/hooks/use-workspace-latest", () => ({ useWorkspaceLatestByKind: vi.fn() }));
+// The 3 Executive Briefs each mount ActionsContextLine (TIP-008 Incremento
+// 3), which calls this hook -- mocked here for the same reason as the
+// query hooks above: this file exercises the panels in isolation.
+vi.mock("@/lib/hooks/use-action-items", () => ({ useActionItems: vi.fn() }));
 // WorkspaceHeader mounts AnalyzeProjectDialog (TIP-005/TIP-006), which calls
 // these mutation hooks -- mocked here for the same reason as the 3 query
 // hooks above: this file exercises the panels in isolation, not the real
@@ -27,6 +32,7 @@ vi.mock("@/lib/hooks/use-submit-meeting-intelligence", () => ({ useSubmitMeeting
 const mockedSummary = vi.mocked(useWorkspaceSummary);
 const mockedTimeline = vi.mocked(useWorkspaceTimeline);
 const mockedLatest = vi.mocked(useWorkspaceLatestByKind);
+const mockedActionItems = vi.mocked(useActionItems);
 const mockedSubmitStatus = vi.mocked(useSubmitProjectStatus);
 const mockedSubmitRisk = vi.mocked(useSubmitRiskReview);
 const mockedSubmitMeeting = vi.mocked(useSubmitMeetingIntelligence);
@@ -51,6 +57,10 @@ mockedSubmitMeeting.mockReturnValue({
   isError: false,
   error: null,
 } as never);
+// Default: no action-items data yet -- ActionsContextLine renders null,
+// keeping every pre-existing test in this file unaffected. Tests that
+// exercise the context line itself override this per-case.
+mockedActionItems.mockReturnValue({ isPending: true, isError: false, data: undefined } as never);
 
 const PENDING = { isPending: true, isError: false, data: undefined, refetch: vi.fn(), isFetching: false } as never;
 const ERROR = { isPending: false, isError: true, data: undefined, refetch: vi.fn(), isFetching: false } as never;
@@ -269,6 +279,42 @@ describe("ExecutiveBrief (Painéis A + C fundidos, cada um com estado próprio -
     ).toBeInTheDocument();
     expect(screen.queryByText("Também recomendado")).not.toBeInTheDocument();
   });
+
+  // TIP-008 Incremento 3 (FS-007 §2.7) -- linha de contexto "N ações exigem
+  // atenção", presente só quando a contagem de urgência (atrasado + vence
+  // em breve) é > 0, ausente quando é 0.
+  it("shows the actions context line when the attention count is greater than zero", () => {
+    mockedSummary.mockReturnValue(
+      summaryState({
+        data: { project_name: "Aurora", total_analyses: 1, open_risks: 0, pending_action_items: 2, latest_health_status: "green" },
+      }),
+    );
+    mockedLatest.mockReturnValue(summaryState({ data: null }));
+    mockedActionItems.mockReturnValue({
+      isPending: false,
+      isError: false,
+      data: [
+        { project_name: "Aurora", description: "a", owner: null, due_date: "2000-01-01", source_analysis_id: 1, source_created_at: "2026-01-01T00:00:00Z" },
+        { project_name: "Aurora", description: "b", owner: null, due_date: "2000-01-01", source_analysis_id: 2, source_created_at: "2026-01-01T00:00:00Z" },
+      ],
+    } as never);
+
+    render(<ExecutiveBrief projectName="Aurora" />);
+    expect(screen.getByText("2 ações exigem atenção")).toBeInTheDocument();
+  });
+
+  it("omits the actions context line when the attention count is zero", () => {
+    mockedSummary.mockReturnValue(
+      summaryState({
+        data: { project_name: "Aurora", total_analyses: 1, open_risks: 0, pending_action_items: 0, latest_health_status: "green" },
+      }),
+    );
+    mockedLatest.mockReturnValue(summaryState({ data: null }));
+    mockedActionItems.mockReturnValue({ isPending: false, isError: false, data: [] } as never);
+
+    render(<ExecutiveBrief projectName="Aurora" />);
+    expect(screen.queryByText(/ações exigem atenção/)).not.toBeInTheDocument();
+  });
 });
 
 describe("IntelligenceTimeline (Painel B, independente)", () => {
@@ -437,6 +483,31 @@ describe("RisksPanel (Painel C, 'risk')", () => {
     render(<RisksPanel projectName="Aurora" />);
     expect(screen.getByText("Nenhum risco identificado nesta análise.")).toBeInTheDocument();
   });
+
+  // TIP-008 Incremento 3 (FS-007 §2.7) -- mesma linha de contexto do
+  // Executive Brief, mesmo hook (useActionItems), presença condicionada
+  // apenas à contagem de urgência, nunca ao conteúdo próprio deste painel.
+  it("shows the actions context line when the attention count is greater than zero", () => {
+    mockedLatest.mockReturnValue(summaryState({ data: null }));
+    mockedActionItems.mockReturnValue({
+      isPending: false,
+      isError: false,
+      data: [
+        { project_name: "Aurora", description: "a", owner: null, due_date: "2000-01-01", source_analysis_id: 1, source_created_at: "2026-01-01T00:00:00Z" },
+      ],
+    } as never);
+
+    render(<RisksPanel projectName="Aurora" />);
+    expect(screen.getByText("1 ação exige atenção")).toBeInTheDocument();
+  });
+
+  it("omits the actions context line when the attention count is zero", () => {
+    mockedLatest.mockReturnValue(summaryState({ data: null }));
+    mockedActionItems.mockReturnValue({ isPending: false, isError: false, data: [] } as never);
+
+    render(<RisksPanel projectName="Aurora" />);
+    expect(screen.queryByText(/ação exige atenção|ações exigem atenção/)).not.toBeInTheDocument();
+  });
 });
 
 describe("CommunicationBrief (Painel C, 'meeting' -- FS-006 Hierarquia Executiva)", () => {
@@ -512,5 +583,28 @@ describe("CommunicationBrief (Painel C, 'meeting' -- FS-006 Hierarquia Executiva
     );
     render(<CommunicationBrief projectName="Aurora" />);
     expect(screen.getByText("Resposta da IA não estruturada nesta análise.")).toBeInTheDocument();
+  });
+
+  // TIP-008 Incremento 3 (FS-007 §2.7) -- mesma linha de contexto, mesmo hook.
+  it("shows the actions context line when the attention count is greater than zero", () => {
+    mockedLatest.mockReturnValue(summaryState({ data: meetingData }));
+    mockedActionItems.mockReturnValue({
+      isPending: false,
+      isError: false,
+      data: [
+        { project_name: "Aurora", description: "a", owner: null, due_date: "2000-01-01", source_analysis_id: 1, source_created_at: "2026-01-01T00:00:00Z" },
+      ],
+    } as never);
+
+    render(<CommunicationBrief projectName="Aurora" />);
+    expect(screen.getByText("1 ação exige atenção")).toBeInTheDocument();
+  });
+
+  it("omits the actions context line when the attention count is zero", () => {
+    mockedLatest.mockReturnValue(summaryState({ data: meetingData }));
+    mockedActionItems.mockReturnValue({ isPending: false, isError: false, data: [] } as never);
+
+    render(<CommunicationBrief projectName="Aurora" />);
+    expect(screen.queryByText(/ação exige atenção|ações exigem atenção/)).not.toBeInTheDocument();
   });
 });

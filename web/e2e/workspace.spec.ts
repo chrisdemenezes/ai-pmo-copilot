@@ -155,6 +155,39 @@ test("clicking an action item opens its meeting analysis of origin", async ({ pa
   await expect(dialog.getByText("Reunião de alinhamento com o fornecedor.")).toBeVisible();
 });
 
+// TIP-008 Incremento 3 -- linha de contexto nos 3 Briefs (FS-007 §2.7):
+// mesma contagem de atenção da seção "Ações", nunca o total bruto.
+test("the 3 Briefs show the same actions context line the Ações section shows", async ({
+  page,
+}) => {
+  await login(page);
+  await page.goto("/workspace/Aurora");
+
+  const executiveBrief = page.locator("section", { has: page.getByText("Executive Brief") });
+  const risks = page.locator("section", { has: page.locator("#risks-heading") });
+  const communication = page.locator("section", { has: page.locator("#communication-heading") });
+
+  await expect(executiveBrief.getByText("2 ações exigem atenção")).toBeVisible();
+  await expect(risks.getByText("2 ações exigem atenção")).toBeVisible();
+  await expect(communication.getByText("2 ações exigem atenção")).toBeVisible();
+
+  // A mesma contagem aparece na própria seção "Ações", como manchete real.
+  const actionsSection = page.locator("section", { has: page.locator("#actions-heading") });
+  await actionsSection.scrollIntoViewIfNeeded();
+  await expect(actionsSection.getByText("1 atrasada(s) · 1 vence(m) em breve")).toBeVisible();
+});
+
+test("omits the actions context line from the 3 Briefs when nothing needs attention", async ({
+  page,
+}) => {
+  await login(page);
+  await page.goto("/workspace/Implantacao%20SAP%20S%2F4HANA");
+
+  // Este projeto não tem reunião fixture (nenhum item de ação) -- contagem
+  // de atenção é 0, a linha deve estar ausente nos 3 Briefs.
+  await expect(page.getByText(/ações exigem atenção|ação exige atenção/)).toHaveCount(0);
+});
+
 test("a failing Ações section does not block the other Workspace panels", async ({ page }) => {
   await setWorkspaceScenario("actionItems", "unavailable");
 

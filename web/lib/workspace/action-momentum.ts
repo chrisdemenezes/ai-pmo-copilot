@@ -87,6 +87,23 @@ export const URGENCY_ORDER: readonly UrgencyBucket[] = [
   "sem_prazo",
 ];
 
+/**
+ * Contagem de atenção (atrasado + vence em breve) usada pela linha de
+ * contexto nos 3 Executive Briefs (FS-007 §2.7) -- nunca o total bruto:
+ * "nunca listar tudo com o mesmo peso" também vale para este link.
+ */
+export function attentionCount(items: ActionItemView[], today: Date): number {
+  return items.filter((item) => {
+    const bucket = bucketByUrgency(item.due_date, today);
+    return bucket === "atrasado" || bucket === "vence_em_breve";
+  }).length;
+}
+
+/** Texto da linha de contexto -- ausente quando count é 0 (UX Flow §07). */
+export function actionsContextLine(count: number): string {
+  return `${count} ${count === 1 ? "ação exige" : "ações exigem"} atenção`;
+}
+
 const URGENCY_LABEL: Record<UrgencyBucket, string> = {
   atrasado: "Atrasado",
   vence_em_breve: "Vence em breve",

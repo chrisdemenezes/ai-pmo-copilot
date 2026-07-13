@@ -50,6 +50,18 @@ test("logs in with the correct password and lands on /dashboard", async ({ page 
   await expect(page.getByRole("heading", { name: "Dashboard Executivo" })).toBeVisible();
 });
 
+// TIP-008 Incremento 3 -- KPI "Ações pendentes" vira link para a página de
+// portfólio "Ações" (Incremento 2), fechando o caminho mais curto entre
+// abrir a STRATECH e tomar uma decisão executiva (FS-007 §01, pergunta 4).
+test("clicking the Ações pendentes KPI navigates to the portfolio Ações page", async ({
+  page,
+}) => {
+  await login(page);
+  await page.getByRole("link", { name: /Ações pendentes/ }).click();
+  await expect(page).toHaveURL(/\/actions/);
+  await expect(page.getByRole("heading", { name: "Ações" })).toBeVisible();
+});
+
 // 5 + 12 (sucesso). Dashboard com dados
 test("renders the portfolio widgets when the backend has data", async ({ page }) => {
   await login(page);

@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useWorkspaceSummary } from "@/lib/hooks/use-workspace-summary";
 import { useWorkspaceLatestByKind } from "@/lib/hooks/use-workspace-latest";
+import { ActionsContextLine } from "@/components/workspace/actions-context-line";
 import {
   NEXT_STEP_FALLBACK,
   contextHeading,
@@ -59,6 +60,7 @@ export function ExecutiveBrief({ projectName }: { projectName: string }) {
                 </Badge>
                 <span className="text-sm text-ink-muted">{summary.data.project_name}</span>
               </div>
+              <ActionsContextLine projectName={projectName} />
               <dl className="grid grid-cols-3 gap-3 text-sm">
                 <div>
                   <dt className="text-xs text-ink-muted">Análises</dt>

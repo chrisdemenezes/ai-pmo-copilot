@@ -35,6 +35,18 @@ describe("PortfolioSummaryStrip", () => {
     );
     expect(values).toEqual(["2", "3", "2"]);
   });
+
+  // TIP-008 Incremento 3 -- KPI "Ações pendentes" vira link para a página
+  // de portfólio "Ações" (Incremento 2); os outros 2 KPIs continuam sem link.
+  it("links only the Ações pendentes KPI to /actions", () => {
+    render(<PortfolioSummaryStrip projects={projects} />);
+    expect(screen.getByRole("link", { name: /Ações pendentes/ })).toHaveAttribute(
+      "href",
+      "/actions",
+    );
+    expect(screen.queryByRole("link", { name: /^Projetos/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Riscos identificados/ })).not.toBeInTheDocument();
+  });
 });
 
 describe("ProjectHealthGrid", () => {

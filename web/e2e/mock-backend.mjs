@@ -204,6 +204,13 @@ const PRISTINE_SAMPLE = JSON.parse(JSON.stringify(SAMPLE));
 const PRISTINE_WORKSPACE_SUMMARY = JSON.parse(JSON.stringify(WORKSPACE_SUMMARY));
 const PRISTINE_ANALYSES = JSON.parse(JSON.stringify(ANALYSES));
 const PRISTINE_NEXT_ANALYSIS_ID = nextAnalysisId;
+// Same cross-file leak risk as SAMPLE/WORKSPACE_SUMMARY/ANALYSES above: a
+// test that sets a workspaceScenario key to "unavailable"/"timeout" (e.g.
+// actions.spec.ts's error-boundary test) previously left it that way for
+// every test that ran after it in the same Playwright invocation, in any
+// spec file -- real hazard hit by dashboard.spec.ts's new KPI-link test
+// (TIP-008 Incremento 3) failing only when run after actions.spec.ts.
+const PRISTINE_WORKSPACE_SCENARIO = JSON.parse(JSON.stringify(workspaceScenario));
 
 function resetFixtures() {
   SAMPLE.length = 0;
@@ -216,6 +223,8 @@ function resetFixtures() {
   ANALYSES.push(...JSON.parse(JSON.stringify(PRISTINE_ANALYSES)));
 
   nextAnalysisId = PRISTINE_NEXT_ANALYSIS_ID;
+
+  Object.assign(workspaceScenario, JSON.parse(JSON.stringify(PRISTINE_WORKSPACE_SCENARIO)));
 }
 
 function send(res, status, body) {
