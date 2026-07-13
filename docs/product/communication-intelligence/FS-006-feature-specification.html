@@ -100,6 +100,7 @@
       <a href="#s12">12 Checklist de Segurança</a>
       <a href="#s13">13 Rollback</a>
       <a href="#s14">14 Definition of Ready</a>
+      <a href="#s15">15 Recomendações Registradas</a>
     </nav>
   </aside>
 
@@ -115,7 +116,7 @@
         <span><b>Capability</b> 03 — Communication Intelligence</span>
         <span><b>Origem</b> User Decision Discovery Rev. 2 + User Journey + UX Flow Rev. 3</span>
         <span><b>Data</b> 2026-07-13</span>
-        <span><b>Status</b> Aguardando aprovação — TIP-007 ainda não iniciado</span>
+        <span><b>Status</b> Aprovada — TIP-007 em andamento</span>
       </div>
     </div>
 
@@ -382,10 +383,26 @@ queryClient.invalidateQueries({ queryKey: ["portfolio-summary"] });</code></pre>
 
     <section id="s14">
       <div class="section-head"><span class="section-num">14</span><h2>Definition of Ready — Próximo Gate</h2></div>
+      <div class="callout" style="border-left-color:var(--fato);">
+        <b>Architecture Review aprovada. TIP-007 autorizado.</b> Esta FS formalizou Discovery + Journey + UX
+        Flow + Architecture Review (Seção 2). Nenhuma decisão de escopo pendente — implementação segue
+        exatamente o que está descrito acima.
+      </div>
+    </section>
+
+    <section id="s15">
+      <div class="section-head"><span class="section-num">15</span><h2>Recomendações Estratégicas Registradas (Founder)</h2></div>
+      <p class="section-intro">Registradas na aprovação da Architecture Review, explicitamente sem alterar o
+        escopo da FS-006 e sem implementação agora — mesmo princípio já usado para "ponto de continuidade
+        registrado, não implementado" (Decision Momentum, TIP-005A).</p>
+      <ol>
+        <li><b>ANALYSIS_CATALOG → Decision Catalog:</b> o catálogo deixaria de representar "análises disponíveis" e passaria a representar "decisões que a plataforma ajuda o executivo a tomar" — uma mudança de enquadramento conceitual sobre a mesma estrutura de dados, não uma reescrita. Avaliação futura, não desta Feature.</li>
+        <li><b>Decision Domain e Decision Context:</b> possíveis conceitos futuros de organização interna, exclusivamente arquiteturais — nunca expostos na interface. Registrados para avaliação quando houver necessidade real de escalar além das 3 Capabilities atuais.</li>
+        <li><b>Executive Brief Contract:</b> formalizar, como um contrato explícito (provavelmente um tipo/interface TypeScript + convenção documentada), que todo Executive Brief — independente da Capability — preserva a mesma estrutura de experiência. Hoje isso já é verdade por convenção (três implementações seguindo o mesmo padrão visual/estrutural: <code>executive-brief.tsx</code>, <code>risks-panel.tsx</code>, e a seção Comunicação desta FS) — formalizar o contrato é tornar essa convenção explícita e verificável, não mudar o comportamento atual.</li>
+      </ol>
       <div class="callout guard">
-        <b>Nenhum código escrito.</b> Esta FS formaliza Discovery + Journey + UX Flow. A Architecture Review
-        (Seção 2) já está incluída aqui — a Etapa 5 do processo de 8 etapas é revisão/aprovação dessa seção
-        pelo Founder, não um documento separado. TIP-007 só começa após aprovação explícita.
+        Nenhuma das 3 recomendações é implementada no TIP-007. Ficam registradas aqui como entrada para uma
+        futura revisão arquitetural, quando houver uma 4ª Capability ou uma necessidade real comprovada.
       </div>
     </section>
 
