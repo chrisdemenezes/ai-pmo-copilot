@@ -152,7 +152,7 @@
     <tbody>
       <tr><td>Bloqueadores da RC-1</td><td><span class="chip ok">NENHUM</span></td></tr>
       <tr><td>Achado #1 -- Comunicação sem "Decisão sugerida"</td><td><span class="chip ok">NÃO IMPLEMENTAR -- Founder</span> registrado para o Executive Brief Contract e observação nas sessões</td></tr>
-      <tr><td>Achado #2 -- hydration warning em <code>/entrar</code></td><td><span class="chip warn">PENDENTE -- checagem manual em navegador real, fora deste ambiente</span></td></tr>
+      <tr><td>Achado #2 -- hydration warning em <code>/entrar</code></td><td><span class="chip ok">RESOLVIDO -- não reproduz em navegador real, artefato da automação</span></td></tr>
       <tr><td>Reset de dados entre sessões</td><td><span class="chip warn">RECOMENDADO ANTES DAS SESSÕES (procedural)</span></td></tr>
       <tr><td>Senha única de workspace, sem login por usuário, sem paginação no portfólio</td><td><span class="chip">BACKLOG POSTERIOR</span> -- já registrado em <code>mvp-validation.md</code>, inalterado, aceitável para sessões qualitativas com senha compartilhada</td></tr>
       <tr><td>Decision Catalog / Decision Domain / Decision Context / Executive Brief Contract</td><td><span class="chip">BACKLOG ESTRATÉGICO</span> -- registrado na Architecture Review do FS-006, explicitamente não avaliado neste Review por instrução do Founder</td></tr>
@@ -202,15 +202,15 @@
   </div>
 
   <h3>Achado #2 -- hydration warning no login</h3>
-  <div class="callout warn">
-    Decisão registrada: verificação manual obrigatória em navegador real (Chrome ou Edge, sem Playwright,
-    sem automação) antes de tratar como real ou como artefato. <b>Esta verificação não foi realizada</b> --
-    o ambiente desta sessão só tem acesso a Chromium via automação (Playwright), que é exatamente o que a
-    decisão do Founder pede para excluir da checagem. Fica como ação pendente para um humano com acesso a
-    um navegador real, fora deste ambiente automatizado, antes da primeira sessão. Se não for reproduzível
-    ou não tiver impacto visual, classificar como artefato da automação e não alterar código; se for
-    reproduzível e afetar a experiência, parar e apresentar evidência antes de corrigir -- por instrução do
-    Founder, nenhuma das duas conclusões deve ser assumida sem essa checagem manual.
+  <div class="callout ok">
+    <b>Verificação manual concluída.</b> Testado em Google Chrome real, janela anônima, sem Playwright e sem
+    automação, por um operador humano fora deste ambiente -- exatamente a condição exigida pelo Founder.
+    Resultado: <b>não reproduzível.</b> O Console em <code>/entrar</code>, carregado do zero, mostra somente
+    as mensagens normais de desenvolvimento (sugestão de React DevTools, `[HMR] connected`) -- nenhum aviso
+    de hydration, nenhum erro, nenhum impacto visual. Confirma a hipótese registrada originalmente: o
+    <code>style={{caret-color:"transparent"}}</code> era um artefato do Chromium controlado por
+    automação (Playwright), não um defeito da aplicação. Classificado como artefato da automação, por
+    instrução do Founder -- nenhuma alteração de código necessária.
   </div>
 
   <h2>Evidências</h2>
@@ -271,8 +271,10 @@
 
   <h2>Próximo passo</h2>
   <p>RC-1 Readiness Review aprovado pelo Founder. GO para as cinco sessões reais. Preparação operacional
-    autorizada -- ver <code>demo/SESSION-RUNBOOK.md</code>. Pendência única: a checagem manual do Achado #2
-    em navegador real (fora deste ambiente automatizado), a ser feita antes da primeira sessão.</p>
+    concluída -- ver <code>demo/SESSION-RUNBOOK.md</code>. As duas pendências dos achados foram encerradas:
+    Achado #1 não será implementado (decisão do Founder, registrado para o Executive Brief Contract); Achado
+    #2 foi verificado em navegador real e não reproduz. Nenhuma pendência técnica restante antes da primeira
+    sessão.</p>
 
   <footer>
     <span>Stratech — RC-1</span>
