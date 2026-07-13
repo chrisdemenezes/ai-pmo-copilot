@@ -80,6 +80,7 @@
     <nav>
       <a href="#s0"><span class="toc-num">00</span>Guardian Check</a>
       <a href="#s1"><span class="toc-num">01</span>Qual decisão?</a>
+      <a href="#s1b"><span class="toc-num">01B</span>Hierarquia Executiva · Rev. 2</a>
       <a href="#s2"><span class="toc-num">02</span>Informações que já existem</a>
       <a href="#s3"><span class="toc-num">03</span>Informações que faltam</a>
       <a href="#s4"><span class="toc-num">04</span>Como reduzimos o esforço</a>
@@ -100,7 +101,7 @@
         <span><b>Capability</b> 03 — Communication Intelligence</span>
         <span><b>Feature</b> Meeting Intelligence</span>
         <span><b>Data</b> 2026-07-13</span>
-        <span><b>Status</b> Aguardando aprovação — nenhum código, nenhuma User Journey, nenhuma FS ainda</span>
+        <span><b>Status</b> Aprovada, Rev. 2 (hierarquia executiva) incorporada — User Journey autorizada</span>
       </div>
     </div>
 
@@ -138,6 +139,40 @@
         <li><b>Escalar algo agora?</b> — surgiu um problema (issue) que não pode esperar o próximo ciclo?</li>
         <li><b>Atualizar outra parte da plataforma?</b> — o que mudou na reunião deveria virar uma nova análise de Status Executivo ou de Avaliação de Riscos?</li>
       </ul>
+    </section>
+
+    <section id="s1b">
+      <div class="section-head"><span class="section-num">01B</span><h2>Hierarquia Executiva — Rev. 2 (Founder)</h2></div>
+      <p class="section-intro">Refinamento conceitual, incorporado antes da User Journey por decisão do
+        Founder: a reunião nunca é o objeto principal da experiência — o projeto continua sendo. A pergunta que
+        toda a jornada responde deixa de ser "o que aconteceu na reunião" e passa a ser:</p>
+      <div class="callout">
+        <b>"O que esta reunião muda no projeto e quais decisões ela exige?"</b>
+      </div>
+      <p>A User Journey (Etapa 2) deve seguir esta ordem executiva. Mapeamento honesto contra o schema real —
+        nenhum nível abaixo introduz um dado novo, e nenhum nome técnico (<code>transcript</code>,
+        <code>summary</code>, <code>issues</code>) aparece como rótulo de interface:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Nível executivo</th><th>Fonte real</th><th>Rótulo de interface (nunca o nome técnico)</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Impacto da reunião</td><td>Contagens reais dos próprios arrays — <i>N decisões, M pontos de atenção, K responsabilidades</i> — nunca um score ou severidade inventados</td><td>Abertura do Brief, ao lado do nome do projeto</td></tr>
+            <tr><td>2</td><td>O que mudou</td><td><code>summary</code>, verbatim</td><td>"O que mudou" / "Contexto da reunião"</td></tr>
+            <tr><td>3</td><td>Pontos de atenção</td><td><code>issues[]</code>, verbatim</td><td>"Pontos de atenção"</td></tr>
+            <tr><td>4</td><td>Decisões tomadas</td><td><code>decisions[]</code>, verbatim</td><td>"Decisões tomadas"</td></tr>
+            <tr><td>5</td><td>Responsabilidades</td><td><code>action_items[].owner</code> + <code>description</code> + <code>due_date</code>, verbatim</td><td>"Responsabilidades"</td></tr>
+            <tr><td>6</td><td>Dependências</td><td><code>dependencies[]</code>, verbatim</td><td>"Dependências"</td></tr>
+            <tr><td>7</td><td>Próximo passo recomendado</td><td>Decision Momentum — regra fixa de UI, nunca a IA (Seção 6 desta Discovery)</td><td>"Próximo passo"</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout guard">
+        <b>Nível 1 ("Impacto da reunião") é o único ponto de atenção nesta hierarquia.</b> Não existe um campo
+        real de impacto — a única forma honesta de abrir o Brief com uma noção de "impacto" é contar o que os
+        arrays já reais já têm (quantas decisões, quantos pontos de atenção, quantas responsabilidades), nunca
+        classificar a reunião como "alto impacto" ou "baixo impacto" sem um critério real para isso. A User
+        Journey deve tratar o Nível 1 como uma manchete numérica, não uma nota de severidade.
+      </div>
     </section>
 
     <section id="s2">
@@ -229,10 +264,9 @@
 
     <section id="s7">
       <div class="section-head"><span class="section-num">07</span><h2>Próximo Gate</h2></div>
-      <div class="callout guard">
-        <b>Nenhum código escrito. Nenhuma User Journey, UX Flow, Feature Specification ou Architecture Review
-        produzidos ainda.</b> Por instrução explícita do Founder, o próximo passo (Etapa 2 — User Journey) só
-        começa após a aprovação deste documento.
+      <div class="callout" style="border-left-color:var(--ok);">
+        <b>Aprovada, com a Hierarquia Executiva (Rev. 2) incorporada.</b> Nenhum código escrito. Nenhuma UX Flow,
+        Feature Specification ou Architecture Review produzidos ainda. User Journey (Etapa 2) autorizada.
       </div>
     </section>
 
