@@ -1,0 +1,259 @@
+<title>UX Flow — Meeting Intelligence</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --ok:#2f7a4f; --ok-bg:#e1f0e5;
+    --warn:#a3742f; --warn-bg:#f3e9d8;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --ok:#7fd19f; --ok-bg:#1a3324;
+    --warn:#e0b567; --warn-bg:#332711;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --ok:#7fd19f; --ok-bg:#1a3324;
+      --warn:#e0b567; --warn-bg:#332711;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:270px minmax(0,1fr); max-width:1340px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:4px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  .toc .toc-num{color:var(--accent); margin-right:6px;}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:40px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.7rem,4vw,2.5rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:70ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:52px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink);}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.3rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:70ch;}
+  h3{font-size:1.02rem; margin:26px 0 8px; font-weight:600;}
+  p{margin:0 0 14px; max-width:74ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:72ch;}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout.warn{border-left-color:var(--warn);}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.ok{color:var(--ok); background:var(--ok-bg);}
+  .chip.warn{color:var(--warn); background:var(--warn-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+
+  /* Wireflow */
+  .wireflow{display:flex; flex-wrap:wrap; gap:24px; align-items:flex-start; margin:20px 0 28px;}
+  .wf-col{flex:1 1 320px; min-width:280px;}
+  .wf-label{font-family: ui-monospace, monospace; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-dim); margin-bottom:10px;}
+  .wf-frame{border:1.5px dashed var(--border); border-radius:10px; padding:16px; background:var(--surface);}
+  .wf-box{border:1px solid var(--border); border-radius:6px; padding:10px 12px; margin-bottom:10px; background:var(--surface-2); font-family: ui-sans-serif, system-ui, sans-serif; font-size:12.5px;}
+  .wf-box.hl{background:var(--surface); border:1.5px solid var(--accent);}
+  .wf-box .wf-title{font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-dim); margin-bottom:4px;}
+  .wf-box p{margin:0; font-size:12.5px; max-width:none;}
+  .wf-card-row{display:flex; gap:8px; margin-top:6px;}
+  .wf-card{flex:1; border:1px solid var(--border); border-radius:6px; padding:8px; font-size:11px; background:var(--surface); text-align:center;}
+  .wf-card.active{border-color:var(--accent); font-weight:700; color:var(--accent);}
+
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">Capability 03<br>Communication Intelligence</div>
+    <nav>
+      <a href="#s0"><span class="toc-num">00</span>Guardian Check</a>
+      <a href="#s1"><span class="toc-num">01</span>Princípio — Rev. 3</a>
+      <a href="#s2"><span class="toc-num">02</span>Do Agente à Pergunta</a>
+      <a href="#s3"><span class="toc-num">03</span>Wireflow</a>
+      <a href="#s4"><span class="toc-num">04</span>Preparando a Evolução Futura</a>
+      <a href="#s5"><span class="toc-num">05</span>Fora de Escopo</a>
+      <a href="#s6"><span class="toc-num">06</span>Próximo Gate</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">Capability 03 · Communication Intelligence · Etapa 3 de 8 — UX Flow</div>
+      <h1 class="title">UX Flow — Meeting Intelligence</h1>
+      <p class="subtitle">Nenhuma implementação. Só experiência: como a escolha do que analisar deixa de parecer
+        "selecionar um modelo de IA" e passa a parecer "escolher o que quero entender sobre o projeto" — e como
+        isso já prepara, sem construir nada novo, a futura fusão de Project/Risk/Communication Intelligence numa
+        experiência só.</p>
+      <div class="meta-row">
+        <span><b>Capability</b> 03 — Communication Intelligence</span>
+        <span><b>Origem</b> Refinamento estratégico do Founder, pré-UX Flow</span>
+        <span><b>Data</b> 2026-07-13</span>
+        <span><b>Status</b> Aguardando aprovação — nenhuma Feature Specification ou código ainda</span>
+      </div>
+    </div>
+
+    <section id="s0">
+      <div class="section-head"><span class="section-num">00</span><h2>Guardian Check</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Verificação</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr><td>Conflito com Strategy/Constitution/Vision/Decision Framework?</td><td><span class="chip ok">SEM CONFLITO</span> — nenhum ainda escrito.</td></tr>
+            <tr><td>Este refinamento melhora alguma decisão do usuário?</td><td><span class="chip ok">SIM</span> — reduz a carga de "que tipo de relatório de IA eu preciso" para "o que eu quero saber", que é a pergunta que o usuário já tem na cabeça.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Princípio — Rev. 3 (Founder)</h2></div>
+      <p>Refinamento estratégico, incorporado antes da UX Flow: a experiência deixa de ser orientada ao agente e
+        passa a ser orientada ao objetivo do usuário.</p>
+      <div class="callout">
+        <b>O usuário nunca escolhe um modelo de IA. Ele escolhe o que quer entender sobre o projeto.</b>
+        A plataforma decide internamente qual agente executar — isso já é verdade na arquitetura de hoje (o
+        <code>kind</code> escolhido mapeia para um hook/BFF/agente específico, nunca exposto por nome técnico);
+        esta Rev. 3 exige que a <i>linguagem</i> da interface reflita isso com a mesma disciplina.
+      </div>
+      <p>Isso não é uma decisão isolada desta Feature — é um princípio que se aplica retroativamente às 2
+        capacidades já reais (Status Executivo, Avaliação de Riscos). A Seção 2 propõe a extensão consistente
+        das 3.</p>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>Do Agente à Pergunta</h2></div>
+      <p class="section-intro">Nenhum rótulo aqui é implementado nesta etapa — são a proposta de copy que a
+        Feature Specification (Etapa 4) deve levar ao <code>ANALYSIS_CATALOG</code>.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Capability</th><th>Rótulo técnico (nunca exibido)</th><th>Rótulo atual (TIP-005/006)</th><th>Proposto — pergunta do usuário</th></tr></thead>
+          <tbody>
+            <tr><td>Project Intelligence</td><td><code>project_status</code></td><td>"Status Executivo"</td><td><b>"Como está o projeto?"</b></td></tr>
+            <tr><td>Risk Intelligence</td><td><code>risk_review</code></td><td>"Avaliação de Riscos"</td><td><b>"Quais riscos exigem atenção?"</b></td></tr>
+            <tr><td>Communication Intelligence</td><td><code>meeting_intelligence</code></td><td><i>(nova)</i></td><td><b>"O que mudou na última reunião?"</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>O título do Dialog ("Analisar Projeto") já é neutro o suficiente para não precisar mudar. O que muda é
+        a descrição logo abaixo — hoje "Escolha o tipo de análise" (linguagem de "tipo de relatório"), proposta
+        para "O que você quer entender sobre este projeto?" (linguagem de objetivo, consistente com a Rev. 3).</p>
+      <div class="callout warn">
+        <b>Escopo desta mudança:</b> renomear os rótulos das 2 abas já reais é uma alteração de copy, não de
+        arquitetura — mas ainda é uma alteração de código em produção. Por instrução do Founder ("nenhuma
+        implementação ainda"), fica proposta aqui e formalizada na Feature Specification de Meeting Intelligence
+        (Etapa 4), aplicada às 3 abas de uma vez só, não implementada nesta UX Flow.
+      </div>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>Wireflow</h2></div>
+      <p class="section-intro">Baixa fidelidade deliberada — mostra a mudança de linguagem, não a Baseline
+        Visual.</p>
+      <div class="wireflow">
+        <div class="wf-col">
+          <div class="wf-label">Hoje (TIP-006)</div>
+          <div class="wf-frame">
+            <div class="wf-box">
+              <div class="wf-title">Analisar Projeto</div>
+              <p>Escolha o tipo de análise</p>
+              <div class="wf-card-row">
+                <div class="wf-card active">Status Executivo</div>
+                <div class="wf-card">Avaliação de Riscos</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wf-col">
+          <div class="wf-label">Proposto (Rev. 3, formalizado na Feature Spec)</div>
+          <div class="wf-frame">
+            <div class="wf-box hl">
+              <div class="wf-title">Analisar Projeto</div>
+              <p>O que você quer entender sobre este projeto?</p>
+              <div class="wf-card-row">
+                <div class="wf-card active">Como está o projeto?</div>
+                <div class="wf-card">Quais riscos exigem atenção?</div>
+              </div>
+              <div class="wf-card-row">
+                <div class="wf-card">O que mudou na última reunião?</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p>Mecanismo inalterado: mesmo <code>Dialog</code>, mesmo <code>Tabs</code>, mesmo catálogo — só a
+        linguagem dos rótulos muda de "tipo de análise" para "pergunta sobre o projeto".</p>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>Preparando a Evolução Futura (avaliação, sem nova funcionalidade)</h2></div>
+      <p>O Founder pediu para avaliar, durante esta UX Flow, se já é possível preparar a futura fusão de Project
+        Intelligence, Risk Intelligence e Communication Intelligence numa única experiência — sem construir nada
+        novo agora. Avaliação honesta:</p>
+      <div class="callout">
+        <b>Sim, já é possível — porque o mecanismo já é o mesmo.</b> O Dialog "Analisar Projeto", o
+        <code>ANALYSIS_CATALOG</code> e o <code>Tabs</code> já são, estruturalmente, uma mini-versão da
+        experiência integrada que o Founder descreve: um único ponto de entrada, um catálogo de "coisas que você
+        pode entender sobre o projeto", cada uma mapeada internamente a um agente sem expor esse mapeamento. A
+        fusão futura das 3 Capabilities não vai exigir uma reconstrução deste mecanismo — só crescer o mesmo
+        catálogo. A preparação real não é código novo; é <b>não deixar a linguagem se afastar disso</b> — por
+        isso a Seção 2 propõe alinhar os 3 rótulos agora, enquanto são só 3, em vez de deixar a inconsistência
+        acumular até que a fusão fique mais cara de fazer.
+      </div>
+      <p>Uma extensão de dado (não de comportamento) fica registrada aqui como recomendação para a Feature
+        Specification, não como decisão tomada: o <code>ANALYSIS_CATALOG</code> poderia ganhar um campo
+        descritivo <code>capability</code> (<code>"project-intelligence" | "risk-intelligence" |
+        "communication-intelligence"</code>) — metadado puro, zero mudança de comportamento visível, que serve
+        de documentação e facilita a fusão futura sem forçar nenhuma decisão de UI ainda não aprovada.</p>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Fora de Escopo (confirmado)</h2></div>
+      <ul>
+        <li>Nenhuma fusão real das 3 Capabilities nesta Feature — isso permanece uma visão futura, não uma entrega.</li>
+        <li>Nenhuma tela nova, nenhum campo de catálogo novo implementado agora — só avaliado e recomendado (Seção 4).</li>
+        <li>Nenhuma mudança de código nesta etapa — os rótulos propostos na Seção 2 são formalizados (e só então implementados) na Feature Specification.</li>
+        <li>Nenhuma mudança na ordem dos níveis executivos já aprovados na User Journey.</li>
+      </ul>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>Próximo Gate</h2></div>
+      <div class="callout guard">
+        <b>Nenhum código escrito.</b> Esta é a UX Flow (Etapa 3 de 8). A Feature Specification (Etapa 4) só
+        começa após aprovação explícita do Founder.
+      </div>
+    </section>
+
+    <footer>
+      <span>Stratech — Capability 03</span>
+      <span>UX Flow</span>
+      <span>2026-07-13</span>
+    </footer>
+  </main>
+</div>
