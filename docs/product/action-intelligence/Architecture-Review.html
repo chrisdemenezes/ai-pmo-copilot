@@ -1,0 +1,244 @@
+<title>Architecture Review — Action Intelligence</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --fato:#0f6b5c; --fato-bg:#e2efe9;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --plan:#2f5f9e; --plan-bg:#e2ebf6;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --fato:#4fd6b8; --fato-bg:#173029;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --plan:#7fb4f2; --plan-bg:#1a2c42;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --fato:#4fd6b8; --fato-bg:#173029;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --plan:#7fb4f2; --plan-bg:#1a2c42;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:270px minmax(0,1fr); max-width:1340px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:4px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:40px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.7rem,4vw,2.5rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:70ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:52px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink);}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.3rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:70ch;}
+  h3{font-size:1.02rem; margin:26px 0 8px; font-weight:600;}
+  p{margin:0 0 14px; max-width:74ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:72ch;}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout.fato{border-left-color:var(--fato);}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.fato{color:var(--fato); background:var(--fato-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  .chip.plan{color:var(--plan); background:var(--plan-bg);}
+  .eqf-card{border:1px solid var(--border); border-radius:8px; padding:18px 22px; margin-bottom:14px; background:var(--surface);}
+  .eqf-card .eqf-q{font-family: ui-monospace, monospace; font-size:11px; text-transform:uppercase; letter-spacing:.03em; color:var(--accent); margin-bottom:8px;}
+  .eqf-card .eqf-a{margin:0;}
+  .cycle{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:16px 0 24px; font-family: ui-monospace, monospace; font-size:12px;}
+  .cycle span{background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:8px 14px; box-shadow:var(--shadow);}
+  .cycle .arrow{color:var(--ink-dim); border:none; box-shadow:none; padding:0;}
+  .cycle .loop{color:var(--fato); font-weight:700;}
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">Architecture Review<br>Action Intelligence</div>
+    <nav>
+      <a href="#s0">00 Guardian Check</a>
+      <a href="#s1">01 Executive Questions Framework</a>
+      <a href="#s2">02 Framework aplicado — Action Intelligence</a>
+      <a href="#s3">03 O ciclo e o retorno natural</a>
+      <a href="#s4">04 Coerência da convenção de rotas</a>
+      <a href="#s5">05 Ratificação das decisões da FS-007</a>
+      <a href="#s6">06 Próximo Gate</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">Architecture Review · STRATECH V1 — Product Core · Etapa 5 de 10</div>
+      <h1 class="title">Architecture Review — Action Intelligence</h1>
+      <p class="subtitle">Primeira aplicação do <b>Executive Questions Framework</b>, novo princípio oficial
+        do produto, e primeira Capability avaliada contra o ciclo executivo completo -- incluindo, pela
+        primeira vez, o passo obrigatório de retorno natural à plataforma.</p>
+      <div class="meta-row">
+        <span><b>Origem</b> FS-007 aprovada + diretriz estratégica adicional do Founder</span>
+        <span><b>Data</b> 2026-07-13</span>
+        <span><b>Status</b> Em avaliação — aguardando aprovação do Founder antes do TIP</span>
+      </div>
+    </div>
+
+    <section id="s0">
+      <div class="section-head"><span class="section-num">00</span><h2>Guardian Check</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Verificação</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr><td>Conflito com Strategy/Constitution/Vision/Decision Framework?</td><td>SEM CONFLITO — nenhum documento normativo ainda existe em <code>docs/strategy/</code>.</td></tr>
+            <tr><td>Esta diretriz altera a implementação já aprovada na FS-007?</td><td>NÃO — por instrução explícita do Founder, esta é validação arquitetural, não mudança de escopo.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Executive Questions Framework (novo princípio oficial)</h2></div>
+      <p class="section-intro">A partir desta Architecture Review, toda Capability -- esta e as futuras --
+        deve responder explicitamente 5 perguntas antes de ser considerada arquiteturalmente pronta. O
+        framework não substitui a Architecture Review técnica (decisões de código, §05) -- ele vem antes,
+        garantindo que a Capability tenha uma razão executiva clara para existir, não só uma implementação
+        correta.</p>
+      <ol>
+        <li><b>Qual pergunta executiva ela responde?</b></li>
+        <li><b>Qual decisão ela permite tomar?</b></li>
+        <li><b>Qual ação ela desencadeia?</b></li>
+        <li><b>Com que frequência um executivo utilizará este módulo?</b></li>
+        <li><b>Como ela conversa com os demais módulos da plataforma?</b></li>
+      </ol>
+      <p>Registrado aqui como referência para toda Architecture Review futura -- não repetido por extenso
+        em cada uma; cada Capability nova aplica o mesmo framework na sua própria Seção correspondente.</p>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>Framework aplicado — Action Intelligence</h2></div>
+      <div class="eqf-card">
+        <p class="eqf-q">1. Qual pergunta executiva ela responde?</p>
+        <p class="eqf-a">"O que precisa ser feito agora?" -- desdobrada nas 3 perguntas fixas já formalizadas na FS-007 §01: o que está atrasado, o que vence em seguida, o que exige atenção hoje.</p>
+      </div>
+      <div class="eqf-card">
+        <p class="eqf-q">2. Qual decisão ela permite tomar?</p>
+        <p class="eqf-a">Por onde começar o dia -- qual projeto ou compromisso revisitar primeiro, com prioridade já calculada, sem o executivo precisar montar essa priorização sozinho a partir de reuniões espalhadas.</p>
+      </div>
+      <div class="eqf-card">
+        <p class="eqf-q">3. Qual ação ela desencadeia?</p>
+        <p class="eqf-a">Nesta fase (Discovery §04, Opção 1): navegar até a análise de origem e, a partir dali, para o Workspace do projeto -- nunca uma ação executada dentro do próprio módulo (Diretriz "não é gerenciador de tarefas"). A ação real acontece fora da plataforma (uma ligação, uma decisão, uma cobrança) ou dentro de outra Capability já existente (rodar Status/Risco de novo) -- nunca dentro de Action Intelligence em si.</p>
+      </div>
+      <div class="eqf-card">
+        <p class="eqf-q">4. Com que frequência um executivo utilizará este módulo?</p>
+        <p class="eqf-a">Diária, por desenho -- é o único módulo da plataforma pensado para abertura no início do dia (UX Flow §02), diferente das 3 Capabilities de Compreender, tipicamente abertas por projeto, sob demanda, quando algo muda.</p>
+      </div>
+      <div class="eqf-card">
+        <p class="eqf-q">5. Como ela conversa com os demais módulos da plataforma?</p>
+        <p class="eqf-a">Nos dois sentidos -- FS-007 §2.7: recebe contexto do Dashboard (KPI vira link) e dos 3 Executive Briefs (linha de contagem); devolve contexto ao apontar cada item de volta à sua análise de origem no Workspace. Nenhuma dessas conversas exige uma tela nova além das já desenhadas.</p>
+      </div>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>O ciclo executivo e o retorno natural</h2></div>
+      <div class="cycle">
+        <span>Compreender</span><span class="arrow">→</span>
+        <span>Decidir</span><span class="arrow">→</span>
+        <span>Agir</span><span class="arrow">→</span>
+        <span>Acompanhar</span><span class="arrow">→</span>
+        <span class="loop">Volta à plataforma</span>
+      </div>
+      <p>Avaliação honesta, item por item, contra o desenho já aprovado na FS-007 -- não uma reafirmação
+        genérica:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Passo do ciclo</th><th>Onde vive hoje</th><th>Fecha o círculo?</th></tr></thead>
+          <tbody>
+            <tr><td>Compreender</td><td>3 Capabilities de Intelligence (Status/Risco/Comunicação)</td><td>-- (ponto de entrada do ciclo)</td></tr>
+            <tr><td>Decidir</td><td>Decision Momentum nos 3 Briefs</td><td>-- (já fecha para Compreender por natureza)</td></tr>
+            <tr><td>Agir</td><td>Action Intelligence -- responde as 3 perguntas, prioriza (§02)</td><td>Sim -- cada item aponta para <code>source_analysis_id</code> (FS-007 §2.1)</td></tr>
+            <tr><td>Acompanhar</td><td>Agrupamento por urgência + <code>attentionHeadline()</code> (FS-007 §2.4)</td><td>Sim -- visibilidade contínua, mesmo sem estado persistido ainda (Journey §05)</td></tr>
+            <tr><td><b>Volta à plataforma</b></td><td>Clique no item → análise de origem no Workspace (Journey passo 5)</td><td><b>Sim, por construção</b> -- o Workspace é exatamente o ponto de entrada de Compreender; o ciclo fecha sem nenhuma tela nova além das já desenhadas</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout fato">
+        <b>Confirmado, não assumido:</b> o retorno natural não foi adicionado agora -- já estava desenhado
+        desde a User Journey (Etapa 2, passo 5: "Clicar num item para ver a reunião de origem"). A
+        Architecture Review confirma que essa decisão, tomada por outro motivo na época (rastreabilidade),
+        é também o que fecha o ciclo exigido por esta diretriz -- nenhuma mudança de design necessária.
+      </div>
+      <p>Risco identificado, não bloqueador: o "Próximo passo" de <code>suggestedNextAction()</code>
+        (FS-007 §2.4) aponta para o item mais urgente, não explicitamente para uma ação de outra Capability
+        (ex.: "rodar Status Executivo de novo"). Isso é consistente com a Diretriz "não é gerenciador de
+        tarefas" -- a plataforma não pode sugerir rodar uma análise só porque um item está atrasado, seria
+        uma sugestão fabricada sem base real. O retorno ao ciclo acontece pela navegação (Workspace), não
+        por uma sugestão de próxima Capability -- suficiente para cumprir a diretriz, sem inventar uma
+        recomendação que o dado não sustenta.</p>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>Coerência da convenção de rotas de leitura</h2></div>
+      <p class="section-intro">Validação, não implementação -- por instrução explícita do Founder.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Aspecto</th><th>Avaliação</th></tr></thead>
+          <tbody>
+            <tr><td>Nome do recurso (<code>/api/action-items</code> vs. <code>/api/analyses</code>)</td><td><span class="chip fato">COERENTE</span> -- já existe precedente de um recurso agregado com nome próprio, distinto de "análises": <code>/api/portfolio/summary</code>. <code>action-items</code> segue a mesma lógica -- uma visão derivada, não um CRUD novo.</td></tr>
+            <tr><td>Padrão de serviço (<code>ProjectSummaryService.list_action_items</code>)</td><td><span class="chip fato">COERENTE</span> -- mesma classe, mesmo prefixo <code>list_</code> já usado por <code>AnalysisRepository.list_analyses</code>, sem serviço paralelo.</td></tr>
+            <tr><td>Autenticação e rate limiting</td><td><span class="chip fato">COERENTE</span> -- mesmo router, herda tudo automaticamente, nenhuma exceção criada.</td></tr>
+            <tr><td>Ausência de versionamento (<code>/api/</code>, sem <code>/v1/</code>)</td><td><span class="chip plan">HERDA UM GAP JÁ CONHECIDO</span> -- mesmo risco Alto já registrado no Product Blueprint §12 e no STRATECH V1 Completion Board (Enterprise Essentials). Esta rota não piora o gap, também não o resolve -- consistente com adiar o versionamento como trilha própria, não escondida dentro desta Feature.</td></tr>
+            <tr><td>Escala -- endpoints agregados crescendo um a um (<code>portfolio/summary</code>, agora <code>action-items</code>)</td><td><span class="chip plan">OBSERVAÇÃO PARA O FUTURO, NÃO AÇÃO AGORA</span> -- se uma 3ª ou 4ª visão agregada surgir, pode valer a pena um padrão mais genérico (ex.: um único endpoint parametrizado por tipo de rollup). Duas instâncias não justificam essa generalização ainda (mesmo princípio de ADR-001: normalizar só quando uma necessidade real, repetida, aparecer) -- registrado como ponto de atenção, não como recomendação de mudança.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><b>Conclusão da validação:</b> a convenção proposta é coerente com a arquitetura global hoje.
+        Nenhuma mudança de implementação recomendada.</p>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Ratificação das decisões técnicas da FS-007</h2></div>
+      <p>As decisões de arquitetura já detalhadas em FS-007 §02 (novo método de serviço, nova rota,
+        BFF/hook, <code>action-momentum.ts</code>, adiamento do Executive Brief Contract, tipos preparando
+        estados persistidos futuros, integração com os 3 Briefs) permanecem como especificadas -- esta
+        Architecture Review não as reabre, apenas as valida contra o Executive Questions Framework (Seção
+        2) e o ciclo executivo (Seção 3), ambos confirmados sem necessidade de ajuste.</p>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>Próximo Gate</h2></div>
+      <p>Architecture Review concluída. Nenhuma mudança de escopo em relação à FS-007. Aguardando aprovação
+        do Founder antes do Technical Implementation Plan (Etapa 6 de 10).</p>
+    </section>
+
+    <footer>
+      <span>Stratech — Architecture Review</span>
+      <span>Action Intelligence</span>
+      <span>2026-07-13</span>
+    </footer>
+  </main>
+</div>
