@@ -1,4 +1,4 @@
-<title>STRATECH Core — Completion Board</title>
+<title>STRATECH V1 — Completion Board</title>
 <style>
   :root{
     --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
@@ -51,83 +51,80 @@
   .chip.ok{color:var(--ok); background:var(--ok-bg);}
   .chip.warn{color:var(--warn); background:var(--warn-bg);}
   .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  .chip.next{color:var(--accent); background:var(--surface-2); border:1px solid var(--accent);}
   .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
   .callout.guard{border-left-color:var(--guard);}
   .callout.warn{border-left-color:var(--warn);}
+  .callout.ok{border-left-color:var(--ok);}
   .callout b{color:var(--ink);}
   .bar-track{background:var(--surface-2); border-radius:4px; height:8px; width:100%; overflow:hidden;}
   .bar-fill{background:var(--ok); height:100%; border-radius:4px;}
   .bar-fill.zero{background:var(--border);}
   .pct{font-family: ui-monospace, monospace; font-size:.8rem; white-space:nowrap;}
-  .track{font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.03em; text-transform:uppercase; padding:2px 7px; border-radius:3px; border:1px solid currentColor; white-space:nowrap;}
-  .track.a{color:var(--accent);}
-  .track.b{color:var(--ink-dim);}
+  .tier{font-family: ui-monospace, monospace; font-size:11px; letter-spacing:.03em; text-transform:uppercase; padding:3px 8px; border-radius:3px; border:1px solid currentColor; white-space:nowrap; display:inline-block;}
+  .tier.core{color:var(--accent);}
+  .tier.foundation{color:var(--ink-dim);}
+  .tier.essentials{color:var(--warn);}
+  .tier.expansion{color:var(--guard);}
   footer{border-top:1px solid var(--border); margin-top:60px; padding-top:20px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
 </style>
 
 <main>
-  <div class="kicker">Chief Product Architect · STRATECH Core · Completion Board</div>
-  <h1>STRATECH Core — Completion Board</h1>
-  <p class="subtitle">Análise arquitetural do roadmap completo, entregável único por decisão do Founder
-    (substitui os 4 documentos originalmente pedidos pelo Chief Product Architect). Baseado no estado real
-    do código, no Product Blueprint v1 (<code>docs/product/blueprint/</code>) e no veredito GO do RC-1 —
-    nenhuma Capability abaixo é hipotética.</p>
+  <div class="kicker">Chief Product Architect · STRATECH V1 · Completion Board</div>
+  <h1>STRATECH V1 — Completion Board</h1>
+  <p class="subtitle">Rev. 2 -- reorganizado por decisão do Founder: a referência estratégica deixa de ser
+    "STRATECH Core" e passa a ser <b>STRATECH V1</b>, estruturada em 4 categorias (Product Core, Platform
+    Foundation, Enterprise Essentials, Enterprise Expansion). A Rev. 1 foi aprovada como fotografia correta
+    do estado atual da plataforma -- esta revisão reorganiza a mesma fotografia, não a refaz. Nenhum item
+    novo foi inventado; nenhum fato mudou desde a Rev. 1.</p>
   <div class="meta-row">
-    <span><b>Escopo</b> STRATECH Core (antes chamado "V1")</span>
+    <span><b>Escopo</b> STRATECH V1</span>
     <span><b>Modelo</b> Frente A (Product Completion) + Frente B (Product Validation), em paralelo</span>
     <span><b>Data</b> 2026-07-13</span>
   </div>
 
-  <h2>1. O que pertence ao STRATECH Core</h2>
-  <p>Critério de corte: pertence ao Core tudo que reutiliza a arquitetura já existente (agentes, BFF,
-    Design System, Executive Brief) e não depende de nenhuma decisão de backend ainda não tomada. O que
-    exige uma entidade de domínio nova, uma API de armazenamento nova, ou um RFC de backend específico
-    fica fora do Core por definição — não porque seja menos importante, mas porque abri-lo agora
-    contrariaria "reutilizar arquitetura existente" e multiplicaria o tempo até a conclusão.</p>
-
+  <h2>1. As 4 categorias do STRATECH V1</h2>
   <table>
-    <thead><tr><th>Pertence ao Core</th><th>Por quê</th></tr></thead>
+    <thead><tr><th>Categoria</th><th>Definição</th><th>Contém</th></tr></thead>
     <tbody>
-      <tr><td>As 3 Capabilities de Intelligence (Projeto, Risco, Comunicação)</td><td>Já reais, já testadas, já com veredito GO do RC-1</td></tr>
-      <tr><td>Shell, Dashboard, Projetos, Workspace</td><td>Já reais, infraestrutura sobre a qual as 3 Capabilities rodam</td></tr>
-      <tr><td>Executive Brief Contract</td><td>Formaliza a estrutura já quase-idêntica dos 3 Briefs existentes — nenhum componente novo, nenhuma entidade nova</td></tr>
-      <tr><td>Decision Catalog / Decision Domain / Decision Context</td><td>Reorganização interna do <code>ANALYSIS_CATALOG</code> já existente — arquitetural, não visível na UI, já recomendado na Architecture Review do FS-006</td></tr>
-      <tr><td>Hardening de produção (backup, versionamento de API, model_version, gate de E2E no CI)</td><td>Não são Capabilities, mas são pré-condição para a própria definição do Founder de "pronto para produção" — sem elas, nenhuma Capability pode honestamente ser chamada de concluída</td></tr>
+      <tr><td><span class="tier core">Product Core</span></td><td>O ciclo Compreender → Decidir → Agir → Acompanhar em si -- as Capabilities de IA e o padrão de decisão que as atravessa</td><td>Capabilities 01/02/03, Decision Momentum, Action Intelligence (a abrir)</td></tr>
+      <tr><td><span class="tier foundation">Platform Foundation</span></td><td>A infraestrutura sobre a qual todo Product Core roda -- sem valor de IA próprio, mas sem ela nenhuma Capability existe</td><td>Shell, Dashboard, Projetos, Workspace, Design System, BFF, sessão Nível 1</td></tr>
+      <tr><td><span class="tier essentials">Enterprise Essentials (V1)</span></td><td>Não é uma Capability, mas é condição para chamar o V1 de "pronto para produção" (critério do próprio Founder) -- pertence ao V1, mas não compete pelo mesmo tempo do Product Core agora</td><td>Executive Brief Contract, Decision Catalog/Domain/Context, backup/restore, versionamento de API, <code>model_version</code>, gate de E2E no CI</td></tr>
+      <tr><td><span class="tier expansion">Enterprise Expansion (V2)</span></td><td>Fora do V1 por definição -- exige entidade de domínio nova ou RFC de backend ainda não escrito</td><td>AI Chat, Document Intelligence, Integrations, multi-tenant/RBAC/login por usuário, Release 1.0</td></tr>
     </tbody>
   </table>
-
-  <table>
-    <thead><tr><th>Fica fora do Core (pós-Core)</th><th>Por quê</th></tr></thead>
-    <tbody>
-      <tr><td>AI Chat</td><td>Bloqueado -- depende de CP-001 (orquestração conversacional), já formalmente adiado; exige RFC de backend próprio antes de qualquer RFC de frontend</td></tr>
-      <tr><td>Document Intelligence</td><td>Bloqueado -- nenhuma API de armazenamento/extração existe; o pipeline anterior foi removido como código órfão (TASK-KN-01)</td></tr>
-      <tr><td>Integrations (Jira/Slack/Teams)</td><td>Bloqueado -- entidade <code>Integration</code> não existe; cada integração é uma superfície de segurança nova (OAuth de terceiros)</td></tr>
-      <tr><td>Multi-tenant / RBAC / login por usuário</td><td>Exige as entidades <code>Organization</code>/<code>User</code>/<code>Role</code> do zero -- mudança de modelo de dados não trivial, não uma extensão do que existe. <b>Decisão pendente abaixo (não decidida unilateralmente).</b></td></tr>
-      <tr><td>Uma 4ª Capability de IA nova</td><td>Não descartada -- só não entra automaticamente no Core sem passar pelo processo de 8 etapas (Discovery -&gt; ... -&gt; Founder Approval), como toda Capability anterior</td></tr>
-    </tbody>
-  </table>
+  <div class="callout ok">
+    A categorização em 4 níveis resolve, por conta própria, a decisão que a Rev. 1 havia deixado pendente
+    (autenticação multi-usuário): ela se encaixa estruturalmente em <b>Enterprise Expansion (V2)</b>, não em
+    V1 -- o produto permanece demonstrável e pilotável com a sessão de workspace atual.
+  </div>
 
   <h2>2. Capability Matrix</h2>
   <table>
-    <thead><tr><th>Capability / Item</th><th>Status</th><th>% Conclusão</th><th>Evidência</th></tr></thead>
+    <thead><tr><th>Categoria</th><th>Item</th><th>Status</th><th>% Conclusão</th><th>Evidência</th></tr></thead>
     <tbody>
-      <tr><td>Shell &amp; Navegação (sessão Nível 1, Sidebar, Design System)</td><td><span class="chip ok">CONCLUÍDO</span></td><td><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="pct">100%</span></td><td>TIP-002</td></tr>
-      <tr><td>Dashboard Executivo</td><td><span class="chip ok">CONCLUÍDO</span></td><td><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="pct">100%</span></td><td>FS-001/TIP-001</td></tr>
-      <tr><td>Projetos (diretório)</td><td><span class="chip ok">CONCLUÍDO</span></td><td><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="pct">100%</span></td><td>FS-004/FS-004A</td></tr>
-      <tr><td>Workspace (superfície por projeto)</td><td><span class="chip ok">CONCLUÍDO</span></td><td><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="pct">100%</span></td><td>FS-004</td></tr>
-      <tr><td>Capability 01 -- Project Intelligence</td><td><span class="chip ok">CONCLUÍDO</span></td><td><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="pct">100%</span></td><td>TIP-005/005A</td></tr>
-      <tr><td>Capability 02 -- Risk Intelligence</td><td><span class="chip ok">CONCLUÍDO</span></td><td><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="pct">100%</span></td><td>TIP-006</td></tr>
-      <tr><td>Capability 03 -- Communication Intelligence</td><td><span class="chip ok">CONCLUÍDO</span></td><td><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="pct">100%</span></td><td>TIP-007</td></tr>
-      <tr><td>RC-1 -- jornada integrada ponta a ponta</td><td><span class="chip ok">GO</span></td><td><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="pct">100%</span></td><td>RC-1 Readiness Review</td></tr>
-      <tr><td>Executive Brief Contract</td><td><span class="chip warn">NÃO INICIADO</span></td><td><div class="bar-track"><div class="bar-fill zero" style="width:6%"></div></div><span class="pct">0%</span></td><td>Recomendado, FS-006 Architecture Review §15; achado real no RC-1 (Comunicação sem "Decisão sugerida")</td></tr>
-      <tr><td>Decision Catalog / Decision Domain / Decision Context</td><td><span class="chip warn">NÃO INICIADO</span></td><td><div class="bar-track"><div class="bar-fill zero" style="width:6%"></div></div><span class="pct">0%</span></td><td>Recomendado, FS-006 Architecture Review §15</td></tr>
-      <tr><td>Backup/restore do banco (testado)</td><td><span class="chip guard">NÃO INICIADO</span></td><td><div class="bar-track"><div class="bar-fill zero" style="width:0%"></div></div><span class="pct">0%</span></td><td>Risco Crítico, Product Blueprint §12</td></tr>
-      <tr><td>Versionamento de API (<code>/v1/</code>)</td><td><span class="chip guard">NÃO INICIADO</span></td><td><div class="bar-track"><div class="bar-fill zero" style="width:0%"></div></div><span class="pct">0%</span></td><td>Risco Alto, Product Blueprint §12</td></tr>
-      <tr><td><code>model_version</code> por análise</td><td><span class="chip guard">NÃO INICIADO</span></td><td><div class="bar-track"><div class="bar-fill zero" style="width:0%"></div></div><span class="pct">0%</span></td><td>Risco Alto, Product Blueprint §12</td></tr>
-      <tr><td>Gate de E2E (Playwright) no CI</td><td><span class="chip warn">PARCIAL</span></td><td><div class="bar-track"><div class="bar-fill" style="width:40%"></div></div><span class="pct">40%</span></td><td>106 testes existem e passam localmente; CI só roda vitest/tsc/eslint/build, não Playwright (evidence entry 015)</td></tr>
-      <tr><td>Rate limiter distribuído (Redis)</td><td><span class="chip">DEFERÍVEL</span></td><td><div class="bar-track"><div class="bar-fill zero" style="width:0%"></div></div><span class="pct">0%</span></td><td>Risco Alto só em deploy multi-instância -- ADR-005</td></tr>
-      <tr><td>Mecanismo de exclusão / LGPD</td><td><span class="chip">DEFERÍVEL até dado real</span></td><td><div class="bar-track"><div class="bar-fill zero" style="width:0%"></div></div><span class="pct">0%</span></td><td>Risco Crítico só com PII real -- Product Blueprint §12</td></tr>
-      <tr><td>Autenticação multi-usuário (RBAC)</td><td><span class="chip guard">DECISÃO PENDENTE</span></td><td><div class="bar-track"><div class="bar-fill zero" style="width:0%"></div></div><span class="pct">0%</span></td><td>Ver Seção 6 -- não decidido unilateralmente</td></tr>
+      <tr><td><span class="tier core">Core</span></td><td>Capability 01 -- Project Intelligence (Compreender)</td><td><span class="chip ok">CONCLUÍDO</span></td><td><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="pct">100%</span></td><td>TIP-005/005A</td></tr>
+      <tr><td><span class="tier core">Core</span></td><td>Capability 02 -- Risk Intelligence (Compreender/Decidir)</td><td><span class="chip ok">CONCLUÍDO</span></td><td><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="pct">100%</span></td><td>TIP-006</td></tr>
+      <tr><td><span class="tier core">Core</span></td><td>Capability 03 -- Communication Intelligence (Compreender)</td><td><span class="chip ok">CONCLUÍDO</span></td><td><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="pct">100%</span></td><td>TIP-007</td></tr>
+      <tr><td><span class="tier core">Core</span></td><td>Decision Momentum (Decidir) -- embutido nos 3 Briefs</td><td><span class="chip ok">CONCLUÍDO</span></td><td><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="pct">100%</span></td><td>TIP-005A/006/007</td></tr>
+      <tr><td><span class="tier core">Core</span></td><td>Action Intelligence (Agir) -- fecha o ciclo</td><td><span class="chip next">DISCOVERY EM ANDAMENTO</span></td><td><div class="bar-track"><div class="bar-fill zero" style="width:2%"></div></div><span class="pct">0%</span></td><td>Iniciado nesta sessão, por autorização do Founder</td></tr>
+      <tr><td><span class="tier core">Core</span></td><td>Acompanhamento (Acompanhar) -- 4º elo do ciclo</td><td><span class="chip guard">ESCOPO A DEFINIR</span></td><td><div class="bar-track"><div class="bar-fill zero" style="width:0%"></div></div><span class="pct">0%</span></td><td>Pode ser parte de Action Intelligence ou Capability própria -- decisão do Discovery, não deste Board</td></tr>
+      <tr><td><span class="tier foundation">Foundation</span></td><td>Shell &amp; Navegação</td><td><span class="chip ok">CONCLUÍDO</span></td><td><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="pct">100%</span></td><td>TIP-002</td></tr>
+      <tr><td><span class="tier foundation">Foundation</span></td><td>Dashboard Executivo</td><td><span class="chip ok">CONCLUÍDO</span></td><td><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="pct">100%</span></td><td>FS-001/TIP-001</td></tr>
+      <tr><td><span class="tier foundation">Foundation</span></td><td>Projetos (diretório)</td><td><span class="chip ok">CONCLUÍDO</span></td><td><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="pct">100%</span></td><td>FS-004/FS-004A</td></tr>
+      <tr><td><span class="tier foundation">Foundation</span></td><td>Workspace</td><td><span class="chip ok">CONCLUÍDO</span></td><td><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="pct">100%</span></td><td>FS-004</td></tr>
+      <tr><td><span class="tier foundation">Foundation</span></td><td>RC-1 -- jornada integrada ponta a ponta</td><td><span class="chip ok">GO</span></td><td><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="pct">100%</span></td><td>RC-1 Readiness Review</td></tr>
+      <tr><td><span class="tier essentials">Essentials</span></td><td>Executive Brief Contract</td><td><span class="chip warn">ADIADO (não iniciar agora)</span></td><td><div class="bar-track"><div class="bar-fill zero" style="width:0%"></div></div><span class="pct">0%</span></td><td>Recomendado, FS-006 §15; achado real no RC-1 (Comunicação sem "Decisão sugerida")</td></tr>
+      <tr><td><span class="tier essentials">Essentials</span></td><td>Decision Catalog / Domain / Context</td><td><span class="chip warn">ADIADO (não iniciar agora)</span></td><td><div class="bar-track"><div class="bar-fill zero" style="width:0%"></div></div><span class="pct">0%</span></td><td>Recomendado, FS-006 §15</td></tr>
+      <tr><td><span class="tier essentials">Essentials</span></td><td>Backup/restore do banco (testado)</td><td><span class="chip warn">ADIADO (não iniciar agora)</span></td><td><div class="bar-track"><div class="bar-fill zero" style="width:0%"></div></div><span class="pct">0%</span></td><td>Risco Crítico, Product Blueprint §12</td></tr>
+      <tr><td><span class="tier essentials">Essentials</span></td><td>Versionamento de API (<code>/v1/</code>)</td><td><span class="chip warn">ADIADO (não iniciar agora)</span></td><td><div class="bar-track"><div class="bar-fill zero" style="width:0%"></div></div><span class="pct">0%</span></td><td>Risco Alto, Product Blueprint §12</td></tr>
+      <tr><td><span class="tier essentials">Essentials</span></td><td><code>model_version</code> por análise</td><td><span class="chip warn">ADIADO (não iniciar agora)</span></td><td><div class="bar-track"><div class="bar-fill zero" style="width:0%"></div></div><span class="pct">0%</span></td><td>Risco Alto, Product Blueprint §12</td></tr>
+      <tr><td><span class="tier essentials">Essentials</span></td><td>Gate de E2E (Playwright) no CI</td><td><span class="chip warn">PARCIAL, adiado</span></td><td><div class="bar-track"><div class="bar-fill" style="width:40%"></div></div><span class="pct">40%</span></td><td>106 testes existem e passam localmente; CI não roda Playwright</td></tr>
+      <tr><td><span class="tier expansion">Expansion</span></td><td>AI Chat</td><td><span class="chip guard">BLOQUEADO</span></td><td><div class="bar-track"><div class="bar-fill zero" style="width:0%"></div></div><span class="pct">0%</span></td><td>Depende de CP-001, adiado formalmente</td></tr>
+      <tr><td><span class="tier expansion">Expansion</span></td><td>Document Intelligence</td><td><span class="chip guard">BLOQUEADO</span></td><td><div class="bar-track"><div class="bar-fill zero" style="width:0%"></div></div><span class="pct">0%</span></td><td>Sem API de armazenamento; pipeline removido (TASK-KN-01)</td></tr>
+      <tr><td><span class="tier expansion">Expansion</span></td><td>Integrations (Jira/Slack/Teams)</td><td><span class="chip guard">BLOQUEADO</span></td><td><div class="bar-track"><div class="bar-fill zero" style="width:0%"></div></div><span class="pct">0%</span></td><td>Entidade <code>Integration</code> não existe</td></tr>
+      <tr><td><span class="tier expansion">Expansion</span></td><td>Multi-tenant / RBAC / login por usuário</td><td><span class="chip guard">V2 POR DEFINIÇÃO</span></td><td><div class="bar-track"><div class="bar-fill zero" style="width:0%"></div></div><span class="pct">0%</span></td><td>Exige <code>Organization</code>/<code>User</code>/<code>Role</code> do zero</td></tr>
+      <tr><td><span class="tier expansion">Expansion</span></td><td>Rate limiter distribuído / mecanismo de exclusão (LGPD)</td><td><span class="chip">DEFERÍVEL</span></td><td><div class="bar-track"><div class="bar-fill zero" style="width:0%"></div></div><span class="pct">0%</span></td><td>Só urgente com deploy multi-instância / PII real</td></tr>
     </tbody>
   </table>
 
@@ -135,90 +132,63 @@
   <table>
     <thead><tr><th>Item</th><th>Depende de</th><th>Desbloqueia</th></tr></thead>
     <tbody>
-      <tr><td>Executive Brief Contract</td><td>Nada novo -- é refactor dos 3 Briefs já existentes</td><td>Decision Catalog (mesma superfície de código); fecha o Achado #1 do RC-1</td></tr>
-      <tr><td>Decision Catalog / Decision Domain / Decision Context</td><td>Executive Brief Contract concluído (evita retrabalho na mesma área)</td><td>Base conceitual mais limpa para uma eventual 4ª Capability</td></tr>
-      <tr><td>Versionamento de API (<code>/v1/</code>)</td><td>Nada -- mais barato agora, antes de qualquer consumidor externo (o próprio <code>web/</code> já conta)</td><td>Qualquer Integration futura (pós-Core) sem quebrar contrato</td></tr>
-      <tr><td><code>model_version</code> por análise</td><td>Nada -- migração Alembic isolada</td><td>Auditoria real de qualidade de IA, hoje impossível retroativamente</td></tr>
-      <tr><td>Backup/restore</td><td>Nada -- infraestrutura pura</td><td>Qualquer promessa real de "pronto para produção"</td></tr>
-      <tr><td>Gate de E2E no CI</td><td>Nada -- os 106 testes já existem, só falta o job</td><td>"Totalmente testada" deixa de depender de rodar local à mão</td></tr>
-      <tr><td>Autenticação multi-usuário</td><td>Decisão do Founder sobre escopo (Seção 6) -- se aprovado, depende de desenhar <code>User</code>/<code>Organization</code>/<code>Role</code> (Domain Model, hoje 0/18 dessas entidades reais)</td><td>RBAC, multi-tenant, Release 1.0 -- mas nada do Core atual está bloqueado por ela</td></tr>
-      <tr><td>4ª Capability de IA (se houver)</td><td>Discovery -&gt; Journey -&gt; UX Flow -&gt; FS -&gt; Architecture Review (processo já estabelecido)</td><td>N/A</td></tr>
+      <tr><td>Action Intelligence (Agir)</td><td>Nada tecnicamente -- <code>action_items[]</code> já existe no payload de <code>meeting_intelligence</code> (owner, due_date); ADR-001 já antecipa a extração para tabela própria como evolução válida</td><td>Fecha o ciclo Compreender → Decidir → Agir → Acompanhar -- o objetivo central desta fase do V1</td></tr>
+      <tr><td>Executive Brief Contract</td><td>Nada novo -- refactor dos 3 Briefs já existentes</td><td>Decision Catalog (mesma superfície de código); fecha o Achado #1 do RC-1</td></tr>
+      <tr><td>Decision Catalog / Domain / Context</td><td>Executive Brief Contract concluído (evita retrabalho na mesma área)</td><td>Organização conceitual mais limpa para o próprio Action Intelligence, se ele crescer</td></tr>
+      <tr><td>Versionamento de API / <code>model_version</code> / backup / gate de E2E</td><td>Nada -- infraestrutura pura, independentes entre si</td><td>A alegação honesta de "pronto para produção" no encerramento do V1</td></tr>
+      <tr><td>Multi-tenant / RBAC (V2)</td><td>V1 concluído</td><td>Release 1.0</td></tr>
     </tbody>
   </table>
 
-  <h2>4. Caminho crítico</h2>
-  <p>Nada do que falta para o STRATECH Core bloqueia tecnicamente outra coisa de forma rígida -- a maior
-    parte pode correr em paralelo (Seção 5). O único encadeamento real é
-    <b>Executive Brief Contract → Decision Catalog/Domain/Context</b>, porque os dois tocam exatamente a
-    mesma superfície de código (<code>ANALYSIS_CATALOG</code> e os 3 componentes de Brief) -- fazer os dois
-    ao mesmo tempo, ou fora de ordem, arrisca retrabalho. Esse par de itens é o caminho crítico do Core:
-    é o único trabalho de Capability ainda pendente, todo o resto é hardening de produção que não toca
-    nessa mesma superfície.</p>
+  <h2>4. Caminho crítico do V1</h2>
+  <p>Por decisão do Founder, o caminho crítico agora é um só: <b>fechar o ciclo Compreender → Decidir → Agir
+    → Acompanhar</b> através do Action Intelligence. Executive Brief Contract, Decision Catalog/Domain/
+    Context e todo o Hardening (Enterprise Essentials) continuam corretos e pertencem ao V1, mas foram
+    explicitamente adiados -- não competem pelo caminho crítico desta fase.</p>
 
-  <h2>5. Sequência ótima de implementação</h2>
-  <p>Duas trilhas correm em paralelo, sem dependência cruzada -- por isso podem começar no mesmo dia:</p>
-  <table>
-    <thead><tr><th>Trilha</th><th>Item</th><th>Ordem</th></tr></thead>
-    <tbody>
-      <tr><td rowspan="2"><span class="track a">Trilha A</span><br/>Capability / UX</td><td>1. Executive Brief Contract</td><td>Primeiro</td></tr>
-      <tr><td>2. Decision Catalog / Decision Domain / Decision Context</td><td>Depois de 1</td></tr>
-      <tr><td rowspan="4"><span class="track b">Trilha B</span><br/>Produção / Hardening</td><td>1. Gate de E2E no CI (mais barato -- os testes já existem)</td><td>Qualquer ordem entre si</td></tr>
-      <tr><td>2. Versionamento de API (<code>/v1/</code>)</td><td>Qualquer ordem entre si</td></tr>
-      <tr><td>3. <code>model_version</code> por análise</td><td>Qualquer ordem entre si</td></tr>
-      <tr><td>4. Backup/restore do banco (testado de verdade, não só documentado)</td><td>Qualquer ordem entre si</td></tr>
-    </tbody>
-  </table>
-  <p>Rate limiter distribuído e mecanismo de exclusão (LGPD) ficam fora das duas trilhas -- deferíveis até
-    existir, respectivamente, deploy multi-instância e dado pessoal real de cliente (Seção 2). Autenticação
-    multi-usuário só entra em qualquer trilha após a decisão da Seção 6.</p>
+  <h2>5. Sequência de implementação (reorganizada)</h2>
+  <ol>
+    <li><b>Agora:</b> Discovery → User Journey → UX Flow → Feature Specification → Architecture Review de
+      <b>Action Intelligence</b> (Product Core). Nenhuma implementação até aprovação do Founder no TIP.</li>
+    <li><b>Depois do Action Intelligence:</b> Executive Brief Contract → Decision Catalog/Domain/Context
+      (mesma ordem da Rev. 1 -- só a posição na fila muda, não a lógica interna).</li>
+    <li><b>Em paralelo a qualquer um dos anteriores, quando autorizado:</b> Enterprise Essentials
+      (gate de E2E, versionamento de API, <code>model_version</code>, backup/restore) -- infraestrutura pura,
+      não compete por superfície de código com nenhum dos itens acima.</li>
+    <li><b>Fora desta fase:</b> Enterprise Expansion (V2) -- não inicia antes do V1 estar concluído.</li>
+  </ol>
+  <div class="callout warn">
+    Por instrução explícita do Founder, o item 3 (Enterprise Essentials) também não inicia agora, apesar de
+    poder rodar em paralelo sem conflito técnico -- toda a capacidade de execução desta fase está dedicada
+    ao Action Intelligence.
+  </div>
 
   <h2>6. Riscos de implementação</h2>
   <table>
     <thead><tr><th>Risco</th><th>Severidade</th><th>Mitigação</th></tr></thead>
     <tbody>
-      <tr><td>Executive Brief Contract introduzir regressão visual nos 3 Briefs ao mesmo tempo</td><td><span class="chip warn">MÉDIO</span></td><td>Mesma disciplina já em uso: Visual Fidelity Report com captura real contra o backend em Demo Mode antes de considerar concluído, para cada um dos 3</td></tr>
-      <tr><td>Autenticação multi-usuário ser subestimada como "só mais uma feature"</td><td><span class="chip guard">ALTO</span></td><td>Tratar como o que realmente é -- 3 entidades novas do Domain Model (<code>User</code>, <code>Organization</code>, <code>Role</code>), não uma extensão do BFF atual; exige o mesmo rigor de FS + Architecture Review de qualquer Capability</td></tr>
-      <tr><td>Backup/restore documentado mas nunca restaurado de verdade (mesmo padrão do gap de Docker já registrado)</td><td><span class="chip warn">MÉDIO</span></td><td>Critério de conclusão explícito: só conta como feito após um restore real, não após escrever o script</td></tr>
-      <tr><td>Adiar demais os itens "deferíveis" (rate limiter, LGPD) até virarem bloqueadores de última hora</td><td><span class="chip warn">BAIXO hoje / ALTO se ignorado</span></td><td>Revisitar este Board antes de qualquer decisão de deploy multi-instância ou de aceitar dado pessoal real de cliente -- não é "nunca", é "não agora"</td></tr>
+      <tr><td>Action Intelligence reabrir a decisão de ADR-001 (persistência single-table) sem o mesmo rigor de FS + Architecture Review</td><td><span class="chip guard">ALTO</span></td><td>Tratar a eventual extração de <code>ActionItem</code> para tabela própria como uma decisão arquitetural formal, não um detalhe de implementação -- exatamente o que a Architecture Review do processo oficial existe para capturar</td></tr>
+      <tr><td>"Agir" ser confundido com um sistema de gestão de tarefas completo (Kanban, sprint board)</td><td><span class="chip warn">MÉDIO</span></td><td>O Product Blueprint já registra isso como fora de escopo do produto -- o Discovery precisa reafirmar isso explicitamente, não assumir</td></tr>
+      <tr><td>Adiar Executive Brief Contract empurrar a inconsistência (Achado #1 do RC-1) para dentro das 5 sessões reais de validação</td><td><span class="chip warn">MÉDIO</span></td><td>Já registrado e aceito no RC-1 -- não é um risco novo, é uma consequência já conhecida da priorização</td></tr>
     </tbody>
   </table>
 
   <h2>7. Oportunidades de desenvolvimento paralelo</h2>
   <ul>
-    <li>Toda a Trilha B (E2E no CI, versionamento de API, <code>model_version</code>, backup/restore) não
-      compartilha superfície de código com Briefs/Dialog/Catálogo -- pode rodar 100% em paralelo com a
-      Trilha A sem risco de conflito.</li>
-    <li>Dentro da Trilha B, os 4 itens são independentes entre si -- podem ser sequenciados por
-      conveniência, não por dependência técnica.</li>
-    <li>As 5 sessões reais de validação (Frente B) continuam em paralelo às duas trilhas -- nenhuma delas
-      interrompe a Frente A, por decisão já registrada do Founder.</li>
+    <li>As 5 sessões reais de validação (Frente B) continuam em paralelo a todo o V1 -- nenhuma etapa deste
+      Board interrompe a Frente B, por decisão já registrada do Founder.</li>
+    <li>Enterprise Essentials permanece pronto para iniciar em paralelo assim que houver capacidade --
+      nenhuma dependência técnica o liga ao Action Intelligence.</li>
   </ul>
 
-  <h2>8. Decisões que aguardam o Founder (não decididas aqui)</h2>
-  <div class="callout guard">
-    <b>Escopo de autenticação multi-usuário.</b> É o maior item de esforço/risco de todo este Board e o
-    único que genuinamente expande o Domain Model. Duas leituras válidas: (a) fica fora do STRATECH Core --
-    o produto continua demonstrável e pilotável com senha única de workspace, como já validado no RC-1; ou
-    (b) entra no Core porque "pronto para produção" (critério do próprio Founder para Capability Completion)
-    pressupõe login individual antes de qualquer cliente pago real. Recomendo (a) para não atrasar o
-    caminho crítico real (Trilha A) por um item que não bloqueia nenhuma Capability existente -- mas é uma
-    recomendação, não uma decisão tomada.
-  </div>
-  <div class="callout warn">
-    <b>Uma 4ª Capability de IA.</b> Este Board não propõe nenhuma nova Capability de IA -- todo o trabalho
-    identificado é hardening e consistência do que já existe. Se o Founder quiser abrir uma 4ª Capability
-    agora, ela segue o processo de 8 etapas já estabelecido (Discovery em primeiro lugar), em paralelo ou
-    depois da Trilha A -- decisão do Founder, não uma lacuna deste documento.
-  </div>
-
   <h2>Próximo passo</h2>
-  <p>Aguardando aprovação do Founder sobre este Board. Após aprovação, a Trilha A (Executive Brief Contract)
-    e a Trilha B (hardening de produção) podem iniciar imediatamente e em paralelo -- nenhuma delas reabre
-    uma Capability já concluída, nenhuma delas é uma nova Capability de IA.</p>
+  <p>Board aprovado nesta forma reorganizada. Discovery de Action Intelligence iniciado nesta mesma sessão,
+    em documento separado. Executive Brief Contract e Enterprise Essentials permanecem prontos, mas parados,
+    aguardando a conclusão do ciclo de Action Intelligence.</p>
 
   <footer>
-    <span>Stratech — Core Completion Board</span>
-    <span>Chief Product Architect</span>
+    <span>Stratech — V1 Completion Board</span>
+    <span>Chief Product Architect · Rev. 2</span>
     <span>2026-07-13</span>
   </footer>
 </main>
