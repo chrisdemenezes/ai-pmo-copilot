@@ -31,7 +31,7 @@ test("redirects the root route to /dashboard when authenticated", async ({ page 
   await expect(page).toHaveURL(/\/dashboard/);
 });
 
-test("renders exactly two nav items, only Dashboard active on /dashboard", async ({ page }) => {
+test("renders exactly three nav items, only Dashboard active on /dashboard", async ({ page }) => {
   await login(page);
 
   const visibleNav = (await page.viewportSize())!.width < MOBILE_BREAKPOINT
@@ -39,11 +39,13 @@ test("renders exactly two nav items, only Dashboard active on /dashboard", async
     : page.getByTestId("sidebar-nav");
 
   const links = visibleNav.getByRole("link");
-  await expect(links).toHaveCount(2);
+  await expect(links).toHaveCount(3);
   await expect(links.first()).toHaveAttribute("aria-current", "page");
   await expect(links.first()).toHaveAttribute("href", "/dashboard");
   await expect(links.nth(1)).not.toHaveAttribute("aria-current", "page");
   await expect(links.nth(1)).toHaveAttribute("href", "/projects");
+  await expect(links.nth(2)).not.toHaveAttribute("aria-current", "page");
+  await expect(links.nth(2)).toHaveAttribute("href", "/actions");
 });
 
 test("shows the sidebar shape appropriate to the current breakpoint", async ({ page }) => {

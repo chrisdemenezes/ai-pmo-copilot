@@ -154,6 +154,29 @@ const ANALYSES = [
       },
     },
   },
+  // Meeting for a second project (TIP-008 Incremento 2): proves the
+  // portfolio "Ações" page aggregates across projects, and gives the
+  // encodeURIComponent chain a project name with "/" to exercise.
+  {
+    id: 302,
+    kind: "meeting",
+    project_name: "Implantacao SAP S/4HANA",
+    created_at: "2026-07-06T09:00:00Z",
+    payload: {
+      agent: "meeting_intelligence",
+      project_name: "Implantacao SAP S/4HANA",
+      model_output: {
+        structured: true,
+        summary: "Reunião de preparação do cutover.",
+        decisions: [],
+        action_items: [
+          { description: "Validar plano de cutover com o cliente", owner: "Carla", due_date: daysFromNow(1) },
+        ],
+        issues: [],
+        dependencies: [],
+      },
+    },
+  },
   {
     id: 301,
     kind: "status",

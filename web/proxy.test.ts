@@ -79,4 +79,17 @@ describe("proxy", () => {
     const response = proxy(requestFor("/projects", token));
     expect(response.status).toBe(200);
   });
+
+  // TIP-008 Incremento 2: /actions joins the same gate, same pattern as /projects.
+  it("redirects /actions to /entrar when there is no session cookie", async () => {
+    const response = proxy(requestFor("/actions"));
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/entrar");
+  });
+
+  it("passes /actions through with a valid session cookie", async () => {
+    const { token } = createSessionToken();
+    const response = proxy(requestFor("/actions", token));
+    expect(response.status).toBe(200);
+  });
 });

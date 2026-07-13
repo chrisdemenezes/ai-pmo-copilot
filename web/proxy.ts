@@ -15,6 +15,8 @@ export const config = {
     "/workspace/:path*",
     "/projects",
     "/projects/:path*",
+    "/actions",
+    "/actions/:path*",
     "/api/bff/:path*",
   ],
 };
