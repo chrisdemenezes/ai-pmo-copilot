@@ -10,7 +10,7 @@ async function setBackendScenario(scenario: "data" | "empty" | "unavailable" | "
 }
 
 async function setWorkspaceScenario(
-  endpoint: "summary" | "analyses" | "detail" | "analyze" | "analyzeRisk",
+  endpoint: "summary" | "analyses" | "detail" | "analyze" | "analyzeRisk" | "analyzeMeeting",
   scenario: "data" | "unavailable" | "timeout" | "rate_limited",
 ) {
   const ctx = await playwrightRequest.newContext();
@@ -49,6 +49,7 @@ test.beforeEach(async () => {
   await setWorkspaceScenario("detail", "data");
   await setWorkspaceScenario("analyze", "data");
   await setWorkspaceScenario("analyzeRisk", "data");
+  await setWorkspaceScenario("analyzeMeeting", "data");
 });
 
 test("redirects unauthenticated access to /workspace/:projectName to the login page", async ({
@@ -93,13 +94,14 @@ test("each Workspace panel loads independently -- a failing panel does not block
   await expect(page.getByRole("heading", { name: "Intelligence Timeline" })).toBeVisible();
 });
 
-test("Riscos, Ações and Decisões sections render real content from the mocked analyses", async ({
+test("Riscos and Comunicação sections render real content from the mocked analyses", async ({
   page,
 }) => {
   await login(page);
   await page.goto("/workspace/Aurora");
 
   await expect(page.getByText("Atraso na entrega")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Comunicação" })).toBeVisible();
   await expect(page.getByText("Atualizar cronograma")).toBeVisible();
   await expect(page.getByText("Adiar o go-live em 1 semana")).toBeVisible();
   await expect(page.getByText("Manter cadência atual")).toBeVisible();
@@ -134,8 +136,9 @@ test.describe("Analisar Projeto (TIP-005)", () => {
 
     await page.getByRole("button", { name: "Analisar Projeto" }).click();
     const dialog = page.getByRole("dialog");
-    await expect(dialog.getByText("Status Executivo")).toBeVisible();
-    // Goal-oriented language only -- the technical agent name never appears.
+    // Pergunta -> Capability -> Executor (FS-006 §2.1): the user sees only
+    // the question, never the technical/agent name.
+    await expect(dialog.getByRole("tab", { name: "Como está o projeto?" })).toBeVisible();
     await expect(dialog.getByText("project_status", { exact: false })).toHaveCount(0);
 
     await dialog
@@ -217,7 +220,7 @@ test.describe("Avaliação de Riscos (TIP-006)", () => {
 
     await page.getByRole("button", { name: "Analisar Projeto" }).click();
     const dialog = page.getByRole("dialog");
-    await dialog.getByRole("tab", { name: "Avaliação de Riscos" }).click();
+    await dialog.getByRole("tab", { name: "Quais riscos exigem atenção?" }).click();
     await dialog
       .getByLabel("Contexto do projeto")
       .fill("Fornecedor de middleware sinalizou atraso na integração fiscal.");
@@ -258,13 +261,91 @@ test.describe("Avaliação de Riscos (TIP-006)", () => {
 
     await page.getByRole("button", { name: "Analisar Projeto" }).click();
     const dialog = page.getByRole("dialog");
-    await dialog.getByRole("tab", { name: "Avaliação de Riscos" }).click();
+    await dialog.getByRole("tab", { name: "Quais riscos exigem atenção?" }).click();
     const context = "Contexto detalhado o suficiente para passar da validação de tamanho mínimo.";
     await dialog.getByLabel("Contexto do projeto").fill(context);
     await dialog.getByRole("button", { name: "Executar Análise" }).click();
 
     await expect(dialog).toBeVisible();
     await expect(dialog.getByLabel("Contexto do projeto")).toHaveValue(context);
+    await expect(
+      dialog.getByText("Muitas análises em pouco tempo. Aguarde e tente novamente."),
+    ).toBeVisible();
+  });
+});
+
+// TIP-007 -- terceiro agente (Meeting Intelligence / Comunicação), mesmo
+// padrão dos 2 anteriores: mesmo Dialog, agora com 3 Tabs em forma de
+// pergunta (FS-006 §2.1 -- Pergunta -> Capability -> Executor), mesmo
+// Executive Brief + Decision Momentum, aplicado à Hierarquia Executiva
+// (Impacto, O que mudou, Pontos de atenção, Decisões tomadas,
+// Responsabilidades, Dependências, Próximo passo).
+test.describe("O que mudou na última reunião? (TIP-007)", () => {
+  test("runs a full meeting analysis via the 3rd tab and reflects it in the Workspace and the Dashboard", async ({
+    page,
+  }) => {
+    await login(page);
+    await page.goto("/workspace/Aurora");
+
+    await page.getByRole("button", { name: "Analisar Projeto" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByRole("tab", { name: "O que mudou na última reunião?" }).click();
+    await expect(dialog.getByLabel("Contexto da reunião")).toBeVisible();
+    // Goal-oriented language only -- neither the agent name nor the
+    // backend's own field name for this agent ever appears.
+    await expect(dialog.getByText("meeting_intelligence", { exact: false })).toHaveCount(0);
+    await expect(dialog.getByText("transcript", { exact: false })).toHaveCount(0);
+
+    await dialog
+      .getByLabel("Contexto da reunião")
+      .fill("Ata da reunião semanal: fornecedor confirmou atraso adicional na integração fiscal.");
+    await dialog.getByRole("button", { name: "Executar Análise" }).click();
+
+    await expect(page.getByText("Análise concluída")).toBeVisible();
+    await expect(dialog).not.toBeVisible();
+
+    // Comunicação reflects the new result without a manual reload, in the
+    // Executive Hierarchy order approved in the User Journey.
+    await expect(page.getByRole("heading", { name: "Comunicação" })).toBeVisible();
+    await expect(page.getByText("O que mudou")).toBeVisible();
+    await expect(
+      page.getByText("Fornecedor confirmou atraso adicional na integração fiscal, sem plano de contingência apresentado."),
+    ).toBeVisible();
+    await expect(page.getByText("Pontos de atenção")).toBeVisible();
+    await expect(
+      page.getByText("Fornecedor sem plano de contingência para o atraso na integração fiscal"),
+    ).toBeVisible();
+    await expect(page.getByText("Escalar o atraso ao comitê executivo antes do próximo go-live")).toBeVisible();
+    await expect(page.getByText("Solicitar plano de contingência formal ao fornecedor")).toBeVisible();
+    await expect(page.getByText("Aprovação do comitê executivo para replanejar o go-live")).toBeVisible();
+    // Próximo passo: issues > 0, so the real, existing next step is suggested.
+    await expect(page.getByText("Executar Avaliação de Riscos")).toBeVisible();
+
+    // Dashboard reflects it too -- "Ações pendentes" strip is a single
+    // instance, so the exact new total (Multilift 2 + Aurora 1+2 +
+    // Implantacao SAP 1 = 6) is unambiguous.
+    await page.locator('a[href="/dashboard"]').filter({ visible: true }).first().click();
+    await expect(page).toHaveURL(/\/dashboard/);
+    const acoesCard = page.getByText("Ações pendentes").locator("xpath=..");
+    await expect(acoesCard.getByText("6")).toBeVisible();
+  });
+
+  test("on failure on the meeting tab, keeps the modal open and preserves the typed context", async ({
+    page,
+  }) => {
+    await setWorkspaceScenario("analyzeMeeting", "rate_limited");
+    await login(page);
+    await page.goto("/workspace/Aurora");
+
+    await page.getByRole("button", { name: "Analisar Projeto" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByRole("tab", { name: "O que mudou na última reunião?" }).click();
+    const context = "Contexto detalhado o suficiente para passar da validação de tamanho mínimo.";
+    await dialog.getByLabel("Contexto da reunião").fill(context);
+    await dialog.getByRole("button", { name: "Executar Análise" }).click();
+
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByLabel("Contexto da reunião")).toHaveValue(context);
     await expect(
       dialog.getByText("Muitas análises em pouco tempo. Aguarde e tente novamente."),
     ).toBeVisible();

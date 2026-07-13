@@ -5,13 +5,13 @@ import { WorkspaceHeader } from "./workspace-header";
 import { ExecutiveBrief } from "./executive-brief";
 import { IntelligenceTimeline } from "./intelligence-timeline";
 import { RisksPanel } from "./risks-panel";
-import { ActionsPanel } from "./actions-panel";
-import { DecisionsPanel } from "./decisions-panel";
+import { CommunicationBrief } from "./communication-brief";
 import { useWorkspaceSummary } from "@/lib/hooks/use-workspace-summary";
 import { useWorkspaceTimeline } from "@/lib/hooks/use-workspace-timeline";
 import { useWorkspaceLatestByKind } from "@/lib/hooks/use-workspace-latest";
 import { useSubmitProjectStatus } from "@/lib/hooks/use-submit-project-status";
 import { useSubmitRiskReview } from "@/lib/hooks/use-submit-risk-review";
+import { useSubmitMeetingIntelligence } from "@/lib/hooks/use-submit-meeting-intelligence";
 
 vi.mock("@/lib/hooks/use-workspace-summary", () => ({ useWorkspaceSummary: vi.fn() }));
 vi.mock("@/lib/hooks/use-workspace-timeline", () => ({ useWorkspaceTimeline: vi.fn() }));
@@ -22,12 +22,14 @@ vi.mock("@/lib/hooks/use-workspace-latest", () => ({ useWorkspaceLatestByKind: v
 // network.
 vi.mock("@/lib/hooks/use-submit-project-status", () => ({ useSubmitProjectStatus: vi.fn() }));
 vi.mock("@/lib/hooks/use-submit-risk-review", () => ({ useSubmitRiskReview: vi.fn() }));
+vi.mock("@/lib/hooks/use-submit-meeting-intelligence", () => ({ useSubmitMeetingIntelligence: vi.fn() }));
 
 const mockedSummary = vi.mocked(useWorkspaceSummary);
 const mockedTimeline = vi.mocked(useWorkspaceTimeline);
 const mockedLatest = vi.mocked(useWorkspaceLatestByKind);
 const mockedSubmitStatus = vi.mocked(useSubmitProjectStatus);
 const mockedSubmitRisk = vi.mocked(useSubmitRiskReview);
+const mockedSubmitMeeting = vi.mocked(useSubmitMeetingIntelligence);
 mockedSubmitStatus.mockReturnValue({
   mutate: vi.fn(),
   reset: vi.fn(),
@@ -36,6 +38,13 @@ mockedSubmitStatus.mockReturnValue({
   error: null,
 } as never);
 mockedSubmitRisk.mockReturnValue({
+  mutate: vi.fn(),
+  reset: vi.fn(),
+  isPending: false,
+  isError: false,
+  error: null,
+} as never);
+mockedSubmitMeeting.mockReturnValue({
   mutate: vi.fn(),
   reset: vi.fn(),
   isPending: false,
@@ -430,7 +439,7 @@ describe("RisksPanel (Painel C, 'risk')", () => {
   });
 });
 
-describe("ActionsPanel and DecisionsPanel (share the 'meeting' query, independent states)", () => {
+describe("CommunicationBrief (Painel C, 'meeting' -- FS-006 Hierarquia Executiva)", () => {
   const meetingData = {
     id: 5,
     kind: "meeting" as const,
@@ -450,17 +459,58 @@ describe("ActionsPanel and DecisionsPanel (share the 'meeting' query, independen
     },
   };
 
-  it("ActionsPanel renders action items", () => {
+  it("renders all 6 real levels of the hierarchy from a single payload", () => {
     mockedLatest.mockReturnValue(summaryState({ data: meetingData }));
-    render(<ActionsPanel projectName="Aurora" />);
+    render(<CommunicationBrief projectName="Aurora" />);
+    expect(screen.getByText("resumo")).toBeInTheDocument();
+    expect(screen.getByText("Decisão A")).toBeInTheDocument();
     expect(screen.getByText("Enviar proposta")).toBeInTheDocument();
     expect(screen.getByText(/Ana/)).toBeInTheDocument();
+    expect(screen.getByText("Aprovação jurídica")).toBeInTheDocument();
+    expect(screen.getByText("1 decisão(ões) · 0 ponto(s) de atenção · 1 responsabilidade(s)")).toBeInTheDocument();
   });
 
-  it("DecisionsPanel renders decisions and dependencies from the same payload", () => {
+  it("suggests the next step from real issues/decisions counts -- never a fabricated one", () => {
     mockedLatest.mockReturnValue(summaryState({ data: meetingData }));
-    render(<DecisionsPanel projectName="Aurora" />);
-    expect(screen.getByText("Decisão A")).toBeInTheDocument();
-    expect(screen.getByText("Aprovação jurídica")).toBeInTheDocument();
+    render(<CommunicationBrief projectName="Aurora" />);
+    expect(screen.getByText("Atualizar Status Executivo")).toBeInTheDocument();
+  });
+
+  it("falls back honestly when there are no issues and no decisions", () => {
+    mockedLatest.mockReturnValue(
+      summaryState({
+        data: {
+          ...meetingData,
+          payload: {
+            ...meetingData.payload,
+            model_output: { ...meetingData.payload.model_output, decisions: [] },
+          },
+        },
+      }),
+    );
+    render(<CommunicationBrief projectName="Aurora" />);
+    expect(
+      screen.getByText("Nenhum próximo passo adicional sugerido a partir desta reunião."),
+    ).toBeInTheDocument();
+  });
+
+  it("treats structured=true with a mismatched shape the same as unstructured -- never crashes", () => {
+    mockedLatest.mockReturnValue(
+      summaryState({
+        data: {
+          id: 6,
+          kind: "meeting",
+          project_name: "Aurora",
+          created_at: "2026-07-01T00:00:00Z",
+          payload: {
+            agent: "meeting_intelligence",
+            project_name: "Aurora",
+            model_output: { structured: true, health_status: "green", key_findings: [], recommendations: [] },
+          },
+        },
+      }),
+    );
+    render(<CommunicationBrief projectName="Aurora" />);
+    expect(screen.getByText("Resposta da IA não estruturada nesta análise.")).toBeInTheDocument();
   });
 });

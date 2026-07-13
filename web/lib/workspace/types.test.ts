@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { hasRiskShape, hasStatusShape } from "./types";
+import { hasMeetingShape, hasRiskShape, hasStatusShape } from "./types";
 
 describe("hasRiskShape / hasStatusShape (TIP-006)", () => {
   it("accepts a well-formed RiskModelOutput", () => {
@@ -32,5 +32,32 @@ describe("hasRiskShape / hasStatusShape (TIP-006)", () => {
 
   it("rejects structured=false", () => {
     expect(hasStatusShape({ structured: false, raw_output: "x" })).toBe(false);
+  });
+});
+
+describe("hasMeetingShape (TIP-007)", () => {
+  it("accepts a well-formed MeetingModelOutput", () => {
+    expect(
+      hasMeetingShape({
+        structured: true,
+        summary: "resumo",
+        decisions: [],
+        action_items: [],
+        issues: [],
+        dependencies: [],
+      }),
+    ).toBe(true);
+  });
+
+  it("rejects structured=true whose fields belong to a different agent's schema", () => {
+    expect(hasMeetingShape({ structured: true, health_status: "green" } as never)).toBe(false);
+    expect(hasMeetingShape({ structured: true, risks: [] } as never)).toBe(false);
+    expect(hasMeetingShape({ structured: true, summary: "x", decisions: "not-an-array" } as never)).toBe(
+      false,
+    );
+  });
+
+  it("rejects structured=false", () => {
+    expect(hasMeetingShape({ structured: false, raw_output: "x" })).toBe(false);
   });
 });

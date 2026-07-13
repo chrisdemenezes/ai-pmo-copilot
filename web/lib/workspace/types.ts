@@ -60,6 +60,21 @@ export interface MeetingModelOutput {
   dependencies: string[];
 }
 
+/** Same reasoning as hasRiskShape/hasStatusShape -- "structured: true" alone is not enough (TIP-006). */
+export function hasMeetingShape(
+  modelOutput: MeetingModelOutput | UnstructuredModelOutput,
+): modelOutput is MeetingModelOutput {
+  const candidate = modelOutput as MeetingModelOutput;
+  return (
+    modelOutput.structured === true &&
+    typeof candidate.summary === "string" &&
+    Array.isArray(candidate.decisions) &&
+    Array.isArray(candidate.action_items) &&
+    Array.isArray(candidate.issues) &&
+    Array.isArray(candidate.dependencies)
+  );
+}
+
 export interface StatusModelOutput {
   structured: true;
   health_status: "green" | "yellow" | "red";
@@ -129,4 +144,11 @@ export interface AnalyzeRiskReviewResponse {
   agent: string;
   project_name: string | null;
   model_output: RiskModelOutput | UnstructuredModelOutput;
+}
+
+/** Mirrors MeetingIntelligenceAgent.analyze's return shape (src/agents/meeting_intelligence/agent.py). */
+export interface AnalyzeMeetingIntelligenceResponse {
+  agent: string;
+  project_name: string | null;
+  model_output: MeetingModelOutput | UnstructuredModelOutput;
 }

@@ -18,6 +18,7 @@ const workspaceScenario = {
   detail: "data",
   analyze: "data",
   analyzeRisk: "data",
+  analyzeMeeting: "data",
 };
 
 let nextAnalysisId = 1000;
@@ -378,6 +379,72 @@ const server = http.createServer((req, res) => {
 
       return send(res, 200, {
         agent: "risk_review",
+        project_name: projectName,
+        model_output: modelOutput,
+      });
+    });
+    return;
+  }
+
+  // TIP-007 -- Meeting Intelligence (Comunicação / FS-006). The only one of
+  // the 3 analyze routes whose body uses "transcript", not "project_context"
+  // -- matches web/app/api/bff/.../analyze/meeting/route.ts, which is the
+  // single place that renames it before calling this endpoint.
+  // pending_action_items is cumulative across every meeting analysis ever
+  // run for the project (same summation rule as open_risks), so the mock
+  // increments rather than replaces it.
+  if (req.method === "POST" && url.pathname === "/api/meetings/analyze") {
+    if (workspaceScenario.analyzeMeeting === "timeout") return; // never respond
+    if (workspaceScenario.analyzeMeeting === "rate_limited") {
+      return send(res, 429, { detail: "Rate limit exceeded" });
+    }
+    if (workspaceScenario.analyzeMeeting === "unavailable") {
+      return send(res, 500, { detail: "internal error" });
+    }
+
+    let raw = "";
+    req.on("data", (chunk) => (raw += chunk));
+    req.on("end", () => {
+      const { transcript, project_name: projectName } = JSON.parse(raw);
+      if (!transcript || transcript.trim().length < 10) {
+        return send(res, 422, { detail: "transcript inválido" });
+      }
+
+      const id = nextAnalysisId++;
+      const createdAt = new Date().toISOString();
+      const modelOutput = {
+        structured: true,
+        summary: "Fornecedor confirmou atraso adicional na integração fiscal, sem plano de contingência apresentado.",
+        decisions: ["Escalar o atraso ao comitê executivo antes do próximo go-live"],
+        action_items: [
+          { description: "Solicitar plano de contingência formal ao fornecedor", owner: "Ana", due_date: "2026-07-20" },
+          { description: "Atualizar o cronograma de testes de integração", owner: null, due_date: null },
+        ],
+        issues: ["Fornecedor sem plano de contingência para o atraso na integração fiscal"],
+        dependencies: ["Aprovação do comitê executivo para replanejar o go-live"],
+      };
+
+      ANALYSES.push({
+        id,
+        kind: "meeting",
+        project_name: projectName,
+        created_at: createdAt,
+        payload: { agent: "meeting_intelligence", project_name: projectName, model_output: modelOutput },
+      });
+
+      const summary = WORKSPACE_SUMMARY[projectName];
+      if (summary) {
+        summary.total_analyses += 1;
+        summary.pending_action_items += modelOutput.action_items.length;
+      }
+      const portfolioEntry = SAMPLE.find((p) => p.project_name === projectName);
+      if (portfolioEntry) {
+        portfolioEntry.total_analyses += 1;
+        portfolioEntry.pending_action_items += modelOutput.action_items.length;
+      }
+
+      return send(res, 200, {
+        agent: "meeting_intelligence",
         project_name: projectName,
         model_output: modelOutput,
       });

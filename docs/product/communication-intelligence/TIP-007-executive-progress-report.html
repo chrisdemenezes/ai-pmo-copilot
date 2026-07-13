@@ -1,0 +1,159 @@
+<title>TIP-007 — Executive Progress Report</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --ok:#2f7a4f; --ok-bg:#e1f0e5;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --ok:#7fd19f; --ok-bg:#1a3324;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --ok:#7fd19f; --ok-bg:#1a3324;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  main{max-width:980px; margin:0 auto; padding:56px 40px 100px;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1{font-size:clamp(1.7rem,4vw,2.3rem); line-height:1.16; margin:0 0 14px; font-weight:600; text-wrap:balance;}
+  .subtitle{color:var(--ink-dim); max-width:74ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding:18px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim); margin-bottom:16px;}
+  .meta-row b{color:var(--ink);}
+  h2{font-size:1.2rem; margin:40px 0 6px; padding-bottom:10px; border-bottom:2px solid var(--ink);}
+  p{margin:0 0 12px; max-width:76ch;}
+  ul{margin:0 0 14px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:74ch;}
+  table{width:100%; border-collapse:collapse; font-size:.85rem; margin:12px 0 24px;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 10px; border-bottom:1px solid var(--ink);}
+  td{padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top;}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.ok{color:var(--ok); background:var(--ok-bg);}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout b{color:var(--ink);}
+  footer{border-top:1px solid var(--border); margin-top:60px; padding-top:20px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<main>
+  <div class="kicker">Chief Product Engineer · TIP-007 · Encerramento</div>
+  <h1>Executive Progress Report — Inteligência de Reunião</h1>
+  <p class="subtitle">Terceiro agente da plataforma, primeira Feature da Capability 03 (Communication
+    Intelligence), entregue reutilizando integralmente o padrão Executive Brief + Decision Momentum — e o
+    primeiro a nascer diretamente de um processo formal de 8 etapas (User Decision Discovery → User Journey
+    → UX Flow → Feature Specification → Architecture Review → Implementation → Executive Review → Founder
+    Approval), com o catálogo interno reorganizado de agente-primeiro para pergunta-primeiro.</p>
+  <div class="meta-row">
+    <span><b>Capability</b> 03 — Communication Intelligence</span>
+    <span><b>Feature</b> Inteligência de Reunião</span>
+    <span><b>Data</b> 2026-07-13</span>
+    <span><b>Status</b> Concluído — aguardando autorização do Founder</span>
+  </div>
+
+  <h2>O que foi entregue</h2>
+  <ul>
+    <li>Terceira entrada real em <code>ANALYSIS_CATALOG</code> — e reorganização do catálogo inteiro para a
+      hierarquia <code>Pergunta → Capability → Executor</code> (FS-006 §2.1): novo campo <code>capability</code>
+      (<code>"project-intelligence" | "risk-intelligence" | "communication-intelligence"</code>), estritamente
+      arquitetural, nunca renderizado; os 3 <code>goalLabel</code> deixam de nomear o agente ("Status Executivo",
+      "Avaliação de Riscos") e passam a ser perguntas executivas ("Como está o projeto?", "Quais riscos exigem
+      atenção?", "O que mudou na última reunião?")</li>
+    <li>Nova rota BFF <code>POST /api/bff/workspace/[projectName]/analyze/meeting</code> — contrato do hook
+      permanece <code>{project_context}</code>, idêntico aos outros dois, com o rename para <code>transcript</code>
+      (única assimetria de nome de campo do backend) isolado dentro da própria rota</li>
+    <li>Novo hook <code>useSubmitMeetingIntelligence</code>, mesmo template <code>useMutation</code>, mesmas 4
+      invalidações de query</li>
+    <li><code>CommunicationBrief</code> substitui <code>ActionsPanel</code> + <code>DecisionsPanel</code>,
+      implementando a Hierarquia Executiva de 7 níveis definida na User Decision Discovery Rev. 2 e na User
+      Journey: Impacto da reunião → O que mudou → Pontos de atenção → Decisões tomadas → Responsabilidades →
+      Dependências → Próximo passo — cada nível mapeado 1:1 a um campo real do backend, nenhuma classificação
+      inventada</li>
+    <li><code>meeting-momentum.ts</code> — irmão honesto de <code>decision-momentum.ts</code> /
+      <code>risk-momentum.ts</code>: como <code>meeting_intelligence</code> não tem um campo equivalente a
+      severidade, o "Impacto da reunião" é sempre uma manchete de contagem real (decisões · pontos de atenção ·
+      responsabilidades), nunca uma classificação simulada</li>
+    <li>"Próximo passo" mantido como texto, nunca um CTA clicável — confirmado contra o código já publicado dos
+      Briefs de Status e Risco antes de implementar (nenhuma arquitetura de Dialog nova foi criada)</li>
+    <li>Dialog "Analisar Projeto" com Tabs sempre visíveis (a ramificação morta para catálogo de 1 entrada foi
+      removida), rótulo/placeholder do campo de contexto trocando para "Contexto da reunião" só na aba ativa
+      correspondente</li>
+  </ul>
+
+  <h2>Processo de governança seguido (primeira aplicação integral)</h2>
+  <p>Esta foi a primeira Feature conduzida pelas 8 etapas formais mandatadas pelo Founder antes da abertura de
+    qualquer código: User Decision Discovery (com uma revisão para reposicionar o projeto, não a reunião, como
+    objeto principal da experiência) → User Journey (com a Hierarquia Executiva de 7 níveis) → UX Flow (com a
+    virada de catálogo orientado a agente para catálogo orientado a pergunta) → Feature Specification (FS-006,
+    formalizando <code>Pergunta → Capability → Executor</code>) → Architecture Review (3 recomendações registradas
+    para evolução futura, nenhuma no escopo atual) → Implementation (este TIP) → Executive Review → Founder
+    Approval. Cada etapa recebeu aprovação explícita antes do início da seguinte.</p>
+
+  <h2>Critérios de reuso (Founder) — aderência</h2>
+  <table>
+    <thead><tr><th>Elemento a reutilizar</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td>Executive Brief</td><td><span class="chip ok">REUTILIZADO</span> — mesma composição, aplicada à Hierarquia Executiva de 7 níveis</td></tr>
+      <tr><td>Decision Momentum</td><td><span class="chip ok">REUTILIZADO</span> — <code>meeting-momentum.ts</code> espelha <code>decision-momentum.ts</code>/<code>risk-momentum.ts</code></td></tr>
+      <tr><td>Analysis Catalog</td><td><span class="chip ok">REUTILIZADO E EVOLUÍDO</span> — mesma estrutura, campo <code>capability</code> acrescentado (interno, não exposto na UI)</td></tr>
+      <tr><td>Dialog</td><td><span class="chip ok">REUTILIZADO</span> — mesmo componente, Tabs agora sempre visíveis (3 entradas)</td></tr>
+      <tr><td>Hooks</td><td><span class="chip ok">REUTILIZADO</span> — mesmo padrão <code>useMutation</code></td></tr>
+      <tr><td>BFF</td><td><span class="chip ok">REUTILIZADO</span> — mesma convenção <code>.../analyze/{kind}/route.ts</code>; assimetria <code>transcript</code> isolada na própria rota</td></tr>
+      <tr><td>Query invalidation</td><td><span class="chip ok">REUTILIZADO</span> — mesmas 4 keys, kind trocado</td></tr>
+      <tr><td>Design System</td><td><span class="chip ok">REUTILIZADO</span> — zero componente novo</td></tr>
+      <tr><td>Padrão de guarda de schema</td><td><span class="chip ok">REUTILIZADO</span> — <code>hasMeetingShape</code> segue exatamente <code>hasRiskShape</code>/<code>hasStatusShape</code> (TIP-006)</td></tr>
+      <tr><td>Testes</td><td><span class="chip ok">REUTILIZADO</span> — mesma estrutura de suíte (route/hook/component/E2E)</td></tr>
+      <tr><td>Nomes técnicos fora da UI</td><td><span class="chip ok">CUMPRIDO</span> — <code>transcript</code>/<code>issues</code>/<code>summary</code> nunca aparecem na interface</td></tr>
+      <tr><td>Usuário nunca escolhe agente/modelo/tecnologia</td><td><span class="chip ok">CUMPRIDO</span> — Tabs mostram só perguntas executivas</td></tr>
+      <tr><td>Próximo passo nunca é CTA cenográfico</td><td><span class="chip ok">CUMPRIDO</span> — texto, verificado contra o código já publicado</td></tr>
+      <tr><td>Nenhum gráfico/widget/dashboard/tela/arquitetura/backend novo</td><td><span class="chip ok">CUMPRIDO</span></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Testes executados</h2>
+  <table>
+    <thead><tr><th>Gate</th><th>Resultado</th></tr></thead>
+    <tbody>
+      <tr><td>Backend — <code>ruff check src tests</code></td><td>limpo (nenhum arquivo de backend tocado)</td></tr>
+      <tr><td>Backend — <code>pytest</code></td><td>92/92 (regressão, inalterado)</td></tr>
+      <tr><td>Frontend — unit/component (vitest)</td><td>206/206 (25 novos: rota, hook, meeting-momentum, guarda de shape, catálogo, componente, dialog)</td></tr>
+      <tr><td>Frontend — <code>tsc --noEmit</code></td><td>limpo</td></tr>
+      <tr><td>Frontend — <code>eslint .</code></td><td>limpo</td></tr>
+      <tr><td>E2E (Playwright, 3 breakpoints)</td><td>106/106, 2 skip esperados — fluxo completo das 3 abas, cenário de erro na reunião, KPI cumulativo no Dashboard</td></tr>
+      <tr><td>Backend real, sem mock (Demo Mode)</td><td>Fluxo completo executado contra o backend real — resposta semeada manualmente no formato correto (<code>seed_demo_data.py</code> não semeia <code>meeting</code>), 3 capturas confirmando os 7 níveis da hierarquia e o KPI cumulativo "Ações pendentes" propagando corretamente do Brief ao Dashboard</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Recomendações estratégicas registradas (Founder, não implementadas)</h2>
+  <p>Três recomendações foram registradas na Architecture Review para avaliação futura — nenhuma altera o escopo
+    da FS-006 e nenhuma foi implementada neste TIP: (1) evolução do <code>ANALYSIS_CATALOG</code> para um
+    "Decision Catalog"; (2) introdução futura de "Decision Domain" e "Decision Context" como organização interna,
+    nunca exposta na interface; (3) formalização de um "Executive Brief Contract" garantindo que todo Executive
+    Brief, independente da Capability, preserve a mesma estrutura de experiência.</p>
+
+  <h2>Próximo passo</h2>
+  <p>TIP-007 concluído e pronto para commit. A plataforma agora tem 3 agentes reais, mesmo padrão de experiência
+    em todos, e um catálogo interno organizado pergunta-primeiro. Aguardando autorização do Founder para a
+    Executive Review e para o próximo passo da Capability 03.</p>
+
+  <footer>
+    <span>Stratech — TIP-007</span>
+    <span>Executive Progress Report</span>
+    <span>2026-07-13</span>
+  </footer>
+</main>
