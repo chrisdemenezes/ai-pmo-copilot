@@ -1,0 +1,461 @@
+<title>FS-007 — Action Intelligence</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --fato:#0f6b5c; --fato-bg:#e2efe9;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --plan:#2f5f9e; --plan-bg:#e2ebf6;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --fato:#4fd6b8; --fato-bg:#173029;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --plan:#7fb4f2; --plan-bg:#1a2c42;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --fato:#4fd6b8; --fato-bg:#173029;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --plan:#7fb4f2; --plan-bg:#1a2c42;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:270px minmax(0,1fr); max-width:1340px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:4px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  .toc .toc-num{color:var(--accent); margin-right:6px;}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:40px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.7rem,4vw,2.5rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:70ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:52px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink);}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.3rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:70ch;}
+  h3{font-size:1.02rem; margin:26px 0 8px; font-weight:600;}
+  p{margin:0 0 14px; max-width:74ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:72ch;}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  pre{background:var(--code-bg); color:var(--mono-ink); padding:14px 16px; border-radius:8px; overflow-x:auto; font-size:.8rem; line-height:1.5; margin:12px 0 20px;}
+  pre code{background:none; padding:0;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.fato{color:var(--fato); background:var(--fato-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  .chip.plan{color:var(--plan); background:var(--plan-bg);}
+  .us-card{border:1px solid var(--border); border-radius:6px; padding:16px 20px; margin-bottom:12px; background:var(--surface);}
+  .us-card .us-text{font-weight:600; margin-bottom:6px;}
+  .us-card .us-ac{color:var(--ink-dim); font-size:.87rem; margin:0;}
+  .hierarchy{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:16px 0 24px; font-family: ui-monospace, monospace; font-size:12px;}
+  .hierarchy span{background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:8px 14px; box-shadow:var(--shadow);}
+  .hierarchy .arrow{color:var(--ink-dim); border:none; box-shadow:none; padding:0;}
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">FS-007<br>Action Intelligence</div>
+    <nav>
+      <a href="#s0">00 Guardian Check</a>
+      <a href="#s1">01 Contexto e Objetivo</a>
+      <a href="#s2">02 Architecture Review</a>
+      <a href="#s3">03 Query Keys e Cache</a>
+      <a href="#s4">04 UX Review</a>
+      <a href="#s5">05 Escopo</a>
+      <a href="#s6">06 Fora de Escopo</a>
+      <a href="#s7">07 User Stories</a>
+      <a href="#s8">08 NFRs</a>
+      <a href="#s9">09 Critérios de Aceite</a>
+      <a href="#s10">10 Estratégia de Testes</a>
+      <a href="#s11">11 Riscos</a>
+      <a href="#s12">12 Checklist de Segurança</a>
+      <a href="#s13">13 Rollback</a>
+      <a href="#s14">14 Definition of Ready</a>
+      <a href="#s15">15 Recomendações Registradas</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">Feature Specification · STRATECH V1 — Product Core · Etapa 4 de 10</div>
+      <h1 class="title">FS-007 — Action Intelligence</h1>
+      <p class="subtitle">Módulo de apoio à decisão e execução executiva -- não um gerenciador de tarefas.
+        Formaliza a User Decision Discovery, a User Journey e a UX Flow já aprovadas, sob 7 diretrizes
+        estratégicas adicionais do Founder (Seção 2).</p>
+      <div class="meta-row">
+        <span><b>Origem</b> User Decision Discovery + User Journey + UX Flow (aprovadas)</span>
+        <span><b>Data</b> 2026-07-13</span>
+        <span><b>Status</b> Em elaboração — aguardando Architecture Review e aprovação do Founder</span>
+      </div>
+    </div>
+
+    <section id="s0">
+      <div class="section-head"><span class="section-num">00</span><h2>Guardian Check</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Verificação</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr><td>Conflito com Strategy/Constitution/Vision/Decision Framework?</td><td>SEM CONFLITO — nenhum documento normativo ainda existe em <code>docs/strategy/</code>.</td></tr>
+            <tr><td>Melhora alguma decisão do usuário?</td><td>SIM — ver User Decision Discovery §01.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Contexto e Objetivo</h2></div>
+      <p>Esta FS formaliza os 3 documentos já aprovados (Discovery, Journey, UX Flow) sob a diretriz
+        estratégica do Founder: <b>Action Intelligence não é um gerenciador de tarefas -- é um módulo de
+        apoio à decisão e execução executiva</b> (Diretriz 1). A diferença não é de conteúdo (os dados são
+        os mesmos <code>action_items[]</code> já reais), é de enquadramento: a tela nunca pede ao usuário
+        para organizar nada -- ela responde três perguntas executivas fixas, sempre na mesma ordem, por
+        hierarquia visual, nunca por configuração manual (Diretrizes 2 e 3):</p>
+      <div class="hierarchy">
+        <span>"O que está atrasado?"</span><span class="arrow">→</span>
+        <span>"O que vence em seguida?"</span><span class="arrow">→</span>
+        <span>"O que exige minha atenção hoje?"</span>
+      </div>
+      <p>Fecha o ciclo executivo Compreender → Decidir → <b>Agir</b> → Acompanhar (User Decision Discovery
+        §01), e passa a ser referência funcional integrada de Dashboard, Workspace e os 3 Executive Briefs
+        (Diretriz 4) -- não mais um módulo isolado.</p>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>Architecture Review</h2></div>
+
+      <div class="callout guard">
+        <b>Achado real, revisa um pressuposto da Journey/UX Flow:</b> a Journey (§Reuso) e a UX Flow (§3)
+        assumiram "zero endpoint novo" com base em <code>AnalysisRepository.list_analyses</code> já existir.
+        Verificado contra o código real: <code>GET /api/analyses</code> devolve
+        <code>AnalysisSummary</code> (<code>id, kind, project_name, created_at</code>) -- <b>sem
+        <code>payload</code></b>; só <code>GET /api/analyses/{"{id}"}</code> devolve o payload completo, um
+        registro por vez. Buscar <code>action_items[]</code> de todas as reuniões de um projeto (ou do
+        portfólio) por essa rota exigiria N+1 chamadas -- inaceitável, mesmo princípio já evitado em
+        <code>ProjectSummaryService.summarize_portfolio()</code> ("uma busca, agrupado em memória, não uma
+        consulta por projeto"). A camada de repositório já tem o dado (o mesmo <code>list_analyses()</code>
+        que <code>ProjectSummaryService</code> usa para contar <code>pending_action_items</code> devolve
+        <code>AnalysisRecord</code> completo, com <code>payload</code>) -- só a API pública não expõe a
+        lista de itens, só a contagem. Correção: <b>uma rota de leitura nova é necessária</b>, descrita em
+        §2.2. Isso não contradiz "zero persistência nova" (Discovery §04, Opção 1) -- é leitura pura, mesmo
+        padrão de <code>GET /api/portfolio/summary</code>, sem tabela nova, sem migração.
+      </div>
+
+      <h3>2.1 -- Serviço: extensão de <code>ProjectSummaryService</code></h3>
+      <p>Reaproveita a mesma classe, mesmo padrão de <code>_aggregate</code> -- não um serviço paralelo:</p>
+      <pre><code>class ProjectSummaryService:
+    def list_action_items(self, project_name: str | None = None) -> list[dict]:
+        # Mesma chamada já usada por summarize()/summarize_portfolio() --
+        # zero query nova, zero tabela nova.
+        records = self._repository.list_analyses(
+            project_name=project_name, kind="meeting", limit=None,
+        )
+        items = []
+        for record in records:
+            model_output = (record.payload or {}).get("model_output")
+            if not isinstance(model_output, dict) or not model_output.get("structured"):
+                continue
+            for item in model_output.get("action_items") or []:
+                items.append({
+                    "project_name": record.project_name,
+                    "description": item.get("description"),
+                    "owner": item.get("owner"),
+                    "due_date": item.get("due_date"),
+                    "source_analysis_id": record.id,
+                    "source_created_at": record.created_at,
+                })
+        return items</code></pre>
+      <p>Mesma disciplina de robustez de schema já estabelecida (<code>structured</code> e formato
+        verificados antes de ler o array) -- uma resposta mal-formada de uma reunião específica não derruba
+        o rollup inteiro, só é excluída dele.</p>
+
+      <h3>2.2 -- Nova rota: <code>GET /api/action-items</code></h3>
+      <p>Mesmo router (<code>src/api/routes/intelligence.py</code>), mesmo padrão de DI
+        (<code>Depends(build_repository)</code>), <code>project_name</code> opcional (presente = visão de
+        Workspace; ausente = visão de portfólio) -- idêntico ao parâmetro já usado em
+        <code>GET /api/analyses</code>. Mesma autenticação (<code>X-API-Key</code>), mesmo rate limiting,
+        nenhum middleware novo.</p>
+
+      <h3>2.3 -- BFF e Hook</h3>
+      <p>Mesmo padrão de sempre: <code>web/app/api/bff/action-items/route.ts</code> (portfólio) reaproveitando
+        o mesmo proxy fino já usado por <code>/api/bff/dashboard</code>; a variante de Workspace usa
+        <code>project_name</code> como query param, mesmo mecanismo. Novo hook
+        <code>useActionItems(projectName?: string)</code>, TanStack Query, mesmo template dos hooks de
+        leitura já existentes (<code>useWorkspaceSummary</code>, <code>usePortfolioSummary</code>) -- nunca
+        <code>useMutation</code>, porque não há escrita.</p>
+
+      <h3>2.4 -- <code>action-momentum.ts</code> (novo, mesmo princípio de <code>meeting-momentum.ts</code>)</h3>
+      <pre><code>export type UrgencyBucket = "atrasado" | "vence_em_breve" | "no_prazo" | "sem_prazo";
+
+export function bucketByUrgency(dueDate: string | null, today: Date): UrgencyBucket {
+  if (!dueDate) return "sem_prazo";
+  const due = new Date(dueDate);
+  if (due &lt; today) return "atrasado";
+  if (due &lt;= addDays(today, 7)) return "vence_em_breve";
+  return "no_prazo";
+}
+
+// "O que exige minha atenção hoje?" -- nunca uma nota de severidade inventada,
+// mesma honestidade de impactHeadline() em meeting-momentum.ts.
+export function attentionHeadline(atrasadoCount: number, venceEmBreveCount: number): string {
+  return `${atrasadoCount} atrasada(s) · ${venceEmBreveCount} vence(m) em breve`;
+}
+
+export function suggestedNextAction(items: ActionItemView[]): ActionItemView | null {
+  // O item mais urgente -- atrasado há mais tempo, ou com prazo mais próximo.
+  // Nunca um CTA clicável (mesmo princípio já confirmado nos 3 Briefs).
+}</code></pre>
+
+      <h3>2.5 -- Reuso de Executive Brief e Decision Momentum como componentes nativos (Diretriz 7)</h3>
+      <div class="callout">
+        <b>Avaliado, conforme pedido.</b> Os 3 Briefs já reais (<code>executive-brief.tsx</code>,
+        <code>risks-panel.tsx</code>, <code>communication-brief.tsx</code>) compartilham a mesma composição
+        -- <code>Card</code> &gt; estados independentes (loading/erro/vazio/fallback/sucesso) &gt; corpo com
+        "Decisão sugerida" + "Próximo passo". Existe, sim, oportunidade real de extração -- as 4 instâncias
+        (as 3 existentes + esta) seriam candidatas naturais a um componente compartilhado. <b>Recomendação:
+        não extrair agora.</b> Essa extração é exatamente o escopo já registrado como "Executive Brief
+        Contract" (FS-006 §15) -- e o STRATECH V1 Completion Board Rev. 2 já registrou, por instrução do
+        Founder, que esse item fica deliberadamente parado até o Action Intelligence ser concluído. Extrair
+        uma abstração parcial agora, só para este 4º caso, seria fazer o trabalho do Executive Brief
+        Contract por partes, fora de ordem. Esta Feature segue o mesmo padrão <i>por convenção</i> (copiando
+        a forma comprovada, como as 3 anteriores fizeram entre si) -- quando o Executive Brief Contract for
+        priorizado, as 4 instâncias são candidatas igualmente maduras à extração real, com <code>action</code>
+        já disponível como um quarto exemplo concreto para validar a abstração contra a necessidade real, não
+        contra a hipótese.
+      </div>
+
+      <h3>2.6 -- Preparação para estados persistidos futuros (Diretriz 5)</h3>
+      <p>Registro explícito de como a arquitetura de hoje já reserva o lugar para
+        <code>Concluído</code>/<code>Em andamento</code>/<code>Delegado</code>, sem mexer em navegação,
+        componentes ou estrutura visual quando a escrita chegar:</p>
+      <pre><code>// Hoje: união de 2 conjuntos de valores no mesmo campo visual "estado do item".
+// UrgencyBucket é sempre calculado (nunca persistido).
+// Quando a escrita existir, ActionStatus passa a coexistir no mesmo lugar --
+// o componente de card já recebe um "estado" único, não dois campos.
+type UrgencyBucket = "atrasado" | "vence_em_breve" | "no_prazo" | "sem_prazo"; // hoje, sempre derivado
+type ActionStatus = "aberto" | "em_andamento" | "concluido" | "delegado";      // futuro, quando persistido
+
+// O componente de item já é desenhado para receber um "estado" (união dos dois),
+// não uma prop separada por conceito -- é o mesmo ponto de extensão descrito
+// na User Journey §05, agora expresso como forma de tipo, não só como intenção.</code></pre>
+      <p>Nenhum desses tipos futuros é implementado nesta Feature -- ficam registrados como o contrato que a
+        Feature de escrita, quando vier, precisa honrar, não como código morto nesta entrega.</p>
+
+      <h3>2.7 -- Integração com Dashboard, Workspace e Executive Brief (Diretriz 4 -- agora requisito funcional)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Superfície</th><th>Mudança nesta Feature</th></tr></thead>
+          <tbody>
+            <tr><td>Dashboard</td><td>KPI "Ações pendentes" vira link para a nova página de portfólio "Ações"</td></tr>
+            <tr><td>Sidebar</td><td>Novo item "Ações" em <code>navigation.ts</code> -- regra de entrada já cumprida (rota real, dado real, estados completos, testes)</td></tr>
+            <tr><td>Workspace</td><td>Nova seção "Ações", mesma posição de Riscos/Comunicação, escopada ao projeto via <code>useActionItems(projectName)</code></td></tr>
+            <tr><td>Executive Brief (Status)</td><td>Nova linha de contexto "N ações exigem atenção" quando a contagem (atrasado + vence em breve) for &gt; 0 -- reaproveita <code>useWorkspaceSummary</code> já chamado</td></tr>
+            <tr><td>Riscos</td><td>Mesma linha de contexto -- passa a chamar <code>useActionItems(projectName)</code> (hook novo, não endpoint novo por Brief)</td></tr>
+            <tr><td>Comunicação</td><td>Mesma linha de contexto -- mesmo hook</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>A contagem exibida nos 3 Briefs usa o mesmo cálculo de urgência de §2.4 (atrasado + vence em
+        breve), não o total bruto -- honra "nunca listar tudo com o mesmo peso" mesmo neste link de
+        contexto. Quando a contagem é zero, a linha não aparece (UX Flow §07).</p>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>Query Keys e Cache</h2></div>
+      <p>Leitura pura -- não há invalidação de mutação (não existe <code>useMutation</code> nesta Feature).
+        Chave de cache: <code>["action-items", projectName ?? "portfolio"]</code>, mesmo
+        <code>staleTime</code>/<code>refetchInterval</code> já usado por <code>usePortfolioSummary</code>.
+        Os 3 Briefs, ao passar a chamar <code>useActionItems</code>, compartilham a mesma entrada de cache
+        por projeto -- nenhuma chamada duplicada entre a seção "Ações" e a linha de contexto de cada Brief
+        quando ambas estão montadas na mesma tela de Workspace.</p>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>UX Review</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Passo (Journey/UX Flow)</th><th>Implementação</th></tr></thead>
+          <tbody>
+            <tr><td>Entrada -- Sidebar ou Workspace</td><td>Novo item de navegação + nova seção, mesma fonte de dado (§2.7)</td></tr>
+            <tr><td>Agrupamento por urgência</td><td><code>bucketByUrgency()</code>, regra fixa sobre <code>due_date</code> (§2.4)</td></tr>
+            <tr><td>"O que exige minha atenção hoje?"</td><td><code>attentionHeadline()</code>, abertura da tela, contagem real</td></tr>
+            <tr><td>Decisão sugerida / Próximo passo</td><td><code>suggestedNextAction()</code> -- texto, nunca botão (mesmo princípio dos 3 Briefs)</td></tr>
+            <tr><td>Clicar num item</td><td>Leva à análise de origem (<code>source_analysis_id</code>) no Histórico do Workspace</td></tr>
+            <tr><td>Integração contextual nos Briefs</td><td>§2.7 -- passa de avaliação (UX Flow) a escopo real desta FS</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Escopo</h2></div>
+      <ul>
+        <li><code>ProjectSummaryService.list_action_items()</code> -- novo método, mesma classe</li>
+        <li><code>GET /api/action-items</code> -- nova rota, mesmo router/DI/auth já existentes</li>
+        <li>BFF <code>web/app/api/bff/action-items/route.ts</code> + hook <code>useActionItems</code></li>
+        <li><code>web/lib/workspace/action-momentum.ts</code> -- <code>bucketByUrgency</code>, <code>attentionHeadline</code>, <code>suggestedNextAction</code></li>
+        <li>Nova página de portfólio "Ações" + novo item em <code>navigation.ts</code></li>
+        <li>Nova seção "Ações" no Workspace</li>
+        <li>Linha de contexto "N ações exigem atenção" nos 3 Executive Briefs (§2.7)</li>
+        <li>KPI "Ações pendentes" do Dashboard vira link</li>
+        <li>Tipos <code>UrgencyBucket</code>/<code>ActionStatus</code> registrando o ponto de extensão futuro (§2.6), sem uso do segundo ainda</li>
+      </ul>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>Fora de Escopo (confirmado)</h2></div>
+      <ul>
+        <li>Qualquer persistência de estado (<code>ActionStatus</code> declarado, nunca gravado)</li>
+        <li>Migração de banco, alteração de schema, nova entidade de domínio</li>
+        <li>Criação ou edição de itens pela interface</li>
+        <li>Filtro, tag ou view customizável pelo usuário (Diretriz 3)</li>
+        <li>Extração de um componente compartilhado de Executive Brief/Decision Momentum -- avaliada e adiada (§2.5), não desta Feature</li>
+        <li>Login individual / "minhas ações" por usuário -- Enterprise Expansion (V2)</li>
+        <li>Qualquer mudança nos 3 agentes de IA, prompts ou schemas de análise</li>
+      </ul>
+    </section>
+
+    <section id="s7">
+      <div class="section-head"><span class="section-num">07</span><h2>User Stories</h2></div>
+      <div class="us-card">
+        <p class="us-text">Como PM/PMO, abro "Ações" e sei em segundos o que está atrasado em todo o portfólio, sem escolher um projeto antes.</p>
+        <p class="us-ac">Critério: a tela abre já agrupada por urgência, atrasado primeiro, sem nenhuma configuração prévia.</p>
+      </div>
+      <div class="us-card">
+        <p class="us-text">Como PM/PMO, ao ler o Brief de Status ou Risco de um projeto, sei se há ações em aberto sem precisar visitar outra tela.</p>
+        <p class="us-ac">Critério: a linha de contexto aparece nos 3 Briefs quando a contagem de atenção é maior que zero, some quando é zero.</p>
+      </div>
+      <div class="us-card">
+        <p class="us-text">Como PM/PMO, nunca vejo um botão de criar ou editar ação -- só o que já foi realmente comprometido em reuniões reais.</p>
+        <p class="us-ac">Critério: nenhum formulário de criação/edição existe em nenhuma das duas telas novas.</p>
+      </div>
+    </section>
+
+    <section id="s8">
+      <div class="section-head"><span class="section-num">08</span><h2>NFRs Aplicáveis</h2></div>
+      <ul>
+        <li>Nenhuma regressão nos 92 testes de backend além dos novos testes do método/rota adicionados</li>
+        <li>Nenhuma regressão nos testes de frontend já existentes (206 hoje)</li>
+        <li>Timeout consistente com as rotas BFF de leitura já existentes</li>
+        <li>Contraste WCAG AA mantido, ambos os temas</li>
+        <li>Responsividade nos 3 breakpoints já estabelecidos</li>
+        <li><code>list_action_items()</code> sem N+1 -- uma consulta, agrupamento em memória, mesmo padrão de <code>summarize_portfolio()</code></li>
+      </ul>
+    </section>
+
+    <section id="s9">
+      <div class="section-head"><span class="section-num">09</span><h2>Critérios de Aceite</h2></div>
+      <ul>
+        <li>Portfólio e Workspace mostram os itens agrupados por urgência, atrasado sempre primeiro</li>
+        <li>"O que exige minha atenção hoje?" respondido por uma manchete real de contagem, nunca uma nota inventada</li>
+        <li>Nenhum filtro, tag, view salva ou reordenação manual em nenhuma das duas telas</li>
+        <li>Os 3 Executive Briefs mostram a linha de contexto quando aplicável, ausente quando a contagem é zero</li>
+        <li>Zero escrita -- nenhum botão de criar/editar/concluir em nenhuma tela desta Feature</li>
+        <li><code>ActionStatus</code> existe como tipo, não é lido nem gravado em lugar nenhum do código real</li>
+        <li>Todo item aponta para a análise de reunião de origem</li>
+        <li>Testes: serviço (<code>list_action_items</code>), rota, BFF, hook, <code>action-momentum.ts</code>, componentes (portfólio + Workspace + linha de contexto nos 3 Briefs), E2E, backend como regressão</li>
+        <li>Verificação real contra Demo Mode, mesma disciplina das Features anteriores</li>
+      </ul>
+    </section>
+
+    <section id="s10">
+      <div class="section-head"><span class="section-num">10</span><h2>Estratégia de Testes</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Camada</th><th>O que cobrir</th></tr></thead>
+          <tbody>
+            <tr><td>Backend (unit)</td><td><code>list_action_items()</code>: com/sem <code>project_name</code>, item mal-formado excluído sem derrubar o resto, ordenação estável</td></tr>
+            <tr><td>Backend (integração)</td><td><code>GET /api/action-items</code>, com e sem filtro, mesmo padrão de auth das rotas existentes</td></tr>
+            <tr><td>BFF (unit)</td><td>Proxy fino, mesmo formato de erro/timeout das rotas de leitura já existentes</td></tr>
+            <tr><td><code>action-momentum.ts</code> (unit)</td><td><code>bucketByUrgency</code> nos 4 casos (incluindo data-limite exata); <code>attentionHeadline</code>; <code>suggestedNextAction</code> com lista vazia e com múltiplos atrasados</td></tr>
+            <tr><td>Hook (unit)</td><td><code>useActionItems</code> com/sem <code>projectName</code>, cache key correta</td></tr>
+            <tr><td>Componentes (unit)</td><td>Tela de portfólio, seção de Workspace, linha de contexto nos 3 Briefs (presente/ausente por contagem)</td></tr>
+            <tr><td>E2E (Playwright, 3 breakpoints)</td><td>Sidebar → "Ações" → itens agrupados; Dashboard → KPI → "Ações"; Brief → linha de contexto → "Ações" do Workspace</td></tr>
+            <tr><td>Backend real, sem mock</td><td>Ao menos uma verificação contra Demo Mode confirmando a agregação com dado real de múltiplas reuniões</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s11">
+      <div class="section-head"><span class="section-num">11</span><h2>Riscos Específicos</h2></div>
+      <ul>
+        <li><code>due_date</code> em formato inconsistente entre análises (texto livre extraído pela IA) --
+          <code>bucketByUrgency</code> precisa tratar data inválida como "sem_prazo", nunca quebrar a tela</li>
+        <li>Volume de itens crescendo sem paginação -- aceitável no volume atual de dado fictício/piloto;
+          registrar como item de acompanhamento, não implementar paginação nesta Feature (fora de escopo,
+          mesmo gap já conhecido de <code>GET /api/portfolio/summary</code>)</li>
+        <li>Linha de contexto nos 3 Briefs aumentar a carga de leitura de cada tela -- mitigado por só
+          aparecer quando a contagem é maior que zero (§2.7)</li>
+      </ul>
+    </section>
+
+    <section id="s12">
+      <div class="section-head"><span class="section-num">12</span><h2>Checklist de Segurança (ADR-011)</h2></div>
+      <p>Mesmo padrão já auditado: <code>API_KEY</code> só no servidor, nova rota sob o mesmo router
+        autenticado, nenhuma rota de sessão nova. Dado exposto (<code>description</code>, <code>owner</code>,
+        <code>due_date</code>) já trafega hoje dentro do payload de reunião via API -- esta Feature só
+        reorganiza a leitura, não introduz uma categoria de dado sensível nova. Checklist completo na
+        escrita do TIP.</p>
+    </section>
+
+    <section id="s13">
+      <div class="section-head"><span class="section-num">13</span><h2>Rollback</h2></div>
+      <p>Reverter o commit remove a rota nova, o método de serviço, o BFF, o hook, a página de portfólio, a
+        seção de Workspace e as 3 linhas de contexto -- os Briefs voltam a ficar exatamente como estavam.
+        Nenhuma migração de dado, nenhuma mudança de schema, nenhum dado persistido a desfazer.</p>
+    </section>
+
+    <section id="s14">
+      <div class="section-head"><span class="section-num">14</span><h2>Definition of Ready — Próximo Gate</h2></div>
+      <p>Esta FS formalizou Discovery + Journey + UX Flow + Architecture Review (Seção 2), endereçando as 7
+        diretrizes do Founder explicitamente. Nenhuma decisão de escopo pendente. Aguardando aprovação da
+        Architecture Review e desta FS antes do Technical Implementation Plan.</p>
+    </section>
+
+    <section id="s15">
+      <div class="section-head"><span class="section-num">15</span><h2>Recomendações Registradas</h2></div>
+      <div class="callout">
+        A avaliação da Seção 2.5 (reuso de Executive Brief/Decision Momentum) reforça, com um 4º caso de uso
+        concreto, a recomendação já registrada em FS-006 §15: formalizar o <b>Executive Brief Contract</b>
+        deixa de ser uma hipótese e passa a ter 4 implementações reais e maduras para validar a abstração
+        contra -- Status, Risco, Comunicação e (após esta Feature) Ações. Nenhuma implementação agora;
+        registrado para quando o Executive Brief Contract for retomado (STRATECH V1 Completion Board Rev. 2).
+      </div>
+    </section>
+
+    <footer>
+      <span>Stratech — FS-007</span>
+      <span>STRATECH V1 · Product Core</span>
+      <span>2026-07-13</span>
+    </footer>
+  </main>
+</div>
