@@ -13,6 +13,128 @@ repositório, referenciados em `docs/releases/ADR-012-founder-decision-release-0
 Este runbook cobre só a parte técnica (subir/resetar/encerrar o ambiente); o
 protocolo de observação da sessão em si vem desses documentos.
 
+O Capítulo 00 é para preparar uma máquina nova (uma vez só); os Capítulos 1-9 são
+o checklist do dia da sessão (repetido a cada rodada, já com a máquina pronta).
+
+## Capítulo 00 — Preparação do Ambiente (uma vez por máquina)
+
+Objetivo: qualquer desenvolvedor ou consultor, sem conhecimento prévio do projeto,
+consegue preparar a plataforma numa máquina nova só seguindo esta seção. Passos
+validados nesta sequência exata numa máquina Windows real (Git Bash/MINGW64) durante
+a preparação da RC-1 -- os erros abaixo são os erros reais encontrados, não
+hipotéticos.
+
+### 0.1 Pré-requisitos
+
+| Ferramenta | Versão | Por quê |
+|---|---|---|
+| Git | qualquer recente | clonar o repositório |
+| Python | 3.11+ (CI usa 3.11) | backend (`src/`) |
+| Node.js + npm | Node 22 (CI usa 22) | frontend (`web/`) |
+
+Confirmar antes de prosseguir:
+
+```bash
+git --version
+python3 --version
+node --version
+npm --version
+```
+
+Se qualquer um desses comandos não existir, instalar a ferramenta correspondente
+antes de continuar -- nenhum passo abaixo funciona sem os quatro.
+
+### 0.2 Clonar o repositório
+
+```bash
+git clone <URL do repositório> ai-pmo-copilot
+cd ai-pmo-copilot
+```
+
+### 0.3 Instalar o backend (`src/`)
+
+```bash
+python3 -m pip install -r requirements.txt
+```
+
+Usar sempre `python3 -m pip`, nunca só `pip` -- em máquinas com mais de um Python
+instalado (comum no Windows, com o Microsoft Store Python e outras instalações
+convivendo), `pip` sozinho pode instalar num interpretador diferente do que
+`python3` depois vai usar para rodar o backend, causando `ModuleNotFoundError`
+mesmo com a instalação "concluída com sucesso".
+
+**Atenção ao final do log de instalação:** se aparecer um aviso como
+
+```
+WARNING: The script uvicorn.exe is installed in 'C:\...\Scripts' which is not on PATH.
+```
+
+o comando `uvicorn` não vai ser encontrado depois, mesmo instalado corretamente
+(ver Troubleshooting 0.6.2 abaixo).
+
+### 0.4 Instalar o frontend (`web/`)
+
+```bash
+cd web
+npm install
+cd ..
+```
+
+Leva 1-2 minutos na primeira vez. Avisos de `npm warn` sobre vulnerabilidades
+moderadas ou scripts pendentes de aprovação (`sharp`, `unrs-resolver`) são
+conhecidos e não bloqueiam o funcionamento do Demo Mode -- não rodar
+`npm audit fix --force` sem necessidade (pode trocar versões de dependências fora
+do que já foi testado).
+
+### 0.5 Criar o ambiente (`demo/.env`)
+
+Não precisa criar manualmente -- `demo/start-demo.sh` cria `demo/.env` sozinho a
+partir de `demo/.env.example` na primeira execução, com um `SESSION_SECRET`
+gerado automaticamente. Já vem em Demo Mode (provider mock, sem custo, sem
+credencial externa). Ver Capítulo 5 para a senha padrão gerada.
+
+### 0.6 Verificação inicial
+
+```bash
+bash demo/start-demo.sh
+```
+
+Esperar as **duas** mensagens `is up` aparecerem (backend e frontend) antes de
+digitar qualquer outro comando -- a primeira execução do frontend (Next.js
+compilando pela primeira vez) pode levar até 1 minuto. Depois:
+
+```bash
+python3 demo/seed_demo_data.py
+```
+
+Confirmar que as 6 linhas terminam em `structured=True`. Se sim, a máquina está
+pronta -- seguir para o Capítulo 1 nas próximas sessões. Se não, ver 0.7 abaixo.
+
+### 0.7 Troubleshooting básico
+
+Quando `demo/start-demo.sh` não imprimir "is up" para um dos dois serviços, **não
+adivinhar** -- olhar o log real primeiro:
+
+```bash
+cat demo/logs/backend.log
+cat demo/logs/frontend.log
+```
+
+Erros já encontrados e suas causas:
+
+| Sintoma | Causa | Correção |
+|---|---|---|
+| `ModuleNotFoundError: No module named 'httpx'` ao rodar `seed_demo_data.py` | Passo 0.3 não foi rodado, ou foi rodado com `pip` de um Python diferente do `python3` | `python3 -m pip install -r requirements.txt` |
+| `backend.log`: `uvicorn: command not found` | `pip install --user` colocou os `.exe` numa pasta fora do PATH (aviso no fim do 0.3) | Adicionar a pasta ao PATH desta sessão de terminal: `export PATH="$PATH:<pasta do aviso, em formato /c/Users/... no Git Bash>"`, depois `bash demo/stop-demo.sh && bash demo/start-demo.sh` de novo |
+| `frontend.log`: `./node_modules/.bin/next: No such file or directory` | Passo 0.4 (`npm install` dentro de `web/`) não foi rodado | Rodar 0.4, depois `bash demo/stop-demo.sh && bash demo/start-demo.sh` |
+| `seed_demo_data.py` devolve `WinError 10061` / `Connection refused` em todo projeto | Backend não está de pé de verdade, mesmo sem erro visível no terminal | Checar `demo/logs/backend.log` -- normalmente é um dos dois casos acima |
+| Comandos colados de uma vez parecem se misturar/corromper no terminal (Git Bash/MINGW) | `start-demo.sh` ainda está no loop de espera (até ~90s) quando o próximo comando é digitado | Rodar um comando por vez, esperando o anterior terminar de imprimir antes do próximo |
+| Porta 3000 ou 8000 já em uso / processo antigo travado | Uma sessão anterior não foi encerrada corretamente | `bash demo/stop-demo.sh` antes de tentar `start-demo.sh` de novo |
+
+Se nenhum desses cobrir o problema, esse é o ponto de fazer a pergunta e agir --
+o objetivo deste capítulo é eliminar a fricção conhecida, não adivinhar problemas
+novos.
+
 ## 1. Iniciar o Demo Mode
 
 ```bash

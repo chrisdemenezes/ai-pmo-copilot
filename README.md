@@ -4,9 +4,16 @@
 
 An intelligent PMO assistant designed to automate project governance, reporting, meeting intelligence and decision support using Artificial Intelligence.
 
-**Status: Release 0.3 – Planning.** Opened ahead of Validation Sprint completion by explicit Founder
-decision — see `docs/releases/ADR-012-founder-decision-release-0.3.md`. Release 0.2 (Dashboard
-Executivo) is merged and live; see `docs/releases/RDR-0.2.md`.
+**Status: Release 0.3 — Feature Complete · Validation Phase.** Development frozen by Founder
+decision: no new Features, no Release 0.4, no new Capabilities until the Product Discovery Report
+from the 5 real validation sessions is consolidated. Only critical defect fixes, session-blocking
+issues, and minimal stability adjustments are in scope during this phase. RC-1 (Executive Decision
+Experience) readiness confirmed GO — see
+`docs/product/rc-1-executive-decision-experience/RC-1-readiness-review.html` and
+`demo/SESSION-RUNBOOK.md` for the validation-session runbook. Release 0.3 was opened ahead of
+Validation Sprint completion by explicit Founder decision — see
+`docs/releases/ADR-012-founder-decision-release-0.3.md`. Release 0.2 (Dashboard Executivo) is
+merged and live; see `docs/releases/RDR-0.2.md`.
 
 ## Architectural Decision
 
