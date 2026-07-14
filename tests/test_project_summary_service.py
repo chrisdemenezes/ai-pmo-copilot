@@ -281,3 +281,142 @@ def test_list_action_items_orders_newest_meeting_first_preserving_item_order():
     # Repository streams analyses newest-first; within one meeting, the
     # items keep the order the agent extracted them in.
     assert [item["description"] for item in items] == ["recente", "antiga-1", "antiga-2"]
+
+
+def test_list_latest_risks_returns_risks_from_the_most_recent_analysis_only():
+    repository = _repository()
+    repository.save_analysis(
+        kind="risk",
+        project_name="Multilift",
+        payload={
+            "model_output": {
+                "structured": True,
+                "risks": [{"description": "risco antigo", "probability": "low", "impact": "low", "mitigation": "m1"}],
+                "escalation_recommendation": None,
+            }
+        },
+    )
+    second_id = repository.save_analysis(
+        kind="risk",
+        project_name="Multilift",
+        payload={
+            "model_output": {
+                "structured": True,
+                "risks": [
+                    {"description": "risco recente", "probability": "high", "impact": "high", "mitigation": "m2"},
+                ],
+                "escalation_recommendation": "Escalar ao comitê",
+            }
+        },
+    )
+
+    items = ProjectSummaryService(repository).list_latest_risks("Multilift")
+
+    assert len(items) == 1
+    assert items[0]["description"] == "risco recente"
+    assert items[0]["probability"] == "high"
+    assert items[0]["impact"] == "high"
+    assert items[0]["mitigation"] == "m2"
+    assert items[0]["escalation_recommendation"] == "Escalar ao comitê"
+    assert items[0]["source_analysis_id"] == second_id
+
+
+def test_list_latest_risks_falls_back_to_an_older_structured_analysis():
+    repository = _repository()
+    first_id = repository.save_analysis(
+        kind="risk",
+        project_name="Multilift",
+        payload={
+            "model_output": {
+                "structured": True,
+                "risks": [{"description": "risco válido", "probability": "medium", "impact": "medium", "mitigation": "m"}],
+                "escalation_recommendation": None,
+            }
+        },
+    )
+    repository.save_analysis(
+        kind="risk",
+        project_name="Multilift",
+        payload={"model_output": {"structured": False, "raw_output": "not json"}},
+    )
+
+    items = ProjectSummaryService(repository).list_latest_risks("Multilift")
+
+    assert len(items) == 1
+    assert items[0]["description"] == "risco válido"
+    assert items[0]["source_analysis_id"] == first_id
+
+
+def test_list_latest_risks_without_project_name_spans_the_portfolio():
+    repository = _repository()
+    repository.save_analysis(
+        kind="risk",
+        project_name="Multilift",
+        payload={
+            "model_output": {
+                "structured": True,
+                "risks": [{"description": "a", "probability": "high", "impact": "high", "mitigation": "m"}],
+                "escalation_recommendation": None,
+            }
+        },
+    )
+    repository.save_analysis(
+        kind="risk",
+        project_name="Medlog",
+        payload={
+            "model_output": {
+                "structured": True,
+                "risks": [{"description": "b", "probability": "low", "impact": "low", "mitigation": "m"}],
+                "escalation_recommendation": None,
+            }
+        },
+    )
+
+    items = ProjectSummaryService(repository).list_latest_risks()
+
+    assert sorted(item["project_name"] for item in items) == ["Medlog", "Multilift"]
+
+
+def test_list_latest_risks_ignores_non_risk_and_unstructured_analyses():
+    repository = _repository()
+    repository.save_analysis(
+        kind="meeting",
+        project_name="Multilift",
+        payload={"model_output": {"structured": True, "action_items": [{"description": "x"}]}},
+    )
+    repository.save_analysis(
+        kind="risk",
+        project_name="Multilift",
+        payload={"model_output": {"structured": False, "raw_output": "not json"}},
+    )
+
+    assert ProjectSummaryService(repository).list_latest_risks("Multilift") == []
+
+
+def test_list_latest_risks_excludes_a_malformed_risk_without_dropping_the_rest():
+    repository = _repository()
+    repository.save_analysis(
+        kind="risk",
+        project_name="Multilift",
+        payload={
+            "model_output": {
+                "structured": True,
+                "risks": [
+                    "not a dict",
+                    {"probability": "high"},
+                    {"description": "risco válido", "probability": "high", "impact": "high", "mitigation": "m"},
+                ],
+                "escalation_recommendation": None,
+            }
+        },
+    )
+
+    items = ProjectSummaryService(repository).list_latest_risks("Multilift")
+
+    assert len(items) == 1
+    assert items[0]["description"] == "risco válido"
+
+
+def test_list_latest_risks_returns_empty_list_when_there_are_no_risk_analyses():
+    repository = _repository()
+    assert ProjectSummaryService(repository).list_latest_risks("Multilift") == []

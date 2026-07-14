@@ -77,6 +77,58 @@ class ProjectSummaryService:
         )
         return items
 
+    def list_latest_risks(self, project_name: str | None = None) -> list[dict]:
+        # Same call already used by list_action_items() -- zero new query.
+        # Difference: keeps only the MOST RECENT risk analysis per project
+        # (same principle as latest_health_status in _aggregate), not the
+        # whole history -- the attention zone is always about the current
+        # analysis, matching what the Riscos Brief already shows today.
+        records = self._repository.list_analyses(
+            project_name=project_name,
+            kind="risk",
+            limit=None,
+        )
+
+        seen_projects: set[str | None] = set()
+        items: list[dict] = []
+        for record in records:  # already newest-first
+            if record.project_name in seen_projects:
+                continue
+
+            model_output = (record.payload or {}).get("model_output")
+            if not isinstance(model_output, dict) or not model_output.get("structured"):
+                # Not marked as seen -- an older, structured risk analysis
+                # for this project may still count as "the most recent".
+                continue
+
+            seen_projects.add(record.project_name)
+            escalation_recommendation = model_output.get("escalation_recommendation")
+            for risk in model_output.get("risks") or []:
+                if not isinstance(risk, dict) or not isinstance(risk.get("description"), str):
+                    continue
+                items.append(
+                    {
+                        "project_name": record.project_name,
+                        "description": risk["description"],
+                        "probability": risk.get("probability"),
+                        "impact": risk.get("impact"),
+                        "mitigation": risk.get("mitigation"),
+                        "escalation_recommendation": escalation_recommendation
+                        if isinstance(escalation_recommendation, str)
+                        else None,
+                        "source_analysis_id": record.id,
+                        "source_created_at": record.created_at,
+                    }
+                )
+
+        logger.info(
+            "Listed %d latest risks project_name=%s from %d risk analyses",
+            len(items),
+            project_name,
+            len(records),
+        )
+        return items
+
     @staticmethod
     def _aggregate(project_name: str, records: list[AnalysisRecord]) -> dict:
         open_risks = 0

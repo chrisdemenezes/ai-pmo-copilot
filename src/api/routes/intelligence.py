@@ -81,6 +81,17 @@ class ActionItemResponse(BaseModel):
     source_created_at: datetime
 
 
+class LatestRiskItemResponse(BaseModel):
+    project_name: str | None
+    description: str
+    probability: str | None
+    impact: str | None
+    mitigation: str | None
+    escalation_recommendation: str | None
+    source_analysis_id: int
+    source_created_at: datetime
+
+
 def build_prompt_registry() -> PromptRegistry:
     return PromptRegistry(base_path="src/agents")
 
@@ -192,6 +203,19 @@ def list_action_items(
     # view (FS-007 §2.2) -- same query-parameter design as GET /analyses.
     logger.info("Listing action items project_name=%s", project_name)
     return service.list_action_items(project_name=project_name)
+
+
+@router.get("/risks/latest", response_model=list[LatestRiskItemResponse])
+def list_latest_risks(
+    project_name: str | None = None,
+    service: ProjectSummaryService = Depends(build_project_summary_service),
+):
+    # Same query-parameter design as GET /action-items: project_name
+    # present = Workspace scope, absent = portfolio scope. Decision
+    # Center's single new backend investment (FS-008 §3.1) -- reused by
+    # any future Capability needing the latest risk analysis per project.
+    logger.info("Listing latest risks project_name=%s", project_name)
+    return service.list_latest_risks(project_name=project_name)
 
 
 @router.get("/projects/summary", response_model=ProjectSummaryResponse)

@@ -1,6 +1,8 @@
 import { healthStatusLabel } from "@/components/ui/badge";
 import type { ProjectSummary } from "@/lib/dashboard/types";
 import { suggestedDecision } from "@/lib/workspace/decision-momentum";
+import { RISK_NEXT_STEP_FALLBACK, isHighAttentionRisk, suggestedRiskDecision } from "@/lib/workspace/risk-momentum";
+import type { LatestRiskItem } from "./types";
 
 /**
  * Single Decision Source (TIP-009 §08): toda lógica de organização,
@@ -79,6 +81,39 @@ function statusDecision(project: ProjectSummary): ExecutiveDecision | null {
   };
 }
 
+/**
+ * isHighAttentionRisk espera probability/impact não-nulos (RiskItem) --
+ * um risco sem os dois campos reais nunca conta como zona de atenção,
+ * nunca quebra a checagem.
+ */
+function isAttentionRisk(risk: LatestRiskItem): boolean {
+  if (!risk.probability || !risk.impact) return false;
+  return isHighAttentionRisk({
+    description: risk.description,
+    probability: risk.probability,
+    impact: risk.impact,
+    mitigation: risk.mitigation ?? "",
+  });
+}
+
+function riskDecision(projectName: string, risks: LatestRiskItem[]): ExecutiveDecision | null {
+  const attentionCount = risks.filter(isAttentionRisk).length;
+  if (attentionCount === 0) return null;
+
+  const nextStep = risks.find((risk) => risk.escalation_recommendation)?.escalation_recommendation;
+
+  return {
+    project_name: projectName,
+    source: "risk",
+    window: "hoje",
+    context: `${attentionCount} risco(s) na zona de atenção`,
+    decision: suggestedRiskDecision(attentionCount),
+    whyItDependsOnMe: WHY_TEXT.risk,
+    consequenceOfInaction: CONSEQUENCE_TEXT.risk,
+    nextStep: nextStep ?? RISK_NEXT_STEP_FALLBACK,
+  };
+}
+
 /** Ordenação fixa: "hoje" antes de "esta_semana", depois project_name -- determinística, nunca uma prioridade inventada. */
 function byWindowThenProject(a: ExecutiveDecision, b: ExecutiveDecision): number {
   if (a.window !== b.window) return a.window === "hoje" ? -1 : 1;
@@ -86,18 +121,47 @@ function byWindowThenProject(a: ExecutiveDecision, b: ExecutiveDecision): number
 }
 
 /**
- * Incremento 1 (TIP-009 §04): só o sinal de Status, já 100% portfolio-wide
- * hoje via ProjectSummaryService.summarize_portfolio() -- zero leitura
- * nova. O Incremento 2 estende esta função para também consumir o sinal
- * de Risco.
+ * Incremento 2 (TIP-009 §04): incorpora o sinal de Risco --
+ * latestRisksByProject vem de useLatestRisks() (FS-008 §3.1). Um mesmo
+ * projeto pode gerar 2 entradas (Status + Risco), nunca fundidas (User
+ * Journey §2). Default vazio preserva o comportamento do Incremento 1
+ * quando nenhum dado de risco ainda foi carregado.
  */
-export function buildExecutiveDecisionQueue(portfolio: ProjectSummary[]): ExecutiveDecision[] {
+export function buildExecutiveDecisionQueue(
+  portfolio: ProjectSummary[],
+  latestRisksByProject: Map<string, LatestRiskItem[]> = new Map(),
+): ExecutiveDecision[] {
   const decisions: ExecutiveDecision[] = [];
 
   for (const project of portfolio) {
     const status = statusDecision(project);
     if (status) decisions.push(status);
+
+    const risks = latestRisksByProject.get(project.project_name);
+    if (risks) {
+      const risk = riskDecision(project.project_name, risks);
+      if (risk) decisions.push(risk);
+    }
   }
 
   return decisions.sort(byWindowThenProject);
+}
+
+/**
+ * Agrupa a lista plana de GET /api/risks/latest por projeto -- mesma
+ * forma exigida por buildExecutiveDecisionQueue. Itens sem project_name
+ * (nunca esperados na visão de portfólio) são ignorados.
+ */
+export function groupLatestRisksByProject(risks: LatestRiskItem[]): Map<string, LatestRiskItem[]> {
+  const grouped = new Map<string, LatestRiskItem[]>();
+  for (const risk of risks) {
+    if (!risk.project_name) continue;
+    const existing = grouped.get(risk.project_name);
+    if (existing) {
+      existing.push(risk);
+    } else {
+      grouped.set(risk.project_name, [risk]);
+    }
+  }
+  return grouped;
 }

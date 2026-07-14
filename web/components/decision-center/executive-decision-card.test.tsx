@@ -53,4 +53,27 @@ describe("ExecutiveDecisionCard", () => {
       expect(screen.queryByRole("button", { name: forbidden })).toBeNull();
     }
   });
+
+  // Executive Trust: para Risco, "Decisão sugerida" e "Próximo passo" são
+  // textos reais e distintos -- nenhum dos dois pode ficar de fora do card.
+  it("shows 'Decisão sugerida' and 'Próximo passo' as separate real texts for a risk decision", () => {
+    const riskDecision: ExecutiveDecision = {
+      project_name: "Aurora",
+      source: "risk",
+      window: "hoje",
+      context: "1 risco(s) na zona de atenção",
+      decision: "Priorizar mitigação imediata",
+      whyItDependsOnMe: "Só um julgamento executivo decide como mitigar ou aceitar este risco.",
+      consequenceOfInaction:
+        "Nada muda sozinho: estes riscos permanecem na zona de atenção até uma nova Avaliação de Riscos ser executada.",
+      nextStep: "Escalar ao comitê executivo",
+    };
+
+    render(<ExecutiveDecisionCard decision={riskDecision} />);
+
+    expect(screen.getByText("Decisão sugerida")).toBeInTheDocument();
+    expect(screen.getByText("Priorizar mitigação imediata")).toBeInTheDocument();
+    expect(screen.getByText("Próximo passo")).toBeInTheDocument();
+    expect(screen.getByText("Escalar ao comitê executivo")).toBeInTheDocument();
+  });
 });

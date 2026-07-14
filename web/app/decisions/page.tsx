@@ -6,29 +6,48 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Header } from "@/components/shell/header";
 import { ExecutiveDecisionCard } from "@/components/decision-center/executive-decision-card";
 import { usePortfolioSummary } from "@/lib/hooks/use-portfolio-summary";
-import { buildExecutiveDecisionQueue } from "@/lib/decision-center/decision-queue";
+import { useLatestRisks } from "@/lib/hooks/use-latest-risks";
+import { buildExecutiveDecisionQueue, groupLatestRisksByProject } from "@/lib/decision-center/decision-queue";
 
 /**
  * Executive Decision Queue -- página de portfólio "Decisões" (TIP-009
- * Incremento 1: só o sinal de Status, já portfolio-wide via
- * usePortfolioSummary(), zero leitura nova). Single Decision Source: esta
+ * Incremento 2: Status + Risco combinados). Single Decision Source: esta
  * página é a única origem de organização/priorização de decisões -- nunca
  * recalculada em outro lugar da plataforma. Princípio de Atenção: só
- * projetos que realmente exigem uma decisão aparecem aqui.
+ * projetos que realmente exigem uma decisão aparecem aqui. Os 2 painéis
+ * (Status via usePortfolioSummary, Risco via useLatestRisks) são
+ * independentes -- um falhando não bloqueia o outro; buildExecutiveDecisionQueue
+ * é uma função pura, sem chamada de rede própria.
  */
 export default function DecisionsPage() {
-  const { data, isPending, isError, error, refetch, isFetching } = usePortfolioSummary();
+  const summary = usePortfolioSummary();
+  const risks = useLatestRisks();
 
-  if (isPending) {
+  // Espera os 2 sinais resolverem antes de computar a fila -- nunca
+  // afirma "nenhuma decisão pendente" (Executive Trust) enquanto o sinal
+  // de Risco ainda pode mudar esse veredito. Uma falha de Risco (não um
+  // loading) já é resolvida -- a fila segue com o que sabe, honestamente.
+  if (summary.isPending || (risks.isPending && !risks.isError)) {
     return <DecisionsSkeleton />;
   }
 
   // Mesma disciplina de stale-while-revalidate do Dashboard/Projetos/Ações.
-  if (isError && !data) {
-    throw error;
+  if (summary.isError && !summary.data) {
+    throw summary.error;
   }
 
-  const decisions = buildExecutiveDecisionQueue(data ?? []);
+  // O painel de Risco é independente -- se falhar, a fila continua
+  // mostrando as decisões de Status (mesmo princípio de "cada painel
+  // falha isoladamente" já usado no Workspace); nunca bloqueia a tela
+  // inteira nem finge um dado que não chegou.
+  const risksByProject = groupLatestRisksByProject(risks.data ?? []);
+  const decisions = buildExecutiveDecisionQueue(summary.data ?? [], risksByProject);
+
+  const isFetching = summary.isFetching || risks.isFetching;
+  const refetchAll = () => {
+    summary.refetch();
+    risks.refetch();
+  };
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 p-6">
@@ -39,10 +58,15 @@ export default function DecisionsPage() {
           </p>
           <h1 className="font-display text-2xl font-semibold">Decisões</h1>
         </div>
-        <Button variant="ghost" size="sm" onClick={() => refetch()} disabled={isFetching}>
+        <Button variant="ghost" size="sm" onClick={refetchAll} disabled={isFetching}>
           {isFetching ? "Atualizando…" : "Atualizar"}
         </Button>
       </Header>
+      {risks.isError ? (
+        <p className="text-sm text-danger">
+          Não foi possível carregar os riscos -- mostrando decisões de Status.
+        </p>
+      ) : null}
 
       {decisions.length === 0 ? (
         <EmptyState />

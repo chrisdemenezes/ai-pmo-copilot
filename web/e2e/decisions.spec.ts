@@ -15,6 +15,14 @@ async function resetFixtures() {
   await ctx.dispose();
 }
 
+async function setLatestRisksScenario(scenario: "data" | "unavailable" | "timeout") {
+  const ctx = await playwrightRequest.newContext();
+  await ctx.post(`${MOCK_BACKEND_URL}/__control/workspace-scenario`, {
+    data: { endpoint: "latestRisks", scenario },
+  });
+  await ctx.dispose();
+}
+
 async function login(page: import("@playwright/test").Page) {
   await page.goto("/entrar");
   await page.getByLabel("Senha do workspace").fill(WORKSPACE_PASSWORD);
@@ -25,6 +33,7 @@ async function login(page: import("@playwright/test").Page) {
 test.beforeEach(async () => {
   await resetFixtures();
   await setBackendScenario("data");
+  await setLatestRisksScenario("data");
 });
 
 test("redirects unauthenticated access to /decisions to the login page", async ({ page }) => {
@@ -32,10 +41,10 @@ test("redirects unauthenticated access to /decisions to the login page", async (
   await expect(page).toHaveURL(/\/entrar/);
 });
 
-// TIP-009, Incremento 1 -- Executive Decision Queue com sinal de Status,
-// ponta a ponta (usePortfolioSummary já real -> decision-queue.ts ->
-// Executive Decision Card), zero leitura nova de backend.
-test("shows the Executive Decision Queue ordered by window, filtered to projects that need a decision", async ({
+// TIP-009, Incremento 1+2 -- Executive Decision Queue combinando Status
+// (usePortfolioSummary, já real) e Risco (useLatestRisks, novo nesta
+// Capability) -> decision-queue.ts -> Executive Decision Card.
+test("shows the Executive Decision Queue ordered by window, combining Status and Risco, filtered to projects that need a decision", async ({
   page,
 }) => {
   await login(page);
@@ -43,20 +52,40 @@ test("shows the Executive Decision Queue ordered by window, filtered to projects
 
   await expect(page.getByRole("heading", { name: "Decisões" })).toBeVisible();
 
-  // Multilift (red) -> "Hoje"; Implantacao SAP (yellow) -> "Esta semana";
-  // Aurora (green) nunca aparece -- Princípio de Atenção.
+  // Multilift (status red) e Aurora (risco em atenção, status green) -> "Hoje";
+  // Implantacao SAP (status yellow) -> "Esta semana"; nenhum projeto some.
   await expect(page.getByRole("heading", { name: "Multilift" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Aurora" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Implantacao SAP S/4HANA" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Aurora" })).not.toBeVisible();
 
   await expect(page.getByText("Status: Crítico")).toBeVisible();
   await expect(page.getByText("Status: Atenção")).toBeVisible();
+  await expect(page.getByText("1 risco(s) na zona de atenção")).toBeVisible();
   await expect(page.getByText("Escalar ao patrocinador").first()).toBeVisible();
   await expect(page.getByText("Acompanhar de perto").first()).toBeVisible();
+  await expect(page.getByText("Priorizar mitigação imediata").first()).toBeVisible();
 
-  // Ordem fixa: Multilift ("Hoje") antes de SAP ("Esta semana").
+  // Ordem fixa: entradas "Hoje" (Aurora, Multilift, alfabética) antes de
+  // "Esta semana" (SAP).
   const headings = page.getByRole("heading", { level: 3 });
-  await expect(headings.first()).toHaveText("Multilift");
+  await expect(headings.nth(0)).toHaveText("Aurora");
+  await expect(headings.nth(1)).toHaveText("Multilift");
+  await expect(headings.nth(2)).toHaveText("Implantacao SAP S/4HANA");
+});
+
+test("a failing Risco signal degrades gracefully without blocking Status decisions", async ({
+  page,
+}) => {
+  await setLatestRisksScenario("unavailable");
+
+  await login(page);
+  await page.goto("/decisions");
+
+  await expect(
+    page.getByText("Não foi possível carregar os riscos -- mostrando decisões de Status."),
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Multilift" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Implantacao SAP S/4HANA" })).toBeVisible();
 });
 
 test("clicking a decision navigates to the project's Workspace", async ({ page }) => {

@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { buildExecutiveDecisionQueue, windowLabel } from "./decision-queue";
+import { buildExecutiveDecisionQueue, groupLatestRisksByProject, windowLabel } from "./decision-queue";
 import type { ProjectSummary } from "@/lib/dashboard/types";
+import type { LatestRiskItem } from "./types";
 
 function project(overrides: Partial<ProjectSummary>): ProjectSummary {
   return {
@@ -10,6 +11,20 @@ function project(overrides: Partial<ProjectSummary>): ProjectSummary {
     open_risks: 0,
     pending_action_items: 0,
     latest_health_status: null,
+    ...overrides,
+  };
+}
+
+function risk(overrides: Partial<LatestRiskItem>): LatestRiskItem {
+  return {
+    project_name: "Aurora",
+    description: "Atraso no fornecedor",
+    probability: "high",
+    impact: "high",
+    mitigation: "Escalar",
+    escalation_recommendation: null,
+    source_analysis_id: 1,
+    source_created_at: "2026-07-01T00:00:00Z",
     ...overrides,
   };
 }
@@ -83,5 +98,100 @@ describe("windowLabel", () => {
   it("labels every window in Portuguese", () => {
     expect(windowLabel("hoje")).toBe("Hoje");
     expect(windowLabel("esta_semana")).toBe("Esta semana");
+  });
+});
+
+describe("buildExecutiveDecisionQueue -- sinal de Risco (Incremento 2)", () => {
+  it("generates a 'hoje' entry when a project has an attention-zone risk", () => {
+    const portfolio = [project({ project_name: "Aurora", latest_health_status: "green" })];
+    const risksByProject = groupLatestRisksByProject([
+      risk({ project_name: "Aurora", probability: "high", impact: "high" }),
+    ]);
+
+    const [entry] = buildExecutiveDecisionQueue(portfolio, risksByProject);
+
+    expect(entry.source).toBe("risk");
+    expect(entry.window).toBe("hoje");
+    expect(entry.context).toBe("1 risco(s) na zona de atenção");
+    expect(entry.decision).toBe("Priorizar mitigação imediata");
+  });
+
+  it("never generates an entry when no risk is in the attention zone", () => {
+    const portfolio = [project({ project_name: "Aurora", latest_health_status: "green" })];
+    const risksByProject = groupLatestRisksByProject([
+      risk({ project_name: "Aurora", probability: "low", impact: "low" }),
+    ]);
+
+    expect(buildExecutiveDecisionQueue(portfolio, risksByProject)).toEqual([]);
+  });
+
+  it("uses the real escalation_recommendation as next step when present", () => {
+    const portfolio = [project({ project_name: "Aurora", latest_health_status: "green" })];
+    const risksByProject = groupLatestRisksByProject([
+      risk({
+        project_name: "Aurora",
+        probability: "high",
+        impact: "high",
+        escalation_recommendation: "Escalar ao comitê executivo",
+      }),
+    ]);
+
+    const [entry] = buildExecutiveDecisionQueue(portfolio, risksByProject);
+    expect(entry.nextStep).toBe("Escalar ao comitê executivo");
+  });
+
+  it("falls back to the honest continuity statement when there is no escalation_recommendation", () => {
+    const portfolio = [project({ project_name: "Aurora", latest_health_status: "green" })];
+    const risksByProject = groupLatestRisksByProject([
+      risk({ project_name: "Aurora", probability: "high", impact: "high", escalation_recommendation: null }),
+    ]);
+
+    const [entry] = buildExecutiveDecisionQueue(portfolio, risksByProject);
+    expect(entry.nextStep).toBe(
+      "Nenhuma recomendação de escalonamento registrada nesta análise — continue monitorando os riscos identificados.",
+    );
+  });
+
+  it("generates 2 separate entries (Status + Risco) for the same project, never merged", () => {
+    const portfolio = [project({ project_name: "Aurora", latest_health_status: "red" })];
+    const risksByProject = groupLatestRisksByProject([
+      risk({ project_name: "Aurora", probability: "high", impact: "high" }),
+    ]);
+
+    const queue = buildExecutiveDecisionQueue(portfolio, risksByProject);
+    expect(queue).toHaveLength(2);
+    expect(queue.map((d) => d.source).sort()).toEqual(["risk", "status"]);
+  });
+
+  it("treats a risk with a null probability/impact as never in the attention zone", () => {
+    const portfolio = [project({ project_name: "Aurora", latest_health_status: "green" })];
+    const risksByProject = groupLatestRisksByProject([
+      risk({ project_name: "Aurora", probability: null, impact: null }),
+    ]);
+
+    expect(buildExecutiveDecisionQueue(portfolio, risksByProject)).toEqual([]);
+  });
+
+  it("defaults to no risk data when latestRisksByProject is omitted (Incremento 1 behavior preserved)", () => {
+    const portfolio = [project({ project_name: "Aurora", latest_health_status: "green" })];
+    expect(buildExecutiveDecisionQueue(portfolio)).toEqual([]);
+  });
+});
+
+describe("groupLatestRisksByProject", () => {
+  it("groups risks by project_name", () => {
+    const grouped = groupLatestRisksByProject([
+      risk({ project_name: "Aurora", description: "a" }),
+      risk({ project_name: "Aurora", description: "b" }),
+      risk({ project_name: "Medlog", description: "c" }),
+    ]);
+
+    expect(grouped.get("Aurora")).toHaveLength(2);
+    expect(grouped.get("Medlog")).toHaveLength(1);
+  });
+
+  it("ignores risks without a project_name", () => {
+    const grouped = groupLatestRisksByProject([risk({ project_name: null })]);
+    expect(grouped.size).toBe(0);
   });
 });

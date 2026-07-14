@@ -3,13 +3,21 @@ import { render, screen } from "@testing-library/react";
 
 import DecisionsPage from "./page";
 import { usePortfolioSummary } from "@/lib/hooks/use-portfolio-summary";
+import { useLatestRisks } from "@/lib/hooks/use-latest-risks";
 import type { ProjectSummary } from "@/lib/dashboard/types";
 
 vi.mock("@/lib/hooks/use-portfolio-summary", () => ({
   usePortfolioSummary: vi.fn(),
 }));
+vi.mock("@/lib/hooks/use-latest-risks", () => ({
+  useLatestRisks: vi.fn(),
+}));
 
 const mockedHook = vi.mocked(usePortfolioSummary);
+const mockedRisks = vi.mocked(useLatestRisks);
+// Default: risks already resolved with no data -- most tests only care
+// about the Status signal; override per-test to exercise Risco/erro/loading.
+mockedRisks.mockReturnValue(hookState({ data: [] }) as never);
 
 function hookState(overrides: Partial<Record<string, unknown>>) {
   return {
@@ -89,5 +97,67 @@ describe("DecisionsPage", () => {
     for (const forbidden of [/criar/i, /editar/i, /resolver/i, /nova decisão/i]) {
       expect(screen.queryByRole("button", { name: forbidden })).toBeNull();
     }
+  });
+});
+
+describe("DecisionsPage -- sinal de Risco (Incremento 2)", () => {
+  const GREEN_PORTFOLIO: ProjectSummary[] = [
+    {
+      project_name: "Aurora",
+      total_analyses: 1,
+      open_risks: 1,
+      pending_action_items: 0,
+      latest_health_status: "green",
+    },
+  ];
+
+  it("waits for both Status and Risco to resolve before rendering the empty state (Executive Trust)", () => {
+    mockedHook.mockReturnValue(hookState({ data: GREEN_PORTFOLIO }));
+    mockedRisks.mockReturnValue(hookState({ isPending: true, data: undefined }) as never);
+
+    const { container } = render(<DecisionsPage />);
+    expect(container.querySelectorAll('[data-slot="skeleton"]').length).toBeGreaterThan(0);
+    expect(screen.queryByText("Nenhuma decisão pendente")).toBeNull();
+
+    mockedRisks.mockReturnValue(hookState({ data: [] }) as never);
+  });
+
+  it("adds a risk-sourced card when a project has an attention-zone risk", () => {
+    mockedHook.mockReturnValue(hookState({ data: GREEN_PORTFOLIO }));
+    mockedRisks.mockReturnValue(
+      hookState({
+        data: [
+          {
+            project_name: "Aurora",
+            description: "Atraso no fornecedor",
+            probability: "high",
+            impact: "high",
+            mitigation: "Escalar",
+            escalation_recommendation: null,
+            source_analysis_id: 1,
+            source_created_at: "2026-07-01T00:00:00Z",
+          },
+        ],
+      }) as never,
+    );
+
+    render(<DecisionsPage />);
+    expect(screen.getByRole("heading", { name: "Aurora" })).toBeInTheDocument();
+    expect(screen.getByText("1 risco(s) na zona de atenção")).toBeInTheDocument();
+
+    mockedRisks.mockReturnValue(hookState({ data: [] }) as never);
+  });
+
+  it("shows a degraded but honest message when Risco fails, without blocking Status decisions", () => {
+    mockedHook.mockReturnValue(hookState({ data: MIXED_PORTFOLIO }));
+    mockedRisks.mockReturnValue(hookState({ isError: true, data: undefined }) as never);
+
+    render(<DecisionsPage />);
+    expect(
+      screen.getByText("Não foi possível carregar os riscos -- mostrando decisões de Status."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Implantacao SAP S/4HANA" })).toBeInTheDocument();
+
+    mockedRisks.mockReturnValue(hookState({ data: [] }) as never);
   });
 });

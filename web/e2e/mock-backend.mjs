@@ -20,6 +20,7 @@ const workspaceScenario = {
   analyzeRisk: "data",
   analyzeMeeting: "data",
   actionItems: "data",
+  latestRisks: "data",
 };
 
 // Action Intelligence buckets (atrasado / vence em breve / ...) are computed
@@ -337,6 +338,46 @@ const server = http.createServer((req, res) => {
           description: item.description,
           owner: typeof item.owner === "string" ? item.owner : null,
           due_date: typeof item.due_date === "string" ? item.due_date : null,
+          source_analysis_id: record.id,
+          source_created_at: record.created_at,
+        });
+      }
+    }
+    return send(res, 200, items);
+  }
+
+  // TIP-009 -- Decision Center. Mirrors GET /api/risks/latest
+  // (src/api/routes/intelligence.py): only the most recent risk analysis
+  // per project counts, same principle as latest_health_status.
+  if (url.pathname === "/api/risks/latest") {
+    if (applyScenario(res, "latestRisks")) return;
+    const projectName = url.searchParams.get("project_name");
+    const risksAnalyses = ANALYSES.filter(
+      (a) => a.kind === "risk" && (!projectName || a.project_name === projectName),
+    )
+      .slice()
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    const seenProjects = new Set();
+    const items = [];
+    for (const record of risksAnalyses) {
+      if (seenProjects.has(record.project_name)) continue;
+      const modelOutput = record.payload?.model_output;
+      if (!modelOutput || modelOutput.structured !== true) continue;
+      seenProjects.add(record.project_name);
+      const escalationRecommendation =
+        typeof modelOutput.escalation_recommendation === "string"
+          ? modelOutput.escalation_recommendation
+          : null;
+      for (const risk of modelOutput.risks ?? []) {
+        if (typeof risk?.description !== "string") continue;
+        items.push({
+          project_name: record.project_name,
+          description: risk.description,
+          probability: risk.probability ?? null,
+          impact: risk.impact ?? null,
+          mitigation: risk.mitigation ?? null,
+          escalation_recommendation: escalationRecommendation,
           source_analysis_id: record.id,
           source_created_at: record.created_at,
         });
