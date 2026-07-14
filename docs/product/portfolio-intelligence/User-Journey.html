@@ -1,0 +1,342 @@
+<title>User Journey — Portfolio Intelligence</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --ok:#2f7a4f; --ok-bg:#e1f0e5;
+    --warn:#a3742f; --warn-bg:#f3e9d8;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --ok:#7fd19f; --ok-bg:#1a3324;
+    --warn:#e0b567; --warn-bg:#332711;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --ok:#7fd19f; --ok-bg:#1a3324;
+      --warn:#e0b567; --warn-bg:#332711;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:270px minmax(0,1fr); max-width:1340px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:4px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  .toc .toc-num{color:var(--accent); margin-right:6px;}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:40px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.7rem,4vw,2.5rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:70ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:52px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink);}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.3rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:70ch;}
+  h3{font-size:1.02rem; margin:26px 0 8px; font-weight:600;}
+  p{margin:0 0 14px; max-width:74ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:72ch;}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout.warn{border-left-color:var(--warn);}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.ok{color:var(--ok); background:var(--ok-bg);}
+  .chip.warn{color:var(--warn); background:var(--warn-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">STRATECH V1 — Product Core<br>Portfolio Intelligence</div>
+    <nav>
+      <a href="#s0"><span class="toc-num">00</span>Guardian Check</a>
+      <a href="#s1"><span class="toc-num">01</span>Persona e Pontos de Entrada</a>
+      <a href="#s2"><span class="toc-num">02</span>A Executive Portfolio View: conceito de produto</a>
+      <a href="#s3"><span class="toc-num">03</span>Jornada Passo a Passo</a>
+      <a href="#s4"><span class="toc-num">04</span>Jornada × Dado Real</a>
+      <a href="#s5"><span class="toc-num">05</span>Pontos de Decisão Explícitos</a>
+      <a href="#s6"><span class="toc-num">06</span>Como isso reduz o tempo até a atenção certa</a>
+      <a href="#s7"><span class="toc-num">07</span>Conversa com o resto da plataforma</a>
+      <a href="#s8"><span class="toc-num">08</span>Evolução futura sem reconstrução</a>
+      <a href="#s9"><span class="toc-num">09</span>Fora de Escopo (confirmado)</a>
+      <a href="#s10"><span class="toc-num">10</span>Próximo Gate</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">STRATECH V1 · Product Core · Etapa 2 de 6 — User Journey</div>
+      <h1 class="title">User Journey — Portfolio Intelligence</h1>
+      <p class="subtitle">Discovery aprovada com <b>Opção 1 (escopo enxuto, orientado ao presente)</b>: nenhuma
+        tendência histórica, série temporal, comparação entre períodos, previsão ou análise de evolução --
+        esses temas pertencem às futuras Capabilities Executive Memory e Organizational Intelligence. Esta
+        Journey constrói a <b>Executive Portfolio View</b> exclusivamente sobre 4 princípios do Founder:
+        Transparent Prioritization, Single Decision Source, Executive Portfolio View e Princípio da Atenção.</p>
+      <div class="meta-row">
+        <span><b>Fase</b> STRATECH V1 — Product Core</span>
+        <span><b>Módulo</b> Portfolio Intelligence</span>
+        <span><b>Pergunta que a jornada responde</b> "Onde devo concentrar meu tempo agora?"</span>
+        <span><b>Data</b> 2026-07-14</span>
+        <span><b>Status</b> Aguardando aprovação — nenhuma UX Flow, FS ou código ainda</span>
+      </div>
+    </div>
+
+    <section id="s0">
+      <div class="section-head"><span class="section-num">00</span><h2>Guardian Check</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Verificação</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr><td>Conflito com Strategy/Constitution/Vision/Decision Framework?</td><td>SEM CONFLITO — nenhum documento normativo ainda existe em <code>docs/strategy/</code>.</td></tr>
+            <tr><td>Conflito com a Discovery aprovada?</td><td>SEM CONFLITO — Founder fechou o fork da Discovery §04 pela Opção 1: camadas fixas reaproveitando 100% do que já existe (Executive Decision Queue + <code>rankByRisk</code>), zero leitura agregada nova, zero conceito de tendência.</td></tr>
+            <tr><td>Reabre Single Decision Source, Executive Brief Contract, Comunicação estruturada ou o Achado #1 do RC-1?</td><td>NÃO — Single Decision Source é reforçado (Seção 2), os demais permanecem intocados, por instrução explícita e reiterada do Founder.</td></tr>
+            <tr><td>Introduz tendência histórica, série temporal, comparação entre períodos, previsão ou análise de evolução?</td><td>NÃO, por instrução direta do Founder — todo sinal usado nesta Journey é um snapshot do estado mais recente, exatamente como já existe hoje em <code>ProjectSummaryService</code>. Qualquer necessidade futura desses temas pertence a Executive Memory / Organizational Intelligence, não a esta Capability.</td></tr>
+            <tr><td>A jornada melhora alguma decisão do usuário?</td><td>SIM — ver Seções 5 e 6.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Persona e Pontos de Entrada</h2></div>
+      <p class="section-intro">Persona: PM/PMO, a mesma de toda a plataforma. "Onde devo concentrar meu tempo
+        agora" é, por definição, uma pergunta sobre o portfólio inteiro -- nunca sobre um projeto escolhido de
+        antemão, mesmo padrão já estabelecido por Action Intelligence e Decision Center.</p>
+      <ul>
+        <li><b>Portfólio (novo item de navegação, ex.: "Portfólio" ou "Visão Executiva" -- nome exato é
+          decisão da UX Flow).</b> Ponto de entrada primário -- resposta direta à pergunta, cobrindo todo o
+          portfólio de uma vez. Mesma Regra de Entrada já formalizada na Runtime Navigation: só entra em
+          <code>navigation.ts</code> quando tiver rota real, dado real, estados completos e testes.</li>
+        <li><b>Dashboard.</b> Superfície natural de convergência -- assim como "Ações pendentes" (TIP-008) e
+          "Decisões críticas" (TIP-009) já viraram KPIs que apontam para suas páginas de portfólio, a
+          Executive Portfolio View pode ser resumida ali (posicionamento exato é decisão de UX Flow), sempre
+          consumindo os mesmos dados, nunca recalculando (Seção 2).</li>
+        <li><b>Workspace (sem componente novo).</b> Continua sendo o destino de qualquer clique de retorno --
+          a Executive Portfolio View não duplica o Executive Brief, o painel de Riscos ou a Executive Decision
+          Queue; ela aponta para eles.</li>
+      </ul>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>A Executive Portfolio View: conceito de produto</h2></div>
+      <p class="section-intro">Resposta direta ao princípio 3 do Founder: <b>"Portfolio Intelligence não é uma
+        lista de projetos. É a visão executiva do portfólio."</b></p>
+      <p>Uma lista mostra todo projeto com o mesmo peso visual. Uma <b>visão executiva</b> pressupõe (a)
+        camadas explícitas de atenção, (b) uma justificativa visível para cada posição, e (c) discrição
+        deliberada para quem não precisa dela agora -- os 4 princípios do Founder, aplicados nesta ordem.</p>
+
+      <h3>Transparent Prioritization -- a regra de camadas (fixa, nunca inventada pela IA)</h3>
+      <p>Reaproveita, sem recalcular, dois sinais já reais e já aprovados: a Executive Decision Queue
+        (<code>buildExecutiveDecisionQueue()</code>, Decision Center) e o ranking de concentração de risco
+        (<code>rankByRisk()</code>, Dashboard). A novidade é a camada entre eles, nunca o cálculo:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Camada</th><th>Condição (transparente, sempre visível)</th><th>Fonte real</th></tr></thead>
+          <tbody>
+            <tr><td>1 -- máxima atenção</td><td>Projeto tem ao menos 1 entrada na Executive Decision Queue com janela <code>hoje</code></td><td><code>buildExecutiveDecisionQueue()</code> -- consumida, nunca recalculada (Single Decision Source)</td></tr>
+            <tr><td>2 -- atenção esta semana</td><td>Projeto tem ao menos 1 entrada na Executive Decision Queue com janela <code>esta_semana</code>, sem nenhuma em <code>hoje</code></td><td><code>buildExecutiveDecisionQueue()</code> -- idem</td></tr>
+            <tr><td>3 -- risco a monitorar</td><td>Projeto tem <code>open_risks &gt; 0</code>, sem nenhuma entrada na Executive Decision Queue</td><td><code>rankByRisk()</code>, ordenado por <code>open_risks</code> descendente -- já existente, zero cálculo novo</td></tr>
+            <tr><td>4 -- sem sinal de atenção</td><td>Nenhuma entrada na Executive Decision Queue e <code>open_risks == 0</code></td><td><code>ProjectSummary</code> puro -- presente na visão (portfólio inteiro, diferente da Decision Queue), mas visualmente discreto (Princípio da Atenção, Seção abaixo)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Cada camada <b>é</b> a justificativa -- o executivo nunca vê uma posição sem saber por que ela está
+        ali, cumprindo Transparent Prioritization por construção, não por texto explicativo adicional. Dentro
+        de uma mesma camada, a ordem entre projetos (por nome, por contagem de risco, etc.) é decisão de UX
+        Flow, não desta Journey.</p>
+
+      <h3>Single Decision Source -- fronteira explícita</h3>
+      <p>Nenhuma das 4 camadas acima recalcula uma decisão. As camadas 1 e 2 consomem a saída de
+        <code>buildExecutiveDecisionQueue()</code> tal como está -- se um projeto não aparece nela, não entra
+        nessas camadas, ponto final. A camada 3 usa um sinal diferente por natureza (concentração de risco
+        cumulativo, não decisão pendente) e nunca se apresenta como se fosse uma decisão -- é um sinal de
+        monitoramento, rotulado como tal.</p>
+
+      <h3>Executive Portfolio View -- as 3 perguntas por projeto</h3>
+      <p>Cada projeto apresentado responde às 3 perguntas do Founder, sempre com dado real, nunca texto
+        inventado:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Pergunta</th><th>Camadas 1-2 (fonte: Decision Queue)</th><th>Camada 3 (fonte: risco)</th><th>Camada 4 (sem sinal)</th></tr></thead>
+          <tbody>
+            <tr><td>Por que devo olhar para este projeto?</td><td>Nome da camada + janela (<code>windowLabel()</code>, já existente)</td><td>Nome da camada ("Risco a monitorar") + posição no ranking</td><td>Nome da camada ("Sem sinal de atenção") -- resposta afirmativa, não uma ausência de resposta</td></tr>
+            <tr><td>O que está exigindo minha atenção?</td><td><code>context</code> da <code>ExecutiveDecision</code>, verbatim (ex.: "Status: Crítico", "N risco(s) na zona de atenção")</td><td><code>open_risks</code> (contagem real, cumulativa)</td><td>Nenhum sinal real hoje -- ver achado abaixo</td></tr>
+            <tr><td>O que acontece se eu não agir?</td><td><code>consequenceOfInaction</code> da <code>ExecutiveDecision</code>, verbatim</td><td>Sem texto real equivalente hoje -- ver achado abaixo</td><td>Não se aplica -- não há ação pendente</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout warn">
+        <b>Achado, para a UX Flow resolver explicitamente:</b> as camadas 1-2 têm as 3 respostas 100% reais e
+        verbatim, herdadas do Executive Decision Card (Decision Center). A camada 3 (risco a monitorar, sem
+        decisão pendente) tem dado real para "por que olhar" e "o que exige atenção", mas <b>nenhum texto real
+        existe hoje</b> para "o que acontece se eu não agir" nesse caso específico -- diferente da camada 1-2,
+        onde <code>consequenceOfInaction</code> já existe. Duas saídas possíveis, nenhuma decidida aqui: (a) a
+        UX Flow omite essa 3ª resposta para a camada 3, tratando-a como não aplicável; ou (b) a Feature
+        Specification avalia se a resposta genérica já usada para risco em <code>decision-queue.ts</code> pode
+        se estender, sem inventar severidade nova. Nenhuma das duas exige leitura agregada nova.
+      </div>
+
+      <h3>Princípio da Atenção -- "a ausência de prioridade também comunica"</h3>
+      <p>Diferente da Executive Decision Queue (que <i>filtra</i>, e projetos sem decisão pendente simplesmente
+        não aparecem), a Executive Portfolio View mostra o <b>portfólio inteiro</b> -- é sua razão de existir
+        (responder "onde olhar" exige ver tudo, não um recorte). A camada 4 (sem sinal de atenção) precisa,
+        portanto, estar presente, mas nunca competir visualmente com as camadas 1-3: hierarquia visual exata
+        (tamanho, densidade, posição) é decisão de UX Flow, mas o princípio é fixado aqui -- discrição
+        deliberada, nunca ausência, para quem está "no curso esperado".</p>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>Jornada Passo a Passo</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Passo</th><th>Detalhe</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Abrir a Executive Portfolio View</td><td>Ponto de entrada primário, portfólio inteiro, nenhum projeto escolhido antes -- Seção 1</td></tr>
+            <tr><td>2</td><td>Ver o portfólio já organizado em 4 camadas transparentes</td><td>Camada 1 (decisão hoje) primeiro, depois 2, 3 e 4 -- nunca uma lista plana, nunca reordenável pelo usuário (mesmo princípio de Action Intelligence e Decision Center)</td></tr>
+            <tr><td>3</td><td>Ler cada projeto</td><td>As 3 respostas da Seção 2 -- por que olhar, o que exige atenção, o que acontece se não agir (quando aplicável)</td></tr>
+            <tr><td>4</td><td>Clicar num projeto</td><td>Leva ao Workspace do projeto (camadas 1-2) ou diretamente à Executive Decision Queue/painel de Riscos correspondente -- navegação já existente, reaproveitada, nenhuma tela nova a inventar</td></tr>
+            <tr><td>5</td><td>Decidir e agir fora da visão</td><td>A ação real continua fora da Executive Portfolio View -- mesmo princípio já confirmado em Action Intelligence e Decision Center: a plataforma nunca decide ou age sozinha</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>Jornada × Dado Real</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Passo</th><th>Fonte real</th><th>Cálculo/regra</th></tr></thead>
+          <tbody>
+            <tr><td>2 -- camadas 1-2</td><td><code>buildExecutiveDecisionQueue()</code> (Decision Center)</td><td>Zero recálculo -- consumida tal como está (Single Decision Source)</td></tr>
+            <tr><td>2 -- camada 3</td><td><code>rankByRisk()</code> (<code>web/lib/dashboard/aggregate.ts</code>)</td><td>Zero cálculo novo -- já existente, já ordenado por <code>open_risks</code></td></tr>
+            <tr><td>2 -- camada 4</td><td><code>ProjectSummary</code> (todos os projetos restantes)</td><td>Nenhum campo novo -- é o complemento das camadas 1-3</td></tr>
+            <tr><td>3 -- as 3 respostas</td><td><code>ExecutiveDecision.context</code>/<code>consequenceOfInaction</code> (camadas 1-2), <code>open_risks</code> (camada 3)</td><td>Verbatim, funções já existentes -- zero texto novo gerado por esta Capability, exceto a lacuna registrada no achado da Seção 2</td></tr>
+            <tr><td>4 -- navegação</td><td><code>project_name</code></td><td>Mesma navegação já existente (<code>/workspace/[projectName]</code>, <code>/decisions</code>), nenhuma rota nova além da própria Executive Portfolio View</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Pontos de Decisão Explícitos</h2></div>
+      <ul>
+        <li><b>Passo 2:</b> a plataforma decide a camada (regra fixa e transparente), o executivo decide o que
+          revisitar primeiro dentro dela -- nunca o contrário.</li>
+        <li><b>Passo 3:</b> o único ponto que a plataforma ativamente propõe -- por que olhar para este
+          projeto agora, sempre com o dado real por trás visível, nunca uma pontuação de atenção opaca
+          (Guardian Seção 00 da Discovery).</li>
+        <li><b>Passo 5:</b> a decisão real (agir, aceitar o risco, redistribuir esforço) continua inteiramente
+          do executivo -- a plataforma nunca a toma, nunca a executa em nome dele.</li>
+      </ul>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>Como isso reduz o tempo até a atenção certa</h2></div>
+      <p class="section-intro">Resposta direta à pergunta do Founder, adaptando Time To Decision para o que
+        aqui é, na prática, um Time To Attention.</p>
+      <p><b>Hoje:</b> para saber por onde começar no portfólio, o executivo visita 3 widgets do Dashboard
+        (distribuição de saúde, ranking de risco, grid sem ordenação) e ainda a Executive Decision Queue --
+        nenhum lugar único responde "onde eu concentro meu tempo agora".</p>
+      <p><b>Com a Executive Portfolio View:</b> uma tela, já organizada em 4 camadas transparentes, cobrindo o
+        portfólio inteiro -- o executivo lê a camada 1 e já sabe qual projeto e por quê merece atenção
+        primeiro, sem visitar os 3 widgets dispersos nem a Decision Queue separadamente antes. Mesmo padrão de
+        redução já demonstrado por Action Intelligence e Decision Center: Login → Dashboard → Portfólio →
+        projeto mais crítico já no topo.</p>
+      <p>TTD (princípio oficial) e Return Rate (conceitual) continuam sem instrumentação nesta fase --
+        avaliação qualitativa, mesma disciplina de TIP-008/TIP-009.</p>
+    </section>
+
+    <section id="s7">
+      <div class="section-head"><span class="section-num">07</span><h2>Conversa com o resto da plataforma</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Módulo</th><th>Natureza da conversa</th></tr></thead>
+          <tbody>
+            <tr><td>Decision Center</td><td>Fonte verbatim para as camadas 1-2 -- a Executive Portfolio View nunca recalcula, nunca diverge, nunca duplica a Executive Decision Queue (Single Decision Source, não negociável)</td></tr>
+            <tr><td>Dashboard</td><td>Recebe contexto (posicionamento exato de KPI/link é decisão de UX Flow, mesmo padrão de "Ações pendentes" e "Decisões críticas") -- a Executive Portfolio View devolve navegação para Workspace/Decision Center, nunca o contrário</td></tr>
+            <tr><td>Workspace</td><td>Destino de qualquer clique de retorno -- fecha o Executive Loop exatamente como as Capabilities anteriores já fecham</td></tr>
+            <tr><td>Action Intelligence ("Ações") e Decision Center ("Decisões")</td><td>Relação de irmãs, não de fusão -- 3 páginas de portfólio distintas (compromissos, decisões, visão executiva), mesma posição na Sidebar, mesmo padrão de composição</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s8">
+      <div class="section-head"><span class="section-num">08</span><h2>Evolução futura sem reconstrução</h2></div>
+      <ul>
+        <li><b>Tendência real, quando Executive Memory existir.</b> A camada 4 hoje ("sem sinal de atenção")
+          poderia, no futuro, diferenciar "estável" de "recém-saído de atenção" -- mas isso pertence
+          explicitamente a Executive Memory/Organizational Intelligence, nunca a esta Capability. Nenhuma
+          estrutura de dado é antecipada aqui para isso.</li>
+        <li><b>Nova fonte de decisão, mesma regra de camadas.</b> Se a Executive Decision Queue ganhar uma
+          nova fonte (ex.: Comunicação, via Executive Brief Contract, quando retomado), as camadas 1-2 a
+          absorvem automaticamente, sem nenhuma mudança na Executive Portfolio View -- ela só consome a saída,
+          nunca conhece as fontes internas da fila.</li>
+        <li><b>Mesma navegação, mesmo ponto de entrada.</b> A Executive Portfolio View continua sendo o lugar
+          certo mesmo se o número de camadas ou sinais crescer -- nenhuma tela nova a inventar depois.</li>
+        <li><b>Nenhuma decisão de escrita antecipada.</b> Como a Executive Decision Queue, esta é uma leitura
+          pura sobre dado que já existe -- nenhum campo mutável a preparar nesta fase.</li>
+      </ul>
+    </section>
+
+    <section id="s9">
+      <div class="section-head"><span class="section-num">09</span><h2>Fora de Escopo (confirmado)</h2></div>
+      <ul>
+        <li>Tendência histórica, séries temporais, comparação entre períodos, previsões, análises de evolução
+          -- por instrução explícita do Founder, pertencem a Executive Memory e Organizational Intelligence.</li>
+        <li>Qualquer recálculo de decisão fora da Executive Decision Queue -- Single Decision Source permanece
+          absoluto.</li>
+        <li>Qualquer pontuação de atenção opaca ou "gerada por IA" sem explicação -- toda camada é uma regra
+          fixa e transparente (Transparent Prioritization).</li>
+        <li>Qualquer decisão estruturada para Comunicação -- Achado #1 do RC-1 permanece não implementado.</li>
+        <li>Executive Brief Contract, Decision Catalog/Domain/Context -- permanecem parados (Enterprise
+          Essentials).</li>
+        <li>Qualquer critério de camada configurável pelo usuário -- a ordem é sempre a regra fixa da Seção 2.</li>
+        <li>Fusão da Executive Portfolio View com "Ações" ou "Decisões" -- permanecem páginas distintas.</li>
+      </ul>
+    </section>
+
+    <section id="s10">
+      <div class="section-head"><span class="section-num">10</span><h2>Próximo Gate</h2></div>
+      <p>Nenhum código escrito. Esta é a User Journey (Etapa 2 de 6). A UX Flow (Etapa 3) só começa após
+        aprovação explícita do Founder -- inclusive sobre a resposta ao achado da Seção 2 (3ª pergunta para a
+        camada 3), a ordenação exata dentro de cada camada, a hierarquia visual concreta da camada 4 e o
+        posicionamento de entrada no Dashboard, todos deixados como decisão da próxima etapa.</p>
+    </section>
+
+    <footer>
+      <span>Stratech — STRATECH V1 · Product Core</span>
+      <span>User Journey</span>
+      <span>2026-07-14</span>
+    </footer>
+  </main>
+</div>
