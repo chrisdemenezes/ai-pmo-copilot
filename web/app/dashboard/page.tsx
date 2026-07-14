@@ -5,13 +5,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Header } from "@/components/shell/header";
 import { usePortfolioSummary } from "@/lib/hooks/use-portfolio-summary";
+import { useLatestRisks } from "@/lib/hooks/use-latest-risks";
 import { PortfolioSummaryStrip } from "@/components/dashboard/portfolio-summary-strip";
 import { ProjectHealthGrid } from "@/components/dashboard/project-health-grid";
 import { HealthStatusDistribution } from "@/components/dashboard/health-status-distribution";
 import { RiskConcentrationRanking } from "@/components/dashboard/risk-concentration-ranking";
+import { buildExecutiveDecisionQueue, groupLatestRisksByProject } from "@/lib/decision-center/decision-queue";
 
 export default function DashboardPage() {
   const { data, isPending, isError, error, refetch, isFetching } = usePortfolioSummary();
+  const risks = useLatestRisks();
 
   if (isPending) {
     return <DashboardSkeleton />;
@@ -28,6 +31,14 @@ export default function DashboardPage() {
   }
 
   const projects = data ?? [];
+  // Single Decision Source (TIP-009 §08): a mesma buildExecutiveDecisionQueue()
+  // do /decisions, nunca uma contagem recalculada aqui. null enquanto o
+  // sinal de Risco ainda não resolveu -- nunca afirma um número que pode
+  // estar incompleto (Executive Trust).
+  const criticalDecisionsCount =
+    risks.isPending && !risks.isError
+      ? null
+      : buildExecutiveDecisionQueue(projects, groupLatestRisksByProject(risks.data ?? [])).length;
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 p-6">
@@ -47,7 +58,7 @@ export default function DashboardPage() {
         <EmptyState />
       ) : (
         <>
-          <PortfolioSummaryStrip projects={projects} />
+          <PortfolioSummaryStrip projects={projects} criticalDecisionsCount={criticalDecisionsCount} />
           <section className="flex flex-col gap-3">
             <div>
               <h2 className="font-display text-lg font-semibold text-ink">Projetos</h2>
@@ -89,7 +100,8 @@ function DashboardSkeleton() {
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 p-6">
       <Skeleton className="h-8 w-64" />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+        <Skeleton className="h-20" />
         <Skeleton className="h-20" />
         <Skeleton className="h-20" />
         <Skeleton className="h-20" />

@@ -248,11 +248,12 @@ test.describe("Analisar Projeto (TIP-005)", () => {
     ).toBeVisible();
 
     // Dashboard reflects it too, on the next client-side navigation --
-    // same shared QueryClient, no WebSocket/polling (FS-005 §3). href-based
-    // locator, filtered to visible: the Sidebar (md+) and the mobile bottom
-    // tab bar both render a[href="/dashboard"] simultaneously, one of them
-    // always display:none at any given breakpoint (TIP-004A precedent).
-    await page.locator('a[href="/dashboard"]').filter({ visible: true }).first().click();
+    // same shared QueryClient, no WebSocket/polling (FS-005 §3). Uses the
+    // Workspace's own "Dashboard" breadcrumb (WorkspaceHeader), scoped to
+    // main, rather than a nav-wide href locator -- avoids an intermittent
+    // collision with the Next.js dev-mode indicator over the mobile bottom
+    // tab bar (dev-tooling artifact, absent from production builds).
+    await page.locator("main").getByRole("link", { name: "Dashboard" }).click();
     await expect(page).toHaveURL(/\/dashboard/);
     // ProjectHealthGrid renders both a desktop table and a mobile card list
     // simultaneously (one always display:none); scope to whichever is
@@ -337,8 +338,11 @@ test.describe("Avaliação de Riscos (TIP-006)", () => {
     // portfolio-wide "Riscos identificados" strip is a single instance (not
     // duplicated per breakpoint like the grid), so the exact new total
     // (Multilift 3 + Aurora 0+2 + Implantacao SAP 1 = 6) is an unambiguous
-    // signal that this specific submission's 2 risks were counted.
-    await page.locator('a[href="/dashboard"]').filter({ visible: true }).first().click();
+    // signal that this specific submission's 2 risks were counted. Uses the
+    // Workspace's own "Dashboard" breadcrumb, scoped to main -- avoids an
+    // intermittent collision with the Next.js dev-mode indicator over the
+    // mobile bottom tab bar (dev-tooling artifact, not a product defect).
+    await page.locator("main").getByRole("link", { name: "Dashboard" }).click();
     await expect(page).toHaveURL(/\/dashboard/);
     const riscosCard = page.getByText("Riscos identificados").locator("xpath=..");
     await expect(riscosCard.getByText("6")).toBeVisible();
@@ -415,8 +419,11 @@ test.describe("O que mudou na última reunião? (TIP-007)", () => {
 
     // Dashboard reflects it too -- "Ações pendentes" strip is a single
     // instance, so the exact new total (Multilift 2 + Aurora 1+2 +
-    // Implantacao SAP 1 = 6) is unambiguous.
-    await page.locator('a[href="/dashboard"]').filter({ visible: true }).first().click();
+    // Implantacao SAP 1 = 6) is unambiguous. Uses the Workspace's own
+    // "Dashboard" breadcrumb, scoped to main -- avoids an intermittent
+    // collision with the Next.js dev-mode indicator over the mobile
+    // bottom tab bar (dev-tooling artifact, not a product defect).
+    await page.locator("main").getByRole("link", { name: "Dashboard" }).click();
     await expect(page).toHaveURL(/\/dashboard/);
     const acoesCard = page.getByText("Ações pendentes").locator("xpath=..");
     await expect(acoesCard.getByText("6")).toBeVisible();

@@ -26,26 +26,42 @@ const projects: ProjectSummary[] = [
 
 describe("PortfolioSummaryStrip", () => {
   it("renders aggregated totals in label order", () => {
-    const { container } = render(<PortfolioSummaryStrip projects={projects} />);
+    const { container } = render(
+      <PortfolioSummaryStrip projects={projects} criticalDecisionsCount={1} />,
+    );
     expect(screen.getByText("Projetos")).toBeInTheDocument();
     expect(screen.getByText("Riscos identificados")).toBeInTheDocument();
     expect(screen.getByText("Ações pendentes")).toBeInTheDocument();
+    expect(screen.getByText("Decisões críticas")).toBeInTheDocument();
     const values = Array.from(container.querySelectorAll(".tabular-nums")).map(
       (el) => el.textContent,
     );
-    expect(values).toEqual(["2", "3", "2"]);
+    expect(values).toEqual(["2", "3", "2", "1"]);
   });
 
   // TIP-008 Incremento 3 -- KPI "Ações pendentes" vira link para a página
-  // de portfólio "Ações" (Incremento 2); os outros 2 KPIs continuam sem link.
-  it("links only the Ações pendentes KPI to /actions", () => {
-    render(<PortfolioSummaryStrip projects={projects} />);
+  // de portfólio "Ações" (Incremento 2); TIP-009 Incremento 3 acrescenta
+  // "Decisões críticas" -> /decisions. Os outros 2 KPIs continuam sem link.
+  it("links only Ações pendentes and Decisões críticas to their own pages", () => {
+    render(<PortfolioSummaryStrip projects={projects} criticalDecisionsCount={1} />);
     expect(screen.getByRole("link", { name: /Ações pendentes/ })).toHaveAttribute(
       "href",
       "/actions",
     );
+    expect(screen.getByRole("link", { name: /Decisões críticas/ })).toHaveAttribute(
+      "href",
+      "/decisions",
+    );
     expect(screen.queryByRole("link", { name: /^Projetos/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Riscos identificados/ })).not.toBeInTheDocument();
+  });
+
+  it("shows a skeleton placeholder for Decisões críticas when the count is null", () => {
+    const { container } = render(
+      <PortfolioSummaryStrip projects={projects} criticalDecisionsCount={null} />,
+    );
+    expect(screen.getByText("Decisões críticas")).toBeInTheDocument();
+    expect(container.querySelector('[data-slot="skeleton"]')).not.toBeNull();
   });
 });
 

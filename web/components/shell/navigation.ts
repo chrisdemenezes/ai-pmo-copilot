@@ -1,4 +1,4 @@
-import { ClipboardList, Folder, LayoutDashboard } from "lucide-react";
+import { ClipboardList, Folder, Gavel, LayoutDashboard } from "lucide-react";
 
 import type { NavItem } from "./types";
 
@@ -16,4 +16,7 @@ export const NAV_ITEMS: NavItem[] = [
   // TIP-008 Incremento 2 -- entra aqui só agora que a rota é real, com dado
   // real, estados completos e testes (regra de entrada da navegação).
   { label: "Ações", href: "/actions", icon: ClipboardList },
+  // TIP-009 Incremento 3 -- mesma regra de entrada, agora para a Executive
+  // Decision Queue.
+  { label: "Decisões", href: "/decisions", icon: Gavel },
 ];

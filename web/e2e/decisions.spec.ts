@@ -88,6 +88,16 @@ test("a failing Risco signal degrades gracefully without blocking Status decisio
   await expect(page.getByRole("heading", { name: "Implantacao SAP S/4HANA" })).toBeVisible();
 });
 
+// TIP-009 Incremento 3 -- Sidebar → "Decisões" → Executive Decision Queue,
+// mesma regra de entrada já cumprida por "Ações" (TIP-008 Incremento 2).
+test("navigates via the Decisões nav item to the Executive Decision Queue", async ({ page }) => {
+  await login(page);
+
+  await page.locator('a[href="/decisions"]').filter({ visible: true }).first().click();
+  await expect(page).toHaveURL(/\/decisions/);
+  await expect(page.getByRole("heading", { name: "Decisões" })).toBeVisible();
+});
+
 test("clicking a decision navigates to the project's Workspace", async ({ page }) => {
   await login(page);
   await page.goto("/decisions");

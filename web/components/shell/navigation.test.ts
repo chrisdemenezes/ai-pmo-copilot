@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { NAV_ITEMS } from "./navigation";
 
 describe("NAV_ITEMS", () => {
-  it("contains exactly three entries -- the only fully real modules today (TIP-008)", () => {
-    expect(NAV_ITEMS).toHaveLength(3);
+  it("contains exactly four entries -- the only fully real modules today (TIP-009)", () => {
+    expect(NAV_ITEMS).toHaveLength(4);
   });
 
   it("points the first entry at the real Dashboard route", () => {
@@ -20,5 +20,10 @@ describe("NAV_ITEMS", () => {
   it("points the third entry at the real Ações route", () => {
     expect(NAV_ITEMS[2].href).toBe("/actions");
     expect(NAV_ITEMS[2].label).toBe("Ações");
+  });
+
+  it("points the fourth entry at the real Decisões route", () => {
+    expect(NAV_ITEMS[3].href).toBe("/decisions");
+    expect(NAV_ITEMS[3].label).toBe("Decisões");
   });
 });
