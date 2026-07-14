@@ -1,0 +1,329 @@
+<title>TIP-009 — Decision Center</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --fato:#0f6b5c; --fato-bg:#e2efe9;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --plan:#2f5f9e; --plan-bg:#e2ebf6;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --fato:#4fd6b8; --fato-bg:#173029;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --plan:#7fb4f2; --plan-bg:#1a2c42;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --fato:#4fd6b8; --fato-bg:#173029;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --plan:#7fb4f2; --plan-bg:#1a2c42;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:270px minmax(0,1fr); max-width:1340px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:4px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:40px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.7rem,4vw,2.5rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:70ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:52px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink);}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.3rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:70ch;}
+  h3{font-size:1.02rem; margin:26px 0 8px; font-weight:600;}
+  p{margin:0 0 14px; max-width:74ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:72ch;}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout.fato{border-left-color:var(--fato);}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.fato{color:var(--fato); background:var(--fato-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  .chip.plan{color:var(--plan); background:var(--plan-bg);}
+  .value-card{border:1px solid var(--border); border-radius:8px; padding:18px 22px; margin-bottom:14px; background:var(--surface);}
+  .value-card .value-q{font-family: ui-monospace, monospace; font-size:11px; text-transform:uppercase; letter-spacing:.03em; color:var(--accent); margin-bottom:8px;}
+  .value-card .value-a{margin:0;}
+  .slice{border:1px solid var(--border); border-radius:8px; padding:16px 20px; margin-bottom:16px; background:var(--surface);}
+  .slice h4{margin:0 0 4px; font-size:1rem;}
+  .slice .slice-tag{font-family: ui-monospace, monospace; font-size:10px; text-transform:uppercase; color:var(--fato); margin-bottom:8px; display:block;}
+  .slice .slice-q{font-family: ui-monospace, monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.02em; color:var(--ink-dim); margin:10px 0 2px;}
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">TIP-009<br>Decision Center</div>
+    <nav>
+      <a href="#s0">00 Guardian Check</a>
+      <a href="#s1">01 Entrega de Valor</a>
+      <a href="#s2">02 Time To Decision e Executive Decision Performance</a>
+      <a href="#s3">03 Princípios Preservados</a>
+      <a href="#s4">04 Incrementos de Valor ao Executivo</a>
+      <a href="#s5">05 Tarefas Técnicas</a>
+      <a href="#s6">06 Ordem de Execução</a>
+      <a href="#s7">07 Critérios de Conclusão</a>
+      <a href="#s8">08 Princípios Permanentes Registrados</a>
+      <a href="#s9">09 Próximo Gate</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">Technical Implementation Plan · STRATECH V1 — Product Core · Etapa 6 de 10</div>
+      <h1 class="title">TIP-009 — Decision Center</h1>
+      <p class="subtitle">Decompõe FS-008 e a Architecture Review (ambas aprovadas) em tarefas técnicas
+        executáveis, organizadas em <b>Incrementos de Valor ao Executivo</b> -- evolução, por instrução do
+        Founder, da estrutura já usada em TIP-008: cada incremento agora responde explicitamente qual valor
+        entrega, qual comportamento executivo habilita, e qual parte da plataforma passa a reutilizá-lo.
+        Nenhuma Feature nova, nenhuma ampliação de arquitetura, nenhuma mudança do escopo já aprovado.</p>
+      <div class="meta-row">
+        <span><b>Origem</b> FS-008 + Architecture Review, ambas aprovadas</span>
+        <span><b>Data</b> 2026-07-14</span>
+        <span><b>Status</b> Em elaboração — aguardando aprovação do Founder antes da implementação</span>
+      </div>
+    </div>
+
+    <section id="s0">
+      <div class="section-head"><span class="section-num">00</span><h2>Guardian Check</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Verificação</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr><td>Conflito com Strategy/Constitution/Vision/Decision Framework?</td><td>SEM CONFLITO — nenhum documento normativo ainda existe em <code>docs/strategy/</code>.</td></tr>
+            <tr><td>Este plano altera o escopo já aprovado em FS-008/Architecture Review?</td><td>NÃO — reorganiza a ordem de construção por valor executivo, não o conteúdo.</td></tr>
+            <tr><td>Cria alguma Feature nova ou amplia arquitetura?</td><td>NÃO, por instrução explícita do Founder — apenas organização da implementação.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Entrega de Valor</h2></div>
+      <div class="value-card">
+        <p class="value-q">1. Em qual momento o usuário começa a perceber valor?</p>
+        <p class="value-a">Assim que a Executive Decision Queue existir com o sinal de Status -- não é
+          preciso esperar a leitura agregada de riscos, o item de navegação novo, ou a integração com o
+          Dashboard. É o menor incremento que já responde, com dado real, a pergunta central da Journey:
+          "quais decisões exigem minha intervenção agora, em qual ordem?"</p>
+      </div>
+      <div class="value-card">
+        <p class="value-q">2. Qual será a primeira funcionalidade utilizável?</p>
+        <p class="value-a">A página de portfólio "Decisões", com os projetos em Status crítico/em atenção já
+          reais, priorizados por Janela de Decisão, cada um com o Executive Decision Card completo (FS-008
+          §3.5). Funciona sozinha, de ponta a ponta (dado já existente → <code>decision-queue.ts</code> →
+          componente), sem depender da leitura agregada de riscos.</p>
+      </div>
+      <div class="value-card">
+        <p class="value-q">3. Como organizar para entregar valor incremental mantendo a arquitetura completa?</p>
+        <p class="value-a">3 incrementos (Seção 4), cada um demonstrável sozinho, nenhum exigindo retrabalho
+          do anterior -- mesma disciplina de Action Intelligence (TIP-008 §01). Ao final do Incremento 3, o
+          escopo integral da FS-008 está entregue, incluindo a leitura agregada de riscos que o Founder
+          determinou fazer parte desta Capability desde a User Journey -- os incrementos são ordem de
+          construção, não corte de escopo.</p>
+      </div>
+      <div class="value-card">
+        <p class="value-q">4. Qual é o caminho mais curto entre abrir a STRATECH e tomar uma decisão executiva?</p>
+        <p class="value-a">Hoje (pós Action Intelligence): Login → Dashboard → clicar no KPI "Ações
+          pendentes" → tela "Ações". Depois desta Feature (Incremento 3): Login → Dashboard → "Decisões" →
+          decisão mais crítica do portfólio inteiro já no topo, com as 5 perguntas do Executive Decision
+          Card respondidas -- primeira vez que o elo "Decidir" do Executive Loop tem seu próprio ponto de
+          entrada direto, ao lado de "Ações" (elo "Agir").</p>
+      </div>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>Time To Decision e Executive Decision Performance</h2></div>
+      <div class="callout fato">
+        <b>TTD e Return Rate (RR) já são princípios oficiais</b> (registrados em TIP-008 §08) -- esta seção
+        os aplica a Decision Center, não os registra de novo.<br/><br/>
+        <b>TTD:</b> a resposta à pergunta 4 (Seção 1) é a descrição qualitativa do TTD para esta Capability
+        -- Decision Center é a segunda Capability, depois de Action Intelligence, a encurtar mensuravelmente
+        (em passos de navegação) o caminho até uma decisão real.<br/><br/>
+        <b>RR:</b> cada Executive Decision Card devolve o executivo ao Workspace correspondente (FS-008 §3.5)
+        -- mesmo mecanismo de retorno natural já avaliado, sem instrumentação, na Architecture Review §02.
+        Nenhuma métrica implementada, nenhuma telemetria criada nesta entrega.
+      </div>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>Princípios Preservados</h2></div>
+      <ul>
+        <li><b>Executive Questions Framework</b> -- já aplicado em Architecture Review §01; nenhuma tarefa abaixo o contradiz.</li>
+        <li><b>Executive Behavior ("Decidir")</b> -- FS-008 §02; nenhuma tarefa introduz uma ação executada dentro do próprio módulo.</li>
+        <li><b>Executive Components</b> -- FS-008 §3.6; nenhum componente novo além do Executive Decision Card, que reaproveita a composição já provada.</li>
+        <li><b>Princípio de Atenção</b> -- FS-008 §04; toda tarefa de UI respeita "ausência de card = mensagem", nenhuma lista tudo com o mesmo peso.</li>
+        <li><b>Single Decision Source</b> (Seção 8) -- toda lógica de priorização/consolidação vive exclusivamente em <code>decision-queue.ts</code>; nenhuma tarefa abaixo recalcula isso em outro lugar.</li>
+        <li><b>Arquitetura evolutiva / máxima reutilização</b> -- toda tarefa reaproveita um padrão já real (serviço, router, BFF, hook, Design System); nenhuma arquitetura paralela.</li>
+        <li><b>Não reabre Executive Brief Contract, Comunicação estruturada ou o Achado #1 do RC-1</b> -- mesma instrução mantida desde a Discovery.</li>
+      </ul>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>Incrementos de Valor ao Executivo</h2></div>
+      <p class="section-intro">Estrutura evoluída por instrução do Founder: cada incremento abaixo responde
+        as 3 perguntas obrigatórias, além de continuar demonstrável, gerador de valor real e independente da
+        conclusão da Capability inteira (critério original de TIP-008 §08, preservado).</p>
+
+      <div class="slice">
+        <span class="slice-tag">Incremento 1 -- demonstrável isoladamente</span>
+        <h4>Executive Decision Queue com sinal de Status</h4>
+        <p class="slice-q">Qual valor entrega</p>
+        <p>Primeira vez que o executivo vê decisões -- não apenas contagens -- organizadas por prioridade e
+          Janela de Decisão, num único lugar, sem abrir nenhum Workspace. Usa um sinal já 100% real e
+          portfolio-wide hoje (<code>latest_health_status</code> via <code>summarize_portfolio()</code>),
+          zero leitura nova.</p>
+        <p class="slice-q">Qual comportamento executivo habilita</p>
+        <p>Decidir (FS-008 §02) -- a decisão de Status deixa de estar dispersa por Workspace e passa a ser
+          consolidada.</p>
+        <p class="slice-q">Qual parte da plataforma passa a reutilizar</p>
+        <p>Nenhuma ainda -- é o nascimento do domínio (<code>decision-queue.ts</code> existe pela primeira
+          vez, ainda sem outro consumidor).</p>
+      </div>
+
+      <div class="slice">
+        <span class="slice-tag">Incremento 2 -- reaproveita 100% do Incremento 1</span>
+        <h4>Incorporar o sinal de Risco (leitura agregada nova)</h4>
+        <p class="slice-q">Qual valor entrega</p>
+        <p>Cobertura completa das 2 decisões reais hoje existentes (Status + Risco) -- a fila deixa de ser
+          parcial e passa a ser, de fato, a origem única (Single Decision Source) sobre tudo que a plataforma
+          já sabe hoje sobre decisões pendentes.</p>
+        <p class="slice-q">Qual comportamento executivo habilita</p>
+        <p>Decidir, agora sem lacuna -- nenhuma decisão de risco fica escondida atrás de um Workspace não
+          visitado.</p>
+        <p class="slice-q">Qual parte da plataforma passa a reutilizar</p>
+        <p><code>ProjectSummaryService.list_latest_risks()</code> nasce como leitura reutilizável (Architecture
+          Review §3.4) por Portfolio Intelligence e futuras visões executivas -- mesmo sem consumidor além do
+          Decision Center nesta etapa.</p>
+      </div>
+
+      <div class="slice">
+        <span class="slice-tag">Incremento 3 -- integração, puramente aditiva</span>
+        <h4>Dashboard e Sidebar</h4>
+        <p class="slice-q">Qual valor entrega</p>
+        <p>A Executive Decision Queue passa a fazer parte do fluxo diário normal (Login → Dashboard →
+          Decisões), fechando de fato o caminho mais curto até a decisão (Seção 1, pergunta 4).</p>
+        <p class="slice-q">Qual comportamento executivo habilita</p>
+        <p>Decidir como ritual diário, ao lado de "Ações" (Executar) -- primeira vez que os elos Decidir e
+          Agir do Executive Loop aparecem lado a lado na navegação principal.</p>
+        <p class="slice-q">Qual parte da plataforma passa a reutilizar</p>
+        <p>O Dashboard passa a consumir a mesma visão consolidada do Decision Center -- primeira aplicação
+          real do princípio Single Decision Source por outra superfície da plataforma (Architecture Review
+          §3.2: nenhum KPI recalcula a prioridade de forma independente).</p>
+      </div>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Tarefas Técnicas</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Tarefa</th><th>Incremento</th><th>Detalhe</th></tr></thead>
+          <tbody>
+            <tr><td>T1</td><td><code>web/lib/decision-center/decision-queue.ts</code> -- tipos + <code>buildExecutiveDecisionQueue</code> (Status apenas)</td><td>1</td><td>FS-008 §3.4 -- testes unitários (window, filtro "sem_urgência", ordenação)</td></tr>
+            <tr><td>T2</td><td>Componente -- Executive Decision Card</td><td>1</td><td>FS-008 §3.5 -- 5 perguntas, estados loading/erro/vazio</td></tr>
+            <tr><td>T3</td><td>Página de portfólio "Decisões"</td><td>1</td><td>Estado vazio afirmativo (FS-008 §04/§06)</td></tr>
+            <tr><td>T4</td><td>E2E -- Incremento 1</td><td>1</td><td>Fluxo completo com sinal de Status, backend real em Demo Mode</td></tr>
+            <tr><td>T5</td><td>Backend -- <code>ProjectSummaryService.list_latest_risks()</code></td><td>2</td><td>FS-008 §3.1 -- testes unitários (só a análise mais recente por projeto conta)</td></tr>
+            <tr><td>T6</td><td>Backend -- <code>GET /api/risks/latest</code></td><td>2</td><td>FS-008 §3.2 -- testes de integração (com/sem <code>project_name</code>, auth)</td></tr>
+            <tr><td>T7</td><td>BFF -- <code>web/app/api/bff/risks/latest/route.ts</code></td><td>2</td><td>Proxy fino, mesmo padrão de erro/timeout já existente</td></tr>
+            <tr><td>T8</td><td>Hook -- <code>useLatestRisks(projectName?)</code></td><td>2</td><td>TanStack Query, cache key FS-008 §05</td></tr>
+            <tr><td>T9</td><td>Estender <code>decision-queue.ts</code> para consumir Risco</td><td>2</td><td>Reaproveita T1-T3 sem alteração visual</td></tr>
+            <tr><td>T10</td><td>E2E -- Incremento 2</td><td>2</td><td>Fila combinando Status + Risco, múltiplos projetos</td></tr>
+            <tr><td>T11</td><td>Novo item "Decisões" em <code>navigation.ts</code></td><td>3</td><td>Regra de entrada cumprida quando a Feature estiver completa</td></tr>
+            <tr><td>T12</td><td>Dashboard -- ponto de entrada</td><td>3</td><td>Mesmo padrão de "Ações pendentes" (KPI/link)</td></tr>
+            <tr><td>T13</td><td>E2E -- Incremento 3</td><td>3</td><td>Dashboard → Decisões; card → Workspace</td></tr>
+            <tr><td>T14</td><td>Verificação real (Demo Mode)</td><td>1-3</td><td>Ao menos uma passada completa contra o backend real, mesma disciplina das Features anteriores</td></tr>
+            <tr><td>T15</td><td>Documentação e evidência</td><td>1-3</td><td>Executive Progress Report + Visual Fidelity Report (Etapas 8-9)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>Ordem de Execução</h2></div>
+      <p>T1 → T2 → T3 → T4 (Incremento 1, sequencial) → T5 → T6 → T7 → T8 → T9 → T10 (Incremento 2) → T11 →
+        T12 → T13 (Incremento 3, T11 e T12 podem ser paralelas entre si) → T14 → T15. Nenhuma tarefa de um
+        incremento posterior bloqueia a conclusão e demonstração do incremento anterior -- por desenho
+        (Seção 4), não por coincidência.</p>
+    </section>
+
+    <section id="s7">
+      <div class="section-head"><span class="section-num">07</span><h2>Critérios de Conclusão</h2></div>
+      <ul>
+        <li>Todos os critérios de aceite da FS-008 §11 cumpridos</li>
+        <li>Cada incremento (Seção 4) demonstrável isoladamente durante a implementação, não só ao final</li>
+        <li>Zero regressão nos 103 testes de backend além dos novos testes de T5/T6</li>
+        <li>Zero regressão nos testes de frontend já existentes (272 hoje)</li>
+        <li>Nenhuma refatoração dos 3 Briefs -- Executive Brief Contract permanece intocado</li>
+        <li>Single Decision Source respeitado: nenhuma lógica de priorização ou consolidação de decisão implementada fora de <code>decision-queue.ts</code> (verificável por revisão de código, não só por teste)</li>
+      </ul>
+    </section>
+
+    <section id="s8">
+      <div class="section-head"><span class="section-num">08</span><h2>Princípios Permanentes Registrados</h2></div>
+      <p class="section-intro">Um novo princípio oficial e um refinamento estrutural, ambos formalizados
+        pelo Founder nesta etapa. Nenhum altera o escopo deste TIP -- passam a orientar a evolução futura da
+        plataforma.</p>
+
+      <h3>Single Decision Source (novo)</h3>
+      <p>Toda decisão executiva apresentada na STRATECH deve ter uma única origem lógica -- o Decision
+        Center é essa origem de consolidação. Dashboard, Workspace, Portfolio Intelligence e futuras
+        Capabilities devem consumir a mesma visão consolidada -- nunca recalcular, nunca duplicar, nunca
+        divergir. Formaliza, como regra permanente da plataforma, a responsabilidade arquitetural já avaliada
+        na Architecture Review desta Capability (§03): a produção de sinal continua distribuída (cada
+        Capability é dona do seu próprio Decision Momentum), mas a consolidação é exclusiva. Nenhuma
+        implementação nova exigida por este registro em si -- <code>decision-queue.ts</code> (Incremento 1
+        desta TIP) já nasce sendo essa única origem, por desenho.</p>
+
+      <h3>Incrementos de Valor ao Executivo (refinamento)</h3>
+      <p>Evolui "Incrementos de Valor" (princípio oficial desde TIP-008 §08): além de demonstrável, gerador
+        de valor real, potencialmente entregável e independente da conclusão da Capability inteira, todo
+        incremento futuro deve responder explicitamente 3 perguntas -- qual valor entrega, qual comportamento
+        executivo habilita, qual parte da plataforma passa a reutilizá-lo (Seção 4 deste TIP já segue essa
+        forma). Mudança de estrutura e nome, não de conteúdo -- os 3 incrementos desta Capability já
+        cumpriam, na prática, os critérios originais; a nova forma só os torna explícitos e comparáveis entre
+        Capabilities futuras.</p>
+    </section>
+
+    <section id="s9">
+      <div class="section-head"><span class="section-num">09</span><h2>Próximo Gate</h2></div>
+      <p>Plano concluído, princípios registrados. <b>Implementação não autorizada nesta etapa</b> -- por
+        instrução explícita do Founder, aguardando aprovação antes de iniciar o Incremento 1.</p>
+    </section>
+
+    <footer>
+      <span>Stratech — TIP-009</span>
+      <span>Decision Center</span>
+      <span>2026-07-14</span>
+    </footer>
+  </main>
+</div>
