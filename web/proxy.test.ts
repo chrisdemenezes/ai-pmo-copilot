@@ -92,4 +92,17 @@ describe("proxy", () => {
     const response = proxy(requestFor("/actions", token));
     expect(response.status).toBe(200);
   });
+
+  // TIP-009: /decisions joins the same gate, same pattern as /actions.
+  it("redirects /decisions to /entrar when there is no session cookie", async () => {
+    const response = proxy(requestFor("/decisions"));
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/entrar");
+  });
+
+  it("passes /decisions through with a valid session cookie", async () => {
+    const { token } = createSessionToken();
+    const response = proxy(requestFor("/decisions", token));
+    expect(response.status).toBe(200);
+  });
 });

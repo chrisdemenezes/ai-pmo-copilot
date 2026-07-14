@@ -17,6 +17,8 @@ export const config = {
     "/projects/:path*",
     "/actions",
     "/actions/:path*",
+    "/decisions",
+    "/decisions/:path*",
     "/api/bff/:path*",
   ],
 };
