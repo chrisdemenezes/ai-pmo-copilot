@@ -21,6 +21,8 @@ export const config = {
     "/decisions/:path*",
     "/portfolio",
     "/portfolio/:path*",
+    "/aprendizados",
+    "/aprendizados/:path*",
     "/api/bff/:path*",
   ],
 };

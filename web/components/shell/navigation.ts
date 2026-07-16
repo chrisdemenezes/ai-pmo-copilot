@@ -1,4 +1,4 @@
-import { ClipboardList, Folder, Gavel, LayoutDashboard, ListOrdered } from "lucide-react";
+import { ClipboardList, Folder, Gavel, LayoutDashboard, Lightbulb, ListOrdered } from "lucide-react";
 
 import type { NavItem } from "./types";
 
@@ -23,4 +23,8 @@ export const NAV_ITEMS: NavItem[] = [
   // TIP-009 Incremento 3 -- mesma regra de entrada, agora para a Executive
   // Decision Queue.
   { label: "Decisões", href: "/decisions", icon: Gavel },
+  // TIP-012 -- último item por desenho: Organizational Intelligence é
+  // consultada esporadicamente (Architecture Review §1, pergunta 4),
+  // diferente do ritual diário das Capabilities anteriores.
+  { label: "Aprendizados", href: "/aprendizados", icon: Lightbulb },
 ];
