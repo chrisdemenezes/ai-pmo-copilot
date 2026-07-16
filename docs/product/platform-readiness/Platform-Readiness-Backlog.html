@@ -64,7 +64,7 @@
     Release Candidate (RC). Este documento é atualizado incrementalmente -- nunca recriado do zero.</p>
   <div class="meta-row">
     <span><b>Origem</b> Architecture Review — Executive Memory</span>
-    <span><b>Última atualização</b> 2026-07-16</span>
+    <span><b>Última atualização</b> 2026-07-16 (Architecture Gate V1)</span>
     <span><b>Status</b> Registro apenas — nenhum item implementado</span>
   </div>
 
@@ -119,6 +119,64 @@
           <td><span class="chip warn">MÉDIA</span> — só relevante se/quando a extensão for aprovada</td>
           <td>Nenhum hoje -- Organizational Intelligence V1 permanece escopada a Riscos/Ações recorrentes (rotas já existentes, sem leitura de texto longo)</td>
           <td><span class="chip ok">NÃO BLOQUEIA</span> — condicional a uma extensão futura ainda não aprovada</td>
+        </tr>
+        <tr>
+          <td>PRI-004</td>
+          <td>Documentação</td>
+          <td>"Executive Brief Contract" e "Decision Catalog / Domain / Context" são citados como recomendação
+            real e pendente em pelo menos 5 documentos distintos (FS-006 §Recomendações, FS-007, Action
+            Intelligence Architecture Review, Decision Center Architecture Review/FS-008, Communication
+            Intelligence Executive Progress Report) -- sempre como "adiado, não iniciar agora", nunca como
+            escopo cancelado. Nenhum desses dois itens está registrado neste Backlog nem no V1 Release Notes
+            ("itens adiados para V2") -- o único lugar hoje que preserva essa decisão é a prosa dispersa das
+            próprias Capabilities que o adiaram.</td>
+          <td>Architecture Gate V1, Domínio 9 (Documentação)</td>
+          <td><span class="chip warn">MÉDIA</span> — risco de a recomendação se perder entre Capabilities</td>
+          <td>Nenhum hoje -- é uma lacuna de rastreabilidade documental, não uma lacuna funcional</td>
+          <td><span class="chip ok">NÃO BLOQUEIA</span> — recomenda-se apenas consolidar a referência aqui</td>
+        </tr>
+        <tr>
+          <td>PRI-005</td>
+          <td>Escalabilidade</td>
+          <td>As colunas <code>analysis_records.created_at</code> e <code>analysis_records.kind</code>
+            (<code>src/database/repository.py</code>) não têm índice, apesar de serem usadas em todo
+            <code>ORDER BY</code>/filtro de <code>list_analyses()</code> -- inclusive nas leituras completas de
+            <code>summarize_portfolio()</code>, <code>list_action_items()</code> e <code>list_latest_risks()</code>
+            (todas com <code>limit=None</code>, sem paginação). Apenas <code>id</code> e <code>project_name</code>
+            têm índice hoje.</td>
+          <td>Architecture Gate V1, Domínio 6 (Performance)</td>
+          <td><span class="chip warn">MÉDIA</span> — agrava-se junto com PRI-001/PRI-003 conforme o histórico cresce</td>
+          <td>Nenhum hoje -- volume atual (piloto/demo) não expõe o custo de um full scan sem índice</td>
+          <td><span class="chip ok">NÃO BLOQUEIA</span> — condicional a crescimento real de volume</td>
+        </tr>
+        <tr>
+          <td>PRI-006</td>
+          <td>Testes / CI</td>
+          <td>A suíte E2E (Playwright, 68 testes/9 arquivos) não está conectada a
+            <code>.github/workflows/ci.yml</code> -- o job <code>frontend</code> executa apenas
+            <code>tsc --noEmit</code>, <code>eslint</code>, <code>vitest run</code> e <code>build</code>; o
+            script <code>npm run test:e2e</code> existe mas nunca é chamado pelo pipeline. As 2 regressões reais
+            encontradas nesta sessão (invalidação ausente de <code>workspace-recent</code>; <code>/aprendizados</code>
+            fora do matcher de autenticação) foram detectadas exclusivamente por testes E2E -- hoje esse
+            mecanismo de detecção roda apenas manualmente, nunca automaticamente a cada PR.</td>
+          <td>Architecture Gate V1, Domínio 7 (Qualidade e testes)</td>
+          <td><span class="chip warn">ALTA</span> — é o mecanismo que já provou detectar regressões reais nesta V1</td>
+          <td>Nenhum defeito hoje -- risco é de regressão futura não capturada antes do merge</td>
+          <td><span class="chip ok">NÃO BLOQUEIA</span> — recomenda-se fortemente antes do Release Candidate</td>
+        </tr>
+        <tr>
+          <td>PRI-007</td>
+          <td>Documentação</td>
+          <td>Action Intelligence (Capability 04) é a única Capability com feature implementada e testada (rota
+            <code>/actions</code>, cobertura unit/E2E) cuja trilha de documentação para em
+            <code>TIP-008-implementation-plan.html</code> -- não existem
+            <code>TIP-008-executive-progress-report.html</code> nem um Visual Fidelity Report para esta
+            Capability, ao contrário de todas as demais (Communication Intelligence em diante têm ao menos os
+            2 documentos de fechamento).</td>
+          <td>Architecture Gate V1, Domínios 8 e 9</td>
+          <td><span class="chip warn">BAIXA</span> — lacuna documental, feature em produção não é afetada</td>
+          <td>Nenhum -- funcionalidade e testes não são afetados, apenas o registro histórico de fechamento</td>
+          <td><span class="chip ok">NÃO BLOQUEIA</span> — recomenda-se completar antes da publicação do V1 Release Notes</td>
         </tr>
       </tbody>
     </table>
