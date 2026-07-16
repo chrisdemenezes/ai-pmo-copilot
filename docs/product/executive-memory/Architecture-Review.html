@@ -1,0 +1,376 @@
+<title>Architecture Review — Executive Memory</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --fato:#0f6b5c; --fato-bg:#e2efe9;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --plan:#2f5f9e; --plan-bg:#e2ebf6;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --fato:#4fd6b8; --fato-bg:#173029;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --plan:#7fb4f2; --plan-bg:#1a2c42;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --fato:#4fd6b8; --fato-bg:#173029;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --plan:#7fb4f2; --plan-bg:#1a2c42;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:270px minmax(0,1fr); max-width:1340px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:4px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:40px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.7rem,4vw,2.5rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:70ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:52px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink);}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.3rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:70ch;}
+  h3{font-size:1.02rem; margin:26px 0 8px; font-weight:600;}
+  p{margin:0 0 14px; max-width:74ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:72ch;}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  pre{background:var(--code-bg); color:var(--mono-ink); padding:14px 16px; border-radius:8px; overflow-x:auto; font-size:.8rem; line-height:1.5; margin:12px 0 20px;}
+  pre code{background:none; padding:0;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout.fato{border-left-color:var(--fato);}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.fato{color:var(--fato); background:var(--fato-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  .chip.plan{color:var(--plan); background:var(--plan-bg);}
+  .eqf-card{border:1px solid var(--border); border-radius:8px; padding:18px 22px; margin-bottom:14px; background:var(--surface);}
+  .eqf-card .eqf-q{font-family: ui-monospace, monospace; font-size:11px; text-transform:uppercase; letter-spacing:.03em; color:var(--accent); margin-bottom:8px;}
+  .eqf-card .eqf-a{margin:0;}
+  .pia-card{border:1px solid var(--border); border-radius:8px; padding:18px 22px; margin-bottom:14px; background:var(--surface);}
+  .pia-card .pia-q{font-family: ui-monospace, monospace; font-size:11px; text-transform:uppercase; letter-spacing:.03em; color:var(--accent); margin-bottom:8px;}
+  .pia-card .pia-a{margin:0 0 8px;}
+  .cycle{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:16px 0 24px; font-family: ui-monospace, monospace; font-size:12px;}
+  .cycle span{background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:8px 14px; box-shadow:var(--shadow);}
+  .cycle .arrow{color:var(--ink-dim); border:none; box-shadow:none; padding:0;}
+  .hierarchy-stack{display:flex; flex-direction:column; gap:8px; margin:16px 0 24px; max-width:360px;}
+  .hierarchy-stack .hrow{display:flex; align-items:center; justify-content:space-between; background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:10px 16px; font-family: ui-monospace, monospace; font-size:13px;}
+  .hierarchy-stack .hrow .hrank{color:var(--accent); font-weight:700;}
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">Architecture Review<br>Executive Memory</div>
+    <nav>
+      <a href="#s0">00 Guardian Check</a>
+      <a href="#s1">01 Executive Questions Framework aplicado</a>
+      <a href="#s2">02 O Executive Loop</a>
+      <a href="#s3">03 Sobrecarga Cognitiva e a One Memory Insight Rule</a>
+      <a href="#s4">04 Resolução do achado FS-010 §3.2 (escala de portfólio)</a>
+      <a href="#s5">05 Coerência da convenção técnica</a>
+      <a href="#s6">06 Platform Integrity Assessment</a>
+      <a href="#s7">07 Ratificação de aderência (11 princípios/frameworks)</a>
+      <a href="#s8">08 Ratificação das decisões da FS-010</a>
+      <a href="#s9">09 Platform Readiness Items</a>
+      <a href="#s10">10 Próximo Gate</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">Architecture Review · STRATECH V1 — Product Core (fase final)</div>
+      <h1 class="title">Architecture Review — Executive Memory</h1>
+      <p class="subtitle">FS-010 aprovada. O Founder acrescenta uma diretriz permanente para toda Architecture
+        Review a partir desta fase: avaliar não só a Feature, mas sua contribuição para a integridade da
+        plataforma como um todo. Nesta Capability, avaliação específica de sobrecarga cognitiva e adoção da
+        <b>One Memory Insight Rule</b>. Avaliação apenas -- nenhuma implementação nesta etapa.</p>
+      <div class="meta-row">
+        <span><b>Origem</b> FS-010 aprovada + diretrizes adicionais do Founder</span>
+        <span><b>Data</b> 2026-07-14</span>
+        <span><b>Status</b> Em avaliação — aguardando aprovação do Founder antes do TIP</span>
+      </div>
+    </div>
+
+    <section id="s0">
+      <div class="section-head"><span class="section-num">00</span><h2>Guardian Check</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Verificação</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr><td>Conflito com Strategy/Constitution/Vision/Decision Framework?</td><td>SEM CONFLITO — nenhum ainda escrito.</td></tr>
+            <tr><td>Esta diretriz altera a implementação já aprovada na FS-010?</td><td>NÃO — a One Memory Insight Rule é uma regra de seleção que se soma à composição já especificada (FS-010 §3.4), sem mudar os 3 Memory Signals nem sua redação.</td></tr>
+            <tr><td>Introduz princípio permanente novo?</td><td>NÃO — mantida a decisão do Founder na FS-010: os princípios existentes permanecem estáveis nesta fase.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Executive Questions Framework aplicado — Executive Memory</h2></div>
+      <p class="section-intro">Framework já registrado como princípio oficial na Architecture Review de
+        Action Intelligence -- aplicado aqui, não redefinido.</p>
+      <div class="eqf-card">
+        <p class="eqf-q">1. Qual pergunta executiva ela responde?</p>
+        <p class="eqf-a">"O que o executivo precisa lembrar antes de decidir?" (Discovery, meta-row) -- pergunta única, distinta de todas as outras 6 Capabilities já existentes (FS-010 §7/§19).</p>
+      </div>
+      <div class="eqf-card">
+        <p class="eqf-q">2. Qual decisão ela permite tomar?</p>
+        <p class="eqf-a">Nenhuma decisão nova -- ela enriquece a decisão que o Executive Brief já permite tomar (Status), com um fato real que o executivo teria de reconstruir manualmente no Histórico completo.</p>
+      </div>
+      <div class="eqf-card">
+        <p class="eqf-q">3. Qual ação ela desencadeia?</p>
+        <p class="eqf-a">Nenhuma -- Executive Memory nunca é interativa (UX Flow §5, FS-010 §3.4). A única ação possível continua sendo a que o card já desencadeava antes desta Feature existir.</p>
+      </div>
+      <div class="eqf-card">
+        <p class="eqf-q">4. Com que frequência um executivo utilizará este módulo?</p>
+        <p class="eqf-a">Não aplicável como módulo -- Executive Memory não tem frequência de uso própria; ela aparece (ou não) toda vez que o Executive Brief já é lido, na mesma frequência dele.</p>
+      </div>
+      <div class="eqf-card">
+        <p class="eqf-q">5. Como ela conversa com os demais módulos da plataforma?</p>
+        <p class="eqf-a">Lê dado já produzido por Project Intelligence (Status) e Risk Intelligence (Risco), nunca recalculando o que essas Capabilities já produzem -- ver Seção 4 sobre a fronteira de escala com Decision Center e Portfolio Intelligence.</p>
+      </div>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>O Executive Loop</h2></div>
+      <div class="cycle">
+        <span>Pergunta</span><span class="arrow">→</span>
+        <span>Compreensão</span><span class="arrow">→</span>
+        <span>Decisão</span><span class="arrow">→</span>
+        <span>Ação</span><span class="arrow">→</span>
+        <span>Retorno</span>
+      </div>
+      <p>Executive Memory não organiza nenhum elo próprio -- ela se anexa ao elo "Compreensão" (Executive
+        Brief), tornando-o mais completo sem introduzir uma pausa, uma confirmação ou um passo novo. Se um
+        Insight estiver em silêncio (Silent Intelligence, FS-010 §4), o Loop se comporta exatamente como se
+        Executive Memory não existisse -- confirmado formalmente na Seção 6, pergunta 4.</p>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>Sobrecarga Cognitiva e a One Memory Insight Rule</h2></div>
+      <p class="section-intro">Avaliação explícita exigida pelo Founder, respondendo as 3 perguntas
+        diretamente.</p>
+
+      <h3>3.1 -- Pode existir mais de um Executive Memory Insight simultaneamente no mesmo contexto?</h3>
+      <p>Verificado contra a composição real (FS-010 §3.3-3.4): "Mudou" e "Persistiu" são <b>mutuamente
+        exclusivos por construção</b> -- ambos derivam da mesma comparação de <code>health_status</code>
+        entre as 2 análises mais recentes, e essa comparação só pode produzir um resultado por vez (mudou OU
+        se manteve). "Reapareceu" deriva de um dado completamente diferente (histórico de risco), e nesta
+        entrega (Executive Brief) aparece num campo distinto do de Status.</p>
+      <p><b>Resposta honesta:</b> no escopo real desta entrega, não existe hoje nenhum contexto onde 2
+        candidatos a Insight competiriam pelo mesmo espaço -- a pergunta do Founder antecipa corretamente um
+        risco que a arquitetura atual ainda não materializa, mas que se tornaria real no momento em que uma
+        única superfície (ex.: um futuro card combinado Status+Risco) precisasse mostrar os dois ao mesmo
+        tempo. A One Memory Insight Rule (Seção 3.3) é adotada como salvaguarda permanente para esse cenário,
+        não como correção de um problema já existente.</p>
+
+      <h3>3.2 -- Isso melhora ou reduz a clareza da decisão?</h3>
+      <p>Mostrar mais de um Insight ao mesmo tempo <b>reduziria</b> a clareza -- fragmentaria a atenção do
+        executivo entre 2+ fatos de memória, exatamente o oposto do objetivo desta Capability (UX Flow §1:
+        lembranças, não relatórios). Um único Insight, selecionado pela gravidade real que ele representa
+        (Seção 3.3), preserva o mesmo princípio já usado em toda a plataforma: mostrar só o que realmente
+        merece atenção, nunca tudo de uma vez (Princípio da Atenção, aplicado aqui à granularidade de um
+        único campo, mesma disciplina de Silent Intelligence, FS-010 §4).</p>
+
+      <h3>3.3 -- Qual regra preserva melhor o menor contexto necessário? A One Memory Insight Rule, adotada</h3>
+      <div class="callout fato">
+        <b>Adotada nesta Architecture Review, por instrução do Founder:</b> cada superfície executiva
+        apresenta, no máximo, <b>um</b> Executive Memory Insight por contexto analisado. Quando mais de um
+        candidato for aplicável, a hierarquia de seleção (já registrada como avaliação conceitual em FS-010
+        §5, agora usada como regra de seleção concreta) decide:
+      </div>
+      <div class="hierarchy-stack">
+        <div class="hrow"><span class="hrank">1º</span><span>Persistiu</span></div>
+        <div class="hrow"><span class="hrank">2º</span><span>Reapareceu</span></div>
+        <div class="hrow"><span class="hrank">3º</span><span>Mudou</span></div>
+      </div>
+      <pre><code>export function selectPrimaryInsight(
+  candidates: Array&lt;ExecutiveMemoryInsight | null&gt;,
+): ExecutiveMemoryInsight | null {
+  const real = candidates.filter((c): c is ExecutiveMemoryInsight =&gt; c !== null);
+  if (real.length === 0) return null; // Silent Intelligence -- nenhum candidato real
+  const rank: Record&lt;MemorySignalKind, number&gt; = { persistiu: 0, reapareceu: 1, mudou: 2 };
+  return real.slice().sort((a, b) =&gt; rank[a.kind] - rank[b.kind])[0];
+}</code></pre>
+      <p>Esta função é a mesma disciplina de <code>buildExecutiveDecisionQueue()</code>/
+        <code>buildExecutivePortfolioView()</code> -- uma única implementação da regra de seleção, nunca
+        duplicada por superfície. Preserva Decision Context Preservation por construção: o executivo nunca
+        recebe mais que um fato, mesmo que mais de um fosse tecnicamente verdadeiro.</p>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>Resolução do achado FS-010 §3.2 (escala de portfólio)</h2></div>
+      <p class="section-intro">FS-010 registrou um fork explícito, não decidido, entre enriquecer só o
+        Executive Brief (Opção 1) ou já estender a Decision Center/Portfolio Intelligence com uma leitura
+        agregada nova (Opção 2). Esta Architecture Review resolve o fork.</p>
+      <div class="callout fato">
+        <b>Decisão desta Review:</b> Opção 1 -- Executive Memory Insights entram nesta entrega exclusivamente
+        no Executive Brief (Workspace). Justificativa, à luz da Seção 6 (Platform Integrity Assessment,
+        pergunta 6): a leitura agregada nova que Decision Center/Portfolio Intelligence exigiriam é uma
+        complexidade real, e nada nesta Discovery/Journey/UX Flow demonstrou que o valor entregue por ela
+        seria proporcional ainda -- especialmente com a One Memory Insight Rule recém-adotada, que só faz
+        sentido avaliar em produção real antes de multiplicar sua aplicação para mais 2 superfícies.
+        Extensão futura permanece registrada, condicionada a essa leitura nova, não descartada.
+      </div>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Coerência da convenção técnica</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Aspecto</th><th>Avaliação</th></tr></thead>
+          <tbody>
+            <tr><td>Nome do módulo (<code>memory-insights.ts</code> vs. <code>decision-queue.ts</code>, <code>portfolio-view.ts</code>)</td><td><span class="chip fato">COERENTE</span> -- mesma família de módulo de composição pura no cliente.</td></tr>
+            <tr><td>Zero rota nova, zero serviço novo (escopo Opção 1, Seção 4)</td><td><span class="chip fato">COERENTE</span> -- mesma disciplina de "reuso antes de leitura nova" já aplicada em toda Capability anterior.</td></tr>
+            <tr><td><code>selectPrimaryInsight()</code> como domínio exclusivo de seleção (Seção 3.3)</td><td><span class="chip fato">NOVO PRECEDENTE, COERENTE</span> -- mesmo padrão já aplicado a <code>decision-queue.ts</code> (domínio exclusivo de agregação de decisão, Decision Center Architecture Review §3): uma única implementação de regra de seleção, nunca duplicada.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><b>Conclusão da validação:</b> a convenção proposta é coerente com a arquitetura global hoje. Nenhuma
+        mudança de implementação recomendada.</p>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>Platform Integrity Assessment</h2></div>
+      <p class="section-intro">Nova seção permanente, por instrução do Founder, a partir desta fase --
+        respondendo as 6 perguntas obrigatórias para Executive Memory.</p>
+
+      <div class="pia-card">
+        <p class="pia-q">1. Esta Capability preserva a identidade da STRATECH?</p>
+        <p class="pia-a"><span class="chip fato">SIM</span></p>
+        <p class="pia-a">Nenhuma decisão automática, nenhuma alegação de fonte de verdade sobre o que aconteceu no projeto (guardrail do Product Vision, Discovery §00) -- Executive Memory só relembra um fato já registrado, nunca decide ou interpreta em nome do executivo.</p>
+      </div>
+      <div class="pia-card">
+        <p class="pia-q">2. Ela responde uma pergunta executiva única?</p>
+        <p class="pia-a"><span class="chip fato">SIM</span></p>
+        <p class="pia-a">"O que preciso lembrar antes de decidir?" -- verificado contra as 6 Capabilities já existentes (Seção 1, pergunta 1); nenhuma sobreposição de pergunta.</p>
+      </div>
+      <div class="pia-card">
+        <p class="pia-q">3. Alguma responsabilidade passou a competir com outra Capability?</p>
+        <p class="pia-a"><span class="chip fato">NÃO</span></p>
+        <p class="pia-a">Executive Memory não decide (Decision Center), não prioriza (Portfolio Intelligence), não organiza compromissos (Action Intelligence) -- ela só anota um fato de apoio sobre dado que essas Capabilities já leem. Escopo desta entrega limitado ao Executive Brief (Seção 4) elimina, por ora, qualquer sobreposição residual com as duas Capabilities de escala de portfólio.</p>
+      </div>
+      <div class="pia-card">
+        <p class="pia-q">4. O Executive Loop permanece íntegro?</p>
+        <p class="pia-a"><span class="chip fato">SIM</span></p>
+        <p class="pia-a">Confirmado na Seção 2 -- nenhum elo novo, nenhuma interrupção, comportamento idêntico ao de hoje quando o Insight está em silêncio.</p>
+      </div>
+      <div class="pia-card">
+        <p class="pia-q">5. O TTD tende a diminuir ou permanecer igual?</p>
+        <p class="pia-a"><span class="chip fato">DIMINUIR (marginal, qualitativo)</span></p>
+        <p class="pia-a">Nos casos em que um Insight real existe, elimina o custo de abrir o Histórico completo e comparar manualmente (Journey §8). Nos casos de silêncio (a maioria, por desenho), o TTD permanece exatamente igual -- nunca aumenta, porque a leitura já acontece dentro da mesma chamada que o Executive Brief já fazia (Seção 5).</p>
+      </div>
+      <div class="pia-card">
+        <p class="pia-q">6. Existe algum aumento de complexidade que não gere valor proporcional?</p>
+        <p class="pia-a"><span class="chip fato">NÃO, NO ESCOPO DECIDIDO (Seção 4)</span></p>
+        <p class="pia-a">A complexidade desta entrega é mínima e proporcional: 2 funções puras, 1 função de seleção, 1 componente de chip, 1 parâmetro de <code>limit</code> ajustado -- nenhuma rota, nenhum serviço novo. A complexidade que <b>seria</b> desproporcional agora -- estender Decision Center/Portfolio Intelligence com uma leitura agregada nova -- foi identificada (FS-010 §3.2) e conscientemente adiada (Seção 4), exatamente para não introduzir esse aumento antes de haver evidência real de que o valor compensa.</p>
+      </div>
+    </section>
+
+    <section id="s7">
+      <div class="section-head"><span class="section-num">07</span><h2>Ratificação de aderência (11 princípios/frameworks)</h2></div>
+      <p class="section-intro">Reconfirmação exigida pelo Founder, agora incluindo a One Memory Insight Rule
+        adotada nesta Review (FS-010 §19 já validou contra a especificação anterior).</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Princípio/Framework</th><th>Aderência</th></tr></thead>
+          <tbody>
+            <tr><td>Product Philosophy</td><td><span class="chip fato">SEM VIOLAÇÃO</span></td></tr>
+            <tr><td>Executive Questions Framework</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — Seção 1</td></tr>
+            <tr><td>Executive Decision Performance</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — Seção 6, pergunta 5</td></tr>
+            <tr><td>Progressive Context</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — aprofunda só o Executive Brief (Seção 4)</td></tr>
+            <tr><td>Progressive Purpose</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — Seção 6, pergunta 2</td></tr>
+            <tr><td>Executive Behavior</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — "Lembrar" (FS-010 §02)</td></tr>
+            <tr><td>Executive Trust</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — <code>selectPrimaryInsight()</code> nunca fabrica, só escolhe entre fatos já reais (Seção 3.3)</td></tr>
+            <tr><td>Single Decision Source</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — nenhuma decisão calculada; a seleção de Insight não é uma decisão executiva, é uma regra de apresentação</td></tr>
+            <tr><td>Transparent Prioritization</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — a hierarquia de seleção (Seção 3.3) é ela mesma transparente e documentada, nunca oculta</td></tr>
+            <tr><td>Executive Responsibility Separation</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — Seção 6, pergunta 3</td></tr>
+            <tr><td>Decision Context Preservation</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — a One Memory Insight Rule é a aplicação mais direta possível deste princípio (Seção 3.3)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s8">
+      <div class="section-head"><span class="section-num">08</span><h2>Ratificação das decisões da FS-010</h2></div>
+      <p>As decisões de arquitetura já detalhadas em FS-010 §03 (<code>memory-insights.ts</code>, composição
+        dos 3 Executive Memory Insights, avaliação de Executive Component Library) permanecem como
+        especificadas -- esta Architecture Review não as reabre, apenas as valida contra o Executive
+        Questions Framework (Seção 1), o Executive Loop (Seção 2) e o Platform Integrity Assessment (Seção
+        6), e resolve o único ponto em aberto da FS-010 (§3.2, Seção 4 desta Review) e acrescenta a One
+        Memory Insight Rule (Seção 3) como parte da composição final.</p>
+    </section>
+
+    <section id="s9">
+      <div class="section-head"><span class="section-num">09</span><h2>Platform Readiness Items</h2></div>
+      <p class="section-intro">Primeira aplicação da diretriz da fase final da V1: para cada Capability
+        restante, avaliar impacto em segurança, performance, escalabilidade, operação, observabilidade,
+        backup/recuperação, auditoria, versionamento, testes automatizados e experiência do usuário --
+        registrando como Platform Readiness Item apenas onde uma oportunidade real de fortalecimento foi
+        identificada. Não amplia o escopo funcional desta Capability; é avaliação, não implementação.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Dimensão</th><th>Avaliação para Executive Memory</th></tr></thead>
+          <tbody>
+            <tr><td>Segurança</td><td>Sem impacto -- zero rota nova, mesmo dado já auditado hoje (§17 da FS-010)</td></tr>
+            <tr><td>Performance</td><td>Sem impacto relevante -- aumento de <code>limit</code> de 1 para ~5 numa consulta já paginada; sem N+1 no escopo decidido (Seção 4)</td></tr>
+            <tr><td><b>Escalabilidade</b></td><td><span class="chip guard">PLATFORM READINESS ITEM</span> -- se Executive Memory for estendida a Decision Center/Portfolio Intelligence (escopo futuro, Seção 4), a leitura por projeto individual não escala para portfólios grandes sem uma leitura agregada dedicada (mesma técnica de <code>list_latest_risks()</code>). Registrado para quando essa extensão for avaliada, não bloqueia esta entrega.</td></tr>
+            <tr><td>Operação</td><td>Sem impacto -- nenhum novo processo, job ou dependência de deploy</td></tr>
+            <tr><td>Observabilidade</td><td>Sem necessidade nova identificada -- funções puras client-side, sem chamada de rede própria a instrumentar</td></tr>
+            <tr><td>Backup/recuperação</td><td>Não aplicável -- nenhum dado novo persistido</td></tr>
+            <tr><td>Auditoria</td><td>Não aplicável -- nenhuma escrita, mesma superfície de leitura já auditável hoje</td></tr>
+            <tr><td>Versionamento</td><td>Não aplicável -- nenhuma rota de API nova ou alterada</td></tr>
+            <tr><td>Testes automatizados</td><td>Cobertos no TIP (unit/componente/integração/E2E, FS-010 §15) -- nenhum gap identificado além do já planejado</td></tr>
+            <tr><td>Experiência do usuário</td><td>Já avaliada exaustivamente na UX Flow (discrição, silêncio, não-interrupção) -- nenhum item adicional</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Único Platform Readiness Item real desta Capability: a dependência de escalabilidade já identificada
+        na Seção 4 (leitura agregada nova, se e quando Decision Center/Portfolio Intelligence forem
+        estendidos). Nenhum outro item novo emergiu desta avaliação -- reflexo direto do escopo mínimo e
+        totalmente reaproveitado desta entrega.</p>
+    </section>
+
+    <section id="s10">
+      <div class="section-head"><span class="section-num">10</span><h2>Próximo Gate</h2></div>
+      <p>Architecture Review concluída. Escopo desta entrega confirmado: Executive Brief (Workspace) apenas,
+        com a One Memory Insight Rule adotada como regra de seleção permanente. Nenhuma implementação nesta
+        etapa. Aguardando aprovação do Founder antes do Technical Implementation Plan.</p>
+    </section>
+
+    <footer>
+      <span>Stratech — Architecture Review</span>
+      <span>Executive Memory</span>
+      <span>2026-07-14</span>
+    </footer>
+  </main>
+</div>
