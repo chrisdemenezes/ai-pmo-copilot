@@ -1,0 +1,385 @@
+<title>Architecture Review — Organizational Intelligence</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --fato:#0f6b5c; --fato-bg:#e2efe9;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --plan:#2f5f9e; --plan-bg:#e2ebf6;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --fato:#4fd6b8; --fato-bg:#173029;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --plan:#7fb4f2; --plan-bg:#1a2c42;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --fato:#4fd6b8; --fato-bg:#173029;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --plan:#7fb4f2; --plan-bg:#1a2c42;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:270px minmax(0,1fr); max-width:1340px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:4px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:40px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.7rem,4vw,2.5rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:70ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:52px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink);}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.3rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:70ch;}
+  h3{font-size:1.02rem; margin:26px 0 8px; font-weight:600;}
+  p{margin:0 0 14px; max-width:74ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:72ch;}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  pre{background:var(--code-bg); color:var(--mono-ink); padding:14px 16px; border-radius:8px; overflow-x:auto; font-size:.8rem; line-height:1.5; margin:12px 0 20px;}
+  pre code{background:none; padding:0;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout.fato{border-left-color:var(--fato);}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.fato{color:var(--fato); background:var(--fato-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  .chip.plan{color:var(--plan); background:var(--plan-bg);}
+  .eqf-card{border:1px solid var(--border); border-radius:8px; padding:18px 22px; margin-bottom:14px; background:var(--surface);}
+  .eqf-card .eqf-q{font-family: ui-monospace, monospace; font-size:11px; text-transform:uppercase; letter-spacing:.03em; color:var(--accent); margin-bottom:8px;}
+  .eqf-card .eqf-a{margin:0;}
+  .pia-card{border:1px solid var(--border); border-radius:8px; padding:18px 22px; margin-bottom:14px; background:var(--surface);}
+  .pia-card .pia-q{font-family: ui-monospace, monospace; font-size:11px; text-transform:uppercase; letter-spacing:.03em; color:var(--accent); margin-bottom:8px;}
+  .pia-card .pia-a{margin:0 0 8px;}
+  .cycle{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:16px 0 24px; font-family: ui-monospace, monospace; font-size:12px;}
+  .cycle span{background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:8px 14px; box-shadow:var(--shadow);}
+  .cycle .arrow{color:var(--ink-dim); border:none; box-shadow:none; padding:0;}
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">Architecture Review<br>Organizational Intelligence</div>
+    <nav>
+      <a href="#s0">00 Guardian Check</a>
+      <a href="#s1">01 Executive Questions Framework aplicado</a>
+      <a href="#s2">02 O Executive Loop</a>
+      <a href="#s3">03 "O que ocorreu" vs. "o que significa" — validação do Founder</a>
+      <a href="#s4">04 Ratificação do escopo V1 (riscos + ações)</a>
+      <a href="#s5">05 Coerência da convenção técnica</a>
+      <a href="#s6">06 Platform Integrity Assessment</a>
+      <a href="#s7">07 Ratificação de aderência aos princípios/frameworks</a>
+      <a href="#s8">08 Ratificação das decisões da FS-011</a>
+      <a href="#s9">09 Platform Readiness Items</a>
+      <a href="#s10">10 Próximo Gate</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">Architecture Review · STRATECH V1 — reta final (Release Candidate)</div>
+      <h1 class="title">Architecture Review — Organizational Intelligence</h1>
+      <p class="subtitle">FS-011 aprovada. O Founder oficializa o escopo da V1 (Riscos recorrentes + Ações
+        recorrentes; Decisões recorrentes e Tendências de status ficam para evolução futura, por motivo
+        exclusivamente arquitetural) e exige uma validação específica: confirmar que esta Capability responde
+        apenas <b>"o que realmente ocorreu de forma recorrente?"</b>, nunca <b>"o que isso significa para a
+        organização?"</b>. Avaliação apenas -- nenhuma implementação nesta etapa.</p>
+      <div class="meta-row">
+        <span><b>Origem</b> FS-011 aprovada + diretrizes adicionais do Founder</span>
+        <span><b>Data</b> 2026-07-16</span>
+        <span><b>Status</b> Em avaliação — aguardando aprovação do Founder antes do TIP</span>
+      </div>
+    </div>
+
+    <section id="s0">
+      <div class="section-head"><span class="section-num">00</span><h2>Guardian Check</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Verificação</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr><td>Esta diretriz altera a implementação já especificada na FS-011?</td><td>NÃO — a oficialização do escopo confirma exatamente a Opção 1 já recomendada em FS-011 §3.3; nenhuma composição, redação ou regra muda.</td></tr>
+            <tr><td>Introduz princípio permanente novo?</td><td>NÃO — a validação "o que ocorreu vs. o que significa" (Seção 3) é uma checagem, não um princípio novo; a Zero Labels Rule permanece exclusiva desta Capability (FS-011 §5).</td></tr>
+            <tr><td>Conflito com Strategy/Constitution/Vision/Decision Framework?</td><td>SEM CONFLITO — nenhum documento normativo ainda existe em <code>docs/strategy/</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Executive Questions Framework aplicado — Organizational Intelligence</h2></div>
+      <p class="section-intro">Framework já registrado como princípio oficial -- aplicado aqui, não
+        redefinido.</p>
+      <div class="eqf-card">
+        <p class="eqf-q">1. Qual pergunta executiva ela responde?</p>
+        <p class="eqf-a">"O que a organização inteira está aprendendo com seus projetos?" (Discovery, meta-row) -- refinada nesta Review para o seu limite exato: "o que realmente ocorreu de forma recorrente?", nunca "o que isso significa?" (Seção 3).</p>
+      </div>
+      <div class="eqf-card">
+        <p class="eqf-q">2. Qual decisão ela permite tomar?</p>
+        <p class="eqf-a">Nenhuma decisão própria -- ela entrega um fato de recorrência real para que o PMO decida, por conta própria, se e como agir. A interpretação do que o fato significa permanece inteiramente do executivo (Seção 3).</p>
+      </div>
+      <div class="eqf-card">
+        <p class="eqf-q">3. Qual ação ela desencadeia?</p>
+        <p class="eqf-a">Nenhuma ação direta -- só navegação para o Workspace de um dos projetos citados (Journey §06), a mesma navegação que já existe hoje.</p>
+      </div>
+      <div class="eqf-card">
+        <p class="eqf-q">4. Com que frequência um executivo utilizará este módulo?</p>
+        <p class="eqf-a">Esporádica, por desenho -- diferente de Dashboard (uso diário) ou Decision Center (uso recorrente para decisões pendentes), Organizational Intelligence é consultada quando o PMO quer reconhecer um padrão estrutural, não em todo ritual diário.</p>
+      </div>
+      <div class="eqf-card">
+        <p class="eqf-q">5. Como ela conversa com os demais módulos da plataforma?</p>
+        <p class="eqf-a">Lê dado já produzido por Risk Intelligence (via <code>GET .../risks/latest</code>) e Action Intelligence (via <code>GET .../action-items</code>), nunca recalculando o que essas Capabilities já produzem -- ambas já portfolio-wide, zero leitura nova (FS-011 §3.1/3.2).</p>
+      </div>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>O Executive Loop</h2></div>
+      <div class="cycle">
+        <span>Pergunta</span><span class="arrow">→</span>
+        <span>Compreensão</span><span class="arrow">→</span>
+        <span>Decisão</span><span class="arrow">→</span>
+        <span>Ação</span><span class="arrow">→</span>
+        <span>Retorno</span>
+      </div>
+      <p>Organizational Intelligence organiza seu próprio elo de "Compreensão", mas em um nível diferente dos
+        demais -- compreensão do <i>portfólio como padrão</i>, não de um projeto ou de uma decisão pendente. Ela
+        nunca avança sozinha para "Decisão" ou "Ação": o Loop, para o padrão reconhecido aqui, se completa
+        somente quando o PMO navega até o Workspace do projeto e retoma o Loop de Status/Risco/Decisão que já
+        existe lá -- reforçando, e não substituindo, o Loop das demais Capabilities.</p>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>"O que ocorreu" vs. "o que significa" — validação do Founder</h2></div>
+      <p class="section-intro">Validação explícita exigida pelo Founder: existe algum risco de a Feature
+        induzir conclusões organizacionais que extrapolem os dados reais disponíveis? Avaliação ponto a ponto,
+        contra a composição já especificada em FS-011/UX Flow.</p>
+
+      <h3>3.1 -- Onde a interpretação poderia vazar para dentro da Feature (avaliado, mitigado)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Ponto de risco</th><th>Já mitigado por</th></tr></thead>
+          <tbody>
+            <tr><td>Verbo usado na frase de cada card</td><td>Só verbos de constatação ("apareceu em", "foi registrado em"), nunca de conclusão ("prova", "significa", "indica que") -- UX Flow §04, já especificado</td></tr>
+            <tr><td>Percentual ou proporção do portfólio afetado</td><td>Proibido explicitamente -- só a contagem inteira de projetos, nunca "50% do portfólio" (UX Flow §03/§11)</td></tr>
+            <tr><td>Ordenação por contagem (mais recorrente primeiro)</td><td>Mesmo precedente já aceito em toda a plataforma (<code>rankByRisk</code>, Executive Decision Queue) -- ordenar por um fato real não é o mesmo que julgar sua causa ou gravidade</td></tr>
+            <tr><td>Limiar de 3+ ocorrências</td><td>Régua fixa e transparente (Journey §02), nunca ajustada por contexto -- nenhuma "IA decide quando é grave o suficiente"</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>3.2 -- Achado novo desta Review: risco residual na nomeação da categoria e no card em si</h3>
+      <div class="callout guard">
+        <b>Ponto identificado nesta validação, não coberto explicitamente pelas etapas anteriores:</b> mesmo
+        seguindo todas as regras da tabela acima, um nome de categoria ou uma palavra isolada <i>dentro</i> do
+        card poderia, sozinho, introduzir um julgamento implícito de gravidade -- por exemplo, "Riscos
+        críticos recorrentes" (o adjetivo "críticos" seria uma conclusão, não um fato) ou uma frase como "Isto
+        representa um problema sistêmico" (atribuiria causa/significado). Nenhum desses termos está
+        especificado hoje, mas nada nas etapas anteriores os havia proibido explicitamente <i>por nome</i>.
+      </div>
+      <p><b>Mitigação adotada nesta Review:</b> registra-se um vocabulário proibido explícito, a ser aplicado
+        na redação final de qualquer texto desta Capability (categorias, frases de card, estados vazios):</p>
+      <ul>
+        <li>Nenhum adjetivo de gravidade sobre o padrão em si -- "crítico", "grave", "sistêmico", "preocupante", "significativo", "alarmante"</li>
+        <li>Nenhum verbo de conclusão ou causalidade -- "prova", "significa", "indica que", "revela", "demonstra que", "é causado por"</li>
+        <li>Nenhuma comparação relativa -- "mais que o normal", "acima do esperado", "fora do padrão"</li>
+        <li>Permitido, e único vocabulário desta Feature: verbos de constatação neutra -- "apareceu em", "foi identificado em", "foi registrado em", "ocorreu em"</li>
+      </ul>
+
+      <h3>3.3 -- Achado novo: a existência da própria superfície já comunica algo?</h3>
+      <p>Avaliação honesta: <i>qualquer</i> superfície dedicada a "padrões que se repetem" carrega, por
+        natureza, uma leve conotação de "isto merece sua atenção" -- o mesmo é verdade, hoje, para Decision
+        Center (decisões pendentes) e Portfolio Intelligence (camada de risco a monitorar). Este tipo de
+        curadoria por seleção já é aceito na plataforma (Princípio da Atenção) e não é, por si só, uma
+        interpretação -- selecionar o que mostrar é diferente de explicar por que algo aconteceu ou o que
+        fazer a respeito. A régua de 3+ ocorrências (Journey §02) já é o critério de seleção, transparente e
+        auditável -- não há inferência escondida nele.</p>
+
+      <h3>3.4 -- Conclusão da validação</h3>
+      <div class="callout fato">
+        <b>Veredito desta Review:</b> o risco de a Feature induzir conclusões organizacionais que extrapolem
+        os dados reais é <b>real, porém baixo e integralmente mitigável</b> pelas regras já especificadas
+        (UX Flow, FS-011) mais o vocabulário proibido explícito registrado na Seção 3.2. Nenhuma mudança de
+        escopo ou de composição é necessária -- a mitigação é inteiramente de <i>redação</i>, a ser aplicada
+        no TIP e verificada nos Critérios de Aceite. Organizational Intelligence responde exclusivamente "o
+        que realmente ocorreu de forma recorrente" -- a interpretação de significado permanece, por
+        construção, responsabilidade do executivo.
+      </div>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>Ratificação do escopo V1 (Riscos + Ações recorrentes)</h2></div>
+      <p class="section-intro">FS-011 §3.3 registrou um fork explícito, recomendando a Opção 1. O Founder
+        oficializa essa opção como decisão final desta Review.</p>
+      <div class="callout fato">
+        <b>Decisão ratificada:</b> entram na V1 <b>Riscos recorrentes</b> e <b>Ações recorrentes</b> -- ambas
+        já servidas por rotas em produção (<code>GET .../risks/latest</code>, <code>GET .../action-items</code>),
+        zero leitura nova. Ficam para evolução futura <b>Decisões recorrentes</b> e <b>Tendências de status</b>
+        -- exigiriam uma leitura agregada nova sobre texto completo de <code>decisions</code>/
+        <code>key_findings</code>/<code>recommendations</code> em escala de portfólio, que não existe hoje.
+      </div>
+      <p><b>Motivo, exclusivamente arquitetural (instrução do Founder):</b> na reta final da V1, a plataforma
+        prioriza reutilização de capacidades já existentes em vez de ampliar leituras agregadas -- mesmo
+        raciocínio já aplicado em Executive Memory (FS-010 §3.2, Architecture Review §4: Decision Center/
+        Portfolio Intelligence adiados pelo mesmo motivo). Nenhum motivo de produto, UX ou governança exclui
+        Decisões recorrentes/Tendências de status -- apenas o custo de uma leitura nova non-trivial nesta
+        fase do projeto.</p>
+      <p>A ordem fixa de 5 categorias (UX Flow §03) permanece válida como especificação de longo prazo -- as
+        categorias 2 (Decisões recorrentes) e 4 (Tendências de status) simplesmente não têm dado a mostrar
+        nesta V1, e portanto não aparecem, mesma disciplina de "categoria vazia nunca preenchida
+        artificialmente" já ratificada.</p>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Coerência da convenção técnica</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Aspecto</th><th>Avaliação</th></tr></thead>
+          <tbody>
+            <tr><td>Nome do módulo (<code>organizational-learnings.ts</code> vs. <code>memory-insights.ts</code>, <code>decision-queue.ts</code>, <code>portfolio-view.ts</code>)</td><td><span class="chip fato">COERENTE</span> -- mesma família de módulo de composição pura no cliente.</td></tr>
+            <tr><td>Zero rota nova, zero serviço novo (escopo ratificado, Seção 4)</td><td><span class="chip fato">COERENTE</span> -- mesma disciplina de "reuso antes de leitura nova" já aplicada em toda Capability anterior.</td></tr>
+            <tr><td><code>selectTopLearnings()</code> como domínio exclusivo de seleção/corte (FS-011 §3.4)</td><td><span class="chip fato">COERENTE</span> -- mesmo padrão já aplicado a <code>selectPrimaryInsight()</code> (Executive Memory) e <code>decision-queue.ts</code> (Decision Center): uma única implementação de regra de seleção, nunca duplicada.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><b>Conclusão da validação:</b> a convenção proposta é coerente com a arquitetura global hoje. Nenhuma
+        mudança de implementação recomendada.</p>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>Platform Integrity Assessment</h2></div>
+      <p class="section-intro">Seção permanente (adotada desde Executive Memory) -- respondendo as 6
+        perguntas obrigatórias para Organizational Intelligence.</p>
+
+      <div class="pia-card">
+        <p class="pia-q">1. Esta Capability preserva a identidade da STRATECH?</p>
+        <p class="pia-a"><span class="chip fato">SIM</span></p>
+        <p class="pia-a">Fecha a identidade conceitual das 8 perguntas executivas (Discovery §01) sem introduzir BI/Analytics/Telemetria; responde só "o que ocorreu", nunca "o que significa" (Seção 3) -- preservando o guardrail do Product Vision de que a plataforma nunca é fonte de verdade sobre interpretação.</p>
+      </div>
+      <div class="pia-card">
+        <p class="pia-q">2. Ela responde uma pergunta executiva única?</p>
+        <p class="pia-a"><span class="chip fato">SIM</span></p>
+        <p class="pia-a">"O que a organização inteira está aprendendo?" -- verificado contra as 7 Capabilities já existentes (Seção 1, pergunta 1; Discovery §01); nenhuma sobreposição.</p>
+      </div>
+      <div class="pia-card">
+        <p class="pia-q">3. Alguma responsabilidade passou a competir com outra Capability?</p>
+        <p class="pia-a"><span class="chip fato">NÃO</span></p>
+        <p class="pia-a">Confirmado explicitamente pelo Founder e reverificado: Organizational Intelligence não decide (Decision Center), não prioriza o momento presente (Portfolio Intelligence), não é a distribuição de saúde do portfólio (Dashboard), não é memória de 1 projeto (Executive Memory) -- Journey §06/§09, FS-011 §2/§7.</p>
+      </div>
+      <div class="pia-card">
+        <p class="pia-q">4. O Executive Loop permanece íntegro?</p>
+        <p class="pia-a"><span class="chip fato">SIM</span></p>
+        <p class="pia-a">Confirmado na Seção 2 -- reforça, nunca substitui, o Loop de cada projeto ao navegar de volta ao Workspace.</p>
+      </div>
+      <div class="pia-card">
+        <p class="pia-q">5. O TTD tende a diminuir ou permanecer igual?</p>
+        <p class="pia-a"><span class="chip fato">DIMINUIR (qualitativo)</span></p>
+        <p class="pia-a">Elimina o custo de comparar riscos/ações manualmente entre todos os projetos do portfólio (Journey §08) -- um custo que hoje só é pago raramente, exatamente por ser alto.</p>
+      </div>
+      <div class="pia-card">
+        <p class="pia-q">6. Existe algum aumento de complexidade que não gere valor proporcional?</p>
+        <p class="pia-a"><span class="chip fato">NÃO, NO ESCOPO RATIFICADO (Seção 4)</span></p>
+        <p class="pia-a">A complexidade desta entrega é mínima e proporcional: 2 funções de agregação puras, 1 função de seleção/corte, 1 página nova, 2 componentes visuais mínimos -- zero rota nova. A complexidade que <b>seria</b> desproporcional agora -- uma leitura agregada nova para decisões/tendências de status -- foi identificada (FS-011 §3.3) e conscientemente adiada (Seção 4), pelo mesmo motivo arquitetural já usado em Executive Memory.</p>
+      </div>
+    </section>
+
+    <section id="s7">
+      <div class="section-head"><span class="section-num">07</span><h2>Ratificação de aderência aos princípios/frameworks</h2></div>
+      <p class="section-intro">Reconfirmação exigida pelo Founder -- FS-011 §19 já validou contra a
+        especificação anterior; ratificado aqui com o escopo final (Seção 4) e a validação da Seção 3.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Princípio/Framework</th><th>Aderência</th></tr></thead>
+          <tbody>
+            <tr><td>Product Philosophy</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — Seção 3</td></tr>
+            <tr><td>Executive Questions Framework</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — Seção 1</td></tr>
+            <tr><td>Executive Decision Performance</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — Seção 6, pergunta 5</td></tr>
+            <tr><td>Progressive Context / Progressive Purpose</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — superfície própria porque nenhuma outra Capability tem este escopo (Seção 6, pergunta 2)</td></tr>
+            <tr><td>Executive Behavior</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — "Reconhecer" (FS-011 §02)</td></tr>
+            <tr><td>Executive Trust</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — vocabulário proibido explícito (Seção 3.2) reforça que nenhum texto fabrica causa ou consequência</td></tr>
+            <tr><td>Single Decision Source</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — nenhuma decisão calculada; só conta e agrupa um fato real</td></tr>
+            <tr><td>Executive Responsibility Separation</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — Seção 6, pergunta 3</td></tr>
+            <tr><td>Decision Context Preservation</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — cada aprendizado é o menor contexto necessário (FS-011 §4)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s8">
+      <div class="section-head"><span class="section-num">08</span><h2>Ratificação das decisões da FS-011</h2></div>
+      <p>As decisões de arquitetura já detalhadas em FS-011 §03 (<code>organizational-learnings.ts</code>,
+        composição do card, avaliação de Executive Component Library) permanecem como especificadas -- esta
+        Architecture Review não as reabre, apenas as valida contra o Executive Questions Framework (Seção 1),
+        o Executive Loop (Seção 2) e o Platform Integrity Assessment (Seção 6), resolve o único ponto em
+        aberto da FS-011 (§3.3, oficializado na Seção 4 desta Review) e acrescenta o vocabulário proibido
+        explícito (Seção 3.2) como parte da composição final.</p>
+    </section>
+
+    <section id="s9">
+      <div class="section-head"><span class="section-num">09</span><h2>Platform Readiness Items</h2></div>
+      <p class="section-intro">Avaliação de impacto nas 10 dimensões da fase final da V1 -- registrando como
+        Platform Readiness Item apenas onde uma oportunidade real de fortalecimento foi identificada. Não
+        amplia o escopo funcional desta Capability; é avaliação, não implementação.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Dimensão</th><th>Avaliação para Organizational Intelligence</th></tr></thead>
+          <tbody>
+            <tr><td>Segurança</td><td>Sem impacto -- zero rota nova, mesmo dado já auditado hoje via Decision Center/Action Intelligence</td></tr>
+            <tr><td>Performance</td><td>Sem impacto relevante -- 2 chamadas já existentes, reaproveitadas tal como estão</td></tr>
+            <tr><td><b>Escalabilidade</b></td><td><span class="chip guard">PLATFORM READINESS ITEM (novo, registrar como PRI-003)</span> -- se Decisões recorrentes/Tendências de status forem avaliadas no futuro (Seção 4), a leitura agregada nova precisará considerar volume de texto (decisions/key_findings/recommendations de todo o portfólio) -- maior que contar apenas descrições de risco/ação. Registrado para quando essa extensão for avaliada, não bloqueia esta entrega.</td></tr>
+            <tr><td>Operação</td><td>Sem impacto -- nenhum novo processo, job ou dependência de deploy</td></tr>
+            <tr><td>Observabilidade</td><td>Sem necessidade nova identificada -- funções puras client-side, sem chamada de rede própria a instrumentar</td></tr>
+            <tr><td>Backup/recuperação</td><td>Não aplicável -- nenhum dado novo persistido</td></tr>
+            <tr><td>Auditoria</td><td>Reforçada, não enfraquecida -- cada aprendizado é rastreável até os projetos/análises reais que o compõem (FS-011 §4/§7), maior exigência de auditabilidade que a média das Capabilities anteriores</td></tr>
+            <tr><td>Versionamento</td><td>Não aplicável -- nenhuma rota de API nova ou alterada</td></tr>
+            <tr><td>Testes automatizados</td><td>Cobertos no TIP (unit/componente/integração/E2E, FS-011 §15) -- incluindo teste específico do vocabulário proibido (Seção 3.2) contra a redação final</td></tr>
+            <tr><td>Experiência do usuário</td><td>Já avaliada exaustivamente (UX Flow, FS-011 §4-6) -- validação adicional de risco de interpretação nesta Review (Seção 3), nenhum item pendente</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Único Platform Readiness Item novo desta Capability: a dependência de escalabilidade de texto para uma
+        futura extensão a Decisões/Tendências de status (a registrar como <code>PRI-003</code> no Platform
+        Readiness Backlog).</p>
+    </section>
+
+    <section id="s10">
+      <div class="section-head"><span class="section-num">10</span><h2>Próximo Gate</h2></div>
+      <p>Architecture Review concluída. Escopo da V1 ratificado: Riscos recorrentes + Ações recorrentes
+        apenas. Validação do Founder concluída: Organizational Intelligence responde exclusivamente "o que
+        ocorreu", nunca "o que significa" -- risco de indução de conclusão avaliado como baixo e mitigado por
+        um vocabulário proibido explícito (Seção 3.2), a verificar nos Critérios de Aceite do TIP. Nenhuma
+        implementação nesta etapa. Aguardando aprovação do Founder antes do Technical Implementation Plan.</p>
+    </section>
+
+    <footer>
+      <span>Stratech — Architecture Review</span>
+      <span>Organizational Intelligence</span>
+      <span>2026-07-16</span>
+    </footer>
+  </main>
+</div>
