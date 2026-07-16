@@ -105,4 +105,17 @@ describe("proxy", () => {
     const response = proxy(requestFor("/decisions", token));
     expect(response.status).toBe(200);
   });
+
+  // TIP-010: /portfolio joins the same gate, same pattern as /decisions.
+  it("redirects /portfolio to /entrar when there is no session cookie", async () => {
+    const response = proxy(requestFor("/portfolio"));
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/entrar");
+  });
+
+  it("passes /portfolio through with a valid session cookie", async () => {
+    const { token } = createSessionToken();
+    const response = proxy(requestFor("/portfolio", token));
+    expect(response.status).toBe(200);
+  });
 });
