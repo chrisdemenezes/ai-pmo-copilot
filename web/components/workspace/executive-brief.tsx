@@ -12,12 +12,17 @@ import {
   contextHeading,
   suggestedDecision,
 } from "@/lib/workspace/decision-momentum";
-import { buildStatusInsight } from "@/lib/executive-memory/memory-insights";
+import {
+  buildRiskRecurrenceInsight,
+  buildStatusInsight,
+  selectPrimaryInsight,
+} from "@/lib/executive-memory/memory-insights";
 import { ExecutiveMemoryInsightChip } from "@/components/executive-memory/executive-memory-insight-chip";
 import { hasStatusShape, type StatusModelOutput } from "@/lib/workspace/types";
 
 /** Executive Memory (FS-010 §3.1): mesma rota de useWorkspaceLatestByKind, só com limit maior. */
 const RECENT_STATUS_LIMIT = 5;
+const RECENT_RISK_LIMIT = 5;
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("pt-BR", {
@@ -30,14 +35,18 @@ function formatDate(iso: string) {
 /**
  * Seção 2 -- Executive Brief (Decision Experience Review, Rev. 2). Substitui
  * o antigo par Executive Summary + Recomendações: um único momento de
- * decisão, não dois relatórios reorganizados. Mesmos 2 hooks de sempre --
- * zero chamada nova -- mas Painel A (summary/KPIs/impacto) e Painel C
- * (achados/recomendações/decisão/próximo passo) continuam com estados
- * independentes: nenhum bloqueia o outro.
+ * decisão, não dois relatórios reorganizados. Painel A (summary/KPIs/
+ * impacto) e Painel C (achados/recomendações/decisão/próximo passo)
+ * continuam com estados independentes: nenhum bloqueia o outro.
  *
  * Todo texto derivado (título de "Contexto", "Decisão sugerida", fallback de
  * "Próximo passo") vem de web/lib/workspace/decision-momentum.ts -- nunca
  * concatenado com o texto verbatim da IA (key_findings/recommendations).
+ *
+ * Executive Memory (TIP-011): 2 leituras adicionais, silenciosas
+ * (useRecentAnalysesByKind para status e risk), alimentam no máximo 1
+ * Executive Memory Insight (selectPrimaryInsight -- One Memory Insight
+ * Rule) ao lado do nome do projeto. Nunca bloqueia nem compete com Painel A/C.
  */
 export function ExecutiveBrief({ projectName }: { projectName: string }) {
   const summary = useWorkspaceSummary(projectName);
@@ -46,7 +55,11 @@ export function ExecutiveBrief({ projectName }: { projectName: string }) {
   // estado de carregamento próprio (Silent Intelligence). Se a leitura
   // falhar, o Brief continua exatamente como hoje, sem o Insight.
   const recentStatus = useRecentAnalysesByKind(projectName, "status", RECENT_STATUS_LIMIT);
+  const recentRisk = useRecentAnalysesByKind(projectName, "risk", RECENT_RISK_LIMIT);
   const statusInsight = recentStatus.data ? buildStatusInsight(recentStatus.data) : null;
+  const riskInsight = recentRisk.data ? buildRiskRecurrenceInsight(recentRisk.data) : null;
+  // One Memory Insight Rule (Architecture Review §3): nunca mais de 1 Insight por contexto.
+  const primaryInsight = selectPrimaryInsight(statusInsight, riskInsight);
 
   return (
     <section className="flex flex-col gap-3" aria-labelledby="executive-brief-heading">
@@ -70,7 +83,7 @@ export function ExecutiveBrief({ projectName }: { projectName: string }) {
                   {healthStatusLabel(summary.data.latest_health_status)}
                 </Badge>
                 <span className="text-sm text-ink-muted">{summary.data.project_name}</span>
-                {statusInsight ? <ExecutiveMemoryInsightChip insight={statusInsight} /> : null}
+                {primaryInsight ? <ExecutiveMemoryInsightChip insight={primaryInsight} /> : null}
               </div>
               <ActionsContextLine projectName={projectName} />
               <dl className="grid grid-cols-3 gap-3 text-sm">

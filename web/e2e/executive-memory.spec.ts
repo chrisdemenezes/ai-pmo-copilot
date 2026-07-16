@@ -74,15 +74,23 @@ test("shows a Mudou Executive Memory Insight right after Analisar Projeto change
   await expect(executiveBrief.getByText("Mudou: Atenção → Saudável")).toBeVisible();
 });
 
-// Silent Intelligence (UX Flow §5-6, FS-010 §4): sem histórico suficiente
-// (Aurora tem só 1 análise de status na fixture), o Brief permanece
-// exatamente como sempre foi -- nenhum Insight, nenhum espaço reservado.
-test("shows no Executive Memory Insight when there is no real 'before' to compare against", async ({
+// TIP-011, Incremento 2 (FS-010) -- "Reapareceu": Aurora ganha uma análise de
+// risco mais antiga (id 205) com a mesma descrição de atenção da já
+// existente id 201 -- gera recorrência real sem mudar o que
+// GET /api/risks/latest devolve para Aurora (a mais recente continua sendo
+// 201, mesmo texto/probabilidade/impacto de sempre), então Decision
+// Center/Portfolio Intelligence continuam intactos. Aurora só tem 1 análise
+// de status, então o sinal de status permanece em silêncio (Silent
+// Intelligence) -- prova as 2 coisas na mesma carga real: recorrência de
+// risco aparecendo sozinha, e ausência de Mudou/Persistiu quando não há
+// histórico de status suficiente.
+test("shows a Reapareceu Executive Memory Insight when a high-attention risk recurs, with no status insight competing", async ({
   page,
 }) => {
   await login(page);
   await page.goto("/workspace/Aurora");
 
   const executiveBrief = page.locator("section", { has: page.getByText("Executive Brief") });
+  await expect(executiveBrief.getByText("Reapareceu: Atraso na entrega (2ª vez)")).toBeVisible();
   await expect(executiveBrief.getByText(/^Mudou:|^Persiste em/)).toHaveCount(0);
 });

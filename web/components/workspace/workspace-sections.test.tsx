@@ -380,6 +380,103 @@ describe("ExecutiveBrief (Painéis A + C fundidos, cada um com estado próprio -
     render(<ExecutiveBrief projectName="Aurora" />);
     expect(screen.getByText("Mudou: Saudável → Crítico")).toBeInTheDocument();
   });
+
+  // Executive Memory (TIP-011, Incremento 2) -- "Reapareceu", quando não há
+  // nenhum sinal de status (histórico de status insuficiente/pending).
+  it("shows a Reapareceu Executive Memory Insight when a high-attention risk recurs and there is no status insight", () => {
+    mockedSummary.mockReturnValue(
+      summaryState({
+        data: { project_name: "Aurora", total_analyses: 2, open_risks: 1, pending_action_items: 0, latest_health_status: "green" },
+      }),
+    );
+    mockedLatest.mockReturnValue(summaryState({ data: null }));
+    mockedRecentAnalyses.mockImplementation((_projectName, kind) => {
+      if (kind === "risk") {
+        return {
+          isPending: false,
+          isError: false,
+          data: [
+            {
+              id: 2,
+              kind: "risk",
+              project_name: "Aurora",
+              created_at: "2026-07-02T00:00:00Z",
+              payload: {
+                agent: "risk_review",
+                project_name: "Aurora",
+                model_output: {
+                  structured: true,
+                  risks: [
+                    { description: "Atraso no fornecedor", probability: "high", impact: "high", mitigation: "Escalar" },
+                  ],
+                  escalation_recommendation: null,
+                },
+              },
+            },
+            {
+              id: 1,
+              kind: "risk",
+              project_name: "Aurora",
+              created_at: "2026-07-01T00:00:00Z",
+              payload: {
+                agent: "risk_review",
+                project_name: "Aurora",
+                model_output: {
+                  structured: true,
+                  risks: [
+                    { description: "Atraso no fornecedor", probability: "high", impact: "high", mitigation: "Escalar" },
+                  ],
+                  escalation_recommendation: null,
+                },
+              },
+            },
+          ],
+        } as never;
+      }
+      return { isPending: true, isError: false, data: undefined } as never;
+    });
+
+    render(<ExecutiveBrief projectName="Aurora" />);
+    expect(screen.getByText("Reapareceu: Atraso no fornecedor (2ª vez)")).toBeInTheDocument();
+  });
+
+  // One Memory Insight Rule (Architecture Review §3): mesmo com Persistiu E
+  // Reapareceu reais ao mesmo tempo, só 1 aparece -- Persistiu vence.
+  it("shows only Persistiu, never both, when a Persistiu status signal and a Reapareceu risk signal are both real", () => {
+    mockedSummary.mockReturnValue(
+      summaryState({
+        data: { project_name: "Aurora", total_analyses: 3, open_risks: 1, pending_action_items: 0, latest_health_status: "red" },
+      }),
+    );
+    mockedLatest.mockReturnValue(summaryState({ data: null }));
+    mockedRecentAnalyses.mockImplementation((_projectName, kind) => {
+      if (kind === "status") {
+        return {
+          isPending: false,
+          isError: false,
+          data: [
+            { id: 3, kind: "status", project_name: "Aurora", created_at: "2026-07-03T00:00:00Z", payload: { agent: "project_status", project_name: "Aurora", model_output: { structured: true, health_status: "red", key_findings: [], recommendations: [] } } },
+            { id: 2, kind: "status", project_name: "Aurora", created_at: "2026-07-02T00:00:00Z", payload: { agent: "project_status", project_name: "Aurora", model_output: { structured: true, health_status: "red", key_findings: [], recommendations: [] } } },
+          ],
+        } as never;
+      }
+      if (kind === "risk") {
+        return {
+          isPending: false,
+          isError: false,
+          data: [
+            { id: 5, kind: "risk", project_name: "Aurora", created_at: "2026-07-02T00:00:00Z", payload: { agent: "risk_review", project_name: "Aurora", model_output: { structured: true, risks: [{ description: "Atraso no fornecedor", probability: "high", impact: "high", mitigation: "Escalar" }], escalation_recommendation: null } } },
+            { id: 4, kind: "risk", project_name: "Aurora", created_at: "2026-07-01T00:00:00Z", payload: { agent: "risk_review", project_name: "Aurora", model_output: { structured: true, risks: [{ description: "Atraso no fornecedor", probability: "high", impact: "high", mitigation: "Escalar" }], escalation_recommendation: null } } },
+          ],
+        } as never;
+      }
+      return { isPending: true, isError: false, data: undefined } as never;
+    });
+
+    render(<ExecutiveBrief projectName="Aurora" />);
+    expect(screen.getByText("Persiste em Crítico (2ª análise seguida)")).toBeInTheDocument();
+    expect(screen.queryByText(/^Reapareceu:/)).not.toBeInTheDocument();
+  });
 });
 
 describe("IntelligenceTimeline (Painel B, independente)", () => {

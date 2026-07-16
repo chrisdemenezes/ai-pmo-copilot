@@ -108,7 +108,12 @@ test("Riscos and Comunicação sections render real content from the mocked anal
   await login(page);
   await page.goto("/workspace/Aurora");
 
-  await expect(page.getByText("Atraso na entrega")).toBeVisible();
+  // Escopado ao painel Riscos: desde o Executive Memory (TIP-011), o
+  // Executive Brief também pode mostrar um Insight "Reapareceu" contendo o
+  // mesmo texto verbatim do risco (ex.: Aurora tem recorrência real) --
+  // sem o escopo, o locator global colide com os 2 elementos.
+  const risks = page.locator("section", { has: page.locator("#risks-heading") });
+  await expect(risks.getByText("Atraso na entrega")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Comunicação" })).toBeVisible();
   // .first(): desde TIP-008 o mesmo item também aparece na seção "Ações".
   await expect(page.getByText("Atualizar cronograma").first()).toBeVisible();
@@ -195,8 +200,11 @@ test("a failing Ações section does not block the other Workspace panels", asyn
   await page.goto("/workspace/Aurora");
 
   await expect(page.getByText("Não foi possível carregar as ações.")).toBeVisible();
-  // Painel C (Riscos) continua renderizando dado real.
-  await expect(page.getByText("Atraso na entrega")).toBeVisible();
+  // Painel C (Riscos) continua renderizando dado real. Escopado (ver
+  // comentário na Riscos/Comunicação acima) -- colide com o Insight
+  // "Reapareceu" do Executive Memory (TIP-011) se não escopado.
+  const risks = page.locator("section", { has: page.locator("#risks-heading") });
+  await expect(risks.getByText("Atraso na entrega")).toBeVisible();
 });
 
 test("opening an item in Histórico completo shows its detail in a dialog", async ({ page }) => {

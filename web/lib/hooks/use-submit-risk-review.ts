@@ -20,8 +20,10 @@ async function submitRiskReview(
 
 /**
  * Same template as useSubmitProjectStatus (FS-005 §3 / TIP-005A): the same
- * 4 invalidations, just the "risk" latest-by-kind instead of "status" --
- * never the other kinds' latest queries.
+ * invalidations, just the "risk" latest-by-kind instead of "status" --
+ * never the other kinds' latest queries. workspace-recent added in TIP-011
+ * (Executive Memory) for the same reason as useSubmitProjectStatus: without
+ * it, the Reapareceu Insight would stay stale after a new risk analysis.
  */
 export function useSubmitRiskReview(projectName: string) {
   const queryClient = useQueryClient();
@@ -31,6 +33,7 @@ export function useSubmitRiskReview(projectName: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workspace-summary", projectName] });
       queryClient.invalidateQueries({ queryKey: ["workspace-latest", projectName, "risk"] });
+      queryClient.invalidateQueries({ queryKey: ["workspace-recent", projectName, "risk"] });
       queryClient.invalidateQueries({ queryKey: ["workspace-timeline", projectName] });
       queryClient.invalidateQueries({ queryKey: ["portfolio-summary"] });
     },

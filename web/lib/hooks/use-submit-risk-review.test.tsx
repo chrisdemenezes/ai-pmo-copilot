@@ -49,7 +49,7 @@ describe("useSubmitRiskReview", () => {
     );
   });
 
-  it("invalidates exactly the 4 template query keys on success, using 'risk' -- never other kinds", async () => {
+  it("invalidates exactly the 5 query keys on success (template + Executive Memory's workspace-recent), using 'risk' -- never other kinds", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue(new Response(JSON.stringify(SAMPLE), { status: 200 })),
@@ -68,11 +68,12 @@ describe("useSubmitRiskReview", () => {
     const invalidatedKeys = invalidateSpy.mock.calls.map((call) => call[0]?.queryKey);
     expect(invalidatedKeys).toContainEqual(["workspace-summary", "Aurora"]);
     expect(invalidatedKeys).toContainEqual(["workspace-latest", "Aurora", "risk"]);
+    expect(invalidatedKeys).toContainEqual(["workspace-recent", "Aurora", "risk"]);
     expect(invalidatedKeys).toContainEqual(["workspace-timeline", "Aurora"]);
     expect(invalidatedKeys).toContainEqual(["portfolio-summary"]);
     expect(invalidatedKeys).not.toContainEqual(["workspace-latest", "Aurora", "status"]);
     expect(invalidatedKeys).not.toContainEqual(["workspace-latest", "Aurora", "meeting"]);
-    expect(invalidatedKeys).toHaveLength(4);
+    expect(invalidatedKeys).toHaveLength(5);
   });
 
   it("does not invalidate any query on error", async () => {

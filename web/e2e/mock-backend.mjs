@@ -215,6 +215,30 @@ const ANALYSES = [
       },
     },
   },
+  // Executive Memory (TIP-011, Incremento 2) -- análise de risco mais antiga
+  // para Aurora, mesma descrição de atenção da já existente id 201: gera um
+  // "Reapareceu" real sem mexer no que /api/risks/latest devolve para Aurora
+  // (continua sendo a mais recente, id 201 -- Decision Center/Portfolio
+  // Intelligence continuam vendo exatamente o mesmo risco de atenção de
+  // sempre, mesmo texto/probabilidade/impacto). Data anterior a 201
+  // (2026-07-10) para nunca virar a "mais recente" em nenhuma leitura.
+  {
+    id: 205,
+    kind: "risk",
+    project_name: "Aurora",
+    created_at: "2026-07-03T09:00:00Z",
+    payload: {
+      agent: "risk_review",
+      project_name: "Aurora",
+      model_output: {
+        structured: true,
+        risks: [
+          { description: "Atraso na entrega", probability: "medium", impact: "high", mitigation: "Replanejar sprint" },
+        ],
+        escalation_recommendation: null,
+      },
+    },
+  },
 ];
 
 // TIP-005's /api/projects/analyze mutates SAMPLE/WORKSPACE_SUMMARY/ANALYSES
