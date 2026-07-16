@@ -1,0 +1,525 @@
+<title>FS-009 — Portfolio Intelligence</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --fato:#0f6b5c; --fato-bg:#e2efe9;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --plan:#2f5f9e; --plan-bg:#e2ebf6;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --fato:#4fd6b8; --fato-bg:#173029;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --plan:#7fb4f2; --plan-bg:#1a2c42;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --fato:#4fd6b8; --fato-bg:#173029;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --plan:#7fb4f2; --plan-bg:#1a2c42;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:270px minmax(0,1fr); max-width:1340px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:4px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:40px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.7rem,4vw,2.5rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:70ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:52px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink);}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.3rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:70ch;}
+  h3{font-size:1.02rem; margin:26px 0 8px; font-weight:600;}
+  p{margin:0 0 14px; max-width:74ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:72ch;}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  pre{background:var(--code-bg); color:var(--mono-ink); padding:14px 16px; border-radius:8px; overflow-x:auto; font-size:.8rem; line-height:1.5; margin:12px 0 20px;}
+  pre code{background:none; padding:0;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout.fato{border-left-color:var(--fato);}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.fato{color:var(--fato); background:var(--fato-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  .chip.plan{color:var(--plan); background:var(--plan-bg);}
+  .us-card{border:1px solid var(--border); border-radius:6px; padding:16px 20px; margin-bottom:12px; background:var(--surface);}
+  .us-card .us-text{font-weight:600; margin-bottom:6px;}
+  .us-card .us-ac{color:var(--ink-dim); font-size:.87rem; margin:0;}
+  .hierarchy{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:16px 0 24px; font-family: ui-monospace, monospace; font-size:12px;}
+  .hierarchy span{background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:8px 14px; box-shadow:var(--shadow);}
+  .hierarchy .arrow{color:var(--ink-dim); border:none; box-shadow:none; padding:0;}
+  .depth{display:flex; flex-direction:column; gap:6px; margin:16px 0 24px; font-family: ui-monospace, monospace; font-size:12px;}
+  .depth .drow{display:flex; align-items:center; gap:12px; background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:10px 14px;}
+  .depth .dlabel{font-weight:700; min-width:170px;}
+  .depth .darrow{color:var(--accent); text-align:center; padding-left:20px;}
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">FS-009<br>Portfolio Intelligence</div>
+    <nav>
+      <a href="#s0">00 Guardian Check</a>
+      <a href="#s1">01 Contexto e Objetivo</a>
+      <a href="#s2">02 Comportamento Executivo</a>
+      <a href="#s3">03 Architecture Review (preliminar)</a>
+      <a href="#s4">04 Progressive Context — novo princípio permanente</a>
+      <a href="#s5">05 Query Keys e Cache</a>
+      <a href="#s6">06 UX Review</a>
+      <a href="#s7">07 Escopo</a>
+      <a href="#s8">08 Fora de Escopo</a>
+      <a href="#s9">09 User Stories</a>
+      <a href="#s10">10 NFRs</a>
+      <a href="#s11">11 Critérios de Aceite</a>
+      <a href="#s12">12 Estratégia de Testes</a>
+      <a href="#s13">13 Riscos Específicos</a>
+      <a href="#s14">14 Checklist de Segurança</a>
+      <a href="#s15">15 Rollback</a>
+      <a href="#s16">16 Definition of Ready</a>
+      <a href="#s17">17 Recomendações Registradas</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">Feature Specification · STRATECH V1 — Product Core · Etapa 4 de 6</div>
+      <h1 class="title">FS-009 — Portfolio Intelligence</h1>
+      <p class="subtitle">Formaliza a User Decision Discovery, a User Journey e a UX Flow já aprovadas, com
+        escopo enxuto (Opção 1 — orientado ao presente, zero leitura agregada nova) e a diretriz conceitual
+        permanente introduzida nesta etapa pelo Founder: <b>Progressive Context</b>.</p>
+      <div class="meta-row">
+        <span><b>Origem</b> User Decision Discovery + User Journey + UX Flow (aprovadas)</span>
+        <span><b>Data</b> 2026-07-14</span>
+        <span><b>Status</b> Em elaboração — aguardando Architecture Review e aprovação do Founder</span>
+      </div>
+    </div>
+
+    <section id="s0">
+      <div class="section-head"><span class="section-num">00</span><h2>Guardian Check</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Verificação</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr><td>Conflito com Strategy/Constitution/Vision/Decision Framework?</td><td>SEM CONFLITO — nenhum documento normativo ainda existe em <code>docs/strategy/</code>.</td></tr>
+            <tr><td>Melhora alguma decisão do usuário?</td><td>SIM — ver User Decision Discovery §01 e Journey §2.</td></tr>
+            <tr><td>Reabre Single Decision Source, Executive Brief Contract, Comunicação estruturada ou o Achado #1 do RC-1?</td><td>NÃO — Single Decision Source é reforçado (§3.3), os demais permanecem intocados.</td></tr>
+            <tr><td>Introduz alteração de arquitetura, schema ou leitura agregada nova?</td><td>NÃO — Opção 1 aprovada (Discovery §04): 100% reuso de <code>buildExecutiveDecisionQueue()</code> e <code>rankByRisk()</code>, zero query nova, zero migração.</td></tr>
+            <tr><td>Respeita Progressive Context?</td><td>SIM, com um achado arquitetural explícito para a Architecture Review resolver — ver Seção 4.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Contexto e Objetivo</h2></div>
+      <p>Esta FS formaliza os 3 documentos já aprovados (Discovery, Journey, UX Flow) e o ajuste conceitual do
+        Founder na aprovação da User Journey (camada de risco nunca infere consequência) mais a diretriz desta
+        etapa (Progressive Context). A Executive Portfolio View organiza o portfólio inteiro em 4 camadas
+        transparentes de atenção -- nunca lista tudo com o mesmo peso, nunca recalcula uma decisão, nunca
+        decide ou age no lugar do executivo.</p>
+      <div class="hierarchy">
+        <span>Pergunta</span><span class="arrow">→</span>
+        <span>Compreensão</span><span class="arrow">→</span>
+        <span><b>Decisão</b></span><span class="arrow">→</span>
+        <span>Ação</span><span class="arrow">→</span>
+        <span>Retorno</span>
+      </div>
+      <p>Diferente de Decision Center (que organiza o elo "Decidir" para quem já sabe qual projeto olhar),
+        Portfolio Intelligence organiza a etapa anterior do mesmo Loop -- "Compreensão": onde o executivo deve
+        concentrar sua atenção antes mesmo de chegar a uma decisão específica. Ver Seção 4 para como isso se
+        encaixa na hierarquia de Progressive Context.</p>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>Comportamento Executivo</h2></div>
+      <p class="section-intro">Seção obrigatória em toda Feature Specification, por instrução do Founder:
+        <b>qual comportamento executivo esta Capability pretende incentivar?</b></p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Capability</th><th>Comportamento incentivado</th></tr></thead>
+          <tbody>
+            <tr><td>Project Intelligence (Status)</td><td>Acompanhar</td></tr>
+            <tr><td>Risk Intelligence</td><td>Mitigar</td></tr>
+            <tr><td>Communication Intelligence</td><td>Alinhar</td></tr>
+            <tr><td>Action Intelligence</td><td>Executar</td></tr>
+            <tr><td>Decision Center</td><td>Decidir</td></tr>
+            <tr><td><b>Portfolio Intelligence</b></td><td><b>Priorizar</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><b>Fixado nesta FS, resolvendo o fork registrado na Discovery §00 (achado de nomenclatura):</b>
+        "Priorizar" é o próprio termo que o Founder usou no diagrama de Progressive Context ("Portfolio
+        Intelligence ↓ Priorização") -- nenhuma invenção nova, apenas a formalização do vocabulário já dado.
+        Não colide com "Decidir" (Decision Center, que já possui a decisão pronta) nem com "Acompanhar"
+        (Project Intelligence, que lê o estado de um projeto por vez).</p>
+      <p><b>Coerência com o Executive Questions Framework:</b> "Priorizar" responde à pergunta 1 do framework
+        ("por que essa informação importa agora?") de forma mais ampla que qualquer Capability anterior --
+        estabelece a ordem de importância entre projetos, não apenas dentro de um projeto só.</p>
+      <p><b>Coerência com o Executive Decision Performance Framework:</b> ao encurtar o caminho até "onde
+        olhar", Portfolio Intelligence reduz o tempo antes mesmo do relógio de TTD começar a contar para uma
+        decisão específica -- efeito qualitativo, sem instrumentação nesta fase, mesma disciplina de
+        TIP-008/TIP-009.</p>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>Architecture Review (preliminar)</h2></div>
+
+      <h3>3.1 -- Nenhuma leitura nova, nenhuma rota nova</h3>
+      <p>Escopo enxuto aprovado pelo Founder (Discovery §04, Opção 1): a Executive Portfolio View é
+        inteiramente uma composição de funções puras no cliente sobre dado já em cache --
+        <code>usePortfolioSummary()</code> (já existente) e <code>useLatestRisks()</code> (já existente,
+        Decision Center) alimentam tanto <code>buildExecutiveDecisionQueue()</code> quanto o novo agrupador
+        desta Feature. Nenhum método novo em <code>ProjectSummaryService</code>, nenhuma rota nova em
+        <code>src/api/routes/intelligence.py</code>, nenhum BFF novo.</p>
+
+      <h3>3.2 -- <code>portfolio-view.ts</code> (novo, mesma família de <code>decision-queue.ts</code>)</h3>
+      <p>Combina 2 sinais já reais em 4 camadas -- nunca recalcula o que
+        <code>buildExecutiveDecisionQueue()</code>/<code>rankByRisk()</code> já decidem:</p>
+      <pre><code>export type PortfolioLayer =
+  | "decision_today"
+  | "decision_this_week"
+  | "risk_to_monitor"
+  | "no_signal";
+
+export interface PortfolioIntelligenceItem {
+  project_name: string;
+  layer: PortfolioLayer;
+  whyAttention: string;   // rótulo institucional fixo da camada -- Seção 3.5
+  realSignal: string;     // dado real verbatim -- ExecutiveDecision.context (camadas 1-2),
+                            // contagem de open_risks (camada 3), ou ausência real (camada 4)
+  nextMove: { label: string; href: string } | null; // navegação real -- null só na camada 4
+}
+
+export function buildExecutivePortfolioView(
+  portfolio: ProjectSummary[],
+  decisions: ExecutiveDecision[], // saída de buildExecutiveDecisionQueue() -- nunca recalculada
+): PortfolioIntelligenceItem[] {
+  // 1. Projetos com decisao(oes) janela "hoje" -> camada decision_today
+  // 2. Projetos com decisao(oes) janela "esta_semana" (sem entrada em 1) -> decision_this_week
+  // 3. Projetos restantes com open_risks &gt; 0, ordenados por rankByRisk() -> risk_to_monitor
+  // 4. Projetos restantes -> no_signal
+  // Ordenacao: camada (1-4), depois project_name -- fixa, nunca inferida pela IA.
+}</code></pre>
+      <p>Um projeto com múltiplas entradas na Executive Decision Queue (ex.: Status crítico <i>e</i> risco em
+        atenção) ocupa <b>uma única</b> linha na Executive Portfolio View, na camada mais alta que se aplica
+        -- diferente da própria Executive Decision Queue (onde as 2 entradas continuam distintas). É uma
+        visão de <i>priorização por projeto</i>, não uma lista de decisões -- distinção que preserva Single
+        Decision Source (a contagem/o detalhe de cada decisão continua vivendo só na Executive Decision
+        Queue) e evita um novo tipo de fusão de dado.</p>
+
+      <h3>3.3 -- Single Decision Source: fronteira explícita</h3>
+      <p><code>buildExecutivePortfolioView()</code> recebe a saída já computada de
+        <code>buildExecutiveDecisionQueue()</code> como parâmetro -- nunca chama
+        <code>ProjectSummaryService</code>/<code>useLatestRisks</code> para recalcular por conta própria o que
+        significa "decisão pendente". Se, no futuro, a Executive Decision Queue mudar sua regra de janela, a
+        Executive Portfolio View herda a mudança automaticamente, sem nenhum código próprio a atualizar.</p>
+
+      <h3>3.4 -- Executive Component Library: avaliação de reuso</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Componente candidato</th><th>Já existe?</th><th>Decisão</th></tr></thead>
+          <tbody>
+            <tr><td><code>Card</code>/<code>CardContent</code>/<code>Skeleton</code> (Design System)</td><td>Sim</td><td>Reaproveitado, zero componente novo</td></tr>
+            <tr><td>Composição "Card &gt; camada &gt; sinal real &gt; próximo movimento" (padrão Executive Decision Card)</td><td>Sim (Decision Center)</td><td>Reaproveitada -- o Executive Portfolio Card usa a mesma linguagem visual, com 3 perguntas em vez de 5</td></tr>
+            <tr><td><code>windowLabel()</code>, <code>healthStatusLabel</code>/<code>healthStatusVariant</code></td><td>Sim</td><td>Reaproveitados verbatim onde aplicável (camadas 1-2)</td></tr>
+            <tr><td>Executive Portfolio Card</td><td>Não existe ainda</td><td><b>Novo</b> -- construído copiando a composição já provada do Executive Decision Card, não inventando uma nova</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>3.5 -- Executive Portfolio Card: composição final</h3>
+      <p>As 3 perguntas da UX Flow §3, com a redação final:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Pergunta</th><th>Camadas 1-2</th><th>Camada 3</th><th>Camada 4</th></tr></thead>
+          <tbody>
+            <tr><td><b>Por que este projeto merece minha atenção?</b></td><td>"Decisão pendente hoje" / "Decisão pendente esta semana"</td><td>"Por que este projeto merece acompanhamento?"</td><td>"Sem sinal de atenção"</td></tr>
+            <tr><td><b>Quais sinais reais justificam essa posição?</b></td><td><code>ExecutiveDecision.context</code> da entrada de maior prioridade daquele projeto (verbatim)</td><td><code>`${open_risks} risco(s) identificado(s)`</code></td><td>"Nenhuma decisão pendente, nenhum risco identificado"</td></tr>
+            <tr><td><b>Qual o próximo movimento recomendado?</b></td><td>"Ver decisão completa" → <code>/decisions</code></td><td>"Ver riscos no Workspace" → <code>/workspace/[projectName]</code>, seção Riscos</td><td>Nenhum -- <code>nextMove: null</code>, sem link</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>3.6 -- Integração com Dashboard, Decision Center, Workspace e Action Intelligence</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Superfície</th><th>Mudança nesta Feature</th></tr></thead>
+          <tbody>
+            <tr><td>Dashboard</td><td>Novo ponto de entrada (posicionamento exato de KPI/link a definir na Architecture Review/TIP) -- ver achado da Seção 4 sobre <code>ProjectHealthGrid</code>/<code>RiskConcentrationRanking</code></td></tr>
+            <tr><td>Sidebar</td><td>Novo item (nome exato a confirmar, ex.: "Portfólio") em <code>navigation.ts</code></td></tr>
+            <tr><td>Decision Center</td><td>Nenhuma mudança -- fonte verbatim, consumida via <code>ExecutiveDecision[]</code> (§3.3)</td></tr>
+            <tr><td>Workspace</td><td>Nenhuma mudança -- continua sendo o destino de navegação, nunca a origem de dado desta Feature</td></tr>
+            <tr><td>Action Intelligence ("Ações")</td><td>Nenhuma mudança -- página irmã, não fundida</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>Progressive Context — novo princípio permanente</h2></div>
+      <div class="callout fato">
+        <b>Registrado oficialmente nesta etapa, por instrução do Founder:</b> <i>"A STRATECH não navega entre
+        telas. Ela aprofunda contexto. Cada Capability deve entregar um nível maior de compreensão do mesmo
+        objeto."</i> Princípio permanente da STRATECH, mesma categoria de Single Decision Source, Princípio da
+        Atenção e Executive Trust -- orienta toda decisão de arquitetura de informação futura, não só desta
+        Capability.
+      </div>
+      <div class="depth">
+        <div class="drow"><span class="dlabel">Dashboard</span><span>Resumo Executivo -- números agregados do portfólio inteiro</span></div>
+        <div class="darrow">↓</div>
+        <div class="drow"><span class="dlabel">Portfolio Intelligence</span><span>Priorização -- quais projetos, em que ordem, por quê</span></div>
+        <div class="darrow">↓</div>
+        <div class="drow"><span class="dlabel">Workspace</span><span>Contexto do Projeto -- todos os sinais de um único projeto</span></div>
+        <div class="darrow">↓</div>
+        <div class="drow"><span class="dlabel">Executive Brief</span><span>Análise -- o texto real da IA por trás do sinal</span></div>
+      </div>
+
+      <h3>4.1 -- O Executive Portfolio Card respeita Progressive Context?</h3>
+      <p>Avaliação explícita, campo a campo (Seção 3.5):</p>
+      <ul>
+        <li><b>"Por que este projeto merece minha atenção?"</b> -- é a camada, um rótulo de priorização que
+          não existe em nenhuma tela hoje. Nível novo de compreensão, não uma repetição.</li>
+        <li><b>"Quais sinais reais justificam essa posição?"</b> -- reaproveita, verbatim, o mesmo texto que
+          já justifica uma entrada na Executive Decision Queue (camadas 1-2) ou a mesma contagem de
+          <code>open_risks</code> (camada 3). <b>Aqui está o ponto de atenção real</b> -- ver 4.2.</li>
+        <li><b>"Qual o próximo movimento recomendado?"</b> -- é navegação, nunca dado -- nível novo por
+          natureza (o Dashboard de hoje não linka projeto a projeto, nenhuma tela anterior faz isso).</li>
+      </ul>
+
+      <h3>4.2 -- Achado honesto: sobreposição real com widgets já existentes do Dashboard</h3>
+      <div class="callout guard">
+        <b>Para a Architecture Review resolver explicitamente, não decidido nesta FS:</b> o Dashboard já
+        possui hoje dois widgets que <i>parcialmente</i> antecipam a função da Executive Portfolio View --
+        <code>ProjectHealthGrid</code> (tabela de todos os projetos, sem ordenação, com <code>open_risks</code>
+        já visível por linha) e <code>RiskConcentrationRanking</code> (top 5, já ordenado por
+        <code>open_risks</code>, mesmo cálculo que alimentaria a camada 3). Se a Executive Portfolio View
+        entrar em produção mostrando o mesmo número (<code>open_risks</code>) já visível nesses 2 widgets,
+        isso é, por definição, repetição de informação -- exatamente o que Progressive Context proíbe.
+        <br><br>
+        <b>Duas saídas possíveis, nenhuma decidida aqui:</b>
+        <ol>
+          <li><b>Recomendada:</b> a Architecture Review avalia retirar ou reduzir
+            <code>RiskConcentrationRanking</code> do Dashboard (sua função de "ranking ordenado" é herdada e
+            superada pela camada 3 da Executive Portfolio View) e simplificar <code>ProjectHealthGrid</code>
+            para um inventário bruto sem pretensão de priorização -- Dashboard volta a ser puramente "Resumo
+            Executivo" (números agregados, Seção acima), Portfolio Intelligence assume integralmente a
+            "Priorização".</li>
+          <li><b>Alternativa:</b> manter os 2 widgets como estão, diferenciando por escopo (Dashboard: top 5,
+            sem link de navegação, sem camada 1-2; Portfolio Intelligence: portfólio inteiro, 4 camadas,
+            navegável) -- aceita menor coerência com Progressive Context em troca de zero mudança em telas já
+            aprovadas.</li>
+        </ol>
+        Esta FS não decide entre as duas -- ambas preservam Single Decision Source e não exigem código nesta
+        etapa. A escolha pertence à Architecture Review (próxima etapa), por envolver uma tela já implementada
+        e aprovada em TIP anterior (TIP-004/TIP-008), não uma decisão de escopo desta Feature.
+      </div>
+
+      <h3>4.3 -- Nenhum contexto perdido durante a navegação</h3>
+      <p>Todo "próximo movimento recomendado" (Seção 3.5) leva a uma superfície que já contém, de forma mais
+        profunda, exatamente o mesmo objeto que motivou o clique -- nunca um destino genérico. Camadas 1-2
+        levam à Executive Decision Queue (mesmo projeto, mesma decisão, agora com as 5 perguntas completas do
+        Executive Decision Card); camada 3 leva ao painel de Riscos do Workspace daquele projeto (mesmo
+        projeto, agora com a lista completa de riscos, não só a contagem). Nenhum clique exige que o executivo
+        "comece de novo" -- ele sempre chega mais fundo no mesmo objeto que já estava olhando.</p>
+
+      <h3>4.4 -- Cada clique aprofunda o entendimento</h3>
+      <p>Confirmado pela própria hierarquia de 4 níveis: Dashboard (números) → Portfolio Intelligence (quais
+        projetos, em que ordem, por quê) → Workspace (todos os sinais daquele projeto) → Executive Brief
+        (o texto real da análise). Em nenhum ponto um nível repete o nível anterior por completo -- cada um
+        acrescenta uma camada de compreensão que o nível anterior não tinha.</p>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Query Keys e Cache</h2></div>
+      <p>Leitura pura -- não há invalidação de mutação (não existe <code>useMutation</code> nesta Feature).
+        <code>usePortfolioSummary()</code> e <code>useLatestRisks()</code> permanecem inalterados, mesmas
+        chaves já existentes. <code>buildExecutivePortfolioView()</code> é uma função pura executada no
+        cliente sobre os dados já em cache (incluindo a saída de <code>buildExecutiveDecisionQueue()</code>)
+        -- nenhuma chamada adicional, nenhum estado de query próprio.</p>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>UX Review</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Passo (Journey/UX Flow)</th><th>Implementação</th></tr></thead>
+          <tbody>
+            <tr><td>Entrada -- Sidebar</td><td>Novo item de navegação, portfólio inteiro, sem escolher projeto antes (§3.6)</td></tr>
+            <tr><td>4 camadas transparentes</td><td><code>buildExecutivePortfolioView()</code> -- zero cálculo novo, consome <code>buildExecutiveDecisionQueue()</code> e <code>rankByRisk()</code> (§3.2)</td></tr>
+            <tr><td>Executive Portfolio Card</td><td>3 perguntas, composição final (§3.5)</td></tr>
+            <tr><td>Camada 4 -- apresentação discreta</td><td>Densidade reduzida, tom neutro, sempre no fim da lista (UX Flow §4)</td></tr>
+            <tr><td>Clicar num card</td><td>Leva à Executive Decision Queue ou ao Workspace, seção correspondente (§4.3)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s7">
+      <div class="section-head"><span class="section-num">07</span><h2>Escopo</h2></div>
+      <ul>
+        <li><code>web/lib/portfolio-intelligence/portfolio-view.ts</code> -- <code>buildExecutivePortfolioView</code>, tipos <code>PortfolioIntelligenceItem</code>/<code>PortfolioLayer</code> (§3.2)</li>
+        <li>Componente Executive Portfolio Card + nova página de portfólio (Seção 3.5)</li>
+        <li>Novo item de navegação em <code>navigation.ts</code></li>
+        <li>Ponto de entrada no Dashboard (posicionamento exato: Architecture Review/TIP)</li>
+      </ul>
+    </section>
+
+    <section id="s8">
+      <div class="section-head"><span class="section-num">08</span><h2>Fora de Escopo (confirmado)</h2></div>
+      <ul>
+        <li>Tendência histórica, séries temporais, comparação entre períodos, previsões -- Executive Memory/Organizational Intelligence (Discovery §00/§09, Journey §9)</li>
+        <li>Qualquer recálculo de decisão fora da Executive Decision Queue -- Single Decision Source permanece absoluto (§3.3)</li>
+        <li>Retirada ou simplificação de <code>RiskConcentrationRanking</code>/<code>ProjectHealthGrid</code> -- achado registrado (§4.2), decisão da Architecture Review, não desta FS</li>
+        <li>Qualquer refatoração do Executive Decision Card ou dos 3 Briefs existentes</li>
+        <li>Qualquer decisão estruturada para Comunicação -- Achado #1 do RC-1 permanece não implementado</li>
+        <li>Qualquer filtro, tag ou ordenação customizável pelo usuário</li>
+        <li>Fusão da Executive Portfolio View com "Ações" ou "Decisões"</li>
+        <li>Migração de banco, alteração de schema, nova entidade de domínio, nova rota de API</li>
+      </ul>
+    </section>
+
+    <section id="s9">
+      <div class="section-head"><span class="section-num">09</span><h2>User Stories</h2></div>
+      <div class="us-card">
+        <p class="us-text">Como executivo, abro a Executive Portfolio View e vejo, em segundos, onde devo concentrar meu tempo agora, entre todos os projetos do portfólio.</p>
+        <p class="us-ac">Critério: as 4 camadas já chegam ordenadas e justificadas, sem nenhuma configuração prévia.</p>
+      </div>
+      <div class="us-card">
+        <p class="us-text">Como executivo, cada projeto me diz claramente por que merece minha atenção, quais sinais reais o justificam, e qual o próximo movimento dentro da plataforma.</p>
+        <p class="us-ac">Critério: as 3 perguntas do Executive Portfolio Card (§3.5) estão sempre presentes, nunca uma consequência inferida ou dado fabricado.</p>
+      </div>
+      <div class="us-card">
+        <p class="us-text">Como executivo, ao clicar num projeto, chego mais fundo no mesmo contexto que já estava olhando -- nunca perco o fio nem preciso recomeçar.</p>
+        <p class="us-ac">Critério: navegação leva à Executive Decision Queue ou ao Workspace do mesmo projeto, nunca a um destino genérico (§4.3).</p>
+      </div>
+    </section>
+
+    <section id="s10">
+      <div class="section-head"><span class="section-num">10</span><h2>NFRs Aplicáveis</h2></div>
+      <ul>
+        <li>Nenhuma regressão nos testes de backend existentes -- nenhum arquivo de backend tocado (§3.1)</li>
+        <li>Nenhuma regressão nos testes de frontend já existentes</li>
+        <li>Contraste WCAG AA mantido, ambos os temas</li>
+        <li>Responsividade nos 3 breakpoints já estabelecidos</li>
+        <li><code>buildExecutivePortfolioView()</code> sem custo assintótico além de O(n) sobre o portfólio -- mesma disciplina de <code>buildExecutiveDecisionQueue()</code></li>
+      </ul>
+    </section>
+
+    <section id="s11">
+      <div class="section-head"><span class="section-num">11</span><h2>Critérios de Aceite</h2></div>
+      <ul>
+        <li>Todo projeto do portfólio aparece na Executive Portfolio View, em exatamente uma das 4 camadas</li>
+        <li>Ordenação fixa: camada 1 → 2 → 3 → 4, nunca reordenável pelo usuário</li>
+        <li>Cada Executive Portfolio Card responde as 3 perguntas da Seção 3.5, sempre, sem texto fabricado</li>
+        <li>Camada 4 nunca compete visualmente com as camadas 1-3 (densidade reduzida, tom neutro)</li>
+        <li>Zero escrita -- nenhum botão de criar/editar/resolver em nenhuma tela desta Feature</li>
+        <li>Clicar num card leva à Executive Decision Queue ou ao Workspace do projeto correspondente</li>
+        <li>Testes: <code>portfolio-view.ts</code>, componente, E2E, backend como regressão (nenhuma mudança de backend)</li>
+        <li>Verificação real contra Demo Mode, mesma disciplina das Features anteriores</li>
+      </ul>
+    </section>
+
+    <section id="s12">
+      <div class="section-head"><span class="section-num">12</span><h2>Estratégia de Testes</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Camada</th><th>O que cobrir</th></tr></thead>
+          <tbody>
+            <tr><td><code>portfolio-view.ts</code> (unit)</td><td><code>buildExecutivePortfolioView</code>: decisão hoje → camada 1; decisão esta semana (sem hoje) → camada 2; risco sem decisão → camada 3, ordenado por <code>rankByRisk</code>; sem sinal → camada 4; projeto com 2 decisões (Status + Risco) gera 1 única linha na camada mais alta</td></tr>
+            <tr><td>Componentes (unit)</td><td>Executive Portfolio Card (3 perguntas por camada), página, apresentação discreta da camada 4</td></tr>
+            <tr><td>E2E (Playwright, 3 breakpoints)</td><td>Navegação → Executive Portfolio View → 4 camadas visíveis e ordenadas; card de camada 1-2 → Executive Decision Queue; card de camada 3 → Workspace/Riscos; card de camada 4 sem link de ação</td></tr>
+            <tr><td>Backend</td><td>Nenhuma mudança -- regressão da suíte já existente apenas</td></tr>
+            <tr><td>Backend real, sem mock</td><td>Ao menos uma verificação contra Demo Mode confirmando as 4 camadas com dado real de múltiplos projetos</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s13">
+      <div class="section-head"><span class="section-num">13</span><h2>Riscos Específicos</h2></div>
+      <ul>
+        <li>Percepção de redundância com <code>RiskConcentrationRanking</code>/<code>ProjectHealthGrid</code> -- achado explícito (§4.2), resolução deferida à Architecture Review</li>
+        <li>Volume de projetos crescendo sem paginação -- aceitável no volume atual de dado fictício/piloto, mesmo gap já conhecido registrado em Action Intelligence e Decision Center</li>
+        <li>Um projeto com múltiplas decisões (Status + Risco) precisa de uma regra clara de "camada mais alta" -- coberta explicitamente em testes (§12)</li>
+      </ul>
+    </section>
+
+    <section id="s14">
+      <div class="section-head"><span class="section-num">14</span><h2>Checklist de Segurança (ADR-011)</h2></div>
+      <p>Nenhuma rota nova, nenhum dado novo exposto -- esta Feature é inteiramente composição no cliente
+        sobre dado já trafegado hoje via <code>GET /api/projects/summary</code> e
+        <code>GET /api/risks/latest</code>. Nenhuma categoria de dado sensível nova. Checklist completo na
+        escrita do TIP.</p>
+    </section>
+
+    <section id="s15">
+      <div class="section-head"><span class="section-num">15</span><h2>Rollback</h2></div>
+      <p>Reverter o commit remove <code>portfolio-view.ts</code>, o componente Executive Portfolio Card, a
+        página de portfólio e o item de navegação -- Dashboard, Decision Center e Workspace voltam a ficar
+        exatamente como estavam. Nenhuma migração de dado, nenhuma mudança de schema, nenhum dado persistido a
+        desfazer.</p>
+    </section>
+
+    <section id="s16">
+      <div class="section-head"><span class="section-num">16</span><h2>Definition of Ready — Próximo Gate</h2></div>
+      <p>Esta FS formalizou Discovery + Journey + UX Flow + Architecture Review preliminar (Seção 3),
+        endereçando a diretriz de Progressive Context explicitamente (Seção 4), incluindo um achado
+        arquitetural honesto (§4.2) que a Architecture Review formal precisa resolver antes do TIP. Nenhuma
+        outra decisão de escopo pendente. Aguardando aprovação desta FS e da Architecture Review antes do
+        Technical Implementation Plan.</p>
+    </section>
+
+    <section id="s17">
+      <div class="section-head"><span class="section-num">17</span><h2>Recomendações Registradas</h2></div>
+      <div class="callout">
+        O achado da Seção 4.2 (sobreposição com <code>RiskConcentrationRanking</code>/<code>ProjectHealthGrid</code>)
+        é a recomendação central desta FS: avaliar, na Architecture Review, se esses 2 widgets do Dashboard
+        devem ser retirados ou reduzidos a favor da Executive Portfolio View, em nome de Progressive Context.
+        Nenhuma implementação decidida aqui -- decisão explícita do Founder, por afetar telas já aprovadas em
+        TIPs anteriores.
+      </div>
+      <div class="callout">
+        A avaliação da Seção 3.4 (Executive Component Library) reforça, com o Executive Portfolio Card, mais
+        um caso de uso concreto para o Executive Brief Contract já recomendado em FS-006 §15 e reafirmado nas
+        Features seguintes. Nenhuma implementação agora; registrado para quando o Executive Brief Contract
+        for retomado (STRATECH V1 Completion Board).
+      </div>
+    </section>
+
+    <footer>
+      <span>Stratech — FS-009</span>
+      <span>STRATECH V1 · Product Core</span>
+      <span>2026-07-14</span>
+    </footer>
+  </main>
+</div>
