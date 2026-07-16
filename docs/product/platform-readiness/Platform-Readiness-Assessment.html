@@ -1,0 +1,344 @@
+<title>Platform Readiness Assessment</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --ok:#2f7a4f; --ok-bg:#e1f0e5;
+    --warn:#a3742f; --warn-bg:#f3e9d8;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --ok:#7fd19f; --ok-bg:#1a3324;
+    --warn:#e0b567; --warn-bg:#332711;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --ok:#7fd19f; --ok-bg:#1a3324;
+      --warn:#e0b567; --warn-bg:#332711;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  main{max-width:1160px; margin:0 auto; padding:56px 40px 100px;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1{font-size:clamp(1.7rem,4vw,2.4rem); line-height:1.16; margin:0 0 14px; font-weight:600; text-wrap:balance;}
+  .subtitle{color:var(--ink-dim); max-width:84ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding:18px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim); margin-bottom:16px;}
+  .meta-row b{color:var(--ink);}
+  h2{font-size:1.25rem; margin:44px 0 6px; padding-bottom:10px; border-bottom:2px solid var(--ink);}
+  h3{font-size:1.02rem; margin:26px 0 6px; color:var(--ink);}
+  p{margin:0 0 12px; max-width:84ch;}
+  ul,ol{margin:0 0 14px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:80ch;}
+  .table-wrap{overflow-x:auto; margin:12px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.83rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 10px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top;}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.ok{color:var(--ok); background:var(--ok-bg);}
+  .chip.warn{color:var(--warn); background:var(--warn-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.warn{border-left-color:var(--warn); background:var(--warn-bg);}
+  .callout.guard{border-left-color:var(--guard); background:var(--guard-bg);}
+  .callout b{color:var(--ink);}
+  .verdict{border:2px solid var(--warn); background:var(--warn-bg); border-radius:8px; padding:24px 28px; margin:20px 0; text-align:center;}
+  .verdict .label{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-dim); margin-bottom:8px;}
+  .verdict .big{font-size:1.6rem; font-weight:700; color:var(--warn);}
+  footer{border-top:1px solid var(--border); margin-top:60px; padding-top:20px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  .toc{background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:18px 24px; margin:20px 0; box-shadow:var(--shadow);}
+  .toc ol{margin:0; padding-left:20px; columns:2; column-gap:32px;}
+  .toc li{margin-bottom:4px; break-inside:avoid;}
+  .toc a{color:var(--ink); text-decoration:none;}
+  .toc a:hover{color:var(--accent);}
+</style>
+
+<main>
+  <div class="kicker">Chief Product/Software Architect · Platform Readiness Assessment</div>
+  <h1>Platform Readiness Assessment</h1>
+  <p class="subtitle">Segunda etapa da reta final da V1, após aprovação do Architecture Gate V1 (GO WITH
+    CONDITIONS). Avaliação de prontidão operacional da plataforma para avançar ao Executive UX Polish e ao
+    Release Candidate. Exclusivamente avaliação -- nenhuma correção foi implementada nesta etapa.</p>
+  <div class="meta-row">
+    <span><b>Repositório</b> ai-pmo-copilot</span>
+    <span><b>Commit auditado</b> <code>d331437</code></span>
+    <span><b>Branch</b> <code>claude/stratech-permanent-principles-yjnm74</code></span>
+    <span><b>Data</b> 2026-07-16</span>
+    <span><b>Status</b> Aguardando aprovação do Founder</span>
+  </div>
+
+  <div class="toc">
+    <ol>
+      <li><a href="#s1">1. Executive Summary</a></li>
+      <li><a href="#s2">2. Escopo e método</a></li>
+      <li><a href="#s3">3. Classificação dos achados do Architecture Gate V1</a></li>
+      <li><a href="#s4">4. Avaliação por dimensão de prontidão</a></li>
+      <li><a href="#s5">5. Feature Exit Criteria e Capability Completion Checklist — consolidado</a></li>
+      <li><a href="#s6">6. Readiness Traceability Matrix</a></li>
+      <li><a href="#s7">7. Platform Readiness Backlog — status final</a></li>
+      <li><a href="#s8">8. Riscos residuais</a></li>
+      <li><a href="#s9">9. Recomendações</a></li>
+      <li><a href="#s10">10. Decisões que exigem aprovação do Founder</a></li>
+      <li><a href="#s11">11. Parecer final</a></li>
+    </ol>
+  </div>
+
+  <h2 id="s1">1. Executive Summary</h2>
+  <p>A STRATECH V1 está pronta para avançar ao Executive UX Polish, condicionada a um único item classificado
+    pelo Founder como requisito obrigatório antes do Release Candidate: a integração da suíte E2E ao pipeline de
+    CI (<code>PRI-006</code>). Todas as demais dimensões de prontidão -- segurança, estabilidade, contratos de
+    dado, documentação institucional, consistência visual declarada -- foram avaliadas sem novo bloqueador. A
+    validação solicitada sobre <code>PRI-005</code> (índices adicionais em <code>analysis_records</code>)
+    conclui que não há evidência de urgência real hoje: não existe projeção de volume documentada que justifique
+    a mudança agora, e a arquitetura atual (SQLite single-instance, rate limiter in-process) já limita o volume
+    realista de um deploy V1 -- a mesma limitação já registrada em <code>ADR-005</code> do Product Blueprint. A
+    Readiness Traceability Matrix (Seção 6) confirma rastreabilidade objetiva entre cada Princípio Permanente e
+    ao menos uma evidência concreta de implementação (código, teste ou documento), sem lacuna encontrada.</p>
+
+  <h2 id="s2">2. Escopo e método</h2>
+  <p>Avaliação apenas -- nenhuma correção, refatoração ou nova funcionalidade foi implementada. Método:
+    releitura de toda a STRATECH Product Constitution (10 Princípios Permanentes, 7 Executive Frameworks, 3 UI
+    Patterns, 2 UX Guidelines, 5 práticas de processo, 3 práticas exclusivas de Capability, 8 perguntas
+    executivas), cruzamento de cada item com evidência objetiva de código/teste/documento (Seção 6), reavaliação
+    direta dos 4 novos itens do Platform Readiness Backlog conforme a classificação já ratificada pelo Founder,
+    e validação factual do achado de performance <code>PRI-005</code> contra a documentação de arquitetura
+    existente (Product Blueprint, ADR-005).</p>
+
+  <h2 id="s3">3. Classificação dos achados do Architecture Gate V1</h2>
+  <p>Conforme ratificado pelo Founder na aprovação do Architecture Gate V1:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Item</th><th>Classificação do Founder</th><th>Tratamento nesta Assessment</th></tr></thead>
+      <tbody>
+        <tr><td><code>PRI-004</code></td><td>Governança documental</td><td>Não bloqueia RC — mantido no Backlog, ver Seção 7</td></tr>
+        <tr><td><code>PRI-005</code></td><td>Performance e escalabilidade</td><td>Validado nesta etapa antes de decidir sobre índices adicionais — ver Seção 4.2</td></tr>
+        <tr><td><code>PRI-006</code></td><td>Alta prioridade</td><td>Requisito obrigatório antes do Release Candidate — ver Seção 4.4 e Seção 11</td></tr>
+        <tr><td><code>PRI-007</code></td><td>Consistência documental</td><td>Regularizar durante a consolidação final da documentação — ver Seção 4.5</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="s4">4. Avaliação por dimensão de prontidão</h2>
+
+  <h3>4.1 Segurança</h3>
+  <p>Confirmado sem novo achado desde o Architecture Gate V1: sessão HMAC-SHA256 com falha fechada, matcher de
+    autenticação (<code>web/proxy.ts</code>) cobrindo as 9 rotas protegidas, autenticação de API por
+    <code>hmac.compare_digest</code>, CORS com allowlist explícita e vazia por padrão, rate limiting thread-safe.
+    Nenhuma exposição de segredo encontrada em código versionado. <span class="chip ok">PRONTO</span></p>
+
+  <h3>4.2 Performance e escalabilidade — validação de PRI-005</h3>
+  <p>Verificação direta (sem alteração de código): não existe, em nenhum documento de produto
+    (<code>docs/product/01-product-vision.md</code>, <code>02-mvp-definition.md</code>, Product Blueprint), uma
+    projeção de volume esperado de projetos/análises por cliente corporativo -- não há um alvo numérico contra o
+    qual medir a urgência de um índice em <code>created_at</code>/<code>kind</code>. O Product Blueprint já
+    registra, em <code>ADR-005</code>, que o rate limiter é in-process e "não escala horizontalmente sem
+    externalizar para Redis" -- ou seja, a arquitetura V1 já é conhecida e aceita como escopada a uma instância
+    única. Um índice ausente em uma tabela de dezenas a poucas centenas de linhas (volume piloto/demo atual) não
+    produz custo mensurável; o risco só se materializa junto com o mesmo gatilho que já exige revisitar
+    <code>ADR-005</code> (deploy multi-instância / cliente com volume real). <b>Conclusão da validação: não
+    adicionar o índice agora seria uma decisão consistente com o restante da arquitetura V1 -- ambas as
+    decisões de escala (rate limiter distribuído e índice de banco) compartilham o mesmo gatilho real e devem
+    ser revisitadas juntas, não uma isoladamente</b>. <span class="chip ok">VALIDADO — sem ação necessária antes do RC</span></p>
+
+  <h3>4.3 Confiabilidade e estabilidade</h3>
+  <p><code>analysis_records</code> é insert-only (nenhum <code>UPDATE</code>/<code>DELETE</code>), preservando
+    histórico imutável; uma única migração Alembic com teste de drift dedicado; nenhuma race condition de
+    escrita identificada (SQLite single-writer, sem read-then-write no caminho de gravação). <span class="chip ok">PRONTO</span></p>
+
+  <h3>4.4 Qualidade e testes — status de PRI-006</h3>
+  <p>Backend: 114/114 testes, gate de cobertura 80% no CI. Frontend: 400/400 testes unitários/componente,
+    gate de <code>tsc</code>/<code>eslint</code>/<code>build</code> no CI. E2E: 68 testes/9 arquivos, 100% dos
+    testes aplicáveis passando localmente -- mas <b>ainda não conectado ao pipeline de CI</b>
+    (<code>.github/workflows/ci.yml</code> não chama <code>npm run test:e2e</code>). Por classificação do
+    Founder, este é um requisito obrigatório antes do Release Candidate -- não bloqueia o avanço ao Executive UX
+    Polish, mas deve ser resolvido antes da abertura formal do Release Candidate V1.
+    <span class="chip warn">PENDENTE — obrigatório antes do RC</span></p>
+
+  <h3>4.5 Documentação — status de PRI-004 e PRI-007</h3>
+  <p><code>PRI-004</code> ("Executive Brief Contract"/"Decision Catalog" sem rastreamento formal): mantido como
+    item de governança documental, não bloqueante, registrado no Backlog para decisão futura do Founder sobre
+    manter como pendência rastreada ou encerrar como fora de escopo. <code>PRI-007</code> (Action Intelligence
+    sem Executive Progress Report/Visual Fidelity Report): confirmado -- a funcionalidade está implementada e
+    testada, apenas a documentação de fechamento está incompleta; classificado pelo Founder para regularização
+    durante a consolidação final da documentação (antes da publicação do V1 Release Notes).
+    <span class="chip warn">2 itens de regularização documental, nenhum bloqueante</span></p>
+
+  <h3>4.6 Consistência visual</h3>
+  <p>Nenhuma alteração visual realizada nesta etapa (fora de escopo, conforme instrução do Founder). Confirma-se
+    o inventário já produzido no Architecture Gate V1 (Domínio 8): todas as rotas de Feature têm Visual Fidelity
+    Report ou Gap Analysis, exceto <code>/actions</code> (ligado a <code>PRI-007</code>). O Figma permanece a
+    única fonte oficial de verdade visual -- esta Assessment não avalia fidelidade pixel-a-pixel, apenas
+    confirma que o inventário documental está correto para orientar o Executive UX Polish subsequente.
+    <span class="chip ok">INVENTÁRIO CONFIRMADO</span></p>
+
+  <h3>4.7 Operação</h3>
+  <p><code>demo/README.md</code> e <code>demo/SESSION-RUNBOOK.md</code> (branch atual) cobrem o ciclo
+    operacional do Demo Mode. Não existe runbook de produção (deploy/incident-response/rollback) além das
+    seções "Rollback" por TIP/FS -- gap já registrado no Architecture Gate V1 (Domínio 9), sem novo achado
+    aqui. Health check (<code>GET /health</code>) implementado e testado. <span class="chip warn">Runbook de
+    produção permanece uma lacuna conhecida, não nova</span></p>
+
+  <h2 id="s5">5. Feature Exit Criteria e Capability Completion Checklist — consolidado</h2>
+  <p>As práticas Feature Exit Criteria (5 critérios) e Capability Completion Checklist (10 dimensões) foram
+    introduzidas tardiamente na V1 (na autorização do TIP-011 e do TIP-012, respectivamente) -- por decisão já
+    registrada na Constitution (§02, "System Integrity"), não são reavaliadas retroativamente nas Capabilities
+    encerradas antes de sua criação. Consolidado abaixo por completude, sem reabrir nenhuma decisão já
+    encerrada:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Capability</th><th>Feature Exit Criteria</th><th>Capability Completion Checklist</th><th>Documentação de fechamento</th></tr></thead>
+      <tbody>
+        <tr><td>01-03 Project/Risk/Communication Intelligence</td><td>Anterior à prática — não aplicável retroativamente</td><td>Anterior à prática — não aplicável retroativamente</td><td><span class="chip ok">Completa</span></td></tr>
+        <tr><td>04 Action Intelligence</td><td>Anterior à prática — não aplicável retroativamente</td><td>Anterior à prática — não aplicável retroativamente</td><td><span class="chip warn">Incompleta — PRI-007</span></td></tr>
+        <tr><td>05 Decision Center</td><td>Anterior à prática — não aplicável retroativamente</td><td>Anterior à prática — não aplicável retroativamente</td><td><span class="chip ok">Completa</span></td></tr>
+        <tr><td>06 Portfolio Intelligence</td><td>Anterior à prática — não aplicável retroativamente</td><td>Anterior à prática — não aplicável retroativamente</td><td><span class="chip ok">Completa</span></td></tr>
+        <tr><td>07 Executive Memory</td><td><span class="chip ok">Aplicada — 5/5 SIM</span></td><td>Anterior ao TIP-012 — não aplicável retroativamente</td><td><span class="chip ok">Completa</span></td></tr>
+        <tr><td>08 Organizational Intelligence</td><td><span class="chip ok">Aplicada — 5/5 SIM</span></td><td><span class="chip ok">Aplicada — 10/10 dimensões</span></td><td><span class="chip ok">Completa</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Único achado: Action Intelligence é a única Capability cuja documentação de fechamento está incompleta
+    (<code>PRI-007</code>, já classificado pelo Founder). Nenhuma outra Capability tem lacuna equivalente.</p>
+
+  <h2 id="s6">6. Readiness Traceability Matrix</h2>
+  <p class="subtitle">Seção obrigatória acrescentada por instrução do Founder: relaciona cada requisito crítico
+    da STRATECH Product Constitution à sua evidência objetiva de implementação (teste, contrato, componente ou
+    documento). Nenhuma lacuna real de rastreabilidade foi encontrada -- onde a evidência é conceitual por
+    desenho (ex.: TTD/RR sem telemetria), isso é indicado explicitamente como intencional, não como omissão.</p>
+
+  <h3>6.1 Princípios Permanentes (10)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Princípio</th><th>Evidência objetiva de implementação</th></tr></thead>
+      <tbody>
+        <tr><td>Princípio da Atenção</td><td>Ausência condicional de conteúdo (Silent Intelligence) em <code>executive-brief.tsx</code>, <code>executive-memory-insight-chip.tsx</code> (só renderiza quando <code>selectPrimaryInsight</code> retorna não-nulo); testes: <code>executive-memory-insight-chip.test.tsx</code>, e2e <code>workspace.spec.ts</code> (estado sem insight)</td></tr>
+        <tr><td>Single Decision Source</td><td><code>web/lib/decision-center/decision-queue.ts</code> (<code>buildExecutiveDecisionQueue</code>) importado em 5 arquivos (portfolio, decisions, dashboard); testes: <code>decision-queue.test.ts</code>, e2e <code>decisions.spec.ts</code></td></tr>
+        <tr><td>Transparent Prioritization</td><td><code>web/lib/portfolio-intelligence/portfolio-view.ts</code> — 4 camadas por regra fixa (não score opaco); testes: <code>portfolio-view.test.ts</code>, e2e <code>portfolio.spec.ts</code></td></tr>
+        <tr><td>Progressive Context</td><td>Cadeia de rotas Dashboard → <code>/portfolio</code> → <code>/workspace/[projectName]</code> → Executive Brief, todas navegáveis e testadas; <code>web/e2e/shell.spec.ts</code> (navegação)</td></tr>
+        <tr><td>Progressive Purpose</td><td>Reuso do mesmo sinal de risco em <code>dashboard/aggregate.ts</code> (visão agregada) vs. <code>portfolio-view.ts</code> (camada) vs. <code>decision-queue.ts</code> (fila) — 3 perguntas executivas distintas sobre o mesmo dado; documentado nas Architecture Reviews de Portfolio Intelligence/Decision Center</td></tr>
+        <tr><td>Executive Responsibility Separation</td><td>Tabela de 8 Capabilities/perguntas (Constitution §08); módulos <code>web/lib/*</code> sem sobreposição de responsabilidade (confirmado no Architecture Gate V1, Domínio 2)</td></tr>
+        <tr><td>Decision Context Preservation</td><td><code>web/lib/executive-memory/memory-insights.ts</code> integrado a <code>executive-brief.tsx</code> como enriquecimento, não como tela nova; testes: <code>memory-insights.test.ts</code></td></tr>
+        <tr><td>System Integrity</td><td>Seção "Platform Integrity Assessment" nas Architecture Reviews de Executive Memory e Organizational Intelligence (6 perguntas respondidas em cada documento)</td></tr>
+        <tr><td>One Memory Insight Rule</td><td><code>selectPrimaryInsight()</code> em <code>memory-insights.ts</code> — hierarquia Persistiu &gt; Reapareceu &gt; Mudou, retorna no máximo 1; testes unitários cobrem a hierarquia explicitamente; e2e confirma no máximo 1 chip renderizado</td></tr>
+        <tr><td>Executive Trust</td><td><code>web/lib/organizational-intelligence/language-contract.ts</code> — <code>FORBIDDEN_VOCABULARY</code> testado; <code>Evidence First</code> (limiar de 3+ ocorrências) testado em <code>organizational-learnings.test.ts</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>6.2 Executive Frameworks (7)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Framework</th><th>Evidência objetiva</th></tr></thead>
+      <tbody>
+        <tr><td>Executive Questions Framework</td><td>5 perguntas respondidas explicitamente em toda FS/Architecture Review desde Action Intelligence (documento)</td></tr>
+        <tr><td>Executive Loop</td><td>Citado e aplicado em toda Architecture Review/TIP desde Action Intelligence (documento)</td></tr>
+        <tr><td>Executive Behavior</td><td>Tabela verbo-por-Capability, Constitution §08 (documento); 1 verbo único por Capability, sem repetição</td></tr>
+        <tr><td>Executive Decision Performance (TTD/RR/TTA)</td><td>Registro conceitual por desenho — nenhuma telemetria implementada (Roadmap V2 explicitamente proibido nesta V1); ausência de código é intencional, não uma lacuna</td></tr>
+        <tr><td>Executive Navigation</td><td><code>web/components/shell/navigation.ts</code> (<code>NAV_ITEMS</code>) — sequência descritiva, não imposta; ordem real da Sidebar (Dashboard, Priorização, Projetos, Ações, Decisões, Aprendizados) diverge pontualmente da sequência conceitual (Portfolio → Decision Center → Workspace → Brief → Action) ao colocar Ações antes de Decisões — consistente com o próprio texto do framework ("sequência natural, descritiva, não uma navegação imposta"), não uma violação</td></tr>
+        <tr><td>Incrementos de Valor</td><td>Estrutura de Incrementos em todo TIP (T1-T7, T8-T9, etc. — documento); cada incremento demonstrável e entregável isoladamente</td></tr>
+        <tr><td>Platform Integrity Assessment</td><td>Seção obrigatória nas Architecture Reviews de Executive Memory e Organizational Intelligence (documento)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>6.3 Executive UI Patterns e UX Guidelines</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Padrão/Diretriz</th><th>Evidência objetiva</th></tr></thead>
+      <tbody>
+        <tr><td>Decision Momentum</td><td>Orientação de próximo passo em <code>executive-decision-card.tsx</code>/<code>executive-portfolio-card.tsx</code> (componente + teste)</td></tr>
+        <tr><td>Executive Decision Card / Portfolio Card</td><td><code>web/components/decision-center/executive-decision-card.tsx</code> + teste; <code>web/components/portfolio-intelligence/executive-portfolio-card.tsx</code> + teste — mesmo padrão de composição, implementações distintas mas consistentes (não um componente único compartilhado)</td></tr>
+        <tr><td>Executive Memory Insight (chip)</td><td><code>web/components/executive-memory/executive-memory-insight-chip.tsx</code> + teste dedicado</td></tr>
+        <tr><td>Silent Intelligence</td><td>Ver Princípio da Atenção acima (mesma evidência, diretriz derivada)</td></tr>
+        <tr><td>Regra de entrada na navegação</td><td><code>web/components/shell/navigation.ts</code> — cada item comentado com a Feature/TIP que o qualificou; nenhum item desabilitado/placeholder encontrado</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>6.4 Práticas de processo</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Prática</th><th>Evidência objetiva</th></tr></thead>
+      <tbody>
+        <tr><td>Architecture Budget</td><td>Seção §08 em cada TIP desde Executive Memory (documento)</td></tr>
+        <tr><td>Platform Readiness Backlog</td><td><code>docs/product/platform-readiness/Platform-Readiness-Backlog.html</code> — 7 itens registrados (PRI-001 a PRI-007)</td></tr>
+        <tr><td>Feature Exit Criteria</td><td>Executive Reviews de Executive Memory e Organizational Intelligence (documento) — ver Seção 5</td></tr>
+        <tr><td>Reuse Index</td><td>Mesmas Executive Reviews (documento) — ver Seção 5</td></tr>
+        <tr><td>Capability Completion Checklist</td><td>Executive Review de Organizational Intelligence (documento) — ver Seção 5</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <b>Conclusão da matriz:</b> todo requisito crítico tem ao menos uma evidência objetiva e verificável.
+    Nenhuma lacuna de rastreabilidade real foi encontrada. As duas únicas divergências identificadas (ordem da
+    Sidebar vs. sequência conceitual de Executive Navigation; TTD/RR/TTA sem telemetria) são intencionais e já
+    justificadas pelos próprios documentos de origem, não omissões.
+  </div>
+
+  <h2 id="s7">7. Platform Readiness Backlog — status final</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Categoria</th><th>Bloqueia RC?</th><th>Status nesta Assessment</th></tr></thead>
+      <tbody>
+        <tr><td>PRI-001</td><td>Escalabilidade (extensão Executive Memory)</td><td><span class="chip ok">NÃO</span></td><td>Sem mudança — condicional a extensão futura não aprovada</td></tr>
+        <tr><td>PRI-002</td><td>Operação (rate limiter compartilhado)</td><td><span class="chip ok">NÃO</span></td><td>Sem mudança — mesma raiz que ADR-005 (single-instance)</td></tr>
+        <tr><td>PRI-003</td><td>Escalabilidade (extensão Organizational Intelligence)</td><td><span class="chip ok">NÃO</span></td><td>Sem mudança — condicional a extensão futura não aprovada</td></tr>
+        <tr><td>PRI-004</td><td>Governança documental</td><td><span class="chip ok">NÃO</span></td><td>Mantido — decisão do Founder pendente (Seção 10)</td></tr>
+        <tr><td>PRI-005</td><td>Performance e escalabilidade</td><td><span class="chip ok">NÃO</span></td><td><b>Validado nesta etapa</b> — sem ação necessária antes do RC (Seção 4.2)</td></tr>
+        <tr><td>PRI-006</td><td>Testes / CI</td><td><span class="chip guard">SIM, antes do RC</span></td><td>Obrigatório por classificação do Founder — não bloqueia o Executive UX Polish</td></tr>
+        <tr><td>PRI-007</td><td>Consistência documental</td><td><span class="chip ok">NÃO</span></td><td>Regularizar na consolidação final da documentação</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="s8">8. Riscos residuais</h2>
+  <ul>
+    <li>Enquanto <code>PRI-006</code> não for resolvido, uma regressão real pode chegar ao Release Candidate sem ser barrada automaticamente — mitigado hoje apenas por execução manual da suíte E2E.</li>
+    <li>Ausência de runbook de produção (deploy/incident-response/rollback) permanece uma lacuna operacional conhecida, não nova, não bloqueante para esta fase.</li>
+    <li>"Executive Brief Contract"/"Decision Catalog" seguem como recomendação citada, mas nunca decidida — risco de diluição se não for formalmente encerrada ou aceita no Backlog.</li>
+  </ul>
+
+  <h2 id="s9">9. Recomendações</h2>
+  <ol>
+    <li>Priorizar a integração da suíte E2E ao CI (<code>PRI-006</code>) durante o Executive UX Polish, para que esteja concluída antes da abertura do Release Candidate.</li>
+    <li>Revisitar <code>PRI-005</code> (índice) apenas junto com uma eventual decisão de escalar a arquitetura além de instância única (mesmo gatilho de <code>ADR-005</code>) -- não isoladamente.</li>
+    <li>Regularizar a documentação de fechamento de Action Intelligence (<code>PRI-007</code>) durante a consolidação final da documentação, antes da publicação do V1 Release Notes.</li>
+  </ol>
+
+  <h2 id="s10">10. Decisões que exigem aprovação do Founder</h2>
+  <ul>
+    <li>Confirmar se <code>PRI-006</code> deve ser resolvido durante o Executive UX Polish ou como etapa dedicada antes do Release Candidate.</li>
+    <li>Decidir o destino final de "Executive Brief Contract"/"Decision Catalog" (<code>PRI-004</code>): manter pendente e rastreado, ou encerrar formalmente como fora de escopo da V1.</li>
+    <li>Confirmar se a validação de <code>PRI-005</code> apresentada nesta Assessment encerra o item por ora, sem necessidade de nova revisão antes do RC.</li>
+  </ul>
+
+  <h2 id="s11">11. Parecer final</h2>
+  <div class="verdict">
+    <div class="label">Parecer</div>
+    <div class="big">GO WITH CONDITIONS</div>
+  </div>
+  <p>A plataforma está pronta para avançar ao Executive UX Polish. A única condição vinculada ao Release
+    Candidate (não ao Executive UX Polish) é a resolução de <code>PRI-006</code>. Nenhum outro item bloqueia
+    esta ou a próxima etapa. Aguardando aprovação do Founder antes de iniciar o Executive UX Polish.</p>
+
+  <footer>
+    <span>Stratech — Platform Readiness Assessment</span>
+    <span>Report</span>
+    <span>2026-07-16</span>
+  </footer>
+</main>
