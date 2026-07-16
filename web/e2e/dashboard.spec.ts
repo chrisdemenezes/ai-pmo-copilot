@@ -84,6 +84,19 @@ test("clicking the Decisões críticas KPI navigates to the Executive Decision Q
   await expect(page.getByRole("heading", { name: "Decisões" })).toBeVisible();
 });
 
+// TIP-010 Incremento 3 -- KPI "Projetos" vira o ponto de entrada da
+// Executive Portfolio View. Mesmo número (Awareness), destino aprofunda
+// para Prioritization -- Progressive Context/Purpose (Architecture Review §3).
+test("clicking the Projetos KPI navigates to the Executive Portfolio View", async ({ page }) => {
+  await login(page);
+  // Scoped to main -- the Sidebar/bottom-nav "Projetos" link has the exact
+  // same accessible-name prefix as this KPI ("Projetos" + the count),
+  // ambiguous outside of main.
+  await page.locator("main").getByRole("link", { name: /^Projetos/ }).click();
+  await expect(page).toHaveURL(/\/portfolio/);
+  await expect(page.getByRole("heading", { name: "Portfólio" })).toBeVisible();
+});
+
 // 5 + 12 (sucesso). Dashboard com dados
 test("renders the portfolio widgets when the backend has data", async ({ page }) => {
   await login(page);

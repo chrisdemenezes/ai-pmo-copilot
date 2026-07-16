@@ -95,3 +95,13 @@ test("shows the safe error state when the backend is unavailable", async ({ page
 
   await expect(page.getByText("Não foi possível carregar o portfólio agora")).toBeVisible();
 });
+
+// TIP-010 Incremento 3 -- Sidebar -> "Priorização" -> Executive Portfolio
+// View, mesma regra de entrada já cumprida por "Ações"/"Decisões".
+test("navigates via the Priorização nav item to the Executive Portfolio View", async ({ page }) => {
+  await login(page);
+
+  await page.locator('a[href="/portfolio"]').filter({ visible: true }).first().click();
+  await expect(page).toHaveURL(/\/portfolio/);
+  await expect(page.getByRole("heading", { name: "Portfólio" })).toBeVisible();
+});

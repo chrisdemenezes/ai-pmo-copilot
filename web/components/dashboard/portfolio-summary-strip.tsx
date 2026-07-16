@@ -7,7 +7,11 @@ import type { ProjectSummary } from "@/lib/dashboard/types";
 
 /**
  * W1 -- FS-001 §5. Client-side reduce over the same payload as the grid
- * below. "Ações pendentes" links to the portfolio "Ações" page (TIP-008
+ * below. "Projetos" links to the Executive Portfolio View (TIP-010
+ * Incremento 3) -- same real count (Awareness, Progressive Context), só o
+ * destino aprofunda para "onde concentrar a atenção" (Prioritization),
+ * nunca um número recalculado (Executive Responsibility Separation).
+ * "Ações pendentes" links to the portfolio "Ações" page (TIP-008
  * Incremento 3). "Decisões críticas" links to the Executive Decision
  * Queue (TIP-009 Incremento 3) -- criticalDecisionsCount is computed once,
  * by the Dashboard page, via the same buildExecutiveDecisionQueue() the
@@ -26,7 +30,7 @@ export function PortfolioSummaryStrip({
   const totals = aggregatePortfolio(projects);
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
-      <StripStat label="Projetos" value={totals.projectCount} />
+      <StripStat label="Projetos" value={totals.projectCount} href="/portfolio" />
       <StripStat label="Riscos identificados" value={totals.totalOpenRisks} />
       <StripStat label="Ações pendentes" value={totals.totalPendingActionItems} href="/actions" />
       <StripStat label="Decisões críticas" value={criticalDecisionsCount} href="/decisions" />

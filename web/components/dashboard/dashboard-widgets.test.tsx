@@ -41,9 +41,12 @@ describe("PortfolioSummaryStrip", () => {
 
   // TIP-008 Incremento 3 -- KPI "Ações pendentes" vira link para a página
   // de portfólio "Ações" (Incremento 2); TIP-009 Incremento 3 acrescenta
-  // "Decisões críticas" -> /decisions. Os outros 2 KPIs continuam sem link.
-  it("links only Ações pendentes and Decisões críticas to their own pages", () => {
+  // "Decisões críticas" -> /decisions; TIP-010 Incremento 3 acrescenta
+  // "Projetos" -> /portfolio (Executive Portfolio View). "Riscos
+  // identificados" continua sem link.
+  it("links Projetos, Ações pendentes and Decisões críticas to their own pages", () => {
     render(<PortfolioSummaryStrip projects={projects} criticalDecisionsCount={1} />);
+    expect(screen.getByRole("link", { name: /^Projetos/ })).toHaveAttribute("href", "/portfolio");
     expect(screen.getByRole("link", { name: /Ações pendentes/ })).toHaveAttribute(
       "href",
       "/actions",
@@ -52,7 +55,6 @@ describe("PortfolioSummaryStrip", () => {
       "href",
       "/decisions",
     );
-    expect(screen.queryByRole("link", { name: /^Projetos/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Riscos identificados/ })).not.toBeInTheDocument();
   });
 
