@@ -64,7 +64,7 @@
     Release Candidate (RC). Este documento é atualizado incrementalmente -- nunca recriado do zero.</p>
   <div class="meta-row">
     <span><b>Origem</b> Architecture Review — Executive Memory</span>
-    <span><b>Última atualização</b> 2026-07-14</span>
+    <span><b>Última atualização</b> 2026-07-16</span>
     <span><b>Status</b> Registro apenas — nenhum item implementado</span>
   </div>
 
@@ -95,6 +95,19 @@
           <td>Nenhum hoje -- Executive Memory V1 permanece escopada ao Executive Brief (leitura por projeto único, já eficiente)</td>
           <td><span class="chip ok">NÃO BLOQUEIA</span> — condicional a uma extensão futura ainda não aprovada</td>
         </tr>
+        <tr>
+          <td>PRI-002</td>
+          <td>Operação</td>
+          <td>O rate limiter do backend (60 req/60s por chave de API, <code>src/api/rate_limiter.py</code>) é
+            compartilhado entre produção, homologação e Demo Mode -- durante a verificação manual da Executive
+            Memory em Demo Mode, uma sequência rápida de leituras (navegação + submissões reais de análise)
+            atingiu o limite e recebeu <code>429</code>. Comportamento correto do limiter, não um defeito --
+            mas nenhum ambiente de demonstração/homologação tem hoje uma chave ou limite dedicado.</td>
+          <td>Executive Memory, T9 (verificação em Demo Mode)</td>
+          <td><span class="chip warn">BAIXA</span> — não impede a verificação, só exige espaçar as chamadas</td>
+          <td>Nenhum hoje -- apenas atrito operacional ao verificar manualmente múltiplas Capabilities em sequência</td>
+          <td><span class="chip ok">NÃO BLOQUEIA</span></td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -111,6 +124,6 @@
   <footer>
     <span>Stratech — STRATECH V1</span>
     <span>Platform Readiness Backlog</span>
-    <span>2026-07-14</span>
+    <span>2026-07-16</span>
   </footer>
 </main>
