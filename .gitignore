@@ -8,3 +8,5 @@ htmlcov/
 .venv/
 .env
 demo/.mock-response.json
+demo/*.pid
+demo/logs/
