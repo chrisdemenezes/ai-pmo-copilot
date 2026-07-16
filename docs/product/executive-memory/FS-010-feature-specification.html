@@ -1,0 +1,545 @@
+<title>FS-010 — Executive Memory</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --fato:#0f6b5c; --fato-bg:#e2efe9;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --plan:#2f5f9e; --plan-bg:#e2ebf6;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --fato:#4fd6b8; --fato-bg:#173029;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --plan:#7fb4f2; --plan-bg:#1a2c42;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --fato:#4fd6b8; --fato-bg:#173029;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --plan:#7fb4f2; --plan-bg:#1a2c42;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:270px minmax(0,1fr); max-width:1340px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:4px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:40px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.7rem,4vw,2.5rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:70ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:52px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink);}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.3rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:70ch;}
+  h3{font-size:1.02rem; margin:26px 0 8px; font-weight:600;}
+  p{margin:0 0 14px; max-width:74ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:72ch;}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  pre{background:var(--code-bg); color:var(--mono-ink); padding:14px 16px; border-radius:8px; overflow-x:auto; font-size:.8rem; line-height:1.5; margin:12px 0 20px;}
+  pre code{background:none; padding:0;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout.fato{border-left-color:var(--fato);}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.fato{color:var(--fato); background:var(--fato-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  .chip.plan{color:var(--plan); background:var(--plan-bg);}
+  .us-card{border:1px solid var(--border); border-radius:6px; padding:16px 20px; margin-bottom:12px; background:var(--surface);}
+  .us-card .us-text{font-weight:600; margin-bottom:6px;}
+  .us-card .us-ac{color:var(--ink-dim); font-size:.87rem; margin:0;}
+  .hierarchy-stack{display:flex; flex-direction:column; gap:8px; margin:16px 0 24px; max-width:360px;}
+  .hierarchy-stack .hrow{display:flex; align-items:center; justify-content:space-between; background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:10px 16px; font-family: ui-monospace, monospace; font-size:13px;}
+  .hierarchy-stack .hrow .hrank{color:var(--accent); font-weight:700;}
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">FS-010<br>Executive Memory</div>
+    <nav>
+      <a href="#s0">00 Guardian Check</a>
+      <a href="#s1">01 Contexto e Objetivo</a>
+      <a href="#s2">02 Comportamento Executivo</a>
+      <a href="#s3">03 Architecture Review (preliminar)</a>
+      <a href="#s4">04 Silent Intelligence — diretriz derivada do Princípio da Atenção</a>
+      <a href="#s5">05 Executive Memory Hierarchy</a>
+      <a href="#s6">06 Executive Memory Insight — UI Pattern</a>
+      <a href="#s7">07 Confirmações Explícitas</a>
+      <a href="#s8">08 Query Keys e Cache</a>
+      <a href="#s9">09 UX Review</a>
+      <a href="#s10">10 Escopo</a>
+      <a href="#s11">11 Fora de Escopo</a>
+      <a href="#s12">12 User Stories</a>
+      <a href="#s13">13 NFRs</a>
+      <a href="#s14">14 Critérios de Aceite</a>
+      <a href="#s15">15 Estratégia de Testes</a>
+      <a href="#s16">16 Riscos Específicos</a>
+      <a href="#s17">17 Checklist de Segurança</a>
+      <a href="#s18">18 Rollback</a>
+      <a href="#s19">19 Validação de Aderência à Constituição da STRATECH</a>
+      <a href="#s20">20 Definition of Ready</a>
+      <a href="#s21">21 Recomendações Registradas</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">Feature Specification · STRATECH V1 — Product Core (fase final) · Etapa 4</div>
+      <h1 class="title">FS-010 — Executive Memory</h1>
+      <p class="subtitle">Formaliza a User Decision Discovery, a User Journey e a UX Flow já aprovadas.
+        Esclarecimento do Founder aplicado nesta etapa: <b>nenhum princípio permanente novo nesta fase da V1</b>
+        -- os princípios já existentes são considerados estáveis. Silent Intelligence é tratado como diretriz
+        de UX derivada do Princípio da Atenção; Executive Memory Insight é tratado como Executive UI Pattern,
+        nunca como conceito de arquitetura novo.</p>
+      <div class="meta-row">
+        <span><b>Origem</b> User Decision Discovery + User Journey + UX Flow (aprovadas)</span>
+        <span><b>Data</b> 2026-07-14</span>
+        <span><b>Status</b> Em elaboração — aguardando Architecture Review e aprovação do Founder</span>
+      </div>
+    </div>
+
+    <section id="s0">
+      <div class="section-head"><span class="section-num">00</span><h2>Guardian Check</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Verificação</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr><td>Conflito com Strategy/Constitution/Vision/Decision Framework?</td><td>SEM CONFLITO — nenhum documento normativo ainda existe em <code>docs/strategy/</code>.</td></tr>
+            <tr><td>Melhora alguma decisão do usuário?</td><td>SIM — ver User Decision Discovery §05 e Journey §3.</td></tr>
+            <tr><td>Introduz um princípio permanente novo?</td><td>NÃO, por instrução explícita do Founder — Silent Intelligence e Executive Memory Insight são reclassificados nesta FS (Seções 4 e 6), não registrados como princípios.</td></tr>
+            <tr><td>Introduz um 4º Memory Signal, cria tela dedicada, ou amplia arquitetura?</td><td>NÃO — só Mudou/Persistiu/Reapareceu (UX Flow §2); nenhuma tela nova; achado arquitetural explícito §3.2, não decidido nesta FS.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Contexto e Objetivo</h2></div>
+      <p>Esta FS formaliza os 3 documentos já aprovados (Discovery, Journey, UX Flow). Executive Memory
+        entrega, dentro das superfícies de decisão já existentes, o menor fato real necessário para o
+        executivo lembrar de algo que já viveu antes -- nunca uma tela nova, nunca uma narrativa, nunca um
+        recálculo do que outra Capability já produz.</p>
+      <p>Diferente de toda Capability anterior, Executive Memory não organiza um elo próprio do Executive
+        Loop -- ela atravessa os elos já existentes (Compreensão, no Executive Brief; Decisão, no Executive
+        Decision Card; Priorização, no Executive Portfolio Card), aprofundando cada um sem alterar sua
+        natureza. É, por definição, transversal -- confirmado explicitamente na Seção 7.</p>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>Comportamento Executivo</h2></div>
+      <p class="section-intro">Seção obrigatória em toda Feature Specification, por instrução do Founder:
+        <b>qual comportamento executivo esta Capability pretende incentivar?</b></p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Capability</th><th>Comportamento incentivado</th></tr></thead>
+          <tbody>
+            <tr><td>Project Intelligence (Status)</td><td>Acompanhar</td></tr>
+            <tr><td>Risk Intelligence</td><td>Mitigar</td></tr>
+            <tr><td>Communication Intelligence</td><td>Alinhar</td></tr>
+            <tr><td>Action Intelligence</td><td>Executar</td></tr>
+            <tr><td>Decision Center</td><td>Decidir</td></tr>
+            <tr><td>Portfolio Intelligence</td><td>Priorizar</td></tr>
+            <tr><td><b>Executive Memory</b></td><td><b>Lembrar</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><b>Natureza distinta:</b> "Lembrar" não é um comportamento que o executivo pratica ao abrir uma
+        tela -- é o que a própria plataforma faz por ele, silenciosamente, dentro dos comportamentos que já
+        existem (Acompanhar, Decidir, Priorizar). Coerente com a Seção 1: Executive Memory nunca é o destino
+        de uma jornada, só a torna mais completa.</p>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>Architecture Review (preliminar)</h2></div>
+
+      <h3>3.1 -- Workspace (Executive Brief): zero leitura nova</h3>
+      <p>O Executive Brief já busca a análise de status mais recente do projeto
+        (<code>useWorkspaceLatestByKind(projectName, "status")</code>, que internamente chama
+        <code>GET /api/bff/workspace/[projectName]/analyses?kind=status&amp;limit=1</code>). Calcular "Mudou"
+        e "Persistiu" exige apenas <b>aumentar o <code>limit</code> já existente</b> (de 1 para um pequeno N,
+        ex. 5) nessa mesma chamada -- mesma rota, mesmo parâmetro já suportado
+        (<code>AnalysisRepository.list_analyses</code> já aceita <code>limit</code>), e comparar os
+        <code>health_status</code> retornados no cliente. Zero rota nova, zero método novo de serviço --
+        dado real já existente, leitura estritamente necessária (Seção 7).</p>
+      <p>Da mesma forma, "Reapareceu" (risco) reaproveita a mesma rota genérica já usada pela
+        <code>AnalysisHistory</code>/<code>IntelligenceTimeline</code>
+        (<code>GET /api/bff/workspace/[projectName]/analyses?kind=risk</code>, sem a restrição de "só a mais
+        recente" que <code>list_latest_risks()</code> aplica) -- os detalhes de cada análise
+        (<code>GET .../analyses/{"{id}"}</code>) já existem, também sem mudança.</p>
+
+      <h3>3.2 -- Achado explícito: Decision Center e Portfolio Intelligence operam em escala de portfólio</h3>
+      <div class="callout guard">
+        <b>Para a Architecture Review resolver explicitamente, não decidido nesta FS:</b> o Executive Decision
+        Card e o Executive Portfolio Card iteram sobre <i>todo</i> o portfólio de uma vez -- diferente do
+        Executive Brief, que já opera sobre um único projeto. Buscar 5 análises de status e todas as análises
+        de risco de <i>cada</i> projeto do portfólio, individualmente, seria N+1 -- o mesmo problema que
+        <code>list_latest_risks()</code> já resolveu uma vez para Decision Center (FS-008 §3.1). Resolver isso
+        exigiria uma leitura agregada nova -- não estritamente necessária para o escopo desta entrega (Seção
+        7), portanto fora dela.
+        <br><br>
+        <b>Duas saídas possíveis, nenhuma decidida aqui:</b>
+        <ol>
+          <li><b>Recomendada (escopo desta entrega):</b> Executive Memory Insights aparecem primeiro só no
+            Executive Brief (Workspace) -- zero leitura nova, entrega o objetivo central da Discovery/Journey
+            ("o que o executivo precisa lembrar antes de decidir") no lugar onde a decisão de Status
+            efetivamente acontece. Decision Center e Portfolio Intelligence ficam registrados como extensão
+            futura, condicionada a uma leitura agregada nova.</li>
+          <li><b>Escopo ampliado:</b> introduzir a leitura agregada nova (ex.:
+            <code>list_recent_status_history(count=5)</code>, mesmo padrão de <code>list_latest_risks()</code>)
+            já nesta entrega, para que Decision Center e Portfolio Intelligence também recebam Insights.</li>
+        </ol>
+        Recomendo a Opção 1, mesmo raciocínio já usado em toda Capability anterior desde Action Intelligence:
+        entrega o valor central mais rápido, sem uma dependência técnica nova bloqueando a primeira entrega.
+      </div>
+
+      <h3>3.3 -- <code>memory-insights.ts</code> (novo, mesma família de <code>decision-momentum.ts</code>)</h3>
+      <pre><code>export type MemorySignalKind = "mudou" | "persistiu" | "reapareceu";
+// "Memory Signal" -- termo tecnico interno. Executive Memory Insight
+// (Secao 6) e o nome do UI Pattern na documentacao de produto.
+
+export interface ExecutiveMemoryInsight {
+  kind: MemorySignalKind;
+  text: string; // menor fato necessario, verbatim -- nunca narrativa
+}
+
+export function buildStatusInsight(
+  recentStatusAnalyses: AnalysisListItem[], // newest-first, kind="status"
+): ExecutiveMemoryInsight | null {
+  // 1 analise -> null (sem "antes" real).
+  // health_status mudou entre as 2 mais recentes -> "mudou".
+  // mesmo health_status em zona de atencao (red/yellow) por 2+ seguidas -> "persistiu".
+  // mesmo health_status saudavel repetido -> null (User Journey Sec.4).
+}
+
+export function buildRiskRecurrenceInsight(
+  riskAnalyses: AnalysisListItem[], // newest-first, kind="risk", mesmo projeto
+): ExecutiveMemoryInsight | null {
+  // conta ocorrencias de um padrao de risco equivalente; count &lt;= 1 -> null.
+}</code></pre>
+      <p>Ambas as funções são puras, sem chamada de rede própria -- recebem o que o Workspace já buscou.
+        Nenhuma das duas decide, prioriza ou consolida nada (Executive Responsibility Separation preservado,
+        Seção 7): elas só leem um delta real e o traduzem para a redação institucional fixa da UX Flow §2 --
+        nunca fabricam contexto, narrativa ou interpretação.</p>
+
+      <h3>3.4 -- Executive Memory Insight: composição final</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Insight</th><th>Redação final</th><th>Condição de silêncio</th></tr></thead>
+          <tbody>
+            <tr><td>Mudou</td><td><code>Mudou: {"{"}anterior{"}"} → {"{"}atual{"}"}</code>, rótulos de <code>healthStatusLabel()</code>, verbatim</td><td>1ª análise, ou valor igual ao anterior</td></tr>
+            <tr><td>Persistiu</td><td><code>Persiste em {"{"}rótulo{"}"} ({"{"}N{"}"}ª análise seguida)</code></td><td>N &lt; 2, ou estado saudável</td></tr>
+            <tr><td>Reapareceu</td><td><code>Reapareceu ({"{"}N{"}"}ª vez)</code></td><td>N ≤ 1</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>3.5 -- Executive Component Library: avaliação de reuso</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Componente candidato</th><th>Já existe?</th><th>Decisão</th></tr></thead>
+          <tbody>
+            <tr><td><code>chip</code>/badge discreto (usado nas Architecture Reviews e nos estados de status)</td><td>Sim, por convenção</td><td>Reaproveitado -- mesmo padrão visual, tom neutro (UX Flow §3)</td></tr>
+            <tr><td>Composição do Executive Brief</td><td>Sim</td><td>Recebe 1 campo opcional a mais (o Insight) -- nenhuma composição refeita</td></tr>
+            <tr><td>Componente de Insight (Executive UI Pattern, Seção 6)</td><td>Não existe ainda</td><td><b>Novo</b>, mínimo -- um chip com o texto do insight, nada além disso</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>3.6 -- Integração com Workspace, Decision Center e Portfolio Intelligence</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Superfície</th><th>Mudança nesta Feature</th></tr></thead>
+          <tbody>
+            <tr><td>Executive Brief (Workspace)</td><td><code>limit</code> aumentado na busca já existente de status; novo insight de risco lendo <code>GET .../analyses?kind=risk</code> (já existente)</td></tr>
+            <tr><td>Decision Center / Portfolio Intelligence</td><td>Fora do escopo desta entrega (achado §3.2) -- extensão futura, condicionada a uma leitura agregada nova</td></tr>
+            <tr><td><code>IntelligenceTimeline</code> / <code>AnalysisHistory</code></td><td>Nenhuma mudança -- continuam sendo a navegação por histórico completo</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>Silent Intelligence — diretriz derivada do Princípio da Atenção</h2></div>
+      <p class="section-intro">Esclarecimento do Founder aplicado nesta etapa: Silent Intelligence <b>não é
+        um novo princípio permanente</b> da plataforma -- é uma diretriz de UX derivada diretamente do
+        Princípio da Atenção já consolidado (Decision Center, TIP-009 §08): "a ausência de informação também
+        comunica."</p>
+      <p>Executive Memory é o primeiro caso concreto dessa aplicação, numa granularidade menor: o Princípio
+        da Atenção já regia quando um <i>card inteiro</i> aparece ou não (Executive Decision Queue, Executive
+        Portfolio View); Silent Intelligence é a mesma disciplina aplicada a um <i>campo dentro de um card</i>
+        -- os 3 Memory Signals (UX Flow §2) só aparecem quando têm um fato genuíno a entregar (Seção 3.4); no
+        silêncio, o campo simplesmente não existe, sem rastro, sem espaço reservado, sem estado vazio a
+        preencher. Nenhum princípio novo é registrado por esta seção.</p>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Executive Memory Hierarchy</h2></div>
+      <p class="section-intro">Diretriz do Founder: avaliar a hierarquia conceitual de importância entre os 3
+        Memory Signals, para orientar evoluções futuras -- <b>não altera a UX Flow já aprovada</b>, os 3
+        continuam sendo exibidos exatamente como especificado quando aplicáveis, e esta avaliação não
+        constitui um princípio ou uma regra de arquitetura nova.</p>
+      <div class="hierarchy-stack">
+        <div class="hrow"><span class="hrank">1º</span><span>Persistiu</span></div>
+        <div class="hrow"><span class="hrank">2º</span><span>Reapareceu</span></div>
+        <div class="hrow"><span class="hrank">3º</span><span>Mudou</span></div>
+      </div>
+      <p><b>Justificativa da ordem, verificável contra o significado real de cada signal:</b> "Persistiu"
+        indica uma situação de atenção real que <i>não</i> se resolveu apesar do tempo passado -- o sinal mais
+        grave, por natureza. "Reapareceu" indica um padrão que retorna, sugerindo que uma mitigação anterior
+        pode não ter sido suficiente -- mais grave que uma mudança pontual, porque revela recorrência.
+        "Mudou" é o mais neutro dos três -- pode ser uma piora ou uma melhora, e por si só não indica um
+        problema não resolvido.</p>
+      <p><b>Por que isso importa agora, mesmo sem mudar UX:</b> hoje, cada Insight aparece sobre um campo
+        diferente do card (Mudou/Persistiu sobre Status; Reapareceu sobre Risco) -- nunca competem entre si
+        por espaço. Esta hierarquia fica registrada para o dia em que essa suposição deixar de valer -- ex.:
+        um limite de espaço exigir escolher só 1 Insight por card. Nenhuma dessas situações existe nesta
+        entrega -- reafirma o Founder: avaliação, não implementação.</p>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>Executive Memory Insight — UI Pattern</h2></div>
+      <p>A partir desta FS, "Executive Memory Insight" é tratado como um <b>Executive UI Pattern</b> --  um
+        padrão de composição visual reutilizável (chip discreto, tom neutro, texto curto e verbatim), nunca
+        um princípio ou um conceito de arquitetura. Mesma categoria de outros padrões visuais já emergentes na
+        plataforma (ex.: a composição "Card &gt; camada &gt; sinal real &gt; próximo movimento" do Executive
+        Decision Card/Executive Portfolio Card) -- vocabulário visual comum, não regra de negócio nova.
+        "Memory Signal" permanece como o termo técnico interno (nome de tipo, comentário de código);
+        "Executive Memory Insight" é o nome do padrão de UI na documentação de produto e em qualquer texto
+        voltado ao executivo.</p>
+    </section>
+
+    <section id="s7">
+      <div class="section-head"><span class="section-num">07</span><h2>Confirmações Explícitas</h2></div>
+      <p class="section-intro">Confirmação direta às 9 propriedades exigidas pelo Founder nesta etapa.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Propriedade exigida</th><th>Confirmação</th></tr></thead>
+          <tbody>
+            <tr><td>Permanece uma Capability transversal</td><td><span class="chip fato">SIM</span> — nenhuma rota, página ou item de navegação próprio (Seção 1, 10)</td></tr>
+            <tr><td>Nunca cria um novo ponto de entrada na plataforma</td><td><span class="chip fato">SIM</span> — <code>navigation.ts</code> não é tocado por esta Feature (Seção 11)</td></tr>
+            <tr><td>Nunca compete com o conteúdo principal</td><td><span class="chip fato">SIM</span> — chip discreto, tom neutro, nunca a cor de alerta do campo principal (Seção 3.4/3.5, UX Flow §3)</td></tr>
+            <tr><td>Enriquece exclusivamente componentes já existentes</td><td><span class="chip fato">SIM</span> — Executive Brief recebe 1 campo opcional; nenhum componente novo além do próprio chip de Insight (Seção 3.5)</td></tr>
+            <tr><td>Respeita integralmente Progressive Context e Progressive Purpose</td><td><span class="chip fato">SIM</span> — aprofunda a mesma superfície (Understanding, no Executive Brief) sem repetir nem antecipar nenhum outro nível (Journey §7-8)</td></tr>
+            <tr><td>Preserva o Executive Loop existente</td><td><span class="chip fato">SIM</span> — nenhum elo novo, nenhuma interrupção; se todos os Insights estiverem em silêncio, o Loop se comporta como se Executive Memory não existisse (UX Flow §6)</td></tr>
+            <tr><td>Mantém Executive Responsibility Separation</td><td><span class="chip fato">SIM</span> — Executive Memory responde "o que devo lembrar", nunca "o que está acontecendo" (Dashboard), "onde olhar" (Portfolio Intelligence) ou "o que decidir" (Decision Center)</td></tr>
+            <tr><td>Usa somente dados reais já existentes ou leituras agregadas estritamente necessárias</td><td><span class="chip fato">SIM</span> — zero leitura nova no escopo desta entrega (Seção 3.1); a única leitura agregada identificada (Seção 3.2) fica fora de escopo por não ser estritamente necessária agora</td></tr>
+            <tr><td>Nunca fabrica contexto, narrativa ou interpretação</td><td><span class="chip fato">SIM</span> — as 3 redações (Seção 3.4) são fatos computados e verbatim, nunca texto gerado ou inferido (Discovery §00, guardrail do Product Vision)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s8">
+      <div class="section-head"><span class="section-num">08</span><h2>Query Keys e Cache</h2></div>
+      <p>Leitura pura -- nenhuma mutação nesta Feature. O aumento de <code>limit</code> na busca de status
+        (Seção 3.1) mantém a mesma <code>queryKey</code> já usada por <code>useWorkspaceLatestByKind</code>
+        (o parâmetro extra não muda a identidade da query, só seu resultado) -- zero chave nova. A leitura de
+        risco para "Reapareceu" reaproveita a mesma rota e o mesmo padrão de cache já usados pela
+        <code>AnalysisHistory</code>.</p>
+    </section>
+
+    <section id="s9">
+      <div class="section-head"><span class="section-num">09</span><h2>UX Review</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Elemento (UX Flow)</th><th>Implementação</th></tr></thead>
+          <tbody>
+            <tr><td>3 Memory Signals</td><td><code>buildStatusInsight</code> (Mudou/Persistiu), <code>buildRiskRecurrenceInsight</code> (Reapareceu) -- Seção 3.3</td></tr>
+            <tr><td>Composição discreta/contextual</td><td>Chip neutro, ao lado do campo real (Seção 3.4/3.5)</td></tr>
+            <tr><td>Silêncio (Seção 4)</td><td>As 3 condições de silêncio da Seção 3.4, sempre aplicadas antes de renderizar qualquer Insight</td></tr>
+            <tr><td>Sem estado de carregamento próprio, sem navegação adicional</td><td>Resolve junto com o dado já buscado pelo Executive Brief; nenhum componente interativo</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s10">
+      <div class="section-head"><span class="section-num">10</span><h2>Escopo</h2></div>
+      <ul>
+        <li><code>web/lib/executive-memory/memory-insights.ts</code> -- <code>buildStatusInsight</code>, <code>buildRiskRecurrenceInsight</code>, tipos <code>ExecutiveMemoryInsight</code>/<code>MemorySignalKind</code> (§3.3)</li>
+        <li>Componente de chip de Insight (Executive UI Pattern, §6) -- mínimo, um chip com o texto do insight</li>
+        <li>Executive Brief (Workspace) -- aumento de <code>limit</code> na busca de status já existente; nova leitura de risco (rota já existente) para "Reapareceu"</li>
+      </ul>
+    </section>
+
+    <section id="s11">
+      <div class="section-head"><span class="section-num">11</span><h2>Fora de Escopo (confirmado)</h2></div>
+      <ul>
+        <li>Um 4º Memory Signal -- só Mudou, Persistiu, Reapareceu (UX Flow §2, Guardian §00)</li>
+        <li>Qualquer tela dedicada de "Memória" ou item de navegação novo</li>
+        <li>Enriquecimento do Executive Decision Card e do Executive Portfolio Card -- achado explícito §3.2, extensão futura condicionada a uma leitura agregada nova</li>
+        <li>Qualquer padrão agregado do portfólio -- pertence a uma futura Organizational Intelligence</li>
+        <li>Qualquer rastreamento de outcome de decisão</li>
+        <li>Qualquer narrativa, relatório ou histórico completo dentro de um Insight</li>
+        <li>Qualquer refatoração do Executive Brief além do campo de Insight, ou de <code>IntelligenceTimeline</code>/<code>AnalysisHistory</code></li>
+        <li>Migração de banco, alteração de schema, nova rota de API</li>
+        <li>Qualquer novo princípio permanente -- por instrução explícita do Founder nesta etapa</li>
+      </ul>
+    </section>
+
+    <section id="s12">
+      <div class="section-head"><span class="section-num">12</span><h2>User Stories</h2></div>
+      <div class="us-card">
+        <p class="us-text">Como executivo, ao ler o Executive Brief de um projeto, sei imediatamente se aquele status já mudou, persiste, ou se um risco já reapareceu -- sem abrir o Histórico completo para descobrir.</p>
+        <p class="us-ac">Critério: o Insight aparece inline, ao lado do campo real, só quando há um fato genuíno a entregar.</p>
+      </div>
+      <div class="us-card">
+        <p class="us-text">Como executivo, quando não há nada digno de nota para lembrar, o Executive Brief se comporta exatamente como hoje -- nenhum espaço vazio, nenhum texto de preenchimento.</p>
+        <p class="us-ac">Critério: as 3 condições de silêncio (§3.4) suprimem o Insight sem deixar rastro visual.</p>
+      </div>
+      <div class="us-card">
+        <p class="us-text">Como executivo, nunca preciso clicar ou navegar para entender um Executive Memory Insight -- ele já chega pronto, junto com o resto do que eu já estava lendo.</p>
+        <p class="us-ac">Critério: nenhum Insight é interativo; nenhum gate de carregamento adicional (§3.4).</p>
+      </div>
+    </section>
+
+    <section id="s13">
+      <div class="section-head"><span class="section-num">13</span><h2>NFRs Aplicáveis</h2></div>
+      <ul>
+        <li>Nenhuma regressão nos testes de backend -- zero arquivo de backend tocado (100% frontend, mesma disciplina de Portfolio Intelligence)</li>
+        <li>Nenhuma regressão nos testes de frontend já existentes</li>
+        <li>Contraste WCAG AA mantido, ambos os temas, no novo chip</li>
+        <li>Responsividade nos 3 breakpoints já estabelecidos</li>
+        <li>Aumentar o <code>limit</code> da busca de status (de 1 para ~5) não introduz N+1 nem latência perceptível -- mesma rota, mesmo custo de uma única consulta paginada</li>
+      </ul>
+    </section>
+
+    <section id="s14">
+      <div class="section-head"><span class="section-num">14</span><h2>Critérios de Aceite</h2></div>
+      <ul>
+        <li>"Mudou" aparece quando e só quando o <code>health_status</code> muda entre as 2 análises de status mais recentes do projeto</li>
+        <li>"Persistiu" aparece quando e só quando o mesmo estado crítico/em atenção se repete por 2+ análises seguidas -- nunca para um estado saudável repetido</li>
+        <li>"Reapareceu" aparece quando e só quando um padrão de risco equivalente já foi identificado antes -- nunca na 1ª ocorrência</li>
+        <li>Nenhum dos 3 aparece na primeira análise daquele tipo para o projeto</li>
+        <li>Nenhum Insight é clicável, nem introduz um estado de carregamento próprio</li>
+        <li>Zero escrita -- nenhum botão de criar/editar/resolver relacionado a esta Feature</li>
+        <li>Testes: <code>memory-insights.ts</code> (unit), componente, integração no Executive Brief, E2E, backend como regressão (nenhuma mudança)</li>
+        <li>Verificação real contra Demo Mode, mesma disciplina das Features anteriores</li>
+      </ul>
+    </section>
+
+    <section id="s15">
+      <div class="section-head"><span class="section-num">15</span><h2>Estratégia de Testes</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Camada</th><th>O que cobrir</th></tr></thead>
+          <tbody>
+            <tr><td><code>memory-insights.ts</code> (unit)</td><td><code>buildStatusInsight</code>: 1 análise → null; mudou → "mudou"; mesmo estado crítico 2x/3x → "persistiu"; mesmo estado saudável repetido → null. <code>buildRiskRecurrenceInsight</code>: 1ª ocorrência → null; 2ª+ → "reapareceu" com contagem correta</td></tr>
+            <tr><td>Componente (unit)</td><td>Chip de Insight: renderiza o texto verbatim, nunca interativo, tom neutro (sem classe de cor de alerta)</td></tr>
+            <tr><td>Integração (Executive Brief)</td><td>Insight aparece ao lado do campo real correto; ausente quando as condições de silêncio se aplicam</td></tr>
+            <tr><td>E2E (Playwright, 3 breakpoints)</td><td>Fluxo real com múltiplas análises de status/risco no mock, confirmando os 3 Insights e o silêncio na 1ª análise</td></tr>
+            <tr><td>Backend</td><td>Nenhuma mudança -- regressão da suíte já existente apenas</td></tr>
+            <tr><td>Backend real, sem mock</td><td>Verificação contra Demo Mode com múltiplas análises reais do mesmo projeto</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s16">
+      <div class="section-head"><span class="section-num">16</span><h2>Riscos Específicos</h2></div>
+      <ul>
+        <li>Definição de "risco equivalente" para "Reapareceu" -- comparar <code>description</code> verbatim seria frágil (mesma redação exata improvável entre 2 análises de IA); recomenda-se comparar por presença de risco na mesma categoria de probabilidade × impacto -- decisão final de implementação registrada no TIP, não nesta FS</li>
+        <li>Volume de análises por projeto ainda pequeno (dado fictício/piloto) -- mesmo gap já conhecido registrado em Capabilities anteriores, sem paginação necessária por ora</li>
+        <li>"Persistiu" e "Mudou" são mutuamente exclusivos por definição -- risco de bug se ambos aparecerem juntos; coberto explicitamente em teste unitário</li>
+      </ul>
+    </section>
+
+    <section id="s17">
+      <div class="section-head"><span class="section-num">17</span><h2>Checklist de Segurança (ADR-011)</h2></div>
+      <p>Nenhuma rota nova, nenhum dado novo exposto -- esta Feature lê exclusivamente dado já trafegado hoje
+        via rotas existentes (<code>GET /api/bff/workspace/[projectName]/analyses</code>), apenas com um
+        <code>limit</code> maior ou um filtro de <code>kind</code> já suportado. Nenhuma categoria de dado
+        sensível nova. Checklist completo na escrita do TIP.</p>
+    </section>
+
+    <section id="s18">
+      <div class="section-head"><span class="section-num">18</span><h2>Rollback</h2></div>
+      <p>Reverter o commit remove <code>memory-insights.ts</code>, o componente de Insight, e o campo
+        adicional no Executive Brief -- o Brief volta a buscar <code>limit=1</code> exatamente como hoje.
+        Nenhuma migração de dado, nenhuma mudança de schema, nenhum dado persistido a desfazer.</p>
+    </section>
+
+    <section id="s19">
+      <div class="section-head"><span class="section-num">19</span><h2>Validação de Aderência à Constituição da STRATECH</h2></div>
+      <p class="section-intro">Confirmação exigida pelo Founder: nenhuma decisão desta FS viola os princípios
+        e frameworks já estáveis da plataforma.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Princípio/Framework</th><th>Aderência</th></tr></thead>
+          <tbody>
+            <tr><td>Product Philosophy</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — nenhuma decisão automática, nenhuma alegação de fonte de verdade sobre o que aconteceu (Seção 3.3)</td></tr>
+            <tr><td>Executive Questions Framework</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — responde "o que preciso lembrar", uma pergunta executiva legítima e distinta das já respondidas por outras Capabilities</td></tr>
+            <tr><td>Executive Decision Performance</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — reduz o tempo até a compreensão certa sem instrumentação nova (Journey §8)</td></tr>
+            <tr><td>Progressive Context</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — aprofunda o Executive Brief, nunca repete Dashboard nem antecipa Workspace/outra Capability</td></tr>
+            <tr><td>Progressive Purpose</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — responde "o que devo lembrar", pergunta distinta de todas as demais Capabilities (Seção 7)</td></tr>
+            <tr><td>Executive Behavior</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — "Lembrar" registrado e coerente com os demais verbos já fixados (Seção 2)</td></tr>
+            <tr><td>Executive Trust</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — nenhum texto fabricado, nenhuma consequência ou narrativa inferida (Seção 3.3/3.4, 7)</td></tr>
+            <tr><td>Single Decision Source</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — nenhuma decisão é calculada ou consolidada por Executive Memory; ela só lê e anota um fato de apoio</td></tr>
+            <tr><td>Transparent Prioritization</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — não altera nenhuma ordenação já existente (Executive Decision Queue, Executive Portfolio View)</td></tr>
+            <tr><td>Executive Responsibility Separation</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — pergunta própria e distinta, confirmado na Seção 7</td></tr>
+            <tr><td>Decision Context Preservation</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — cada Insight é o menor contexto necessário, nunca mais que um delta ou uma contagem (Seção 3.4)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s20">
+      <div class="section-head"><span class="section-num">20</span><h2>Definition of Ready — Próximo Gate</h2></div>
+      <p>Esta FS formalizou Discovery + Journey + UX Flow + Architecture Review preliminar (Seção 3),
+        reclassificou Silent Intelligence e Executive Memory Insight conforme instrução do Founder (Seções 4
+        e 6), confirmou as 9 propriedades exigidas (Seção 7) e validou aderência à Constituição da STRATECH
+        (Seção 19). Um achado arquitetural honesto (§3.2) permanece para a Architecture Review resolver antes
+        do TIP. Aguardando aprovação desta FS e da Architecture Review antes do Technical Implementation
+        Plan.</p>
+    </section>
+
+    <section id="s21">
+      <div class="section-head"><span class="section-num">21</span><h2>Recomendações Registradas</h2></div>
+      <div class="callout">
+        O achado da Seção 3.2 (Decision Center e Portfolio Intelligence exigiriam uma leitura agregada nova
+        para receber Executive Memory Insights) é a recomendação central desta FS: avaliar, na Architecture
+        Review, se essa extensão deve entrar já nesta Capability ou ficar registrada como incremento futuro.
+        Nenhuma implementação decidida aqui.
+      </div>
+      <div class="callout">
+        O risco da Seção 16 (definição de "risco equivalente" para "Reapareceu") fica registrado como decisão
+        de implementação a ser tomada no TIP -- não resolvido nesta FS, para não antecipar uma escolha técnica
+        que a Architecture Review ainda não validou.
+      </div>
+    </section>
+
+    <footer>
+      <span>Stratech — FS-010</span>
+      <span>STRATECH V1 · Product Core</span>
+      <span>2026-07-14</span>
+    </footer>
+  </main>
+</div>
