@@ -49,4 +49,22 @@ describe("ExecutivePortfolioCard", () => {
       expect(screen.queryByRole("button", { name: forbidden })).toBeNull();
     }
   });
+
+  // Incremento 2 -- camada de Risco a Monitorar: nunca uma consequência
+  // inferida, sempre navegação real (Founder, aprovação da User Journey).
+  it("renders the risk_to_monitor layer with its revised question and a real navigation move", () => {
+    const item: PortfolioIntelligenceItem = {
+      project_name: "Portal do Cliente 2.0",
+      layer: "risk_to_monitor",
+      whyAttention: "Por que este projeto merece acompanhamento?",
+      realSignal: "3 risco(s) identificado(s)",
+      nextMove: { label: "Ver riscos no Workspace", href: "/workspace/Portal%20do%20Cliente%202.0" },
+    };
+
+    render(<ExecutivePortfolioCard item={item} />);
+
+    expect(screen.getByText("Por que este projeto merece acompanhamento?")).toBeInTheDocument();
+    expect(screen.getByText("3 risco(s) identificado(s)")).toBeInTheDocument();
+    expect(screen.getByRole("link")).toHaveAttribute("href", "/workspace/Portal%20do%20Cliente%202.0");
+  });
 });

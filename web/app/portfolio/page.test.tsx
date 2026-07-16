@@ -76,6 +76,28 @@ describe("PortfolioPage", () => {
     expect(screen.getByText("Portal do Cliente 2.0")).toBeInTheDocument();
   });
 
+  // Incremento 2 -- camada de Risco a Monitorar: um projeto saudável com
+  // risco identificado, mas sem decisão pendente, aparece nesta camada.
+  it("shows a project with open_risks but no pending decision in the risk_to_monitor layer", () => {
+    mockedHook.mockReturnValue(
+      hookState({
+        data: [
+          {
+            project_name: "Migracao de Data Center",
+            total_analyses: 2,
+            open_risks: 2,
+            pending_action_items: 0,
+            latest_health_status: "green",
+          },
+        ],
+      }),
+    );
+
+    render(<PortfolioPage />);
+    expect(screen.getByText("Por que este projeto merece acompanhamento?")).toBeInTheDocument();
+    expect(screen.getByText("2 risco(s) identificado(s)")).toBeInTheDocument();
+  });
+
   it("never renders a create/edit/resolve control", () => {
     mockedHook.mockReturnValue(hookState({ data: MIXED_PORTFOLIO }));
     render(<PortfolioPage />);

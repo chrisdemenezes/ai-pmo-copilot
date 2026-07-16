@@ -1,3 +1,4 @@
+import { rankByRisk } from "@/lib/dashboard/aggregate";
 import type { ProjectSummary } from "@/lib/dashboard/types";
 import type { ExecutiveDecision } from "@/lib/decision-center/decision-queue";
 
@@ -10,14 +11,18 @@ import type { ExecutiveDecision } from "@/lib/decision-center/decision-queue";
  * aplica -- é uma visão de priorização por projeto, não uma lista de
  * decisões.
  */
-export type PortfolioLayer = "decision_today" | "decision_this_week" | "no_signal";
+export type PortfolioLayer =
+  | "decision_today"
+  | "decision_this_week"
+  | "risk_to_monitor"
+  | "no_signal";
 
 export interface PortfolioIntelligenceItem {
   project_name: string;
   layer: PortfolioLayer;
   /** Rótulo institucional fixo da camada -- nunca gerado pela IA (UX Flow §3). */
   whyAttention: string;
-  /** Dado real verbatim -- ExecutiveDecision.context da entrada de maior prioridade do projeto. */
+  /** Dado real verbatim -- nunca uma consequência inferida (Founder, aprovação da User Journey). */
   realSignal: string;
   /** Navegação real -- null só na camada "sem sinal de atenção" (UX Flow §3). */
   nextMove: { label: string; href: string } | null;
@@ -26,20 +31,16 @@ export interface PortfolioIntelligenceItem {
 const WHY_ATTENTION: Record<PortfolioLayer, string> = {
   decision_today: "Decisão pendente hoje",
   decision_this_week: "Decisão pendente esta semana",
+  // Reformulação exata do Founder (aprovação da User Journey): nunca "o
+  // que acontece se eu não agir" -- essa pergunta pressupõe uma
+  // consequência que a plataforma não possui para este caso.
+  risk_to_monitor: "Por que este projeto merece acompanhamento?",
   no_signal: "Sem sinal de atenção",
 };
 
 const NO_SIGNAL_REAL_SIGNAL = "Nenhuma decisão pendente, nenhum risco identificado";
 
-/** Ordenação fixa: camada (1-2-4 -- 3 chega no Incremento 2), depois project_name -- determinística, nunca inferida pela IA. */
-const LAYER_ORDER: Record<PortfolioLayer, number> = {
-  decision_today: 0,
-  decision_this_week: 1,
-  no_signal: 3,
-};
-
-function byLayerThenProject(a: PortfolioIntelligenceItem, b: PortfolioIntelligenceItem): number {
-  if (a.layer !== b.layer) return LAYER_ORDER[a.layer] - LAYER_ORDER[b.layer];
+function byProjectName(a: PortfolioIntelligenceItem, b: PortfolioIntelligenceItem): number {
   return a.project_name.localeCompare(b.project_name);
 }
 
@@ -52,48 +53,90 @@ function highestPriorityDecision(decisions: ExecutiveDecision[]): ExecutiveDecis
   return decisions.find((d) => d.window === "hoje") ?? decisions[0];
 }
 
+function groupDecisionsByProject(decisions: ExecutiveDecision[]): Map<string, ExecutiveDecision[]> {
+  const grouped = new Map<string, ExecutiveDecision[]>();
+  for (const decision of decisions) {
+    const existing = grouped.get(decision.project_name);
+    if (existing) {
+      existing.push(decision);
+    } else {
+      grouped.set(decision.project_name, [decision]);
+    }
+  }
+  return grouped;
+}
+
 /**
- * buildExecutivePortfolioView (TIP-010 Incremento 1) -- camadas de decisão
- * (hoje/esta semana) e ausência de sinal. A camada de Risco a Monitorar
- * chega no Incremento 2 (TIP-010 §04).
+ * buildExecutivePortfolioView (TIP-010) -- as 4 camadas completas
+ * (Incremento 2 adiciona "risco a monitorar", reaproveitando rankByRisk()
+ * do Dashboard, primeira vez que essa função é usada por outra
+ * superfície). Ordenação fixa: camada (1-2-3-4), depois project_name
+ * dentro das camadas 1/2/4 -- camada 3 mantém a ordem de concentração de
+ * risco de rankByRisk(), nunca reordenada aqui.
  */
 export function buildExecutivePortfolioView(
   portfolio: ProjectSummary[],
   decisions: ExecutiveDecision[],
 ): PortfolioIntelligenceItem[] {
-  const decisionsByProject = new Map<string, ExecutiveDecision[]>();
-  for (const decision of decisions) {
-    const existing = decisionsByProject.get(decision.project_name);
-    if (existing) {
-      existing.push(decision);
-    } else {
-      decisionsByProject.set(decision.project_name, [decision]);
+  const decisionsByProject = groupDecisionsByProject(decisions);
+
+  const decisionToday: PortfolioIntelligenceItem[] = [];
+  const decisionThisWeek: PortfolioIntelligenceItem[] = [];
+  const withoutDecision: ProjectSummary[] = [];
+
+  for (const project of portfolio) {
+    const projectDecisions = decisionsByProject.get(project.project_name);
+    if (!projectDecisions || projectDecisions.length === 0) {
+      withoutDecision.push(project);
+      continue;
     }
+
+    const top = highestPriorityDecision(projectDecisions)!;
+    const layer: PortfolioLayer = top.window === "hoje" ? "decision_today" : "decision_this_week";
+    const item: PortfolioIntelligenceItem = {
+      project_name: project.project_name,
+      layer,
+      whyAttention: WHY_ATTENTION[layer],
+      realSignal: top.context,
+      nextMove: { label: "Ver decisão completa", href: "/decisions" },
+    };
+    (layer === "decision_today" ? decisionToday : decisionThisWeek).push(item);
   }
 
-  const items = portfolio.map((project): PortfolioIntelligenceItem => {
-    const projectDecisions = decisionsByProject.get(project.project_name);
+  // rankByRisk() já filtra open_risks > 0 e ordena por concentração
+  // descendente -- reaproveitado tal como está (web/lib/dashboard/aggregate.ts),
+  // sem limite de top 5 aqui: a Executive Portfolio View cobre o
+  // portfólio inteiro, diferente do widget do Dashboard (Architecture
+  // Review §3.2).
+  const riskRanked = rankByRisk(withoutDecision, withoutDecision.length);
+  const riskProjectNames = new Set(riskRanked.map((project) => project.project_name));
 
-    if (projectDecisions && projectDecisions.length > 0) {
-      const top = highestPriorityDecision(projectDecisions)!;
-      const layer: PortfolioLayer = top.window === "hoje" ? "decision_today" : "decision_this_week";
-      return {
-        project_name: project.project_name,
-        layer,
-        whyAttention: WHY_ATTENTION[layer],
-        realSignal: top.context,
-        nextMove: { label: "Ver decisão completa", href: "/decisions" },
-      };
-    }
+  const riskToMonitor: PortfolioIntelligenceItem[] = riskRanked.map((project) => ({
+    project_name: project.project_name,
+    layer: "risk_to_monitor",
+    whyAttention: WHY_ATTENTION.risk_to_monitor,
+    realSignal: `${project.open_risks} risco(s) identificado(s)`,
+    nextMove: {
+      label: "Ver riscos no Workspace",
+      href: `/workspace/${encodeURIComponent(project.project_name)}`,
+    },
+  }));
 
-    return {
+  const noSignal: PortfolioIntelligenceItem[] = withoutDecision
+    .filter((project) => !riskProjectNames.has(project.project_name))
+    .map((project) => ({
       project_name: project.project_name,
       layer: "no_signal",
       whyAttention: WHY_ATTENTION.no_signal,
       realSignal: NO_SIGNAL_REAL_SIGNAL,
       nextMove: null,
-    };
-  });
+    }))
+    .sort(byProjectName);
 
-  return items.sort(byLayerThenProject);
+  return [
+    ...decisionToday.sort(byProjectName),
+    ...decisionThisWeek.sort(byProjectName),
+    ...riskToMonitor,
+    ...noSignal,
+  ];
 }
