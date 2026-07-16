@@ -194,6 +194,27 @@ const ANALYSES = [
       },
     },
   },
+  // Executive Memory (TIP-011, Incremento 1) -- older status analysis for
+  // the same project, same attention-zone status as id 301: gives the
+  // Executive Brief 2 consecutive "yellow" analyses to compute a real
+  // "Persistiu" Memory Signal from, without touching WORKSPACE_SUMMARY/SAMPLE
+  // (both stay "yellow" -- no other spec's assertions depend on this list).
+  {
+    id: 300,
+    kind: "status",
+    project_name: "Implantacao SAP S/4HANA",
+    created_at: "2026-07-04T08:00:00Z",
+    payload: {
+      agent: "project_status",
+      project_name: "Implantacao SAP S/4HANA",
+      model_output: {
+        structured: true,
+        health_status: "yellow",
+        key_findings: ["Cronograma de testes ainda apertado"],
+        recommendations: ["Acompanhar de perto"],
+      },
+    },
+  },
 ];
 
 // TIP-005's /api/projects/analyze mutates SAMPLE/WORKSPACE_SUMMARY/ANALYSES

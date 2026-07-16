@@ -9,6 +9,7 @@ import { CommunicationBrief } from "./communication-brief";
 import { useWorkspaceSummary } from "@/lib/hooks/use-workspace-summary";
 import { useWorkspaceTimeline } from "@/lib/hooks/use-workspace-timeline";
 import { useWorkspaceLatestByKind } from "@/lib/hooks/use-workspace-latest";
+import { useRecentAnalysesByKind } from "@/lib/hooks/use-recent-analyses";
 import { useActionItems } from "@/lib/hooks/use-action-items";
 import { useSubmitProjectStatus } from "@/lib/hooks/use-submit-project-status";
 import { useSubmitRiskReview } from "@/lib/hooks/use-submit-risk-review";
@@ -17,6 +18,12 @@ import { useSubmitMeetingIntelligence } from "@/lib/hooks/use-submit-meeting-int
 vi.mock("@/lib/hooks/use-workspace-summary", () => ({ useWorkspaceSummary: vi.fn() }));
 vi.mock("@/lib/hooks/use-workspace-timeline", () => ({ useWorkspaceTimeline: vi.fn() }));
 vi.mock("@/lib/hooks/use-workspace-latest", () => ({ useWorkspaceLatestByKind: vi.fn() }));
+// Executive Memory (FS-010): ExecutiveBrief also calls this hook -- mocked
+// here for the same reason as the other query hooks above. Default: no
+// recent-analyses data yet, so buildStatusInsight never runs and every
+// pre-existing test in this file (which asserts on Painel A/C content, not
+// on the Insight) stays unaffected.
+vi.mock("@/lib/hooks/use-recent-analyses", () => ({ useRecentAnalysesByKind: vi.fn() }));
 // The 3 Executive Briefs each mount ActionsContextLine (TIP-008 Incremento
 // 3), which calls this hook -- mocked here for the same reason as the
 // query hooks above: this file exercises the panels in isolation.
@@ -32,6 +39,7 @@ vi.mock("@/lib/hooks/use-submit-meeting-intelligence", () => ({ useSubmitMeeting
 const mockedSummary = vi.mocked(useWorkspaceSummary);
 const mockedTimeline = vi.mocked(useWorkspaceTimeline);
 const mockedLatest = vi.mocked(useWorkspaceLatestByKind);
+const mockedRecentAnalyses = vi.mocked(useRecentAnalysesByKind);
 const mockedActionItems = vi.mocked(useActionItems);
 const mockedSubmitStatus = vi.mocked(useSubmitProjectStatus);
 const mockedSubmitRisk = vi.mocked(useSubmitRiskReview);
@@ -61,6 +69,7 @@ mockedSubmitMeeting.mockReturnValue({
 // keeping every pre-existing test in this file unaffected. Tests that
 // exercise the context line itself override this per-case.
 mockedActionItems.mockReturnValue({ isPending: true, isError: false, data: undefined } as never);
+mockedRecentAnalyses.mockReturnValue({ isPending: true, isError: false, data: undefined } as never);
 
 const PENDING = { isPending: true, isError: false, data: undefined, refetch: vi.fn(), isFetching: false } as never;
 const ERROR = { isPending: false, isError: true, data: undefined, refetch: vi.fn(), isFetching: false } as never;
@@ -314,6 +323,62 @@ describe("ExecutiveBrief (Painéis A + C fundidos, cada um com estado próprio -
 
     render(<ExecutiveBrief projectName="Aurora" />);
     expect(screen.queryByText(/ações exigem atenção/)).not.toBeInTheDocument();
+  });
+
+  // Executive Memory (FS-010, TIP-011 Incremento 1) -- Silent Intelligence:
+  // enquanto o hook de análises recentes está pending/error/sem dado
+  // suficiente, o Brief permanece exatamente como antes, sem o Insight.
+  it("omits the Executive Memory Insight while recent-analyses is still pending", () => {
+    mockedSummary.mockReturnValue(
+      summaryState({
+        data: { project_name: "Aurora", total_analyses: 1, open_risks: 0, pending_action_items: 0, latest_health_status: "green" },
+      }),
+    );
+    mockedLatest.mockReturnValue(summaryState({ data: null }));
+    mockedRecentAnalyses.mockReturnValue({ isPending: true, isError: false, data: undefined } as never);
+
+    render(<ExecutiveBrief projectName="Aurora" />);
+    expect(screen.queryByText(/^Mudou:|^Persiste em/)).not.toBeInTheDocument();
+  });
+
+  it("shows the Executive Memory Insight chip when the status changed between the 2 most recent analyses", () => {
+    mockedSummary.mockReturnValue(
+      summaryState({
+        data: { project_name: "Aurora", total_analyses: 2, open_risks: 0, pending_action_items: 0, latest_health_status: "red" },
+      }),
+    );
+    mockedLatest.mockReturnValue(summaryState({ data: null }));
+    mockedRecentAnalyses.mockReturnValue({
+      isPending: false,
+      isError: false,
+      data: [
+        {
+          id: 2,
+          kind: "status",
+          project_name: "Aurora",
+          created_at: "2026-07-02T00:00:00Z",
+          payload: {
+            agent: "project_status",
+            project_name: "Aurora",
+            model_output: { structured: true, health_status: "red", key_findings: [], recommendations: [] },
+          },
+        },
+        {
+          id: 1,
+          kind: "status",
+          project_name: "Aurora",
+          created_at: "2026-07-01T00:00:00Z",
+          payload: {
+            agent: "project_status",
+            project_name: "Aurora",
+            model_output: { structured: true, health_status: "green", key_findings: [], recommendations: [] },
+          },
+        },
+      ],
+    } as never);
+
+    render(<ExecutiveBrief projectName="Aurora" />);
+    expect(screen.getByText("Mudou: Saudável → Crítico")).toBeInTheDocument();
   });
 });
 

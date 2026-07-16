@@ -25,6 +25,12 @@ async function submitProjectStatus(
  * contra web/app/providers.tsx: QueryClient único por sessão, então a
  * invalidação de portfolio-summary já deixa o Dashboard atualizado na
  * próxima navegação client-side, sem WebSocket/polling.
+ *
+ * Executive Memory (TIP-011): sem invalidar também "workspace-recent", o
+ * Insight ficaria até 30s desatualizado após uma nova análise (Decision
+ * Context Preservation exige refletir a realidade imediata, não um cache
+ * antigo) -- prefixo de 3 partes casa com a queryKey completa (que inclui
+ * limit) por padrão do React Query (exact: false).
  */
 export function useSubmitProjectStatus(projectName: string) {
   const queryClient = useQueryClient();
@@ -34,6 +40,7 @@ export function useSubmitProjectStatus(projectName: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workspace-summary", projectName] });
       queryClient.invalidateQueries({ queryKey: ["workspace-latest", projectName, "status"] });
+      queryClient.invalidateQueries({ queryKey: ["workspace-recent", projectName, "status"] });
       queryClient.invalidateQueries({ queryKey: ["workspace-timeline", projectName] });
       queryClient.invalidateQueries({ queryKey: ["portfolio-summary"] });
     },

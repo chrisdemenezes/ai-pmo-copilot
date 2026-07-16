@@ -5,13 +5,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useWorkspaceSummary } from "@/lib/hooks/use-workspace-summary";
 import { useWorkspaceLatestByKind } from "@/lib/hooks/use-workspace-latest";
+import { useRecentAnalysesByKind } from "@/lib/hooks/use-recent-analyses";
 import { ActionsContextLine } from "@/components/workspace/actions-context-line";
 import {
   NEXT_STEP_FALLBACK,
   contextHeading,
   suggestedDecision,
 } from "@/lib/workspace/decision-momentum";
+import { buildStatusInsight } from "@/lib/executive-memory/memory-insights";
+import { ExecutiveMemoryInsightChip } from "@/components/executive-memory/executive-memory-insight-chip";
 import { hasStatusShape, type StatusModelOutput } from "@/lib/workspace/types";
+
+/** Executive Memory (FS-010 §3.1): mesma rota de useWorkspaceLatestByKind, só com limit maior. */
+const RECENT_STATUS_LIMIT = 5;
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("pt-BR", {
@@ -36,6 +42,11 @@ function formatDate(iso: string) {
 export function ExecutiveBrief({ projectName }: { projectName: string }) {
   const summary = useWorkspaceSummary(projectName);
   const latestStatus = useWorkspaceLatestByKind(projectName, "status");
+  // Executive Memory (FS-010): silencioso enquanto pending/error -- nunca um
+  // estado de carregamento próprio (Silent Intelligence). Se a leitura
+  // falhar, o Brief continua exatamente como hoje, sem o Insight.
+  const recentStatus = useRecentAnalysesByKind(projectName, "status", RECENT_STATUS_LIMIT);
+  const statusInsight = recentStatus.data ? buildStatusInsight(recentStatus.data) : null;
 
   return (
     <section className="flex flex-col gap-3" aria-labelledby="executive-brief-heading">
@@ -59,6 +70,7 @@ export function ExecutiveBrief({ projectName }: { projectName: string }) {
                   {healthStatusLabel(summary.data.latest_health_status)}
                 </Badge>
                 <span className="text-sm text-ink-muted">{summary.data.project_name}</span>
+                {statusInsight ? <ExecutiveMemoryInsightChip insight={statusInsight} /> : null}
               </div>
               <ActionsContextLine projectName={projectName} />
               <dl className="grid grid-cols-3 gap-3 text-sm">
