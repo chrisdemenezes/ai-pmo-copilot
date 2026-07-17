@@ -1,0 +1,223 @@
+<title>STRATECH — Repository Governance & Main Consolidation Audit</title>
+<style>
+  :root{--bg:#f5f4f1;--surface:#ffffff;--surface-2:#ececE6;--border:#d8d5cd;--ink:#191712;--ink-dim:#5b5648;--accent:#4c4fc4;--ok:#2f7a4f;--ok-bg:#e1f0e5;--warn:#a3742f;--warn-bg:#f3e9d8;--crit:#a03030;--crit-bg:#f6e2e0;--mono-ink:#3a362c;--code-bg:#eeece4;--shadow:0 1px 2px rgba(20,18,10,.06),0 8px 24px -12px rgba(20,18,10,.12);}
+  :root[data-theme="dark"]{--bg:#12100c;--surface:#1b1813;--surface-2:#221e17;--border:#39352a;--ink:#efece2;--ink-dim:#a9a494;--accent:#9498f0;--ok:#7fd19f;--ok-bg:#1a3324;--warn:#e0b567;--warn-bg:#332711;--crit:#e58a80;--crit-bg:#3a201c;--mono-ink:#cfcabb;--code-bg:#221e17;--shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px -16px rgba(0,0,0,.5);}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#12100c;--surface:#1b1813;--surface-2:#221e17;--border:#39352a;--ink:#efece2;--ink-dim:#a9a494;--accent:#9498f0;--ok:#7fd19f;--ok-bg:#1a3324;--warn:#e0b567;--warn-bg:#332711;--crit:#e58a80;--crit-bg:#3a201c;--mono-ink:#cfcabb;--code-bg:#221e17;--shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px -16px rgba(0,0,0,.5);}}
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  main{max-width:1160px; margin:0 auto; padding:56px 40px 100px;}
+  .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1{font-size:clamp(1.5rem,4vw,2.15rem); margin:0 0 14px; font-weight:600;}
+  .subtitle{color:var(--ink-dim); max-width:86ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding:18px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim); margin-bottom:24px;}
+  h2{font-size:1.2rem; margin:44px 0 8px; padding-bottom:8px; border-bottom:2px solid var(--ink);}
+  h3{font-size:1rem; margin:26px 0 6px;}
+  .table-wrap{overflow-x:auto; margin:12px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.8rem;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; text-transform:uppercase; color:var(--ink-dim); padding:8px 10px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:7px 10px; border-bottom:1px solid var(--border); vertical-align:top;}
+  code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .chip{display:inline-flex; font-family: ui-monospace, monospace; font-size:10px; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.ok{color:var(--ok); background:var(--ok-bg);}
+  .chip.warn{color:var(--warn); background:var(--warn-bg);}
+  .chip.crit{color:var(--crit); background:var(--crit-bg);}
+  .verdict{border:2px solid var(--warn); border-radius:8px; background:var(--warn-bg); padding:22px 28px; margin:20px 0 28px;}
+  .verdict .big{font-family: ui-monospace, monospace; font-size:1.5rem; font-weight:700; color:var(--warn); letter-spacing:.04em;}
+  .card{border:1px solid var(--border); border-radius:8px; padding:18px 22px; margin:14px 0 22px; background:var(--surface); box-shadow:var(--shadow);}
+  .card.crit{border-left:4px solid var(--crit);}
+  .card.warn{border-left:4px solid var(--warn);}
+  .card.info{border-left:4px solid var(--accent);}
+  dl{display:grid; grid-template-columns:170px 1fr; gap:6px 16px; margin:0;}
+  dt{font-family:ui-monospace,monospace; font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-dim); padding-top:2px;}
+  dd{margin:0 0 6px; max-width:78ch;}
+  ul{max-width:86ch;}
+  p{max-width:88ch;}
+  footer{border-top:1px solid var(--border); margin-top:50px; padding-top:18px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+<main>
+  <div class="kicker">Governança de Repositório · Auditoria de Consolidação</div>
+  <h1>STRATECH Repository Governance &amp; Main Consolidation Audit</h1>
+  <p class="subtitle">Auditoria completa da branch <code>claude/stratech-permanent-principles-yjnm74</code>
+    (55 commits à frente da <code>main</code>) para decidir a consolidação da <code>main</code> como estado
+    oficial, validado, rastreável e confiável da STRATECH. Versão executiva — a versão textual integral,
+    com todas as tabelas e evidências, está em
+    <code>Repository-Governance-Main-Consolidation-Audit.md</code> (mesmo diretório).</p>
+  <div class="meta-row">
+    <span><b>Verificação de estado</b> 2026-07-17T04:22:25Z</span>
+    <span><b>main</b> a1513c95</span>
+    <span><b>branch</b> 922b19e7</span>
+    <span><b>merge-base</b> a1513c95 (sem divergência)</span>
+    <span><b>ahead/behind</b> 55 / 0</span>
+    <span><b>Escrita remota</b> NENHUMA</span>
+  </div>
+
+  <h2>Decisão</h2>
+  <div class="verdict">
+    <div class="big">GO WITH CONDITIONS</div>
+    <p style="margin:10px 0 0">Histórico íntegro, linear e sem segredos; nenhuma implementação antecipada da V2;
+      produto validado por execução real em ambiente limpo em todas as camadas — <b>exceto o build de produção
+      do frontend</b>, quebrado por um único erro de tipagem (F-01) introduzido em <code>19c75c6</code> e nunca
+      capturado porque o CI jamais executou nesta branch. A condição bloqueante é objetiva, isolada e de correção
+      trivial (~1 linha, categoria defect fix permitida pelo Feature Freeze). Como está, o próprio CI rejeitaria
+      o PR de consolidação — por isso não é GO puro.</p>
+    <p style="margin:12px 0 0"><b>Adendo pós-auditoria (2026-07-17):</b> relatório aprovado pelo Founder;
+      correção C-1 autorizada, aplicada (1 linha — anotação de tipo no callback do <code>.map()</code>) e
+      revalidada: <span class="chip ok">tsc PASS</span> <span class="chip ok">eslint PASS</span>
+      <span class="chip ok">vitest 400/400</span> <span class="chip ok">next build PASS</span>
+      <span class="chip ok">Playwright lg: verde</span>. <b>A condição bloqueante está satisfeita.</b>
+      A recomendação de tag foi revisada por diretriz do Founder: <b>Baseline Histórica</b>
+      (<code>v1.0.0-rc.1</code> em <code>c97d37b</code>, com F-01 como known-issue documentado) separada da
+      <b>Baseline Certificada</b> (<code>v1.0.0-rc.2</code> no commit da correção — primeiro estado com todos os
+      gates verdes). Nenhuma tag criada; estratégia aguarda a etapa de governança. Detalhes na versão MD,
+      Seções 9 e 13, e na <code>Git-Governance-Policy-Proposal.md</code>.</p>
+  </div>
+
+  <h2 id="estado">1. Estado verificado das branches</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Item</th><th>Valor</th><th>Evidência</th></tr></thead>
+    <tbody>
+      <tr><td>Commit da <code>main</code></td><td><code>a1513c95</code> — TIP-008: register 3 permanent principles (2026-07-13)</td><td><code>git rev-parse / log -1 origin/main</code></td></tr>
+      <tr><td>Commit da branch de trabalho</td><td><code>922b19e7</code> — STRATECH V2: Enterprise Architecture Blueprint v2.0 (2026-07-17)</td><td><code>git rev-parse origin/&lt;branch&gt;</code></td></tr>
+      <tr><td>Merge base / divergência</td><td><code>a1513c95</code> — <code>main</code> é ancestral direto; fast-forward possível</td><td><code>git merge-base --is-ancestor</code></td></tr>
+      <tr><td>Commits à frente / atrás</td><td><b>55 / 0</b>, histórico 100% linear, zero merges, autor único</td><td><code>rev-list --left-right --count</code>; <code>log --merges</code> vazio</td></tr>
+      <tr><td>Nota "54 vs 55"</td><td>Contagem correta: 55. O 54 vem de <code>git log --format</code> sem newline final + <code>wc -l</code> — verificado por 3 métodos independentes</td><td><code>rev-list --count</code> = 55</td></tr>
+      <tr><td>Volume do diff</td><td>160 arquivos, +22.610 / −89</td><td><code>git diff --stat main...HEAD</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h2 id="achados">2. Principais achados</h2>
+
+  <div class="card crit">
+    <dl>
+      <dt>F-01 · CRÍTICO</dt><dd><b>Erro de tipo TypeScript quebra <code>tsc --noEmit</code> e o build de produção.</b>
+        <code>web/lib/portfolio-intelligence/portfolio-view.ts:125</code> — literal <code>layer</code> alargado para
+        <code>string</code> em cadeia <code>.filter().map().sort()</code>. Introduzido em <code>19c75c6</code>
+        (TIP-010, 2026-07-16; <code>git blame</code>).</dd>
+      <dt>Impacto</dt><dd>Exclusivamente de compilação: <b>runtime correto</b> (vitest 400/400, Playwright 67 passed,
+        dev server funcional). Mas o PR de consolidação <b>falharia no CI</b> e o frontend não builda para produção.</dd>
+      <dt>Por que escapou</dt><dd>O CI só dispara em <code>pull_request</code> e <code>push</code> à <code>main</code> —
+        esta branch nunca teve PR, logo o CI <b>nunca executou</b> nos 55 commits. As validações locais do processo RC-1
+        rodaram ruff/pytest/vitest/playwright, mas não <code>tsc</code>/<code>build</code>. Registro transparente: essas
+        validações foram conduzidas por este mesmo agente — a lacuna é do processo e de quem o executou.</dd>
+      <dt>Correção (não aplicada)</dt><dd>~1 linha (anotar retorno do callback ou <code>as const</code>). Categoria
+        defect fix, permitida pelo Feature Freeze. <b>Aguarda autorização.</b></dd>
+    </dl>
+  </div>
+
+  <div class="card warn">
+    <dl>
+      <dt>F-02 · MÉDIO</dt><dd><b>Lacuna de processo:</b> branches de trabalho nunca passam pelo CI (gatilho não cobre
+        push em branch sem PR) — vetor exato do F-01. Resolver com Pull Request obrigatório via branch protection.</dd>
+      <dt>F-03 · BAIXO</dt><dd><b>Pré-existente, não introduzido:</b> 2 vulnerabilidades <i>moderate</i> no
+        <code>npm audit</code> (postcss transitivo via Next). <code>package.json</code>/<code>lock</code> não tocados
+        pelos 55 commits — exposição idêntica na <code>main</code> atual. Não bloqueia; candidata à janela V2.</dd>
+    </dl>
+  </div>
+
+  <div class="card info">
+    <dl>
+      <dt>F-04 · INFO</dt><dd>Docs de RC dizem "CI gate ativo" — verdadeiro quanto à configuração, mas o gate nunca
+        executou para a branch. Nota de esclarecimento futura no doc de baseline; nunca editar pareceres emitidos.</dd>
+      <dt>F-05 · INFO</dt><dd>Referências ao nome da branch em docs de RC são citações históricas corretas; guias de
+        instalação são branch-neutros (verificado). Nenhuma ação.</dd>
+    </dl>
+  </div>
+
+  <h2 id="seguranca">3. Segurança e higiene — LIMPO</h2>
+  <p>Varredura de segredos (formatos reais: <code>sk-ant-*</code>, AKIA, ghp_, chaves privadas, tokens) sobre a árvore,
+    o diff completo e o histórico integral dos 55 commits (<code>git log -p</code>): <b>zero ocorrências</b>. Nenhum
+    <code>.env</code>, banco, dump, log ou chave versionados. Valores demo/E2E são placeholders autoexplicativos
+    (<code>demo-local-*</code>, <code>e2e-*-not-for-production</code>); <code>SESSION_SECRET</code> sempre gerado em
+    runtime. <code>.gitignore</code> cobre <code>.env</code>, <code>*.db</code>, caches e artefatos de runtime.
+    <b>Nenhuma rotação, nenhuma reescrita de histórico necessária.</b> Sem arquivos vazios, truncados, placeholders,
+    binários ou renames no diff (60 documentos HTML verificados individualmente).</p>
+
+  <h2 id="validacao">4. Validação técnica em ambiente limpo</h2>
+  <p>Worktree isolado e novo (<code>git worktree add --detach</code>) no commit <code>922b19e7</code> · Linux 6.18.5 ·
+    Python 3.11.15 (venv novo) · Node v22.22.2 / npm 10.9.7 (<code>npm ci</code>, 513 pacotes) · SQLite novo ·
+    <code>.venv</code>/<code>node_modules</code>/<code>.env</code>/banco/cache confirmados inexistentes antes da instalação.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Verificação</th><th>Classificação</th><th>Resultado</th></tr></thead>
+    <tbody>
+      <tr><td><code>ruff check src tests</code></td><td><span class="chip ok">EXECUTADO</span></td><td>All checks passed</td></tr>
+      <tr><td><code>pytest --cov --cov-fail-under=80</code></td><td><span class="chip ok">EXECUTADO</span></td><td>114 passed · cobertura 98,91%</td></tr>
+      <tr><td><code>alembic upgrade head</code> / <code>downgrade base</code></td><td><span class="chip ok">EXECUTADO</span></td><td>Migração 0001 aplica e reverte limpo</td></tr>
+      <tr><td>API real (uvicorn) + health + auth fail-closed</td><td><span class="chip ok">EXECUTADO</span></td><td><code>/health</code> 200 · sem chave 401 · com chave 200</td></tr>
+      <tr><td><code>npx tsc --noEmit</code></td><td><span class="chip crit">EXECUTADO — FALHOU</span></td><td>TS2322/TS2345 → <b>F-01</b></td></tr>
+      <tr><td><code>npx eslint .</code></td><td><span class="chip ok">EXECUTADO</span></td><td>Limpo</td></tr>
+      <tr><td><code>vitest run</code></td><td><span class="chip ok">EXECUTADO</span></td><td>400 passed (57 arquivos)</td></tr>
+      <tr><td><code>npm run build</code> (produção)</td><td><span class="chip crit">EXECUTADO — FALHOU</span></td><td>"Failed to type check" → <b>F-01</b></td></tr>
+      <tr><td><code>playwright test --project=lg</code></td><td><span class="chip ok">EXECUTADO</span></td><td>67 passed · 1 skipped (esperado) — login, dashboard, projetos, workspace, análises, ações, decisões, portfólio, navegação, estados de erro/loading</td></tr>
+      <tr><td><code>scripts/rc1-local-start.sh</code> (fluxo completo + seed + stop)</td><td><span class="chip ok">EXECUTADO</span></td><td>Backend :8000 e frontend :3000 de pé; seed populou portfólio; stop limpo</td></tr>
+      <tr><td><code>setup/start/stop.bat</code>, <code>setup/start.ps1</code></td><td><span class="chip warn">INSPECIONADO</span></td><td>Espelham fielmente o fluxo bash validado; sem hardcode de segredo. <b>NÃO VERIFICÁVEL POR EXECUÇÃO</b> no ambiente Linux atual. O fix <code>c97d37b</code> foi validado em campo pelo Founder em Windows real (2026-07-17, registrado no Installation-Report)</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2 id="marcos">5. Marcos e delimitação V1 × V2</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Marco</th><th>Commit</th><th>Definição</th></tr></thead>
+    <tbody>
+      <tr><td><b>A — Fechamento funcional do RC-1</b></td><td><code>d9f8512</code></td><td>Declaração formal do Release Candidate (manifesto + baseline). Último código funcional: <code>9258ba0</code>; Feature Freeze declarado em <code>b353ab0</code>; blockers fechados em <code>174f9a6</code></td></tr>
+      <tr><td><b>B — Baseline operacional final</b></td><td><code>c97d37b</code></td><td>Distinto de A: após a declaração vieram o pacote de instalação (<code>7da885e</code>) e a correção real de instalação Windows (<code>c97d37b</code>) — ambos em categorias permitidas pelo Feature Freeze. É o RC-1 "instalável e utilizável" completo, último commit V1</td></tr>
+      <tr><td><b>C — Evoluções V1 pós-RC</b></td><td><code>7da885e</code>, <code>c97d37b</code></td><td>Apenas documentação/operação/defect fix. <b>Nenhuma evolução funcional pós-RC</b></td></tr>
+      <tr><td><b>D — Abertura documental da V2</b></td><td><code>922b19e</code></td><td>13 arquivos, 100% sob <code>docs/product/stratech-v2/</code> (verificado por diff-tree). <b>Nenhum dos 55 commits implementa qualquer item da V2</b> — os únicos commits em <code>src/</code>/<code>web/</code> são Capabilities V1 (TIP-008–012)</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2 id="tag">6. Tag do RC-1 (recomendação — não criada)</h2>
+  <p><b>Nome:</b> <code>v1.0.0-rc.1</code>, tag anotada, única. <b>Commit recomendado:</b> o commit de correção do
+    F-01 (a criar, mediante autorização) — a referência imutável da primeira geração não deve conter build de produção
+    quebrado. <b>Alternativa:</b> <code>c97d37b</code> com F-01 registrado como known-issue na mensagem da tag
+    (única opção cuja árvore não contém os docs V2 — trade-off registrado para decisão do Founder).
+    <b>Não taggear:</b> <code>922b19e</code> (documentação V2 não é release de software) nem <code>d9f8512</code>
+    (anterior ao pacote de instalação e à correção de campo).</p>
+
+  <h2 id="consolidacao">7. Estratégia de consolidação e governança futura</h2>
+  <ul>
+    <li><b>Merge:</b> merge commit (preferência do Founder, confirmada tecnicamente): preserva os 55 commits e o
+      histórico decisório; revert atômico via <code>git revert -m 1</code>. Squash destruiria a rastreabilidade;
+      rebase merge reescreveria SHAs citados nos próprios documentos de governança.</li>
+    <li><b>Sem squash do histórico existente</b> — cada commit é uma etapa formal do processo STRATECH; preservar
+      vale mais que estética.</li>
+    <li><b>Branch protection na <code>main</code></b> (após autorização): PR obrigatório (inclusive agentes), checks
+      <code>validate</code> + <code>frontend</code> obrigatórios, sem force push, sem exclusão, branch atualizada e
+      conversas resolvidas antes do merge.</li>
+    <li><b>Política de branches:</b> <code>main</code> protegida; <code>feature/</code>, <code>fix/</code>,
+      <code>chore/</code>, <code>docs/</code>, <code>release/</code>, <code>hotfix/</code>; branches de agente seguem
+      o mesmo processo de PR; vida curta; exclusão após merge; <b>fim do padrão de branch única longa</b>.</li>
+    <li><b>Commits novos:</b> Conventional Commits com escopo (<code>feat(actions):</code>, <code>docs(rc1):</code>…).
+      Os 55 existentes não serão reescritos.</li>
+    <li><b>Versionamento:</b> <code>v1.0.0-rc.1</code> → <code>v1.0.0</code> (pós-pilot) → V2 só ganha
+      <code>v2.0.0-alpha.1</code> quando houver implementação real; documentação nunca recebe tag de software.</li>
+    <li><b>CI mínimo confiável:</b> pipeline atual + passo de migrations no job backend; gitleaks/npm-audit como
+      melhorias futuras não bloqueantes. Nenhuma ampliação indiscriminada.</li>
+    <li><b>Documentação:</b> nenhuma movimentação em massa na consolidação; migração incremental por PRs pequenos com
+      verificação de links. <b>CODEOWNERS:</b> criar (1 linha, Founder) somente junto com a branch protection —
+      antes disso não agrega valor (conclusão registrada).</li>
+    <li><b>Rollback:</b> pré-merge = fechar o PR (main intocada); pós-merge = <code>git revert -m 1</code> sem
+      reescrita; tag criada só após validação pós-merge; branch excluída só após merge + validação + tag +
+      autorização explícita.</li>
+  </ul>
+
+  <h2 id="remediacao">8. Plano de remediação</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Classe</th><th>#</th><th>Item</th><th>Validação</th></tr></thead>
+    <tbody>
+      <tr><td><span class="chip crit">BLOQUEANTE</span></td><td>C-1</td><td>Corrigir F-01 (~1 linha de tipagem em <code>portfolio-view.ts</code>)</td><td><code>tsc</code> + <code>build</code> + <code>vitest</code> + <code>playwright</code> verdes, com evidência</td></tr>
+      <tr><td><span class="chip warn">RECOMENDADO</span></td><td>R-1</td><td>Branch protection na <code>main</code></td><td>Config aplicada e verificada</td></tr>
+      <tr><td><span class="chip warn">RECOMENDADO</span></td><td>R-2</td><td>Passo alembic upgrade/downgrade no CI (job backend)</td><td>Pipeline verde com o novo passo</td></tr>
+      <tr><td><span class="chip warn">RECOMENDADO</span></td><td>R-3</td><td>Commitar este relatório em <code>docs/product/governance/</code></td><td>—</td></tr>
+      <tr><td><span class="chip ok">FUTURO</span></td><td>—</td><td>gitleaks e npm audit no CI; upgrade Next (F-03) na janela V2; reorganização documental incremental; CODEOWNERS com a branch protection</td><td>—</td></tr>
+    </tbody>
+  </table></div>
+  <p><b>Ordem:</b> aprovação deste relatório → autorizar e aplicar C-1 → re-validar → (R-1/R-2/R-3 se autorizados) →
+    criar PR → CI verde + revisão → aprovação formal → merge (merge commit) → validar <code>main</code> →
+    tag <code>v1.0.0-rc.1</code> → avaliar exclusão da branch.</p>
+
+  <p style="margin-top:36px"><i>A matriz completa dos 55 commits (categoria, arquivos, fase, atenção), o inventário
+    integral de arquivos e todas as evidências detalhadas estão na versão Markdown deste relatório, no mesmo
+    diretório. Toda afirmação está lastreada em comando executado sobre o commit <code>922b19e7</code> em worktree
+    isolado, em 2026-07-17. Nenhuma escrita remota foi executada.</i></p>
+
+  <footer><span>Stratech — Governança de Repositório</span><span>Main Consolidation Audit</span><span>2026-07-17</span></footer>
+</main>
