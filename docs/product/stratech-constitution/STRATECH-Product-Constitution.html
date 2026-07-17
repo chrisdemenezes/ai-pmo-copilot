@@ -92,7 +92,7 @@
       <a href="#s7"><span class="toc-num">07</span>Práticas Exclusivas de Capabilities (não permanentes)</a>
       <a href="#s8"><span class="toc-num">08</span>Identidade Conceitual da Plataforma</a>
       <a href="#s9"><span class="toc-num">09</span>Nota de Governança</a>
-      <a href="#s10"><span class="toc-num">10</span>Próximo Gate</a>
+      <a href="#s10"><span class="toc-num">10</span>Status da Plataforma (RC-1)</a>
     </nav>
   </aside>
 
@@ -109,7 +109,7 @@
       <div class="meta-row">
         <span><b>Origem</b> Todas as 8 Capabilities da STRATECH V1, aprovadas</span>
         <span><b>Data</b> 2026-07-16</span>
-        <span><b>Status</b> Consolidação — Feature Freeze da V1 em vigor</span>
+        <span><b>Status</b> STRATECH V1 RC-1 — Release Candidate, Feature Freeze ATIVO</span>
       </div>
     </div>
 
@@ -511,16 +511,38 @@
     </section>
 
     <section id="s10">
-      <div class="section-head"><span class="section-num">10</span><h2>Próximo Gate</h2></div>
-      <p>STRATECH Product Constitution concluída. Nenhum código escrito, nenhum princípio novo criado,
-        nenhuma decisão reinterpretada. Sequência já anunciada pelo Founder/CTO para a reta final da V1:</p>
+      <div class="section-head"><span class="section-num">10</span><h2>Status da Plataforma</h2></div>
+      <div class="callout guard">
+        <b>STRATECH V1 RC-1 — Release Candidate.</b> Feature Freeze: <b>ATIVO</b>. Declarado formalmente em
+        <code>docs/product/release-candidate/Release-Candidate-Declaration.html</code> (2026-07-16), após
+        aprovação sequencial de: Architecture Gate V1 (GO WITH CONDITIONS), Platform Readiness Assessment (GO
+        WITH CONDITIONS), Visual Fidelity Gate (Aderente ao Figma V1 atualizado), Release Readiness Review (GO
+        WITH CONDITIONS) e RC Approval Review (SIM — Release Blockers encerrados). Composição oficial em
+        <code>docs/product/release-candidate/RC-1-Manifest.html</code>; artefatos travados em
+        <code>docs/product/release-candidate/Baseline-Configuration.html</code>.
+      </div>
+      <p>Enquanto o RC-1 estiver em vigor, esta Constitution permanece a fonte única de referência conceitual
+        da plataforma, mas <b>nenhuma alteração de escopo, arquitetura ou UX é aceita</b>. Aceito apenas:
+        correção de defeitos, ajuste de segurança, documentação, observabilidade e hardening. Proibido: novas
+        Capabilities, alteração arquitetural, mudança de UX, novas integrações, expansão funcional. Toda
+        proposta funcional futura é registrada exclusivamente em
+        <code>docs/product/release-candidate/V2-Candidate-Backlog.html</code> -- nenhum item ali é
+        implementado sem autorização formal do Founder para abertura da V2.</p>
+      <p>STRATECH Product Constitution concluída em 2026-07-16. Nenhum código escrito, nenhum princípio novo
+        criado, nenhuma decisão reinterpretada por este documento. Sequência já concluída pelo Founder/CTO na
+        reta final da V1:</p>
       <ol>
-        <li>Architecture Gate V1</li>
-        <li>Platform Readiness Assessment</li>
-        <li>Executive UX Polish (implementação fiel ao Figma)</li>
-        <li>Release Candidate V1</li>
+        <li>Architecture Gate V1 — concluído, GO WITH CONDITIONS</li>
+        <li>Platform Readiness Assessment — concluído, GO WITH CONDITIONS</li>
+        <li>Visual Fidelity Gate — concluído, aderente ao Figma V1 atualizado</li>
+        <li>Release Readiness Review — concluído, GO WITH CONDITIONS</li>
+        <li>RC Approval Review — concluído, Release Blockers encerrados</li>
+        <li>STRATECH V1 RC-1 — declarado, Feature Freeze ativo</li>
       </ol>
-      <p>Aguardando aprovação do Founder antes de iniciar o Architecture Gate V1.</p>
+      <p>Próximos passos: pilotos controlados (<code>docs/product/release-candidate/Pilot-Readiness-Checklist.html</code>),
+        promoção a V1.0 conforme critérios já registrados em
+        <code>Release-Candidate-Declaration.html</code>, e, somente após autorização formal do Founder,
+        abertura da V2 a partir do <code>V2-Candidate-Backlog.html</code>.</p>
     </section>
 
     <footer>

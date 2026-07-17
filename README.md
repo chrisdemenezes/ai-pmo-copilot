@@ -4,16 +4,24 @@
 
 An intelligent PMO assistant designed to automate project governance, reporting, meeting intelligence and decision support using Artificial Intelligence.
 
-**Status: Release 0.3 — Feature Complete · Validation Phase.** Development frozen by Founder
-decision: no new Features, no Release 0.4, no new Capabilities until the Product Discovery Report
-from the 5 real validation sessions is consolidated. Only critical defect fixes, session-blocking
-issues, and minimal stability adjustments are in scope during this phase. RC-1 (Executive Decision
-Experience) readiness confirmed GO — see
-`docs/product/rc-1-executive-decision-experience/RC-1-readiness-review.html` and
-`demo/SESSION-RUNBOOK.md` for the validation-session runbook. Release 0.3 was opened ahead of
-Validation Sprint completion by explicit Founder decision — see
-`docs/releases/ADR-012-founder-decision-release-0.3.md`. Release 0.2 (Dashboard Executivo) is
-merged and live; see `docs/releases/RDR-0.2.md`.
+**Status: STRATECH V1 RC-1 — Release Candidate. Feature Freeze: ACTIVE.** The V1 build is
+officially closed — see `docs/product/release-candidate/Release-Candidate-Declaration.html` and
+`docs/product/release-candidate/RC-1-Manifest.html` for the full gate history and official
+composition of this Release Candidate. Only defect fixes, security hardening, documentation, and
+observability changes are in scope during this phase — no new Capabilities, no architectural
+changes, no UX changes, no new integrations, no functional expansion. Any future functional
+proposal belongs exclusively in `docs/product/release-candidate/V2-Candidate-Backlog.html`, not in
+this branch. Baseline artifacts (Product Constitution, Architecture Gate, Visual Fidelity Gate,
+Release Readiness Review, RC Approval Review, runbooks, ADRs, RFCs) are locked under
+`docs/product/release-candidate/Baseline-Configuration.html` — see that document for the formal
+version-control rule governing any change to them.
+
+The STRATECH Product Constitution (`docs/product/stratech-constitution/STRATECH-Product-Constitution.html`)
+is the platform's single conceptual reference. Earlier release notes (Release 0.2/0.3, the prior
+RC-1 for Executive Decision Experience, `docs/releases/RDR-0.2.md`,
+`docs/releases/ADR-012-founder-decision-release-0.3.md`) predate the STRATECH V1 consolidation and
+are kept for historical traceability only — they no longer describe the platform's current scope
+or status.
 
 ## Architectural Decision
 
