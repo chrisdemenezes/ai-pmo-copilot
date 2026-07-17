@@ -17,6 +17,8 @@ Rule, in order:
 
 A None key is stored under the single fallback Project FALLBACK_PROJECT_NAME.
 """
+import re
+import unicodedata
 
 DEFAULT_ORGANIZATION_NAME = "Organização Principal"
 FALLBACK_PROJECT_NAME = "(sem projeto)"
@@ -32,3 +34,19 @@ def normalize_project_name(raw: str | None) -> str | None:
         return None
     stripped = raw.strip()
     return stripped if stripped else None
+
+
+def organization_slug(name: str) -> str:
+    """Deterministic slug used only to *initialize* Organization.slug (the
+    0004 migration's backfill and EnterpriseRepository's creation paths).
+    After creation, slug and name evolve independently (Founder directive,
+    EO-015 Organizational Identity Scope Correction) -- this function is
+    never called again for an existing organization.
+
+    The 0004 migration carries a frozen inline copy of this same rule, for
+    the same reason the 0002 migration freezes normalize_project_name.
+    """
+    normalized = unicodedata.normalize("NFKD", name)
+    ascii_only = normalized.encode("ascii", "ignore").decode("ascii")
+    slug = re.sub(r"[^a-z0-9]+", "-", ascii_only.lower()).strip("-")
+    return slug or "organization"

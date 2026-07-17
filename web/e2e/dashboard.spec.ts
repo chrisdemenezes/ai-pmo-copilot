@@ -1,6 +1,8 @@
 import { test, expect, request as playwrightRequest } from "@playwright/test";
 
 const MOCK_BACKEND_URL = "http://localhost:4100";
+const E2E_ORGANIZATION = "e2e-organization";
+const E2E_EMAIL = "e2e@stratech.local";
 const WORKSPACE_PASSWORD = "e2e-workspace-password";
 
 async function setBackendScenario(scenario: "data" | "empty" | "unavailable" | "timeout") {
@@ -11,7 +13,9 @@ async function setBackendScenario(scenario: "data" | "empty" | "unavailable" | "
 
 async function login(page: import("@playwright/test").Page, password = WORKSPACE_PASSWORD) {
   await page.goto("/entrar");
-  await page.getByLabel("Senha do workspace").fill(password);
+  await page.getByLabel("Organização").fill(E2E_ORGANIZATION);
+  await page.getByLabel("E-mail").fill(E2E_EMAIL);
+  await page.getByLabel("Senha").fill(password);
   await page.getByRole("button", { name: "Entrar" }).click();
 }
 
@@ -48,7 +52,9 @@ test("redirects unauthenticated access to /dashboard to the login page", async (
 // 2. Login com senha incorreta
 test("shows an error and stays on /entrar with an incorrect password", async ({ page }) => {
   await login(page, "wrong-password");
-  await expect(page.getByText("Senha incorreta. Tente novamente.")).toBeVisible();
+  await expect(
+    page.getByText("Organização, e-mail ou senha incorretos. Tente novamente."),
+  ).toBeVisible();
   await expect(page).toHaveURL(/\/entrar/);
 });
 
@@ -168,7 +174,7 @@ test("never exposes API_KEY or SESSION_SECRET to the browser", async ({ page }) 
   }
 
   const cookies = await page.context().cookies();
-  const sessionCookie = cookies.find((c) => c.name === "workspace_session");
+  const sessionCookie = cookies.find((c) => c.name === "stratech_session");
   expect(sessionCookie?.value).toBeDefined();
   expect(sessionCookie?.value).not.toContain("e2e-session-secret-not-for-production");
   expect(sessionCookie?.httpOnly).toBe(true);
@@ -181,7 +187,9 @@ test("never exposes API_KEY or SESSION_SECRET to the browser", async ({ page }) 
 // de rede -- aqui confirmamos apenas que o loading skeleton aparece antes do conteúdo final.
 test("shows the loading skeleton before the final content", async ({ page }) => {
   await page.goto("/entrar");
-  await page.getByLabel("Senha do workspace").fill(WORKSPACE_PASSWORD);
+  await page.getByLabel("Organização").fill(E2E_ORGANIZATION);
+  await page.getByLabel("E-mail").fill(E2E_EMAIL);
+  await page.getByLabel("Senha").fill(WORKSPACE_PASSWORD);
 
   const [response] = await Promise.all([
     page.waitForResponse((res) => res.url().includes("/api/bff/session")),

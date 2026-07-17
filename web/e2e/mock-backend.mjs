@@ -320,6 +320,45 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Identity Foundation (STRATECH V2 Epic 2 / EO-015) -- mirrors the real
+  // backend's contract (src/api/routes/auth.py): {organization, email,
+  // password} -> 200 {user_id, organization_id} or a uniform 401, never
+  // distinguishing "unknown organization" from "unknown e-mail" from "wrong
+  // password". E2E's fixed test account below is the only one login
+  // recognizes; nothing else is a special case.
+  const E2E_USER = {
+    organization: "e2e-organization",
+    email: "e2e@stratech.local",
+    password: "e2e-workspace-password",
+  };
+
+  if (req.method === "POST" && url.pathname === "/api/auth/login") {
+    let body = "";
+    req.on("data", (chunk) => (body += chunk));
+    req.on("end", () => {
+      const { organization, email, password } = JSON.parse(body);
+      if (
+        organization === E2E_USER.organization &&
+        email === E2E_USER.email &&
+        password === E2E_USER.password
+      ) {
+        return send(res, 200, { user_id: 1, organization_id: 1 });
+      }
+      return send(res, 401, { detail: "Invalid organization, email or password" });
+    });
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/auth/logout") {
+    let body = "";
+    req.on("data", (chunk) => (body += chunk));
+    req.on("end", () => {
+      JSON.parse(body); // {session_id, user_id} -- acknowledged, nothing persisted
+      return send(res, 200, { acknowledged: true });
+    });
+    return;
+  }
+
   if (url.pathname === "/api/portfolio/summary") {
     if (scenario === "timeout") return;
     if (scenario === "unavailable") return send(res, 500, { detail: "internal error" });

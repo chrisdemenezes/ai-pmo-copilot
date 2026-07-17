@@ -33,6 +33,11 @@ class Organization(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False, unique=True)
+    # Stable external identifier -- used by APIs, login and integrations;
+    # independent of `name` after creation (0004 migration, EO-015
+    # Organizational Identity Scope Correction). `name` remains purely a
+    # display attribute.
+    slug = Column(String(255), nullable=False, unique=True)
     created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
 
 
@@ -46,8 +51,10 @@ class User(Base):
     )
     email = Column(String(255), nullable=False)
     display_name = Column(String(255), nullable=False)
-    # Filled by Épico 2 (individual authentication); schema-only for now.
     password_hash = Column(String(255), nullable=True)
+    # "standard" | "demo" -- distinguishes the Demo Mode user from real
+    # accounts without a second boolean column (Epico 2, migration 0003).
+    identity_type = Column(String(20), nullable=False, default="standard")
     created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
 
 

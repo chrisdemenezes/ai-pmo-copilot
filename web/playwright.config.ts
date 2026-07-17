@@ -32,7 +32,6 @@ export default defineConfig({
       env: {
         BACKEND_URL: `http://localhost:${MOCK_BACKEND_PORT}`,
         API_KEY: "e2e-secret-key",
-        WORKSPACE_PASSWORD: "e2e-workspace-password",
         SESSION_SECRET: "e2e-session-secret-not-for-production",
       },
       reuseExistingServer: !process.env.CI,

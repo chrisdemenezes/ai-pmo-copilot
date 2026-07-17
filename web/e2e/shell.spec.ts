@@ -1,6 +1,8 @@
 import { test, expect, request as playwrightRequest } from "@playwright/test";
 
 const MOCK_BACKEND_URL = "http://localhost:4100";
+const E2E_ORGANIZATION = "e2e-organization";
+const E2E_EMAIL = "e2e@stratech.local";
 const WORKSPACE_PASSWORD = "e2e-workspace-password";
 const MOBILE_BREAKPOINT = 768;
 
@@ -12,7 +14,9 @@ async function setBackendScenario(scenario: "data" | "empty" | "unavailable" | "
 
 async function login(page: import("@playwright/test").Page) {
   await page.goto("/entrar");
-  await page.getByLabel("Senha do workspace").fill(WORKSPACE_PASSWORD);
+  await page.getByLabel("Organização").fill(E2E_ORGANIZATION);
+  await page.getByLabel("E-mail").fill(E2E_EMAIL);
+  await page.getByLabel("Senha").fill(WORKSPACE_PASSWORD);
   await page.getByRole("button", { name: "Entrar" }).click();
 }
 
