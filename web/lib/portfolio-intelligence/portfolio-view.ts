@@ -124,7 +124,7 @@ export function buildExecutivePortfolioView(
 
   const noSignal: PortfolioIntelligenceItem[] = withoutDecision
     .filter((project) => !riskProjectNames.has(project.project_name))
-    .map((project) => ({
+    .map((project): PortfolioIntelligenceItem => ({
       project_name: project.project_name,
       layer: "no_signal",
       whyAttention: WHY_ATTENTION.no_signal,
