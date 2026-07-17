@@ -1,0 +1,338 @@
+<title>UX Flow — Organizational Intelligence</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --ok:#2f7a4f; --ok-bg:#e1f0e5;
+    --warn:#a3742f; --warn-bg:#f3e9d8;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --ok:#7fd19f; --ok-bg:#1a3324;
+    --warn:#e0b567; --warn-bg:#332711;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --ok:#7fd19f; --ok-bg:#1a3324;
+      --warn:#e0b567; --warn-bg:#332711;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:270px minmax(0,1fr); max-width:1340px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:4px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  .toc .toc-num{color:var(--accent); margin-right:6px;}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:40px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.7rem,4vw,2.5rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:70ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:52px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink);}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.3rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:70ch;}
+  h3{font-size:1.02rem; margin:26px 0 8px; font-weight:600;}
+  p{margin:0 0 14px; max-width:74ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:72ch;}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout.warn{border-left-color:var(--warn);}
+  .callout.ok{border-left-color:var(--ok);}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.ok{color:var(--ok); background:var(--ok-bg);}
+  .chip.warn{color:var(--warn); background:var(--warn-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  .wire{border:1px solid var(--border); border-radius:8px; padding:16px 18px; margin:14px 0; background:var(--surface); font-family: ui-monospace, monospace; font-size:.82rem;}
+  .wire .wtitle{font-weight:700; text-transform:uppercase; letter-spacing:.04em; font-size:10px; color:var(--accent); margin-bottom:10px;}
+  .wire .wcard{border:1px dashed var(--border); border-radius:6px; padding:10px 12px; margin:8px 0; background:var(--surface-2);}
+  .wire .wdim{color:var(--ink-dim);}
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">STRATECH V1 — Product Core<br>Organizational Intelligence</div>
+    <nav>
+      <a href="#s0"><span class="toc-num">00</span>Guardian Check</a>
+      <a href="#s1"><span class="toc-num">01</span>Sensação de reunião executiva, não de relatório</a>
+      <a href="#s2"><span class="toc-num">02</span>Nomenclatura — comparação (sem decisão)</a>
+      <a href="#s3"><span class="toc-num">03</span>Ordem fixa de apresentação</a>
+      <a href="#s4"><span class="toc-num">04</span>Composição de cada card de aprendizado</a>
+      <a href="#s5"><span class="toc-num">05</span>Um único aprendizado válido — nunca preenchimento artificial</a>
+      <a href="#s6"><span class="toc-num">06</span>Silêncio total (zero aprendizados)</a>
+      <a href="#s7"><span class="toc-num">07</span>Diálogo com o resto da plataforma</a>
+      <a href="#s8"><span class="toc-num">08</span>Wireflow (baixa fidelidade)</a>
+      <a href="#s9"><span class="toc-num">09</span>Fora de Escopo (confirmado)</a>
+      <a href="#s10"><span class="toc-num">10</span>Próximo Gate</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">STRATECH V1 · Product Core · Etapa 3 — UX Flow</div>
+      <h1 class="title">UX Flow — Organizational Intelligence</h1>
+      <p class="subtitle">Nenhuma implementação. 3 diretrizes do Founder para esta etapa: a superfície deve
+        transmitir a sensação de uma <b>reunião executiva</b>, nunca de um relatório; a nomenclatura exibida ao
+        usuário deve ser comparada (não decidida); e a ordem de apresentação dos aprendizados deve seguir um
+        padrão cognitivo fixo. Regra permanente reafirmada: um único aprendizado válido é exibido normalmente
+        -- nunca um estado artificial só para preencher a tela.</p>
+      <div class="meta-row">
+        <span><b>Fase</b> STRATECH V1 — reta final (Release Candidate)</span>
+        <span><b>Módulo</b> Organizational Intelligence</span>
+        <span><b>Origem</b> User Journey aprovada + 3 diretrizes do Founder</span>
+        <span><b>Data</b> 2026-07-16</span>
+        <span><b>Status</b> Aguardando aprovação — nenhuma Feature Specification ou código ainda</span>
+      </div>
+    </div>
+
+    <section id="s0">
+      <div class="section-head"><span class="section-num">00</span><h2>Guardian Check</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Verificação</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr><td>Conflito com a User Journey aprovada?</td><td>SEM CONFLITO — as 3 diretrizes refinam composição/nomenclatura/ordem; nenhuma reabre a régua de 3+ ocorrências (Journey §02) nem o limite de 5 (Journey §05).</td></tr>
+            <tr><td>A ordem sugerida pelo Founder introduz uma fonte de dado nova?</td><td>PARCIALMENTE — "decisões recorrentes" e "ações recorrentes" ainda não estavam explicitamente na Jornada; verificadas contra o código real na Seção 3 abaixo, ambas já existem, zero leitura nova.</td></tr>
+            <tr><td>"Tendências de status" reabre a proibição de gráficos/tendência ao longo do tempo (Journey §03/§11)?</td><td>ACHADO DO GUARDIAN — ver esclarecimento na Seção 3: o termo do Founder aqui se refere ao mesmo aprendizado de recorrência textual já aprovado, nunca a uma linha do tempo ou gráfico.</td></tr>
+            <tr><td>Introduz IA generativa, inferência ou interpretação especulativa?</td><td>NÃO — todas as 4 categorias reais (Seção 3) usam a mesma técnica já aprovada: igualdade textual exata, contagem auditável.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Sensação de reunião executiva, não de relatório</h2></div>
+      <p class="section-intro">Diretriz 1 do Founder, avaliação explícita da composição.</p>
+      <p>Um <i>relatório</i> é lido de cima a baixo, tem título, data de geração, seções numeradas, e existe
+        para ser arquivado. Uma <i>reunião executiva</i> é uma sequência curta de fatos ditos em voz alta, um
+        de cada vez, cada um já reconhecido como relevante no momento em que é dito -- ninguém em uma reunião
+        de verdade lê um parágrafo inteiro sobre um único achado.</p>
+      <h3>Corolários concretos para a composição da tela</h3>
+      <ul>
+        <li><b>Nenhuma palavra "Relatório", "Análise" ou "Resumo" no título ou na interface</b> -- o título da
+          página é o nome do produto para este conceito (Seção 2), nunca um rótulo de documento.</li>
+        <li><b>Nenhum metadado de geração em destaque</b> ("gerado em", "última atualização às") como elemento
+          principal -- se existir, fica discreto, mesmo tratamento de rodapé já usado em outras telas, nunca no
+          topo da tela como um cabeçalho de relatório.</li>
+        <li><b>Cada aprendizado é uma frase só, dita uma vez</b> -- nunca um parágrafo, nunca uma lista aninhada
+          de detalhes dentro do próprio card. O card é o que se diria em voz alta; o link para o Workspace
+          (Journey §06) é para quem quer "abrir o processo" depois da reunião, não durante ela.</li>
+        <li><b>Sem numeração de seção, sem sumário, sem paginação</b> -- no máximo 5 cards (Journey §05), cabem
+          inteiros na tela, como itens de pauta, não como capítulos de um documento.</li>
+        <li><b>Tom direto, presente, nunca passivo</b> -- "Este risco já apareceu em 3 projetos", nunca "Foi
+          identificado que este risco apareceu em 3 projetos" -- mesma disciplina de linguagem executiva já
+          fixada na Journey §04.</li>
+      </ul>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>Nomenclatura — comparação (sem decisão)</h2></div>
+      <p class="section-intro">Diretriz 2 do Founder: comparar, não decidir. Avaliação sob a ótica de
+        linguagem executiva (mesmo critério já aplicado em toda a plataforma: nunca jargão técnico, sempre o
+        termo que soa natural na voz de um executivo).</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Alternativa</th><th>Vantagens</th><th>Desvantagens</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><b>Aprendizado Organizacional</b></td>
+              <td>Termo já usado em toda a Discovery/Journey aprovadas pelo Founder; 100% em português, consistente com todo o resto da interface (nenhum outro rótulo da STRATECH mistura inglês); comunica diretamente "algo que a organização aprendeu", alinhado à pergunta orientadora original</td>
+              <td>Mais longo, ocupa mais espaço em um card compacto; "aprendizado" pode soar pedagógico/acadêmico em vez de acionável para um executivo</td>
+            </tr>
+            <tr>
+              <td><b>Organizational Finding</b></td>
+              <td>"Finding" é vocabulário já familiar de auditoria/consultoria, curto; mantém uma distinção clara com "aprendizado" no sentido pedagógico</td>
+              <td>Mistura inglês em uma interface 100% em português -- inconsistência real com todo o resto do produto; "Organizational" é longo e soa como rótulo traduzido, não copy nativo</td>
+            </tr>
+            <tr>
+              <td><b>Executive Finding</b></td>
+              <td>Mais curto das 3 opções; reaproveita a marca "Executive" já presente em toda a plataforma (Executive Brief, Executive Memory, Executive Loop) — forte familiaridade de família</td>
+              <td>Mesma mistura de inglês da opção anterior; risco de confusão com "achados" (<code>key_findings</code>) já usado dentro do Executive Brief/Riscos para um conceito diferente (um achado de 1 análise, não uma recorrência entre projetos); "Executive" sozinho não comunica que o escopo é o portfólio inteiro, podendo ser confundido com algo por-projeto</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p><b>Nenhuma decisão tomada nesta etapa,</b> por instrução explícita do Founder. As 3 alternativas
+        seguem disponíveis para a Feature Specification decidir, com este comparativo como referência.</p>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>Ordem fixa de apresentação</h2></div>
+      <p class="section-intro">Diretriz 3 do Founder: riscos recorrentes → decisões recorrentes → ações
+        recorrentes → tendências de status → demais aprendizados. Cada categoria verificada contra o código
+        real antes de ser aceita nesta ordem.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Ordem</th><th>Categoria</th><th>Fonte real</th><th>Já existe, sem leitura nova?</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Riscos recorrentes</td><td><code>list_latest_risks(project_name=None)</code>, igualdade exata de <code>description</code> entre projetos</td><td><span class="chip ok">SIM</span> — já grounded na Journey §07</td></tr>
+            <tr><td>2</td><td>Decisões recorrentes</td><td><code>MeetingModelOutput.decisions</code> (já real, campo estruturado de <code>list_analyses(kind="meeting")</code>), igualdade exata de texto entre reuniões de projetos diferentes</td><td><span class="chip ok">SIM</span> — mesma leitura já usada por <code>list_action_items()</code>, só um campo diferente do mesmo <code>model_output</code></td></tr>
+            <tr><td>3</td><td>Ações recorrentes</td><td><code>list_action_items(project_name=None)</code> (já existente, Action Intelligence), igualdade exata de <code>description</code> entre projetos</td><td><span class="chip ok">SIM</span> — zero leitura nova</td></tr>
+            <tr><td>4</td><td>Tendências de status <i>(nome a esclarecer, ver achado abaixo)</i></td><td><code>list_analyses(kind="status", limit=None)</code>, mais recente por projeto, igualdade exata de <code>key_findings</code>/<code>recommendations</code> entre projetos</td><td><span class="chip ok">SIM</span> — mesma leitura já usada por <code>summarize_portfolio()</code></td></tr>
+            <tr><td>5</td><td>Demais aprendizados</td><td>Reservado para categorias futuras -- nenhuma quinta fonte real existe nesta V1</td><td><span class="chip warn">N/A NESTA V1</span> — categoria vazia por padrão, nunca preenchida artificialmente (Seção 5)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout guard">
+        <b>Achado do Guardian, resolvido:</b> "tendências de status", tomado literalmente, colidiria com a
+        proibição explícita de "nenhuma tendência ao longo do tempo, nenhum gráfico" (Journey §03/§11). Lido em
+        conjunto com a Discovery/Journey já aprovadas, o termo do Founder aqui se refere ao mesmo aprendizado
+        de <i>recorrência textual entre projetos</i> já autorizado (achados/recomendações de status idênticos
+        em múltiplos projetos) -- nunca uma linha do tempo, percentual ou inferência estatística. Nome de
+        exibição final ("Tendências de Status" vs. algo como "Achados de Status Recorrentes") fica para a
+        Feature Specification decidir, com este esclarecimento registrado para não reabrir a proibição já
+        aprovada.
+      </div>
+      <p>A ordem é sempre esta, fixa, independente de quantos aprendizados cada categoria tiver -- inclusive
+        quando uma categoria não tem nenhum aprendizado válido (3+ ocorrências), ela simplesmente não aparece,
+        nunca com um espaço vazio reservado (mesma disciplina da Seção 5/6).</p>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>Composição de cada card de aprendizado</h2></div>
+      <p class="section-intro">Aplicação concreta da Seção 1 a um único card.</p>
+      <ul>
+        <li><b>Linha 1:</b> a frase executiva (linguagem, Journey §04) -- ex. "Este risco já apareceu em 3
+          projetos diferentes."</li>
+        <li><b>Linha 2, discreta:</b> o texto verbatim do risco/decisão/ação/achado que se repete -- nunca
+          reescrito ou resumido pela interface.</li>
+        <li><b>Linha 3, discreta:</b> os nomes reais dos projetos, cada um navegável para seu Workspace --
+          nunca uma contagem anônima ("3 projetos"), sempre "quais" (Seção 3 da Journey, "completamente
+          auditável").</li>
+        <li><b>Nenhum ícone de gráfico, seta de tendência ou indicador de variação</b> -- o único número visível
+          é a contagem inteira de ocorrências, nunca um percentual ou "+X% desde o mês passado".</li>
+      </ul>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Um único aprendizado válido — nunca preenchimento artificial</h2></div>
+      <div class="callout">
+        <b>Regra explícita do Founder, registrada:</b> "Caso exista apenas um aprendizado válido, Organizational
+        Intelligence continuará exibindo normalmente esse único aprendizado. Nunca apresentar estados
+        artificiais apenas para preencher a tela."
+      </div>
+      <p>Aplicação direta do Princípio da Atenção, já usado em toda a plataforma (ex.: a camada "sem sinal de
+        atenção" da Executive Portfolio View, presente mas discreta, nunca ausente nem inflada). Aqui, o
+        inverso: <b>nunca inflar</b> -- 1 card real é uma tela válida e completa, exatamente como seria em uma
+        reunião executiva real com um único assunto de pauta. Nenhum "placeholder", nenhum texto de preenchimento
+        do tipo "aguardando mais dados", nenhuma categoria vazia exibida só para manter a simetria visual das 5
+        categorias da Seção 3.</p>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>Silêncio total (zero aprendizados)</h2></div>
+      <p class="section-intro">Caso extremo, mesma disciplina da Seção 5, na direção oposta.</p>
+      <p>Se nenhum fato atingir o limiar de 3+ ocorrências (Journey §02) em nenhuma categoria, a tela mostra um
+        estado honesto -- "Nenhum aprendizado organizacional identificado no momento" -- nunca um erro, nunca uma
+        tela em branco sem explicação. Mesma disciplina já usada em toda a plataforma para estados vazios reais
+        (ex.: "Nenhuma análise de risco registrada ainda" no Executive Brief).</p>
+    </section>
+
+    <section id="s7">
+      <div class="section-head"><span class="section-num">07</span><h2>Diálogo com o resto da plataforma</h2></div>
+      <p class="section-intro">Reafirmação da Journey §06/§09 -- nenhuma mudança introduzida por esta UX Flow.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Módulo</th><th>Natureza da conversa</th></tr></thead>
+          <tbody>
+            <tr><td>Dashboard / Portfolio Intelligence / Decision Center</td><td>Nenhuma duplicação de pergunta -- reafirmado (Journey §06)</td></tr>
+            <tr><td>Executive Memory</td><td>Mesma técnica de igualdade textual exata, escopos diferentes (1 projeto vs. portfólio) -- nenhum cálculo compartilhado</td></tr>
+            <tr><td>Workspace de cada projeto</td><td>Destino de navegação a partir dos nomes de projeto em cada card (Seção 4) -- nenhum conteúdo do Workspace duplicado aqui</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s8">
+      <div class="section-head"><span class="section-num">08</span><h2>Wireflow (baixa fidelidade)</h2></div>
+      <p class="section-intro">Mostra a sensação de "reunião executiva" e a ordem fixa, não a Baseline Visual
+        (decisão do Founder: Figma é a única fonte de verdade visual a partir desta fase).</p>
+      <div class="wire">
+        <div class="wtitle">5 categorias, ordem fixa, só as que têm aprendizado real aparecem</div>
+        <div class="wcard">
+          <div><b>Riscos recorrentes</b></div>
+          <div class="wdim">Este risco já apareceu em 3 projetos diferentes.</div>
+          <div class="wdim">"Atraso do conector fiscal do fornecedor de middleware"</div>
+          <div class="wdim">Implantacao SAP S/4HANA · Migracao de Data Center · Implantacao de CRM Regional</div>
+        </div>
+        <div class="wcard">
+          <div><b>Ações recorrentes</b></div>
+          <div class="wdim">Esta ação já foi registrada em 3 projetos diferentes.</div>
+          <div class="wdim">"Confirmar cronograma com o patrocinador"</div>
+          <div class="wdim">Aurora · Portal do Cliente 2.0 · Programa de Governança de Dados</div>
+        </div>
+        <div class="wdim">(categorias "Decisões recorrentes" e "Tendências de status" ausentes nesta captura -- nenhum aprendizado real atingiu 3+ ocorrências nelas agora; nenhum espaço reservado para elas)</div>
+      </div>
+      <div class="wire">
+        <div class="wtitle">Exatamente 1 aprendizado válido (Seção 5) -- tela ainda completa e normal</div>
+        <div class="wcard">
+          <div><b>Riscos recorrentes</b></div>
+          <div class="wdim">Este risco já apareceu em 3 projetos diferentes.</div>
+          <div class="wdim">"Falta de padronização nas definições de qualidade de dados entre áreas"</div>
+          <div class="wdim">Programa de Governança de Dados · Migracao de Data Center · Portal do Cliente 2.0</div>
+        </div>
+      </div>
+      <div class="wire">
+        <div class="wtitle">Zero aprendizados (Seção 6)</div>
+        <div class="wcard">
+          <div class="wdim">Nenhum aprendizado organizacional identificado no momento.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="s9">
+      <div class="section-head"><span class="section-num">09</span><h2>Fora de Escopo (confirmado)</h2></div>
+      <ul>
+        <li>Qualquer decisão final de nomenclatura -- comparativo registrado (Seção 2), decisão adiada para a Feature Specification</li>
+        <li>Qualquer gráfico, linha do tempo ou indicador de variação percentual -- inclusive para a categoria "Tendências de status" (achado do Guardian, Seção 3)</li>
+        <li>Qualquer categoria além das 5 já listadas -- "demais aprendizados" é reservada, não especificada</li>
+        <li>Qualquer estado artificial de preenchimento, para 1 aprendizado ou para 0 -- ambos os casos extremos são estados normais e honestos (Seções 5-6)</li>
+        <li>Qualquer decisão visual (cor, tipografia, espaçamento, ícone) -- pertence ao Figma aprovado, a partir de agora única fonte de verdade visual, avaliado na Visual Fidelity Review futura</li>
+      </ul>
+    </section>
+
+    <section id="s10">
+      <div class="section-head"><span class="section-num">10</span><h2>Próximo Gate</h2></div>
+      <p>Nenhum código escrito. Esta é a UX Flow (Etapa 3). A Feature Specification (Etapa 4) só começa após
+        aprovação explícita do Founder -- inclusive sobre a decisão final de nomenclatura (Seção 2), a redação
+        institucional exata de cada categoria, e o nome/rótulo exato da entrada de navegação (Journey §01),
+        todos deixados para a próxima etapa.</p>
+    </section>
+
+    <footer>
+      <span>Stratech — STRATECH V1 · Product Core</span>
+      <span>UX Flow</span>
+      <span>2026-07-16</span>
+    </footer>
+  </main>
+</div>

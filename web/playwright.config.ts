@@ -1,7 +1,14 @@
+import fs from "fs";
 import { defineConfig, devices } from "@playwright/test";
 
 const PORT = 3100;
 const MOCK_BACKEND_PORT = 4100;
+
+// This exact path only exists in this project's preconfigured sandbox images
+// (see AGENTS.md system prompt); CI and other machines fall back to whatever
+// Chromium `npx playwright install` puts on PATH for them.
+const SANDBOX_CHROMIUM = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
+const launchOptions = fs.existsSync(SANDBOX_CHROMIUM) ? { executablePath: SANDBOX_CHROMIUM } : {};
 
 export default defineConfig({
   testDir: "./e2e",
@@ -38,7 +45,7 @@ export default defineConfig({
       use: {
         ...devices["Desktop Chrome"],
         viewport: { width: 375, height: 812 },
-        launchOptions: { executablePath: "/opt/pw-browsers/chromium-1194/chrome-linux/chrome" },
+        launchOptions,
       },
     },
     {
@@ -46,7 +53,7 @@ export default defineConfig({
       use: {
         ...devices["Desktop Chrome"],
         viewport: { width: 900, height: 800 },
-        launchOptions: { executablePath: "/opt/pw-browsers/chromium-1194/chrome-linux/chrome" },
+        launchOptions,
       },
     },
     {
@@ -54,7 +61,7 @@ export default defineConfig({
       use: {
         ...devices["Desktop Chrome"],
         viewport: { width: 1280, height: 900 },
-        launchOptions: { executablePath: "/opt/pw-browsers/chromium-1194/chrome-linux/chrome" },
+        launchOptions,
       },
     },
   ],

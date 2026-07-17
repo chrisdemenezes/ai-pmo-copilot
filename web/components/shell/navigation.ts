@@ -1,4 +1,4 @@
-import { Folder, LayoutDashboard } from "lucide-react";
+import { ClipboardList, Folder, Gavel, LayoutDashboard, Lightbulb, ListOrdered } from "lucide-react";
 
 import type { NavItem } from "./types";
 
@@ -12,5 +12,19 @@ import type { NavItem } from "./types";
  */
 export const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  // TIP-010 Incremento 3 -- logo após o Dashboard: Executive Navigation
+  // (Onde devo olhar? -> Portfolio Intelligence) coloca esta Capability
+  // como o primeiro ritual do dia, antes de Projetos/Ações/Decisões.
+  { label: "Priorização", href: "/portfolio", icon: ListOrdered },
   { label: "Projetos", href: "/projects", icon: Folder },
+  // TIP-008 Incremento 2 -- entra aqui só agora que a rota é real, com dado
+  // real, estados completos e testes (regra de entrada da navegação).
+  { label: "Ações", href: "/actions", icon: ClipboardList },
+  // TIP-009 Incremento 3 -- mesma regra de entrada, agora para a Executive
+  // Decision Queue.
+  { label: "Decisões", href: "/decisions", icon: Gavel },
+  // TIP-012 -- último item por desenho: Organizational Intelligence é
+  // consultada esporadicamente (Architecture Review §1, pergunta 4),
+  // diferente do ritual diário das Capabilities anteriores.
+  { label: "Aprendizados", href: "/aprendizados", icon: Lightbulb },
 ];

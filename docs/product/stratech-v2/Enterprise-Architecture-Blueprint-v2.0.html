@@ -1,0 +1,886 @@
+<title>STRATECH Enterprise Architecture Blueprint v2.0</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --ref:#1f6f78; --ref-bg:#e0eff0;
+    --warn:#a3742f; --warn-bg:#f3e9d8;
+    --impl:#5b5648; --impl-bg:#ececE6;
+    --ok:#2f7a4f; --ok-bg:#e1f0e5;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --ref:#7fd4de; --ref-bg:#123033;
+    --warn:#e0b567; --warn-bg:#332711;
+    --impl:#a9a494; --impl-bg:#221e17;
+    --ok:#7fd19f; --ok-bg:#1a3324;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --ref:#7fd4de; --ref-bg:#123033;
+      --warn:#e0b567; --warn-bg:#332711;
+      --impl:#a9a494; --impl-bg:#221e17;
+      --ok:#7fd19f; --ok-bg:#1a3324;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.62;}
+  .doc-shell{display:grid; grid-template-columns:300px minmax(0,1fr); max-width:1440px; margin:0 auto;}
+  @media (max-width:960px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:20px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:3px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  .toc .toc-num{color:var(--accent); margin-right:6px;}
+  .toc .legend{margin-top:24px; padding-top:16px; border-top:1px solid var(--border);}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:40px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.8rem,4vw,2.6rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:78ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:60px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink); flex-wrap:wrap;}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.35rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:76ch;}
+  h3{font-size:1.08rem; margin:30px 0 8px; font-weight:600;}
+  h4{font-size:.95rem; margin:20px 0 6px; font-weight:600; color:var(--ink);}
+  p{margin:0 0 14px; max-width:78ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:76ch;}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  pre{background:var(--code-bg); border:1px solid var(--border); border-radius:6px; padding:14px 16px; overflow-x:auto; font-family:ui-monospace,monospace; font-size:.78rem; line-height:1.5; color:var(--mono-ink); margin:10px 0 20px;}
+  pre code{background:none; padding:0;}
+  .pcard{border:1px solid var(--border); border-radius:8px; padding:16px 20px; margin-bottom:14px; background:var(--surface);}
+  .pcard h4{margin:0 0 6px; font-size:1rem;}
+  .pcard blockquote{margin:8px 0; padding:8px 14px; border-left:2px solid var(--accent); background:var(--surface-2); font-style:italic; font-size:.92rem;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard); background:var(--guard-bg);}
+  .callout.warn{border-left-color:var(--warn); background:var(--warn-bg);}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:9.5px; letter-spacing:.03em; padding:3px 9px; border-radius:3px; font-weight:700; white-space:nowrap; text-transform:uppercase;}
+  .chip.permanente{color:var(--accent); background:var(--surface-2); border:1px solid var(--accent);}
+  .chip.referencia{color:var(--ref); background:var(--ref-bg); border:1px solid var(--ref);}
+  .chip.transicao{color:var(--warn); background:var(--warn-bg); border:1px solid var(--warn);}
+  .chip.implementacao{color:var(--impl); background:var(--impl-bg); border:1px solid var(--impl);}
+  .chip.asis{color:var(--guard); background:var(--guard-bg); border:1px solid var(--guard);}
+  .layer-tags{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:4px;}
+  .adr{border:1px solid var(--border); border-left:4px solid var(--accent); border-radius:0 8px 8px 0; padding:18px 22px; margin:18px 0 24px; background:var(--surface); box-shadow:var(--shadow);}
+  .adr .adr-id{font-family:ui-monospace,monospace; font-size:11px; color:var(--accent); font-weight:700; letter-spacing:.04em; text-transform:uppercase; margin-bottom:6px;}
+  .adr h4{margin:0 0 10px; font-size:1.05rem;}
+  .adr dl{display:grid; grid-template-columns:140px 1fr; gap:6px 16px; margin:0;}
+  .adr dt{font-family:ui-monospace,monospace; font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-dim); padding-top:2px;}
+  .adr dd{margin:0 0 8px;}
+  .qbox{border:1px dashed var(--border); border-radius:8px; padding:14px 18px; margin:12px 0; background:var(--surface-2);}
+  .qbox .q{font-family:ui-monospace,monospace; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--accent); margin-bottom:4px;}
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">STRATECH V2<br>Enterprise Architecture Blueprint v2.0<br><i>Constituição Arquitetural</i></div>
+    <nav>
+      <a href="#s1"><span class="toc-num">01</span>Executive Summary</a>
+      <a href="#s2"><span class="toc-num">02</span>Product Definition</a>
+      <a href="#s3"><span class="toc-num">03</span>Architectural Principles</a>
+      <a href="#s4"><span class="toc-num">04</span>Current-State Assessment</a>
+      <a href="#s5"><span class="toc-num">05</span>Target Architecture</a>
+      <a href="#s6"><span class="toc-num">06</span>Domain Map</a>
+      <a href="#s7"><span class="toc-num">07</span>Canonical Enterprise Model</a>
+      <a href="#s8"><span class="toc-num">08</span>Identity and Access Management</a>
+      <a href="#s9"><span class="toc-num">09</span>Data Ownership and Source of Truth</a>
+      <a href="#s10"><span class="toc-num">10</span>AI Architecture</a>
+      <a href="#s11"><span class="toc-num">11</span>Accelerator Framework</a>
+      <a href="#s12"><span class="toc-num">12</span>Integration Architecture</a>
+      <a href="#s13"><span class="toc-num">13</span>Document Intelligence Architecture</a>
+      <a href="#s14"><span class="toc-num">14</span>Process Intelligence Architecture</a>
+      <a href="#s15"><span class="toc-num">15</span>Event and Orchestration Architecture</a>
+      <a href="#s16"><span class="toc-num">16</span>Executive Cockpit Architecture</a>
+      <a href="#s17"><span class="toc-num">17</span>Security, Privacy and Compliance</a>
+      <a href="#s18"><span class="toc-num">18</span>Non-Functional Requirements</a>
+      <a href="#s19"><span class="toc-num">19</span>Migration Strategy</a>
+      <a href="#s20"><span class="toc-num">20</span>Release Roadmap</a>
+      <a href="#s21"><span class="toc-num">21</span>Decision Log (ADRs)</a>
+      <a href="#s22"><span class="toc-num">22</span>Open Questions</a>
+    </nav>
+    <div class="legend">
+      <div class="layer-tags">
+        <span class="chip permanente">Visão Permanente</span>
+      </div>
+      <div class="layer-tags">
+        <span class="chip referencia">Arquitetura de Referência</span>
+      </div>
+      <div class="layer-tags">
+        <span class="chip transicao">Arquitetura de Transição</span>
+      </div>
+      <div class="layer-tags">
+        <span class="chip implementacao">Implementação</span>
+      </div>
+      <div class="layer-tags">
+        <span class="chip asis">As-Is (RC-1)</span>
+      </div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">STRATECH V2 · Enterprise Foundation · Documento institucional e arquitetural de referência</div>
+      <h1 class="title">STRATECH Enterprise Architecture Blueprint v2.0</h1>
+      <p class="subtitle">Este documento é a <b>Constituição Arquitetural da STRATECH</b>. Sua finalidade não é
+        orientar apenas a Release 0.1 -- é estabelecer os princípios que permanecem válidos durante toda a
+        evolução da plataforma, independentemente de qual tecnologia os implemente. Cada seção é classificada
+        em uma das quatro camadas de informação (legenda ao lado): <b>Visão Permanente</b> (essência,
+        independente de tecnologia), <b>Arquitetura de Referência</b> (direção estratégica-alvo, não limitada
+        pelo RC-1), <b>Arquitetura de Transição</b> (como chegamos lá) e <b>Implementação</b> (detalhes
+        técnicos específicos, os únicos que mudam com a tecnologia). Decisões relevantes são registradas como
+        Architecture Decision Records (ADR), preservando não apenas o quê, mas o porquê.</p>
+      <div class="meta-row">
+        <span><b>Autoria</b> Chief Product Architect · Principal Engineer · Enterprise AI Architect</span>
+        <span><b>Origem</b> Abertura formal da STRATECH V2 — Programa Enterprise Foundation</span>
+        <span><b>Baseline preservada</b> STRATECH V1 RC-1, commit <code>c97d37b</code></span>
+        <span><b>Data</b> 2026-07-16</span>
+        <span><b>Status</b> Aguardando aprovação do Founder</span>
+      </div>
+    </div>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Executive Summary</h2></div>
+      <div class="layer-tags"><span class="chip permanente">Visão Permanente</span></div>
+      <p>A STRATECH V1 RC-1 encerrou sua primeira geração: uma plataforma funcionalmente completa (8
+        Capabilities, 8 perguntas executivas respondidas) operando como workspace analítico single-tenant, com
+        autenticação por senha única de workspace e projetos tratados como texto livre. Essa geração cumpriu
+        seu propósito -- validar, com disciplina de processo rigorosa, que IA aplicada a dados reais de projeto
+        produz valor executivo genuíno, sem nunca fabricar conteúdo ou competir com o julgamento humano.</p>
+      <p>A mudança de geração agora proposta não nasce de uma falha do RC-1. Nasce do reconhecimento de que
+        uma plataforma Enterprise real -- capaz de atender acionistas, conselho, C-level, PMOs e gestores de
+        múltiplas organizações, integrada a sistemas corporativos já em uso -- exige uma fundação que o RC-1
+        nunca teve a intenção de construir: identidade individual, organização, hierarquia real de
+        portfólio/programa/projeto, governança de acesso, e uma camada de integração e orquestração.</p>
+      <p><b>Problema que este Blueprint resolve:</b> como evoluir de um workspace single-tenant para uma
+        plataforma Enterprise multi-organização sem (a) reescrever o que já funciona, (b) construir mais um
+        Microsoft Project ou Jira, ou (c) reduzir a Inteligência Artificial a um recurso periférico.</p>
+      <p><b>Posicionamento:</b> a STRATECH é um <b>Enterprise Intelligence Cockpit</b> -- a camada de
+        integração, contexto, inteligência, governança, recomendação, decisão e orquestração que atua acima
+        dos sistemas especialistas já usados pelas empresas, nunca os substituindo.</p>
+      <p><b>Objetivo arquitetural deste documento:</b> estabelecer princípios permanentes independentes de
+        tecnologia, uma arquitetura de referência que não seja limitada pelas restrições atuais do RC-1, uma
+        estratégia de transição explícita e segura, e só então os detalhes de implementação da primeira
+        release -- nessa ordem, para que mudanças tecnológicas futuras nunca invalidem este documento.</p>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>Product Definition</h2></div>
+      <div class="layer-tags"><span class="chip permanente">Visão Permanente</span></div>
+
+      <h3>O que a STRATECH é</h3>
+      <p>Um Enterprise Intelligence Cockpit: uma plataforma que centraliza, contextualiza, analisa e transforma
+        informação proveniente de múltiplos sistemas corporativos -- e de dados nativos quando não há sistema
+        especialista envolvido -- em inteligência acionável para tomada de decisão, em todos os níveis
+        organizacionais.</p>
+
+      <h3>O que a STRATECH não é</h3>
+      <ul>
+        <li>Não é um substituto de ferramenta de execução (Microsoft Project, ClickUp, Jira, Trello, Monday, Asana, Azure DevOps, Planner).</li>
+        <li>Não é um substituto de ferramenta de colaboração (Teams, SharePoint, OneDrive, Google Drive).</li>
+        <li>Não é um GED corporativo completo, nem um motor BPMN completo, nem um ERP, nem um CRM, nem uma ferramenta de BI generalista.</li>
+        <li>Não é um chatbot com IA anexada -- IA é uma camada transversal, nunca um módulo isolado (Seção 10).</li>
+      </ul>
+
+      <h3>Públicos</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Nível</th><th>Atores</th></tr></thead>
+          <tbody>
+            <tr><td>Governança corporativa</td><td>Acionistas, Conselheiros</td></tr>
+            <tr><td>C-Level</td><td>CEO, CFO, CIO, COO</td></tr>
+            <tr><td>Liderança executiva</td><td>Diretores, PMOs</td></tr>
+            <tr><td>Gestão tática</td><td>Gestores de portfólio, Gerentes de programa, Gerentes de projeto, Coordenadores</td></tr>
+            <tr><td>Execução</td><td>Analistas, Equipes internas</td></tr>
+            <tr><td>Externos autorizados</td><td>Clientes, Fornecedores, Parceiros, Consultores, Auditores, Conselheiros externos</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Problemas que resolve</h3>
+      <ul>
+        <li>Fragmentação de informação entre ferramentas especializadas, sem uma camada que correlacione portfólio, custo, risco, cronograma e decisão de ponta a ponta.</li>
+        <li>Ausência de contexto executivo consistente entre níveis organizacionais -- cada nível hoje monta sua própria visão manualmente.</li>
+        <li>Governança e rastreabilidade fracas sobre decisões e ações derivadas de reuniões, riscos e mudanças.</li>
+        <li>IA aplicada de forma pontual (um chatbot aqui, um resumo ali), sem trilha de evidência, confiança ou auditoria.</li>
+      </ul>
+
+      <h3>Proposta de valor</h3>
+      <p>Governança + Integração + Inteligência Artificial + Orquestração + Decisão Executiva, combinadas sobre
+        uma base semântica comum -- não uma dessas capacidades isoladamente.</p>
+
+      <h3>Limites do produto</h3>
+      <p>A STRATECH mantém apenas o modelo nativo mínimo indispensável para contexto, segurança, governança e
+        rastreabilidade (Seção 8). Toda capacidade de execução especializada permanece nos sistemas que já a
+        fazem bem -- ver Seção 12 (Integration Architecture) e a Systems Responsibility Matrix (artefato
+        complementar).</p>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>Architectural Principles</h2></div>
+      <div class="layer-tags"><span class="chip permanente">Visão Permanente</span></div>
+      <p class="section-intro">Princípios independentes de tecnologia -- válidos mesmo que o banco de dados, o
+        framework ou o provider de IA mudem. Toda decisão de arquitetura futura deve poder ser avaliada contra
+        estes princípios.</p>
+
+      <div class="pcard"><h4>Intelligence First</h4><p>Toda funcionalidade nativa deve justificar sua existência pela inteligência/governança que habilita -- nunca por replicar o que um sistema especialista já faz.</p></div>
+      <div class="pcard"><h4>Integration Before Duplication</h4><p>Antes de construir qualquer capacidade nativa, avaliar se um sistema especialista já a executa adequadamente (as 6 perguntas da Seção 4 da diretriz do Founder, incorporadas na Data Ownership Matrix, artefato complementar).</p></div>
+      <div class="pcard"><h4>AI as a Transversal Layer</h4><p>IA nunca é um módulo isolado ou uma tela de chat -- é um serviço que qualquer domínio pode invocar, sempre com evidência, confiança e trilha de auditoria (Seção 10).</p></div>
+      <div class="pcard"><h4>Human Accountability</h4><p>Toda ação crítica proposta pela IA exige um responsável humano identificável e, quando aplicável, aprovação explícita antes de ser executada.</p></div>
+      <div class="pcard"><h4>Explainability</h4><p>Toda recomendação de IA deve poder mostrar suas fontes, premissas, evidências e nível de confiança -- nunca uma conclusão sem rastro.</p></div>
+      <div class="pcard"><h4>Security by Design</h4><p>Segregação, menor privilégio e auditoria são parte da fundação, não uma camada adicionada depois (Seção 17).</p></div>
+      <div class="pcard"><h4>Multi-Tenant by Design</h4><p>Toda entidade nativa pertence a uma organização desde sua concepção -- não como um filtro adicionado à força depois.</p></div>
+      <div class="pcard"><h4>Event-Driven Evolution</h4><p>Mudanças de estado relevantes produzem eventos observáveis, permitindo que orquestração, auditoria e cockpit evoluam sem acoplamento direto entre domínios (Seção 15).</p></div>
+      <div class="pcard"><h4>Source Traceability</h4><p>Todo dado carrega a identificação de sua origem (nativo/sincronizado/referenciado/derivado/calculado/enriquecido -- Seção 9) -- nunca uma informação "solta" sem proveniência.</p></div>
+      <div class="pcard"><h4>Modularity</h4><p>Domínios com fronteiras e responsabilidades claras (Seção 6), substituíveis independentemente.</p></div>
+      <div class="pcard"><h4>Interoperability</h4><p>Padrões abertos e contratos explícitos de integração (Seção 12) -- nunca acoplamento proprietário a um único sistema externo.</p></div>
+      <div class="pcard"><h4>Progressive Delivery</h4><p>Toda evolução é entregável em incrementos verificáveis (Seção 20) -- nunca uma reescrita monolítica de uma só vez.</p></div>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>Current-State Assessment</h2></div>
+      <div class="layer-tags"><span class="chip asis">As-Is (RC-1)</span></div>
+      <p class="section-intro">Verificado diretamente contra o código no commit <code>c97d37b</code> -- nenhuma
+        afirmação aqui é por memória. Consolida achados já produzidos e aprovados no Architecture Gate V1,
+        Platform Readiness Assessment e RC-1 Manifest.</p>
+
+      <h3>Arquitetura atual</h3>
+      <pre><code>%% STRATECH RC-1 -- Current-State Architecture (verified directly against
+%% commit c97d37b -- see Enterprise-Architecture-Blueprint-v2.0.html Section 4)
+flowchart TB
+    subgraph Frontend["web/ (Next.js 16 / React 19)"]
+        Login["/entrar -- workspace password"]
+        Nav["6 nav items: Dashboard, Priorizacao,\nProjetos, Acoes, Decisoes, Aprendizados"]
+        BFF["app/api/bff/ -- shields X-API-Key from browser"]
+        Session["lib/session.ts -- HMAC session cookie,\nsingle shared WORKSPACE_PASSWORD"]
+    end
+
+    subgraph Backend["src/ (FastAPI)"]
+        Router["api/routes/intelligence.py --\nsingle router, X-API-Key auth"]
+        RateLimit["api/rate_limiter.py --\n60 req/60s, in-process"]
+        Agents["agents/ -- project_status, risk_review,\nmeeting_intelligence"]
+        Services["services/project_summary_service.py --\nsingle aggregation service"]
+        Repo["database/repository.py --\nAnalysisRepository"]
+    end
+
+    subgraph Data["Persistence"]
+        DB[("analysis_records\n(1 table, project_name is a free-text field,\nnot a foreign key)")]
+    end
+
+    Login --> Session
+    Session --> BFF
+    Nav --> BFF
+    BFF -->|X-API-Key| Router
+    Router --> RateLimit
+    Router --> Agents
+    Agents --> Services
+    Services --> Repo
+    Repo --> DB
+
+    style DB fill:#f6e2dd,stroke:#a13d2f</code></pre>
+
+      <h3>Capacidades reutilizáveis</h3>
+      <ul>
+        <li>As 8 Capabilities (Dashboard, Priorização, Projetos, Ações, Decisões, Aprendizados, Workspace, análises de IA) -- funcionais, testadas (114 backend, 400 frontend, 68 E2E), permanecem intactas durante toda a V2.</li>
+        <li>Single Decision Source (<code>buildExecutiveDecisionQueue</code>, <code>rankByRisk</code>) -- padrão de fonte lógica única, reaproveitável como princípio na Seção 9.</li>
+        <li>Separação em camadas de <code>web/lib/</code> (base vs. feature, sem ciclos) -- padrão de modularidade já validado.</li>
+        <li>Agentes de IA (<code>src/agents/</code>) e providers de LLM (<code>src/llm/</code>) -- reaproveitáveis como a primeira geração de Aceleradores (Seção 11).</li>
+        <li>CI com gate de E2E (<code>.github/workflows/ci.yml</code>) -- reaproveitado sem alteração.</li>
+      </ul>
+
+      <h3>Limitações que não devem ser transportadas para a V2</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Limitação do RC-1</th><th>Por que não é aceitável na V2</th></tr></thead>
+          <tbody>
+            <tr><td>Senha única de workspace compartilhada</td><td>Impede identidade individual, RBAC, auditoria por usuário -- pré-requisito de qualquer Enterprise Foundation</td></tr>
+            <tr><td><code>analysis_records</code> como única tabela, <code>project_name</code> como texto livre</td><td>Impede hierarquia real (organização→portfólio→programa→projeto), impede relacionamento com custo/risco/decisão como entidades próprias</td></tr>
+            <tr><td>Um único <code>API_KEY</code> de sistema, sem escopo por usuário/organização</td><td>Impede segregação multi-tenant e permissões granulares</td></tr>
+            <tr><td>Rate limiter in-process (<code>PRI-002</code>)</td><td>Não escala para múltiplas organizações/instâncias -- precisa de solução distribuída antes de qualquer piloto externo real</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Riscos e dívida técnica herdados</h3>
+      <p>Nenhum defeito funcional foi encontrado no RC-1 em nenhuma das 4 auditorias já produzidas (Architecture
+        Gate V1, Platform Readiness Assessment, Visual Fidelity Gate, Release Readiness Review). A dívida é
+        inteiramente de <i>ausência de fundação</i>, não de qualidade do que existe -- por isso a V2 preserva o
+        código do RC-1 integralmente, nunca o descarta.</p>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Target Architecture</h2></div>
+      <div class="layer-tags"><span class="chip referencia">Arquitetura de Referência</span></div>
+      <p class="section-intro">A arquitetura-alvo não é limitada pelo que o RC-1 suporta hoje -- representa a
+        direção estratégica completa.</p>
+
+      <pre><code>%% STRATECH V2 -- Target Architecture, layered
+%% See Enterprise-Architecture-Blueprint-v2.0.html Section 5
+flowchart TB
+    EI["Executive Intelligence\n(cockpit views by profile)"]
+    AI["AI Intelligence Layer\n(accelerator framework, transversal)"]
+    ORCH["Event & Orchestration Layer\n(events, rules, workflows, human-in-the-loop)"]
+
+    subgraph SEM["Semantic and Context Layer"]
+        PPI["Portfolio, Program & Project Intelligence"]
+        DOC["Document Intelligence"]
+        PROC["Process Intelligence"]
+    end
+
+    INT["Integration Hub\n(connectors: Teams, ClickUp, MS Project, Jira, ...)"]
+    EF["Enterprise Foundation\n(org, users, RBAC, sessions, audit)"]
+    SEC["Security, Audit & Compliance"]
+    OBS["Data & Observability"]
+
+    EI --> AI
+    AI --> ORCH
+    ORCH --> SEM
+    SEM --> INT
+    SEM --> EF
+    INT -.->|external systems, never duplicated| EXT["External Specialist Systems\n(MS Project, ClickUp, Jira, Teams,\nSharePoint, ERPs, CRMs, BPM engines...)"]
+    EF --> SEC
+    EF --> OBS
+
+    style EF fill:#e7e7f8,stroke:#4c4fc4
+    style SEC fill:#f6e2dd,stroke:#a13d2f
+    style EXT fill:#eeece4,stroke:#5b5648</code></pre>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Camada</th><th>Responsabilidade</th></tr></thead>
+          <tbody>
+            <tr><td>Enterprise Foundation</td><td>Identidade, organização, RBAC, sessão, auditoria -- a base de tenência de toda a plataforma</td></tr>
+            <tr><td>Semantic and Context Layer</td><td>Onde Portfolio/Program/Project, Document e Process Intelligence vivem -- dá significado aos dados brutos</td></tr>
+            <tr><td>Integration Hub</td><td>Conecta a sistemas externos, nunca duplica sua função</td></tr>
+            <tr><td>AI Intelligence Layer</td><td>Aceleradores que operam sobre entidades reais e contextualizadas</td></tr>
+            <tr><td>Event and Orchestration Layer</td><td>Coordena fluxos entre domínios e sistemas, com human-in-the-loop</td></tr>
+            <tr><td>Executive Intelligence</td><td>Visões por perfil sobre a mesma base semântica -- nunca cockpits isolados</td></tr>
+            <tr><td>Security, Audit and Compliance</td><td>Transversal a todas as camadas acima</td></tr>
+            <tr><td>Data and Observability</td><td>Transversal -- qualidade, latência, rastreabilidade de todo dado</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>Domain Map</h2></div>
+      <div class="layer-tags"><span class="chip referencia">Arquitetura de Referência</span></div>
+      <p class="section-intro">Cada domínio responde a três perguntas prescritivas -- por que existe, quais
+        problemas resolve, como deve evoluir -- para que este mapa seja um guia estratégico, não apenas um
+        retrato estático.</p>
+
+      <pre><code>%% STRATECH V2 -- Domain Map
+%% See Enterprise-Architecture-Blueprint-v2.0.html Section 6
+flowchart LR
+    subgraph D1["Enterprise Foundation"]
+        d1a["Org / BU / User / Team / Role / Session / Audit"]
+    end
+    subgraph D2["Portfolio, Program & Project"]
+        d2a["Portfolio / Program / Project / Phase / Milestone /\nDeliverable / Task / Cost / Risk / Decision / Action"]
+    end
+    subgraph D3["Document Intelligence"]
+        d3a["Document reference / Metadata / Version / Extraction"]
+    end
+    subgraph D4["Process Intelligence"]
+        d4a["Process reference / Instance / SLA / Deviation"]
+    end
+    subgraph D5["Integration Hub"]
+        d5a["Connector / Credential / Sync run / Mapping"]
+    end
+    subgraph D6["AI Intelligence Layer"]
+        d6a["Accelerator / Evidence / Confidence / Recommendation"]
+    end
+    subgraph D7["Event & Orchestration"]
+        d7a["Event / Rule / Workflow / Approval"]
+    end
+    subgraph D8["Executive Intelligence"]
+        d8a["Cockpit view / Indicator / Alert / Scenario"]
+    end
+
+    D1 -->|owns tenancy for| D2
+    D1 -->|owns tenancy for| D3
+    D1 -->|owns tenancy for| D4
+    D2 -->|referenced by| D3
+    D2 -->|referenced by| D4
+    D5 -->|feeds, never owns| D2
+    D5 -->|feeds, never owns| D3
+    D5 -->|feeds, never owns| D4
+    D2 --> D6
+    D3 --> D6
+    D4 --> D6
+    D6 --> D7
+    D2 --> D8
+    D6 --> D8
+    D7 -.->|produces events consumed by| D8</code></pre>
+
+      <h3>1. Enterprise Foundation</h3>
+      <div class="qbox"><div class="q">Por que existe?</div>Toda plataforma multi-organização precisa de uma fronteira de tenência antes de qualquer outro dado fazer sentido.</div>
+      <div class="qbox"><div class="q">Quais problemas resolve?</div>Ausência de identidade individual, impossibilidade de segregar clientes, ausência de trilha de quem fez o quê.</div>
+      <div class="qbox"><div class="q">Como deve evoluir?</div>De 4 papéis fixos (Release 0.1) para papéis configuráveis por organização; de sessão simples para SSO/federação (SAML/OIDC) quando clientes corporativos exigirem.</div>
+      <p><b>Entidades:</b> Organization, BusinessUnit, User, Team, Role, Permission, Session, AuditRecord. <b>Serviços:</b> IdentityService, AuthorizationService, AuditService. <b>Eventos produzidos:</b> <code>user.invited</code>, <code>user.activated</code>, <code>role.granted</code>. <b>Eventos consumidos:</b> nenhum (domínio raiz). <b>Dependências:</b> nenhuma. <b>Fronteiras:</b> não conhece portfólio/projeto. <b>Persistência:</b> nativa, sempre.</p>
+
+      <h3>2. Portfolio, Program & Project Intelligence</h3>
+      <div class="qbox"><div class="q">Por que existe?</div>É o domínio semântico central -- onde a hierarquia real de trabalho corporativo é representada e contextualizada.</div>
+      <div class="qbox"><div class="q">Quais problemas resolve?</div><code>project_name</code> como texto livre sem relação com custo, risco, decisão, time; ausência de visão agregada de portfólio/programa.</div>
+      <div class="qbox"><div class="q">Como deve evoluir?</div>De projeto+portfólio simples (0.1/0.2) para suportar múltiplos frameworks de metodologia (ágil/cascata/híbrido) sem se tornar um motor de gestão completo -- mantendo-se como camada de contexto, não de execução.</div>
+      <p><b>Entidades:</b> Portfolio, Program, Project, Phase, Milestone, Deliverable, Task, Cost, Risk, Decision, Action, Indicator. <b>Serviços:</b> PortfolioAggregationService, ProjectContextService. <b>Eventos produzidos:</b> <code>project.created</code>, <code>risk.raised</code>, <code>decision.pending</code>. <b>Eventos consumidos:</b> <code>sync.completed</code> (do Integration Hub). <b>Dependências:</b> Enterprise Foundation (tenência). <b>Persistência:</b> nativa para a hierarquia; sincronizada/referenciada para detalhe de execução externo.</p>
+
+      <h3>3. Document Intelligence</h3>
+      <div class="qbox"><div class="q">Por que existe?</div>Decisões corporativas dependem de documentos (contratos, atas, relatórios) hoje dispersos sem contexto unificado.</div>
+      <div class="qbox"><div class="q">Quais problemas resolve?</div>Ausência de visão de vencimentos, obrigações e riscos documentais atrelados a projetos/decisões.</div>
+      <div class="qbox"><div class="q">Como deve evoluir?</div>De referência simples com metadado (0.1x) para extração estruturada de obrigações/prazos via IA (Release 0.3+), sem nunca se tornar um GED completo.</div>
+      <p><b>Entidades:</b> DocumentReference, DocumentVersion, DocumentExtraction. <b>Serviços:</b> DocumentIndexService, DocumentExtractionService. <b>Eventos produzidos:</b> <code>document.linked</code>, <code>document.expiring</code>. <b>Eventos consumidos:</b> <code>file.synced</code> (SharePoint/Drive/OneDrive). <b>Dependências:</b> Enterprise Foundation, Portfolio/Project. <b>Fronteiras:</b> nunca armazena o arquivo em si além de metadado/cache de contexto -- a fonte oficial é sempre o sistema externo.</p>
+
+      <h3>4. Process Intelligence</h3>
+      <div class="qbox"><div class="q">Por que existe?</div>Processos corporativos (aprovação, mudança, onboarding) afetam projetos e decisões, mas hoje vivem isolados em motores BPM sem correlação executiva.</div>
+      <div class="qbox"><div class="q">Quais problemas resolve?</div>Ausência de visibilidade executiva sobre gargalos/desvios de processo e seu impacto em portfólio.</div>
+      <div class="qbox"><div class="q">Como deve evoluir?</div>De referência passiva de instância/status (Release 0.4+) para correlação preditiva com risco de projeto, sem nunca se tornar um motor BPMN.</div>
+      <p><b>Entidades:</b> ProcessReference, ProcessInstance, ProcessStep, SLA. <b>Serviços:</b> ProcessCorrelationService. <b>Eventos produzidos:</b> <code>process.deviation_detected</code>. <b>Eventos consumidos:</b> <code>process.instance_updated</code> (Bizagi/Camunda). <b>Dependências:</b> Portfolio/Project. <b>Fronteiras:</b> nunca executa o processo, apenas interpreta.</p>
+
+      <h3>5. Integration Hub</h3>
+      <div class="qbox"><div class="q">Por que existe?</div>É o único ponto de entrada/saída de dado externo -- sem ele, todo domínio semântico teria que reimplementar conectores próprios.</div>
+      <div class="qbox"><div class="q">Quais problemas resolve?</div>Duplicação de lógica de sincronização, ausência de rastreabilidade de origem, acoplamento direto a sistemas externos.</div>
+      <div class="qbox"><div class="q">Como deve evoluir?</div>De 1 conector de referência (Release 0.4) para um catálogo crescente, sempre no mesmo padrão -- nunca conectores ad-hoc fora do Hub.</div>
+      <p><b>Entidades:</b> Connector, Credential, SyncRun, EntityMapping. <b>Serviços:</b> ConnectorRegistry, SyncOrchestrator. <b>Eventos produzidos:</b> <code>sync.completed</code>, <code>sync.failed</code>. <b>Eventos consumidos:</b> webhooks externos. <b>Dependências:</b> Enterprise Foundation (credenciais por organização). <b>Fronteiras:</b> nunca decide, apenas move e mapeia dado.</p>
+
+      <h3>6. AI Intelligence Layer</h3>
+      <div class="qbox"><div class="q">Por que existe?</div>É a camada transversal que transforma dado contextualizado em recomendação acionável -- o diferencial central da STRATECH.</div>
+      <div class="qbox"><div class="q">Quais problemas resolve?</div>IA hoje isolada por Capability, sem framework comum de evidência/confiança/auditoria.</div>
+      <div class="qbox"><div class="q">Como deve evoluir?</div>De aceleradores sobre entidades reais (Release 0.3) para memória organizacional de longo prazo e correlação entre domínios (Release 0.5+).</div>
+      <p><b>Entidades:</b> Accelerator, Analysis, Evidence, Recommendation, ConfidenceScore. <b>Serviços:</b> AcceleratorRuntime, EvidenceStore. <b>Eventos produzidos:</b> <code>analysis.completed</code>, <code>recommendation.pending_validation</code>. <b>Eventos consumidos:</b> praticamente todos os outros domínios. <b>Dependências:</b> Portfolio/Project, Document, Process. <b>Fronteiras:</b> nunca executa ação crítica sem validação humana (Seção 10).</p>
+
+      <h3>7. Event & Orchestration</h3>
+      <div class="qbox"><div class="q">Por que existe?</div>Correlacionar e coordenar fluxos entre domínios e sistemas externos sem acoplamento direto ponto a ponto.</div>
+      <div class="qbox"><div class="q">Quais problemas resolve?</div>Fluxos hoje manuais (ex.: ata de reunião → tarefa em outro sistema) sem rastreabilidade nem responsabilidade humana clara.</div>
+      <div class="qbox"><div class="q">Como deve evoluir?</div>De regras simples (Release 0.5) para workflows configuráveis por organização, sempre com human-in-the-loop e reversão.</div>
+      <p><b>Entidades:</b> Event, Rule, Workflow, Approval. <b>Serviços:</b> EventBus, WorkflowEngine. <b>Eventos produzidos/consumidos:</b> todos os eventos de todos os domínios passam por aqui. <b>Dependências:</b> todos os domínios. <b>Fronteiras:</b> nunca age sem trilha de auditoria e possibilidade de compensação/reversão.</p>
+
+      <h3>8. Executive Intelligence</h3>
+      <div class="qbox"><div class="q">Por que existe?</div>Diferentes níveis organizacionais precisam da mesma verdade, em profundidade e linguagem diferentes.</div>
+      <div class="qbox"><div class="q">Quais problemas resolve?</div>Cada nível hoje monta sua própria visão manualmente a partir de fontes fragmentadas.</div>
+      <div class="qbox"><div class="q">Como deve evoluir?</div>De visões por perfil sobre dado real (desde a V1) para cenários preditivos e recomendações executivas de maior profundidade, sempre sobre a mesma base semântica (nunca cockpits isolados).</div>
+      <p><b>Entidades:</b> CockpitView, Indicator, Alert, Scenario. <b>Serviços:</b> ExecutiveViewComposer. <b>Eventos consumidos:</b> de todos os domínios. <b>Dependências:</b> todos. <b>Fronteiras:</b> nunca fonte primária de dado -- sempre composição sobre o que já existe em outros domínios.</p>
+    </section>
+
+    <section id="s7">
+      <div class="section-head"><span class="section-num">07</span><h2>Canonical Enterprise Model</h2></div>
+      <div class="layer-tags"><span class="chip referencia">Arquitetura de Referência</span></div>
+      <pre><code>%% STRATECH V2 -- Canonical Enterprise Model
+%% See Enterprise-Architecture-Blueprint-v2.0.html Section 7
+erDiagram
+    ORGANIZATION ||--o{ BUSINESS_UNIT : has
+    ORGANIZATION ||--o{ USER : employs
+    ORGANIZATION ||--o{ TEAM : contains
+    ORGANIZATION ||--o{ STAKEHOLDER : recognizes
+    BUSINESS_UNIT ||--o{ PORTFOLIO : owns
+    PORTFOLIO ||--o{ PROGRAM : contains
+    PORTFOLIO ||--o{ PROJECT : "may directly contain (small orgs)"
+    PROGRAM ||--o{ PROJECT : contains
+    PROJECT ||--o{ PHASE : has
+    PROJECT ||--o{ MILESTONE : has
+    PROJECT ||--o{ DELIVERABLE : produces
+    PROJECT ||--o{ TASK : breaks_into
+    PROJECT ||--o{ COST : incurs
+    PROJECT ||--o{ RISK : exposes
+    PROJECT ||--o{ DECISION : requires
+    PROJECT ||--o{ ACTION : generates
+    PROJECT ||--o{ DOCUMENT_REF : references
+    PROJECT ||--o{ INDICATOR : tracks
+    PROJECT }o--o{ USER : "assigns (sponsor, manager, team)"
+    PROJECT ||--o{ AI_ANALYSIS : "analyzed by"
+    AI_ANALYSIS ||--o{ EVIDENCE : cites
+    AI_ANALYSIS ||--o{ RECOMMENDATION : produces
+    USER }o--o{ ROLE : "granted via"
+    ROLE ||--o{ PERMISSION : grants
+    TEAM }o--o{ USER : includes
+    RISK ||--o{ ACTION : "mitigated by"
+    DECISION ||--o{ ACTION : "results in"
+    EVERY_ENTITY ||--o{ AUDIT_RECORD : "tracked by (cross-cutting, not a real table)"</code></pre>
+      <p>Hierarquia mínima obrigatória: <code>Organização → Unidade de Negócio → Portfólio → Programa →
+        Projeto</code>. Portfólio e Programa são opcionais para organizações menores (uma organização pequena
+        pode ligar Projeto diretamente à Unidade de Negócio/Organização) -- mas <b>Projeto nunca é opcional
+        nem um campo de texto</b>: é sempre uma entidade real, persistente e relacionada.</p>
+      <p>Todo Projeto se relaciona com: Fases, Marcos, Entregas, Tarefas, Custos, Riscos, Decisões, Ações,
+        Documentos referenciados, Indicadores, e usuários (sponsor, gerente, equipe). Toda entidade,
+        transversalmente, é rastreada por <code>AuditRecord</code> -- não uma tabela própria por entidade, mas
+        um padrão cross-cutting aplicado a toda mutação relevante (Seção 17).</p>
+    </section>
+
+    <section id="s8">
+      <div class="section-head"><span class="section-num">08</span><h2>Identity and Access Management</h2></div>
+      <div class="layer-tags"><span class="chip referencia">Arquitetura de Referência</span></div>
+
+      <h4>Princípios (permanentes)</h4>
+      <ul>
+        <li>Toda sessão pertence a um usuário individual, nunca a uma organização inteira.</li>
+        <li>Toda permissão é avaliada por escopo: organização → portfólio → programa → projeto → domínio funcional → tipo de ação.</li>
+        <li>Papéis são configuráveis por design, mesmo que a primeira versão tenha um conjunto fixo.</li>
+      </ul>
+
+      <h4>RBAC de referência (conjunto completo, evolução ao longo das releases)</h4>
+      <p>Platform Admin, Organization Admin, PMO, Portfolio Manager, Program Manager, Project Manager, Sponsor,
+        Director, Executive, Analyst, Contributor, External Collaborator, Viewer, Auditor.</p>
+
+      <h4 id="s8-release01">Implementação -- Release 0.1</h4>
+      <div class="layer-tags"><span class="chip implementacao">Implementação</span></div>
+      <p>4 papéis iniciais para validar o motor de permissões antes de expandir: <b>Organization Admin</b>
+        (administra organização, usuários, projetos), <b>PMO</b> (visão e governança entre projetos, sem
+        administrar usuários), <b>Project Manager</b> (gestão completa do(s) projeto(s) vinculado(s)),
+        <b>Viewer</b> (leitura, sem edição). Justificativa da escolha: cobrem os 3 níveis de escopo que já
+        existem no RC-1 (organização inteira, portfólio de projetos, projeto único) mais o nível somente-leitura
+        que valida a negação de permissão -- sem introduzir ainda o escopo de portfólio/programa (Release 0.2)
+        nem atores externos (Release 0.2).</p>
+      <p>Convites, ciclo de vida do usuário (ativo/inativo, nunca exclusão física), sessão individual assinada,
+        auditoria de toda concessão/revogação de papel. SSO/federação explicitamente fora do escopo do Release
+        0.1 -- ver Seção 22.</p>
+    </section>
+
+    <section id="s9">
+      <div class="section-head"><span class="section-num">09</span><h2>Data Ownership and Source of Truth</h2></div>
+      <div class="layer-tags"><span class="chip referencia">Arquitetura de Referência</span></div>
+      <p class="section-intro">Toda informação na plataforma é classificada em uma destas categorias -- ver a
+        Data Ownership Matrix (artefato complementar) para a aplicação prática por tipo de dado.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Classificação</th><th>Definição</th><th>Fonte oficial</th></tr></thead>
+          <tbody>
+            <tr><td>Nativo</td><td>Criado e mantido pela própria STRATECH</td><td>STRATECH</td></tr>
+            <tr><td>Sincronizado</td><td>Espelhado periodicamente de um sistema externo via Integration Hub</td><td>Sistema externo</td></tr>
+            <tr><td>Referenciado</td><td>Apontado/linkado, mas nunca copiado (ex.: documento no SharePoint)</td><td>Sistema externo</td></tr>
+            <tr><td>Derivado</td><td>Calculado a partir de dado nativo/sincronizado (ex.: agregação de portfólio)</td><td>STRATECH, a partir de fonte(s) upstream</td></tr>
+            <tr><td>Calculado</td><td>Resultado determinístico de uma regra (ex.: status de saúde por limiar)</td><td>STRATECH</td></tr>
+            <tr><td>Enriquecido por IA</td><td>Recomendação/análise produzida por um Acelerador</td><td>STRATECH, com evidência das fontes usadas</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Precedência em conflito: dado sincronizado sempre prevalece sobre dado nativo equivalente quando ambos
+        existem para o mesmo campo (ex.: prazo de tarefa vindo do MS Project prevalece sobre um valor nativo
+        digitado manualmente) -- a STRATECH nunca é a fonte de verdade para um campo que um sistema
+        especialista já possui. Atualização, qualidade e latência de cada sincronização ficam registradas por
+        <code>SyncRun</code> (Seção 6, Integration Hub). Retenção segue a política de LGPD (Seção 17).</p>
+    </section>
+
+    <section id="s10">
+      <div class="section-head"><span class="section-num">10</span><h2>AI Architecture</h2></div>
+      <div class="layer-tags"><span class="chip permanente">Visão Permanente</span> <span class="chip referencia">Arquitetura de Referência</span></div>
+      <p class="section-intro"><b>Permanente:</b> a IA é uma camada transversal, nunca um módulo isolado.
+        <b>Referência:</b> os mecanismos concretos que sustentam isso.</p>
+      <ul>
+        <li><b>Contexto:</b> toda invocação de IA recebe o contexto da entidade real (projeto, portfólio, documento) que está analisando -- nunca um campo de texto solto.</li>
+        <li><b>Memória:</b> reaproveita o princípio já validado no RC-1 (Executive Memory, One Memory Insight Rule) como fundação da memória organizacional de longo prazo.</li>
+        <li><b>Retrieval:</b> quando aplicável, busca evidência entre entidades relacionadas (documentos, análises anteriores, eventos) antes de gerar uma recomendação.</li>
+        <li><b>Modelos/Prompts/Ferramentas:</b> abstraídos atrás do <code>AcceleratorRuntime</code> (Seção 11) -- trocar de provider de LLM nunca deve exigir mudar a interface de um Acelerador.</li>
+        <li><b>Evidência e confiança:</b> toda saída de IA carrega as fontes usadas, um nível de confiança, e premissas assumidas.</li>
+        <li><b>Validação humana:</b> obrigatória para qualquer recomendação que resulte em ação crítica (Seção 15).</li>
+        <li><b>Auditoria e observabilidade:</b> toda invocação de Acelerador é registrada -- entrada, saída, confiança, decisão humana subsequente.</li>
+        <li><b>Governança:</b> política de uso de IA (o que a IA pode e não pode decidir sozinha) é uma configuração de organização, não uma constante global.</li>
+      </ul>
+    </section>
+
+    <section id="s11">
+      <div class="section-head"><span class="section-num">11</span><h2>Accelerator Framework</h2></div>
+      <div class="layer-tags"><span class="chip referencia">Arquitetura de Referência</span></div>
+      <p class="section-intro">Todo Acelerador de IA segue o mesmo contrato -- nunca uma resposta de texto
+        solta sem rastreabilidade.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Campo do contrato</th><th>Propósito</th></tr></thead>
+          <tbody>
+            <tr><td>Identificação</td><td>Nome único e versão do Acelerador</td></tr>
+            <tr><td>Objetivo</td><td>Qual pergunta executiva ele responde</td></tr>
+            <tr><td>Gatilho</td><td>Evento ou ação que o invoca</td></tr>
+            <tr><td>Entradas / Fontes / Contexto</td><td>Quais entidades e dados ele consome</td></tr>
+            <tr><td>Processamento</td><td>Regra determinística e/ou modelo de IA usado</td></tr>
+            <tr><td>Saída estruturada</td><td>Nunca texto livre solto -- sempre um schema</td></tr>
+            <tr><td>Evidências / Confiança</td><td>Base para a recomendação e o quanto confiar nela</td></tr>
+            <tr><td>Recomendação / Ação proposta</td><td>O que o Acelerador sugere fazer</td></tr>
+            <tr><td>Aprovação requerida</td><td>Se e quem precisa validar antes da ação ocorrer</td></tr>
+            <tr><td>Eventos gerados</td><td>O que o Acelerador publica para o Orchestration Layer</td></tr>
+            <tr><td>Auditoria</td><td>Registro completo da invocação</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><b>Aceleradores previstos</b> (mapeados em detalhe na AI Accelerators Map, artefato complementar):
+        Executive Brief, Portfolio Intelligence, Program Intelligence, Project Health, Risk Intelligence,
+        Schedule Intelligence, Cost Intelligence, Decision Advisor, Meeting Intelligence, Delivery Intelligence,
+        Knowledge Intelligence, Dependency Intelligence. Os três primeiros a implementar (Release 0.3) são
+        Project Health, Risk Intelligence e Meeting Intelligence -- extensões diretas dos agentes já existentes
+        no RC-1, agora operando sobre a entidade Projeto real em vez de <code>project_name</code> livre.</p>
+    </section>
+
+    <section id="s12">
+      <div class="section-head"><span class="section-num">12</span><h2>Integration Architecture</h2></div>
+      <div class="layer-tags"><span class="chip referencia">Arquitetura de Referência</span></div>
+      <ul>
+        <li><b>Padrão de conector:</b> toda integração implementa a mesma interface (autenticar, importar, mapear, sincronizar, registrar execução) -- nunca um conector ad-hoc fora do Hub.</li>
+        <li><b>Mecanismos suportados:</b> API/webhooks (preferencial, tempo real), polling (quando o sistema externo não oferece webhook), importação de arquivo estruturado (ex.: exportação do MS Project), filas para processamento assíncrono.</li>
+        <li><b>Idempotência e retry:</b> toda sincronização é idempotente por design -- reprocessar o mesmo evento nunca duplica dado.</li>
+        <li><b>Erros:</b> toda falha de sincronização é registrada com contexto suficiente para reprocessamento manual, nunca falha silenciosa.</li>
+        <li><b>Credenciais:</b> armazenadas por organização, nunca compartilhadas entre tenants, com rotação suportada.</li>
+        <li><b>Escrita de retorno:</b> suportada apenas quando o conector declarar explicitamente essa capacidade -- o padrão é leitura/referência, escrita é a exceção justificada.</li>
+        <li><b>Limite de responsabilidade:</b> o Hub move e mapeia dado; nunca toma decisão sobre ele.</li>
+      </ul>
+    </section>
+
+    <section id="s13">
+      <div class="section-head"><span class="section-num">13</span><h2>Document Intelligence Architecture</h2></div>
+      <div class="layer-tags"><span class="chip referencia">Arquitetura de Referência</span></div>
+      <p>Referência de documento (nunca cópia do arquivo além de cache de contexto necessário), metadados
+        (tipo, classificação, origem oficial), versão e comparação de versões, vínculo com organização,
+        portfólio, programa, projeto, risco, decisão e indicador. Capacidades de IA: extração de prazos,
+        valores, obrigações e riscos de dentro do documento; identificação de documentos vencidos ou
+        desatualizados; acompanhamento de aprovações pendentes; busca por conteúdo e contexto; resumo por IA.
+        <b>Limite explícito:</b> nunca um GED completo -- armazenamento, versionamento de arquivo bruto e
+        controle de acesso a nível de arquivo continuam em SharePoint/OneDrive/Drive/GED existente.</p>
+    </section>
+
+    <section id="s14">
+      <div class="section-head"><span class="section-num">14</span><h2>Process Intelligence Architecture</h2></div>
+      <div class="layer-tags"><span class="chip referencia">Arquitetura de Referência</span></div>
+      <p>Referência a modelos BPMN existentes (nunca um modelador próprio), identificação de processo, versão,
+        etapas, responsáveis, SLAs; acompanhamento de instância (status, eventos, gargalos, atrasos, exceções,
+        dependências); correlação com projetos, custos, riscos, entregas, documentos e decisões; recomendação
+        de intervenção quando um desvio é detectado. <b>Limite explícito:</b> a execução completa do processo
+        permanece em Bizagi, Camunda ou motor equivalente -- a STRATECH interpreta, nunca executa.</p>
+    </section>
+
+    <section id="s15">
+      <div class="section-head"><span class="section-num">15</span><h2>Event and Orchestration Architecture</h2></div>
+      <div class="layer-tags"><span class="chip referencia">Arquitetura de Referência</span></div>
+      <p>Taxonomia de eventos por domínio (Seção 6 lista os principais produtores/consumidores). Toda regra e
+        workflow é declarativo, versionado, e sempre auditável. Human-in-the-loop obrigatório para qualquer
+        ação que: modifique dado em sistema externo, gere custo, ou represente uma decisão de negócio --
+        automação plena é reservada a ações reversíveis e de baixo risco (ex.: notificação, recálculo de
+        indicador). Toda falha de workflow é compensável -- nunca deixa o sistema em estado inconsistente sem
+        rastro. Exemplo de fluxo completo (Reunião no Teams → ata interpretada → decisões/tarefas/riscos
+        extraídos → validação humana → sincronização com ClickUp/Planner → indicadores recalculados →
+        resumo executivo → notificação) é o caso de referência deste domínio.</p>
+    </section>
+
+    <section id="s16">
+      <div class="section-head"><span class="section-num">16</span><h2>Executive Cockpit Architecture</h2></div>
+      <div class="layer-tags"><span class="chip referencia">Arquitetura de Referência</span></div>
+      <p class="section-intro">Ver Cockpit Views Matrix (artefato complementar) para o detalhamento completo
+        perfil-a-perfil. Princípio central: nenhum cockpit é uma tela isolada com sua própria lógica -- todos
+        compõem a mesma base semântica (Domain Map, Seção 6), em profundidade e recorte diferentes.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Perfil</th><th>Foco da visão</th></tr></thead>
+          <tbody>
+            <tr><td>Acionista / Conselho</td><td>Aderência estratégica, exposição financeira, valor entregue, retorno, riscos corporativos, decisões críticas, cenários, confiança da informação</td></tr>
+            <tr><td>CEO / C-Level</td><td>Saúde de portfólios, investimentos, prioridades, capacidade, riscos, decisões pendentes, dependências críticas, recomendações executivas</td></tr>
+            <tr><td>Diretoria</td><td>Desempenho de programas, orçamento, entregas, desvios, gargalos, conflitos entre áreas, ações corretivas, previsões</td></tr>
+            <tr><td>PMO</td><td>Governança, priorização, qualidade dos dados, conformidade, capacidade, dependências, riscos consolidados, padrões</td></tr>
+            <tr><td>Gerentes de programa/projeto</td><td>Cronogramas, entregas, custos, riscos, impedimentos, ações, decisões, documentos, processos, atualizações das ferramentas integradas</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Todo indicador exibido carrega sua atualidade (quando o dado foi sincronizado pela última vez) e sua
+        proveniência (Seção 9) -- nenhuma visão executiva mostra número sem essa dupla rastreabilidade.</p>
+    </section>
+
+    <section id="s17">
+      <div class="section-head"><span class="section-num">17</span><h2>Security, Privacy and Compliance</h2></div>
+      <div class="layer-tags"><span class="chip permanente">Visão Permanente</span> <span class="chip referencia">Arquitetura de Referência</span></div>
+      <ul>
+        <li><b>Multi-tenancy e isolamento:</b> toda query nativa é escopada por organização por construção, nunca por convenção de código lembrada manualmente.</li>
+        <li><b>Menor privilégio:</b> nenhum papel tem acesso amplo por padrão -- permissão é concedida, nunca assumida.</li>
+        <li><b>Segredos e credenciais de integração:</b> nunca em texto plano, nunca expostos ao frontend (mesmo padrão de BFF já validado no RC-1).</li>
+        <li><b>Auditoria:</b> toda ação crítica (criação/edição/exclusão de entidade, concessão de papel, execução de Acelerador com ação subsequente) é registrada com autor, timestamp e contexto.</li>
+        <li><b>LGPD:</b> consentimento e classificação de dado sensível desde a concepção da entidade; exclusão lógica (nunca física, para preservar auditoria) com anonimização quando aplicável; política de retenção configurável por organização.</li>
+        <li><b>Acesso de terceiros:</b> atores externos (clientes, fornecedores, auditores) sempre com escopo explicitamente limitado -- nunca herdam permissão de organização por padrão.</li>
+        <li><b>IA segura:</b> nenhum dado enviado a um provider de LLM externo sem que a organização tenha configurado esse provider explicitamente (mesmo princípio do <code>LLM_PROVIDER</code> já existente no RC-1).</li>
+      </ul>
+      <div class="callout guard">
+        <b>Nota herdada do RC-1:</b> o Product Blueprint original (§8/§12) já registrava que nenhum dado pessoal
+        real deveria ser usado em qualquer piloto antes do gap de LGPD ser formalmente endereçado. Este
+        Blueprint adota essa mesma condição como princípio permanente -- não apenas para o RC-1, mas para
+        qualquer piloto ou cliente real da V2.
+      </div>
+    </section>
+
+    <section id="s18">
+      <div class="section-head"><span class="section-num">18</span><h2>Non-Functional Requirements</h2></div>
+      <div class="layer-tags"><span class="chip referencia">Arquitetura de Referência</span></div>
+      <p>Metas de princípio, não números de SLA fabricados sem infraestrutura real que os sustente (mesma
+        disciplina honesta já aplicada nos runbooks do RC-1):</p>
+      <ul>
+        <li><b>Disponibilidade/Confiabilidade:</b> arquitetura preparada para múltiplas organizações sem que a falha de uma afete as demais (isolamento por tenant).</li>
+        <li><b>Desempenho/Escalabilidade:</b> nenhuma query nativa sem filtro de organização; agregações de portfólio preparadas para paginação desde o desenho (aprendizado direto de <code>PRI-005</code> do RC-1).</li>
+        <li><b>Auditabilidade/Observabilidade:</b> todo evento relevante é observável; nenhuma ação crítica sem rastro (Seção 17).</li>
+        <li><b>Manutenibilidade/Portabilidade:</b> nenhum domínio depende de detalhes de implementação de outro (Seção 6) -- trocar um banco ou provider de IA não deve exigir tocar em mais de uma camada.</li>
+        <li><b>Recuperação/Continuidade:</b> toda migração de dado é reversível e auditável (Seção 19); backup/restore segue a mesma disciplina já estabelecida em <code>PRI-008</code> do RC-1, estendida ao novo schema multi-tenant.</li>
+      </ul>
+    </section>
+
+    <section id="s19">
+      <div class="section-head"><span class="section-num">19</span><h2>Migration Strategy</h2></div>
+      <div class="layer-tags"><span class="chip transicao">Arquitetura de Transição</span></div>
+      <ul>
+        <li><b>Preservação do RC-1:</b> a branch <code>claude/stratech-permanent-principles-yjnm74</code> e todos os artefatos sob <code>docs/product/release-candidate/</code> permanecem intocados -- nenhum arquivo de baseline é editado por este programa.</li>
+        <li><b>Abertura da V2:</b> documentação em <code>docs/product/stratech-v2/</code>, mesma branch por ora (decisão do Founder); branch dedicada a ser criada quando a implementação de código começar (Release 0.1).</li>
+        <li><b>Migrations:</b> Release 0.1 introduz o primeiro schema relacional real via Alembic (não mais <code>Base.metadata.create_all()</code>) -- toda migração de schema versionada e reversível desde o primeiro commit de código da V2.</li>
+        <li><b>Migração de <code>analysis_records</code>:</b> um Projeto novo é criado para cada <code>project_name</code> distinto encontrado no histórico; o valor textual original é preservado como campo de auditoria (<code>legacy_project_name</code>); a origem da migração é registrada; nenhuma fusão automática por similaridade textual; um mecanismo de reconciliação administrativa (unir dois projetos que na verdade são o mesmo) fica preparado na arquitetura desde já, mesmo que sua UI só chegue depois do Release 0.1.</li>
+        <li><b>Rollback:</b> a migração roda contra uma cópia/backup do banco do RC-1, nunca em produção sem backup validado primeiro (mesma disciplina de <code>PRI-008</code>).</li>
+        <li><b>Validação:</b> todo registro migrado deve ser contável e comparável 1:1 contra a contagem original de <code>analysis_records</code> antes da migração ser considerada concluída.</li>
+      </ul>
+    </section>
+
+    <section id="s20">
+      <div class="section-head"><span class="section-num">20</span><h2>Release Roadmap</h2></div>
+      <div class="layer-tags"><span class="chip transicao">Arquitetura de Transição</span> <span class="chip implementacao">Implementação</span></div>
+      <p class="section-intro">Detalhamento completo (objetivo, escopo, fora de escopo, dependências, riscos,
+        critérios de aceite, evidências esperadas) está no artefato complementar
+        <code>Release-Roadmap-0.1-to-0.5.html</code>. Resumo aqui:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Release</th><th>Nome</th><th>Entrega central</th></tr></thead>
+          <tbody>
+            <tr><td>0.1</td><td>Enterprise Foundation</td><td>Organização, usuário individual, RBAC (4 papéis), Projeto como entidade real, migração, auditoria básica</td></tr>
+            <tr><td>0.2</td><td>Portfolio & Governance Foundation</td><td>Portfólio, programa, equipes, convites, stakeholders, atores externos, RBAC completo</td></tr>
+            <tr><td>0.3</td><td>AI Foundation</td><td>Primeiro framework de Aceleradores sobre entidades reais, evidência, confiança, validação humana</td></tr>
+            <tr><td>0.4</td><td>Integration Hub</td><td>Arquitetura de conectores + 1 conector de referência</td></tr>
+            <tr><td>0.5</td><td>Event Orchestration</td><td>Eventos, regras, workflows, human-in-the-loop</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s21">
+      <div class="section-head"><span class="section-num">21</span><h2>Decision Log (ADRs)</h2></div>
+      <div class="layer-tags"><span class="chip referencia">Arquitetura de Referência</span></div>
+      <p class="section-intro">As decisões mais estruturais estão registradas aqui como ADR; o log completo,
+        incluindo decisões menores, está no artefato complementar
+        <code>Architecture-Decision-Log.html</code>.</p>
+
+      <div class="adr">
+        <div class="adr-id">ADR-V2-001</div>
+        <h4>Evolução incremental por releases, não reescrita total</h4>
+        <dl>
+          <dt>Contexto</dt><dd>O RC-1 carece de fundação Enterprise, mas está funcional, testado e sem defeito conhecido.</dd>
+          <dt>Alternativas</dt><dd>(a) Reescrever a plataforma do zero; (b) Fracionar em releases incrementais preservando o RC-1.</dd>
+          <dt>Decisão</dt><dd>(b) -- releases incrementais 0.1 a 0.5, cada uma verificável isoladamente.</dd>
+          <dt>Justificativa</dt><dd>Reescrita total descartaria 8 Capabilities funcionais e testadas sem necessidade técnica real -- o problema é ausência de fundação, não qualidade do existente.</dd>
+          <dt>Consequências</dt><dd>Entrega mais lenta que um "big bang", mas cada incremento é demonstrável e reduz risco de regressão.</dd>
+        </dl>
+      </div>
+
+      <div class="adr">
+        <div class="adr-id">ADR-V2-002</div>
+        <h4>Projeto como entidade real desde o Release 0.1</h4>
+        <dl>
+          <dt>Contexto</dt><dd><code>project_name</code> é hoje um campo de texto livre em <code>analysis_records</code>.</dd>
+          <dt>Alternativas</dt><dd>(a) Manter texto livre e adicionar metadado por fora; (b) Promover Projeto a entidade relacional desde já.</dd>
+          <dt>Decisão</dt><dd>(b) -- é o pré-requisito de tudo mais na hierarquia Enterprise (portfólio, custo, risco como entidades).</dd>
+          <dt>Justificativa</dt><dd>Adiar isso obrigaria retrabalho em toda release subsequente.</dd>
+          <dt>Consequências</dt><dd>Exige a estratégia de migração da Seção 19 já no Release 0.1, adicionando escopo a essa primeira entrega -- aceito conscientemente.</dd>
+        </dl>
+      </div>
+
+      <div class="adr">
+        <div class="adr-id">ADR-V2-003</div>
+        <h4>Um projeto por <code>project_name</code> distinto na migração, sem fusão automática</h4>
+        <dl>
+          <dt>Contexto</dt><dd>Nomes de projeto no RC-1 podem ter variações (grafia, espaçamento) que na verdade se referem ao mesmo projeto real.</dd>
+          <dt>Alternativas</dt><dd>(a) Fundir automaticamente por similaridade textual; (b) Criar um projeto por nome distinto, permitir reconciliação manual depois.</dd>
+          <dt>Decisão</dt><dd>(b) -- decisão explícita do Founder.</dd>
+          <dt>Justificativa</dt><dd>Fusão automática por similaridade já foi rejeitada como princípio em Organizational Intelligence (RC-1) -- risco de juntar dois projetos genuinamente diferentes.</dd>
+          <dt>Consequências</dt><dd>Pode gerar projetos duplicados após a migração; mitigado por um mecanismo futuro de reconciliação administrativa, preparado na arquitetura desde já.</dd>
+        </dl>
+      </div>
+
+      <div class="adr">
+        <div class="adr-id">ADR-V2-004</div>
+        <h4>4 papéis no Release 0.1, não os 14 do RBAC de referência</h4>
+        <dl>
+          <dt>Contexto</dt><dd>O RBAC de referência (Seção 8) tem 14 papéis; implementar todos de uma vez adicionaria complexidade não validada.</dd>
+          <dt>Alternativas</dt><dd>(a) Implementar os 14 papéis de uma vez; (b) Validar o motor de permissões com 4 papéis essenciais primeiro.</dd>
+          <dt>Decisão</dt><dd>(b) -- Organization Admin, PMO, Project Manager, Viewer.</dd>
+          <dt>Justificativa</dt><dd>Cobrem os 3 escopos de acesso que já existem conceitualmente no RC-1 mais um nível somente-leitura, suficiente para provar que o motor de permissões nega corretamente.</dd>
+          <dt>Consequências</dt><dd>Atores externos e papéis mais granulares ficam para o Release 0.2 -- aceito, documentado como escopo futuro, não esquecido.</dd>
+        </dl>
+      </div>
+
+      <div class="adr">
+        <div class="adr-id">ADR-V2-005</div>
+        <h4>Document Intelligence e Process Intelligence como camadas de referência, não GED/BPM nativos</h4>
+        <dl>
+          <dt>Contexto</dt><dd>Empresas já usam SharePoint/Drive/GED e Bizagi/Camunda/BPM para essas funções.</dd>
+          <dt>Alternativas</dt><dd>(a) Construir um GED e um motor BPMN próprios; (b) Referenciar e interpretar, nunca substituir.</dd>
+          <dt>Decisão</dt><dd>(b) -- princípio de não competição (Seção 4 da diretriz do Founder).</dd>
+          <dt>Justificativa</dt><dd>Construir (a) duplicaria investimento já feito pelo cliente em ferramentas maduras e desviaria o diferencial da STRATECH (inteligência/governança) para execução genérica.</dd>
+          <dt>Consequências</dt><dd>A STRATECH depende da qualidade da integração com esses sistemas externos para entregar valor nesses dois domínios -- risco aceito, mitigado pelo Integration Hub (Seção 12).</dd>
+        </dl>
+      </div>
+
+      <div class="adr">
+        <div class="adr-id">ADR-V2-006</div>
+        <h4>Documentação da V2 na mesma branch, diretório separado, por ora</h4>
+        <dl>
+          <dt>Contexto</dt><dd>Meu ambiente de execução está restrito a uma única branch salvo autorização explícita; a Baseline Configuration do RC-1 exige que seus artefatos nunca sejam alterados diretamente.</dd>
+          <dt>Alternativas</dt><dd>(a) Nova branch já para a documentação; (b) Mesma branch, diretório <code>docs/product/stratech-v2/</code> isolado, nova branch só quando código real começar.</dd>
+          <dt>Decisão</dt><dd>(b) -- aprovado explicitamente pelo Founder.</dd>
+          <dt>Justificativa</dt><dd>Documentação pura não altera nenhum arquivo do RC-1 -- risco mínimo em manter na mesma branch; a mecânica de branch importa de verdade quando há código e schema em jogo.</dd>
+          <dt>Consequências</dt><dd>Revisão conjunta da estratégia de branch fica agendada para o início do Release 0.1 (código), não para agora.</dd>
+        </dl>
+      </div>
+
+      <div class="adr">
+        <div class="adr-id">ADR-V2-007</div>
+        <h4>Toda ação crítica de IA exige validação humana por padrão</h4>
+        <dl>
+          <dt>Contexto</dt><dd>O RC-1 já proibiu interpretação especulativa de IA (Organizational Intelligence Discovery); a V2 introduz orquestração que pode agir em sistemas externos.</dd>
+          <dt>Alternativas</dt><dd>(a) Permitir automação plena de aceleradores de alta confiança; (b) Exigir validação humana para toda ação crítica, independentemente da confiança reportada.</dd>
+          <dt>Decisão</dt><dd>(b).</dd>
+          <dt>Justificativa</dt><dd>Confiança reportada por um modelo de IA não é garantia de correção; ação em sistema externo (ex.: criar tarefa no ClickUp) tem custo de reversão maior que uma recomendação apenas exibida.</dd>
+          <dt>Consequências</dt><dd>Reduz a autonomia percebida da IA no curto prazo -- aceito como princípio permanente (Seção 3, Human Accountability), não uma limitação temporária.</dd>
+        </dl>
+      </div>
+    </section>
+
+    <section id="s22">
+      <div class="section-head"><span class="section-num">22</span><h2>Open Questions</h2></div>
+      <div class="layer-tags"><span class="chip permanente">Decisão do Founder</span></div>
+      <p class="section-intro">Apenas questões que genuinamente dependem de decisão do Founder -- tudo que
+        podia ser resolvido por recomendação técnica fundamentada já foi decidido nas seções acima e registrado
+        como ADR.</p>
+      <ol>
+        <li><b>SSO/federação (SAML/OIDC):</b> nenhum cliente-piloto foi ainda identificado com esse requisito. Proponho deixar fora do escopo até que um piloto real o exija -- confirmar.</li>
+        <li><b>Banco de dados canônico da V2:</b> o RC-1 suporta SQLite (dev/demo) e Postgres (produção, via <code>docker-compose.yml</code> + Alembic). Recomendo Postgres como único alvo da V2 desde o Release 0.1 (schema relacional multi-tenant exige integridade referencial real) -- confirmar se concorda ou se deve continuar suportando SQLite também para desenvolvimento local.</li>
+        <li><b>Branch da Release 0.1:</b> já acordado que será revisada conjuntamente quando a implementação de código começar -- não é uma pergunta em aberto agora, apenas um lembrete de que ainda precisa ser respondida antes do primeiro commit de schema.</li>
+      </ol>
+    </section>
+
+    <footer>
+      <span>Stratech — STRATECH V2 · Enterprise Foundation</span>
+      <span>Enterprise Architecture Blueprint v2.0 — Constituição Arquitetural</span>
+      <span>2026-07-16</span>
+    </footer>
+  </main>
+</div>

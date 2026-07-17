@@ -1,0 +1,302 @@
+<title>TIP-011 — Executive Memory</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --fato:#0f6b5c; --fato-bg:#e2efe9;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --plan:#2f5f9e; --plan-bg:#e2ebf6;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --fato:#4fd6b8; --fato-bg:#173029;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --plan:#7fb4f2; --plan-bg:#1a2c42;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --fato:#4fd6b8; --fato-bg:#173029;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --plan:#7fb4f2; --plan-bg:#1a2c42;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:270px minmax(0,1fr); max-width:1340px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:4px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:40px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.7rem,4vw,2.5rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:70ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:52px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink);}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.3rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:70ch;}
+  h3{font-size:1.02rem; margin:26px 0 8px; font-weight:600;}
+  p{margin:0 0 14px; max-width:74ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:72ch;}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout.fato{border-left-color:var(--fato);}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.fato{color:var(--fato); background:var(--fato-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  .chip.plan{color:var(--plan); background:var(--plan-bg);}
+  .value-card{border:1px solid var(--border); border-radius:8px; padding:18px 22px; margin-bottom:14px; background:var(--surface);}
+  .value-card .value-q{font-family: ui-monospace, monospace; font-size:11px; text-transform:uppercase; letter-spacing:.03em; color:var(--accent); margin-bottom:8px;}
+  .value-card .value-a{margin:0;}
+  .slice{border:1px solid var(--border); border-radius:8px; padding:16px 20px; margin-bottom:16px; background:var(--surface);}
+  .slice h4{margin:0 0 4px; font-size:1rem;}
+  .slice .slice-tag{font-family: ui-monospace, monospace; font-size:10px; text-transform:uppercase; color:var(--fato); margin-bottom:8px; display:block;}
+  .slice .slice-q{font-family: ui-monospace, monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.02em; color:var(--ink-dim); margin:10px 0 2px;}
+  .budget-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:12px; margin:16px 0 24px;}
+  .budget-card{border:1px solid var(--border); border-radius:8px; padding:14px 16px; background:var(--surface);}
+  .budget-card .blabel{font-family: ui-monospace, monospace; font-size:10px; text-transform:uppercase; letter-spacing:.03em; color:var(--accent); margin-bottom:6px;}
+  .budget-card .bval{font-weight:700; margin-bottom:4px;}
+  .budget-card .bnote{color:var(--ink-dim); font-size:.85rem;}
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">TIP-011<br>Executive Memory</div>
+    <nav>
+      <a href="#s0">00 Guardian Check</a>
+      <a href="#s1">01 Entrega de Valor</a>
+      <a href="#s2">02 Redução do esforço de reconstrução de contexto</a>
+      <a href="#s3">03 Princípios Preservados</a>
+      <a href="#s4">04 Incrementos de Valor ao Executivo</a>
+      <a href="#s5">05 Tarefas Técnicas</a>
+      <a href="#s6">06 Ordem de Execução</a>
+      <a href="#s7">07 Critérios de Conclusão</a>
+      <a href="#s8">08 Architecture Budget</a>
+      <a href="#s9">09 Platform Readiness Backlog</a>
+      <a href="#s10">10 Próximo Gate</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">Technical Implementation Plan · STRATECH V1 — Product Core (fase final)</div>
+      <h1 class="title">TIP-011 — Executive Memory</h1>
+      <p class="subtitle">Decompõe FS-010 e a Architecture Review (ambas aprovadas) em tarefas técnicas
+        executáveis, organizadas em Incrementos de Valor ao Executivo. Duas práticas permanentes novas do
+        Founder/CTO aplicadas a partir desta etapa: <b>Architecture Budget</b> (Seção 8) e <b>Platform
+        Readiness Backlog</b> (Seção 9, documento único e vivo). Nenhuma Feature nova, nenhuma ampliação de
+        arquitetura, nenhuma mudança do escopo já aprovado.</p>
+      <div class="meta-row">
+        <span><b>Origem</b> FS-010 + Architecture Review, ambas aprovadas</span>
+        <span><b>Data</b> 2026-07-14</span>
+        <span><b>Status</b> Em elaboração — aguardando aprovação do Founder antes da implementação</span>
+      </div>
+    </div>
+
+    <section id="s0">
+      <div class="section-head"><span class="section-num">00</span><h2>Guardian Check</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Verificação</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr><td>Conflito com Strategy/Constitution/Vision/Decision Framework?</td><td>SEM CONFLITO — nenhum documento normativo ainda existe em <code>docs/strategy/</code>.</td></tr>
+            <tr><td>Este plano altera o escopo já aprovado em FS-010/Architecture Review?</td><td>NÃO — reorganiza a ordem de construção por valor executivo, não o conteúdo. Escopo confirmado: Executive Brief (Workspace) apenas.</td></tr>
+            <tr><td>Cria alguma Feature nova ou amplia arquitetura?</td><td>NÃO, por instrução explícita do Founder — apenas organização da implementação.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Entrega de Valor</h2></div>
+      <div class="value-card">
+        <p class="value-q">1. Em qual momento o usuário começa a perceber valor?</p>
+        <p class="value-a">Assim que "Mudou" e "Persistiu" existirem no Executive Brief -- não é preciso
+          esperar "Reapareceu" nem a regra de seleção completa. É o menor incremento que já responde, com dado
+          real, à pergunta central da Discovery: "o que o executivo precisa lembrar antes de decidir?".</p>
+      </div>
+      <div class="value-card">
+        <p class="value-q">2. Qual será a primeira funcionalidade utilizável?</p>
+        <p class="value-a">O Executive Brief já mostrando "Mudou: X → Y" ou "Persiste em X (Nª análise
+          seguida)" quando aplicável -- funciona sozinho, de ponta a ponta (dado já existente →
+          <code>buildStatusInsight</code> → chip), sem depender do sinal de risco.</p>
+      </div>
+      <div class="value-card">
+        <p class="value-q">3. Como organizar para entregar valor incremental mantendo a arquitetura completa?</p>
+        <p class="value-a">2 incrementos (Seção 4), cada um demonstrável sozinho -- mesma disciplina de toda
+          Capability anterior. Ao final do Incremento 2, o escopo integral da FS-010 está entregue, incluindo
+          a One Memory Insight Rule aplicada aos 3 signals.</p>
+      </div>
+      <div class="value-card">
+        <p class="value-q">4. Qual é o caminho mais curto entre abrir a STRATECH e entender um projeto com todo o contexto necessário?</p>
+        <p class="value-a">Hoje: para saber se um status já mudou ou um risco já reapareceu, o executivo abre
+          o Histórico completo e compara manualmente. Depois desta Feature: o mesmo Executive Brief que ele já
+          lê hoje já chega com esse fato, sem nenhum passo adicional.</p>
+      </div>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>Redução do esforço de reconstrução de contexto</h2></div>
+      <div class="callout fato">
+        <b>TTD e Return Rate (RR) já são princípios oficiais</b> (TIP-008 §08) -- esta seção os aplica a
+        Executive Memory, cujo efeito é mais qualitativo que os das Capabilities anteriores: ela não organiza
+        um elo do Executive Loop, ela reduz o <i>esforço de compreensão</i> dentro do elo "Compreensão" já
+        existente (Architecture Review §2/§6).<br/><br/>
+        <b>Efeito esperado:</b> nos casos em que um Insight real existe, elimina o custo de abrir o Histórico
+        completo e comparar manualmente. Nos casos de silêncio (a maioria, por desenho), nenhum efeito, nunca
+        um custo adicional (Architecture Review §6, pergunta 5). Nenhuma métrica implementada, nenhuma
+        telemetria criada nesta entrega.
+      </div>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>Princípios Preservados</h2></div>
+      <ul>
+        <li><b>Executive Behavior ("Lembrar")</b> -- FS-010 §02; nenhuma tarefa introduz uma ação executada dentro do próprio Insight.</li>
+        <li><b>One Memory Insight Rule</b> -- Architecture Review §3.3; <code>selectPrimaryInsight()</code> é a única implementação da regra de seleção, nunca duplicada por superfície.</li>
+        <li><b>Platform Integrity Assessment</b> -- Architecture Review §6; nenhuma tarefa introduz competição de responsabilidade com outra Capability.</li>
+        <li><b>Executive Trust</b> -- nenhuma tarefa produz texto fabricado, narrativa ou interpretação.</li>
+        <li><b>Progressive Context / Progressive Purpose</b> -- toda tarefa aprofunda só o Executive Brief, nunca repete Dashboard nem antecipa outra Capability.</li>
+        <li><b>Decision Context Preservation</b> -- cada Insight permanece o menor fato necessário (um delta ou uma contagem).</li>
+        <li><b>Executive Responsibility Separation</b> -- nenhuma tarefa introduz uma pergunta executiva já respondida por outra Capability.</li>
+        <li><b>Arquitetura evolutiva / máxima reutilização</b> -- toda tarefa reaproveita uma rota/hook/composição já real; zero rota nova, zero serviço novo (escopo decidido na Architecture Review §4).</li>
+      </ul>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>Incrementos de Valor ao Executivo</h2></div>
+      <p class="section-intro">Cada incremento responde as 3 perguntas obrigatórias (TIP-009 §08), além de
+        continuar demonstrável, gerador de valor real e independente da conclusão da Capability inteira.</p>
+
+      <div class="slice">
+        <span class="slice-tag">Incremento 1 -- demonstrável isoladamente</span>
+        <h4>Executive Memory Insight de Status: Mudou e Persistiu</h4>
+        <p class="slice-q">Qual valor entrega</p>
+        <p>Primeira vez que o Executive Brief lembra o executivo de uma mudança ou de uma estagnação real de
+          status, sem ele precisar reconstruir isso manualmente no Histórico completo.</p>
+        <p class="slice-q">Qual comportamento executivo habilita</p>
+        <p>Lembrar (FS-010 §02) -- primeira aplicação concreta, sobre o sinal de Status.</p>
+        <p class="slice-q">Qual parte da plataforma passa a reutilizar</p>
+        <p>Nenhuma ainda -- nascimento do módulo (<code>memory-insights.ts</code>), consumindo dado que o
+          Executive Brief já busca, sem nenhum consumidor além dele.</p>
+      </div>
+
+      <div class="slice">
+        <span class="slice-tag">Incremento 2 -- reaproveita 100% do Incremento 1</span>
+        <h4>Executive Memory Insight de Risco: Reapareceu, e a One Memory Insight Rule completa</h4>
+        <p class="slice-q">Qual valor entrega</p>
+        <p>Cobertura dos 3 Memory Signals, com a garantia arquitetural de que o executivo nunca vê mais de um
+          Insight ao mesmo tempo, mesmo quando mais de um seria tecnicamente verdadeiro.</p>
+        <p class="slice-q">Qual comportamento executivo habilita</p>
+        <p>Lembrar, agora completo -- nenhuma lacuna entre os 3 Memory Signals aprovados na UX Flow.</p>
+        <p class="slice-q">Qual parte da plataforma passa a reutilizar</p>
+        <p><code>selectPrimaryInsight()</code> nasce como a única implementação da hierarquia de seleção
+          (Architecture Review §3.3) -- reutilizável por qualquer superfície futura que também precise
+          escolher entre candidatos de memória.</p>
+      </div>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Tarefas Técnicas</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Tarefa</th><th>Incremento</th><th>Detalhe</th></tr></thead>
+          <tbody>
+            <tr><td>T1</td><td><code>web/lib/executive-memory/memory-insights.ts</code> -- tipos + <code>buildStatusInsight</code></td><td>1</td><td>FS-010 §3.3 -- testes unitários (1ª análise → null; mudou; persiste 2x/3x; saudável repetido → null)</td></tr>
+            <tr><td>T2</td><td>Componente de chip de Insight (Executive UI Pattern)</td><td>1</td><td>FS-010 §3.5 -- texto verbatim, nunca interativo, tom neutro</td></tr>
+            <tr><td>T3</td><td>Executive Brief -- aumentar <code>limit</code> da busca de status (1 → 5), computar e exibir Insight</td><td>1</td><td>FS-010 §3.1 -- zero rota nova</td></tr>
+            <tr><td>T4</td><td>E2E -- Incremento 1</td><td>1</td><td>Fluxo completo com múltiplas análises de status, backend real em Demo Mode</td></tr>
+            <tr><td>T5</td><td>Estender <code>memory-insights.ts</code> -- <code>buildRiskRecurrenceInsight</code></td><td>2</td><td>FS-010 §3.3 -- testes unitários (1ª ocorrência → null; 2ª+ → "reapareceu" com contagem)</td></tr>
+            <tr><td>T6</td><td><code>selectPrimaryInsight()</code> -- hierarquia Persistiu &gt; Reapareceu &gt; Mudou</td><td>2</td><td>Architecture Review §3.3 -- testes unitários (múltiplos candidatos → escolhe o de maior prioridade; nenhum candidato → null)</td></tr>
+            <tr><td>T7</td><td>Executive Brief -- leitura de risco (rota já existente) para "Reapareceu"; aplicar <code>selectPrimaryInsight</code></td><td>2</td><td>FS-010 §3.1/§3.6 -- zero rota nova</td></tr>
+            <tr><td>T8</td><td>E2E -- Incremento 2</td><td>2</td><td>Os 3 Memory Signals + a regra de seleção, múltiplos projetos</td></tr>
+            <tr><td>T9</td><td>Verificação real (Demo Mode)</td><td>1-2</td><td>Ao menos uma passada completa contra o backend real</td></tr>
+            <tr><td>T10</td><td>Documentação e evidência</td><td>1-2</td><td>Executive Progress Report + Visual Fidelity Report</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>Ordem de Execução</h2></div>
+      <p>T1 → T2 → T3 → T4 (Incremento 1, sequencial) → T5 → T6 → T7 → T8 (Incremento 2, T5 e T6 podem ser
+        paralelas entre si) → T9 → T10. Nenhuma tarefa de um incremento posterior bloqueia a conclusão e
+        demonstração do incremento anterior.</p>
+    </section>
+
+    <section id="s7">
+      <div class="section-head"><span class="section-num">07</span><h2>Critérios de Conclusão</h2></div>
+      <ul>
+        <li>Todos os critérios de aceite da FS-010 §14 cumpridos</li>
+        <li>Cada incremento (Seção 4) demonstrável isoladamente durante a implementação</li>
+        <li>Zero regressão nos testes de backend -- nenhum arquivo de backend tocado</li>
+        <li>Zero regressão nos testes de frontend já existentes</li>
+        <li>Nenhuma refatoração do Executive Brief além do campo de Insight</li>
+        <li>One Memory Insight Rule respeitada: nunca mais de um Insight renderizado por contexto (verificável por revisão de código e teste unitário de <code>selectPrimaryInsight</code>)</li>
+      </ul>
+    </section>
+
+    <section id="s8">
+      <div class="section-head"><span class="section-num">08</span><h2>Architecture Budget</h2></div>
+      <p class="section-intro">Primeira aplicação da prática permanente instituída pelo Founder/CTO: avaliação
+        qualitativa do custo arquitetural desta entrega, para acompanhamento contínuo do custo da plataforma.</p>
+      <div class="budget-grid">
+        <div class="budget-card"><div class="blabel">Complexidade</div><div class="bval">Baixa</div><div class="bnote">2 funções puras + 1 função de seleção + 1 componente mínimo, sem estado próprio</div></div>
+        <div class="budget-card"><div class="blabel">Acoplamento</div><div class="bval">Baixo</div><div class="bnote">Depende só de tipos já existentes (<code>AnalysisListItem</code>, <code>healthStatusLabel</code>); nenhuma Capability existente passa a depender de Executive Memory</div></div>
+        <div class="budget-card"><div class="blabel">Leituras agregadas</div><div class="bval">Zero novas</div><div class="bnote">Reuso de rotas existentes; só o parâmetro <code>limit</code> ajustado</div></div>
+        <div class="budget-card"><div class="blabel">Componentes novos</div><div class="bval">1</div><div class="bnote">Chip de Insight (Executive UI Pattern)</div></div>
+        <div class="budget-card"><div class="blabel">Endpoints novos</div><div class="bval">0</div><div class="bnote">Nenhuma rota de API criada ou alterada</div></div>
+        <div class="budget-card"><div class="blabel">Impacto em performance</div><div class="bval">Mínimo</div><div class="bnote">Aumento de <code>limit</code> de 1 para ~5 numa consulta já paginada</div></div>
+        <div class="budget-card"><div class="blabel">Impacto em escalabilidade</div><div class="bval">Nenhum no escopo atual</div><div class="bnote">Ver Platform Readiness Backlog (Seção 9) para a dependência futura registrada</div></div>
+        <div class="budget-card"><div class="blabel">Dívida técnica</div><div class="bval">Nenhuma nova</div><div class="bnote">A única dependência conhecida (leitura agregada para escala de portfólio) já está registrada como item de backlog, não como dívida silenciosa</div></div>
+      </div>
+    </section>
+
+    <section id="s9">
+      <div class="section-head"><span class="section-num">09</span><h2>Platform Readiness Backlog</h2></div>
+      <p class="section-intro">Por instrução do Founder/CTO, todo Platform Readiness Item passa a integrar um
+        backlog único e vivo -- <code>docs/product/platform-readiness/Platform-Readiness-Backlog.html</code>
+        -- nunca disperso por Capability. Este TIP não acrescenta item novo além do já registrado na
+        Architecture Review (PRI-001, escalabilidade da leitura por projeto se estendida a Decision
+        Center/Portfolio Intelligence) -- nenhuma implementação de mitigação nesta etapa.</p>
+    </section>
+
+    <section id="s10">
+      <div class="section-head"><span class="section-num">10</span><h2>Próximo Gate</h2></div>
+      <p>Plano concluído. <b>Implementação não autorizada nesta etapa</b> -- por instrução explícita do
+        Founder, aguardando aprovação antes de iniciar o Incremento 1.</p>
+    </section>
+
+    <footer>
+      <span>Stratech — TIP-011</span>
+      <span>Executive Memory</span>
+      <span>2026-07-14</span>
+    </footer>
+  </main>
+</div>

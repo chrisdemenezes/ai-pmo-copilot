@@ -19,7 +19,18 @@ const workspaceScenario = {
   analyze: "data",
   analyzeRisk: "data",
   analyzeMeeting: "data",
+  actionItems: "data",
+  latestRisks: "data",
 };
+
+// Action Intelligence buckets (atrasado / vence em breve / ...) are computed
+// against the real "today" at render time -- fixture due dates must be
+// relative to the run date, never hardcoded, or the E2E assertions rot.
+function daysFromNow(days) {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return date.toISOString().slice(0, 10);
+}
 
 let nextAnalysisId = 1000;
 
@@ -98,7 +109,7 @@ const ANALYSES = [
         structured: true,
         summary: "Reunião semanal de acompanhamento.",
         decisions: ["Adiar o go-live em 1 semana"],
-        action_items: [{ description: "Atualizar cronograma", owner: "Ana", due_date: "2026-07-15" }],
+        action_items: [{ description: "Atualizar cronograma", owner: "Ana", due_date: daysFromNow(2) }],
         issues: [],
         dependencies: ["Aprovação do cliente"],
       },
@@ -120,6 +131,53 @@ const ANALYSES = [
       },
     },
   },
+  // Older Aurora meeting (TIP-008): keeps id 202 as the latest meeting the
+  // Comunicação brief reads, while giving GET /api/action-items an overdue
+  // item and a no-deadline item to bucket.
+  {
+    id: 204,
+    kind: "meeting",
+    project_name: "Aurora",
+    created_at: "2026-07-05T10:00:00Z",
+    payload: {
+      agent: "meeting_intelligence",
+      project_name: "Aurora",
+      model_output: {
+        structured: true,
+        summary: "Reunião de alinhamento com o fornecedor.",
+        decisions: [],
+        action_items: [
+          { description: "Cobrar plano de contingência do fornecedor", owner: "Bruno", due_date: daysFromNow(-3) },
+          { description: "Documentar acordos da reunião", owner: null, due_date: null },
+        ],
+        issues: [],
+        dependencies: [],
+      },
+    },
+  },
+  // Meeting for a second project (TIP-008 Incremento 2): proves the
+  // portfolio "Ações" page aggregates across projects, and gives the
+  // encodeURIComponent chain a project name with "/" to exercise.
+  {
+    id: 302,
+    kind: "meeting",
+    project_name: "Implantacao SAP S/4HANA",
+    created_at: "2026-07-06T09:00:00Z",
+    payload: {
+      agent: "meeting_intelligence",
+      project_name: "Implantacao SAP S/4HANA",
+      model_output: {
+        structured: true,
+        summary: "Reunião de preparação do cutover.",
+        decisions: [],
+        action_items: [
+          { description: "Validar plano de cutover com o cliente", owner: "Carla", due_date: daysFromNow(1) },
+        ],
+        issues: [],
+        dependencies: [],
+      },
+    },
+  },
   {
     id: 301,
     kind: "status",
@@ -136,6 +194,51 @@ const ANALYSES = [
       },
     },
   },
+  // Executive Memory (TIP-011, Incremento 1) -- older status analysis for
+  // the same project, same attention-zone status as id 301: gives the
+  // Executive Brief 2 consecutive "yellow" analyses to compute a real
+  // "Persistiu" Memory Signal from, without touching WORKSPACE_SUMMARY/SAMPLE
+  // (both stay "yellow" -- no other spec's assertions depend on this list).
+  {
+    id: 300,
+    kind: "status",
+    project_name: "Implantacao SAP S/4HANA",
+    created_at: "2026-07-04T08:00:00Z",
+    payload: {
+      agent: "project_status",
+      project_name: "Implantacao SAP S/4HANA",
+      model_output: {
+        structured: true,
+        health_status: "yellow",
+        key_findings: ["Cronograma de testes ainda apertado"],
+        recommendations: ["Acompanhar de perto"],
+      },
+    },
+  },
+  // Executive Memory (TIP-011, Incremento 2) -- análise de risco mais antiga
+  // para Aurora, mesma descrição de atenção da já existente id 201: gera um
+  // "Reapareceu" real sem mexer no que /api/risks/latest devolve para Aurora
+  // (continua sendo a mais recente, id 201 -- Decision Center/Portfolio
+  // Intelligence continuam vendo exatamente o mesmo risco de atenção de
+  // sempre, mesmo texto/probabilidade/impacto). Data anterior a 201
+  // (2026-07-10) para nunca virar a "mais recente" em nenhuma leitura.
+  {
+    id: 205,
+    kind: "risk",
+    project_name: "Aurora",
+    created_at: "2026-07-03T09:00:00Z",
+    payload: {
+      agent: "risk_review",
+      project_name: "Aurora",
+      model_output: {
+        structured: true,
+        risks: [
+          { description: "Atraso na entrega", probability: "medium", impact: "high", mitigation: "Replanejar sprint" },
+        ],
+        escalation_recommendation: null,
+      },
+    },
+  },
 ];
 
 // TIP-005's /api/projects/analyze mutates SAMPLE/WORKSPACE_SUMMARY/ANALYSES
@@ -147,6 +250,13 @@ const PRISTINE_SAMPLE = JSON.parse(JSON.stringify(SAMPLE));
 const PRISTINE_WORKSPACE_SUMMARY = JSON.parse(JSON.stringify(WORKSPACE_SUMMARY));
 const PRISTINE_ANALYSES = JSON.parse(JSON.stringify(ANALYSES));
 const PRISTINE_NEXT_ANALYSIS_ID = nextAnalysisId;
+// Same cross-file leak risk as SAMPLE/WORKSPACE_SUMMARY/ANALYSES above: a
+// test that sets a workspaceScenario key to "unavailable"/"timeout" (e.g.
+// actions.spec.ts's error-boundary test) previously left it that way for
+// every test that ran after it in the same Playwright invocation, in any
+// spec file -- real hazard hit by dashboard.spec.ts's new KPI-link test
+// (TIP-008 Incremento 3) failing only when run after actions.spec.ts.
+const PRISTINE_WORKSPACE_SCENARIO = JSON.parse(JSON.stringify(workspaceScenario));
 
 function resetFixtures() {
   SAMPLE.length = 0;
@@ -159,6 +269,8 @@ function resetFixtures() {
   ANALYSES.push(...JSON.parse(JSON.stringify(PRISTINE_ANALYSES)));
 
   nextAnalysisId = PRISTINE_NEXT_ANALYSIS_ID;
+
+  Object.assign(workspaceScenario, JSON.parse(JSON.stringify(PRISTINE_WORKSPACE_SCENARIO)));
 }
 
 function send(res, status, body) {
@@ -245,6 +357,78 @@ const server = http.createServer((req, res) => {
       created_at,
     }));
     return send(res, 200, page);
+  }
+
+  // TIP-008 -- Action Intelligence. Mirrors GET /api/action-items
+  // (src/api/routes/intelligence.py): derived from the same meeting
+  // analyses, flattened newest-first, malformed items excluded -- never a
+  // separate store the real backend doesn't have.
+  if (url.pathname === "/api/action-items") {
+    if (applyScenario(res, "actionItems")) return;
+    const projectName = url.searchParams.get("project_name");
+    const meetings = ANALYSES.filter(
+      (a) => a.kind === "meeting" && (!projectName || a.project_name === projectName),
+    )
+      .slice()
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    const items = [];
+    for (const record of meetings) {
+      const modelOutput = record.payload?.model_output;
+      if (!modelOutput || modelOutput.structured !== true) continue;
+      for (const item of modelOutput.action_items ?? []) {
+        if (typeof item?.description !== "string") continue;
+        items.push({
+          project_name: record.project_name,
+          description: item.description,
+          owner: typeof item.owner === "string" ? item.owner : null,
+          due_date: typeof item.due_date === "string" ? item.due_date : null,
+          source_analysis_id: record.id,
+          source_created_at: record.created_at,
+        });
+      }
+    }
+    return send(res, 200, items);
+  }
+
+  // TIP-009 -- Decision Center. Mirrors GET /api/risks/latest
+  // (src/api/routes/intelligence.py): only the most recent risk analysis
+  // per project counts, same principle as latest_health_status.
+  if (url.pathname === "/api/risks/latest") {
+    if (applyScenario(res, "latestRisks")) return;
+    const projectName = url.searchParams.get("project_name");
+    const risksAnalyses = ANALYSES.filter(
+      (a) => a.kind === "risk" && (!projectName || a.project_name === projectName),
+    )
+      .slice()
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    const seenProjects = new Set();
+    const items = [];
+    for (const record of risksAnalyses) {
+      if (seenProjects.has(record.project_name)) continue;
+      const modelOutput = record.payload?.model_output;
+      if (!modelOutput || modelOutput.structured !== true) continue;
+      seenProjects.add(record.project_name);
+      const escalationRecommendation =
+        typeof modelOutput.escalation_recommendation === "string"
+          ? modelOutput.escalation_recommendation
+          : null;
+      for (const risk of modelOutput.risks ?? []) {
+        if (typeof risk?.description !== "string") continue;
+        items.push({
+          project_name: record.project_name,
+          description: risk.description,
+          probability: risk.probability ?? null,
+          impact: risk.impact ?? null,
+          mitigation: risk.mitigation ?? null,
+          escalation_recommendation: escalationRecommendation,
+          source_analysis_id: record.id,
+          source_created_at: record.created_at,
+        });
+      }
+    }
+    return send(res, 200, items);
   }
 
   const detailMatch = url.pathname.match(/^\/api\/analyses\/(\d+)$/);

@@ -6,15 +6,23 @@ those before adding a new dependency or route.
 
 ## Status
 
-Sprint 1 (Design System) is delivered. FS-001 (Dashboard Executivo — Release 0.2) is implemented
-and validated locally, awaiting final gates and integration to `main`:
+**STRATECH V1 RC-1 — Release Candidate, Feature Freeze ACTIVE.** All 8 Capabilities are complete —
+see `docs/product/stratech-constitution/STRATECH-Product-Constitution.html` at the repository root
+for the full conceptual reference, and `docs/product/release-candidate/RC-1-Manifest.html` for the
+official composition of this Release Candidate.
 
 - `web/app/style-guide` — every design token and primitive, light and dark.
-- `web/app/dashboard` — first screen wired to real backend data, gated behind a Nível 1 workspace
-  session (`web/app/entrar`, `web/proxy.ts`).
+- `web/app/dashboard`, `/portfolio`, `/projects`, `/actions`, `/decisions`, `/aprendizados`,
+  `/workspace/[projectName]` — all 8 Capabilities, gated behind a shared workspace session
+  (`web/app/entrar`, `web/proxy.ts`).
 - BFF layer (`web/app/api/bff/`) shielding the backend's shared `X-API-Key` from the browser.
 
 ## Run locally
+
+For running the full platform (backend + frontend together), use
+`scripts/rc1-local-start.sh` (or `setup.bat`/`start.bat` on Windows) at the repository root — see
+`docs/product/release-candidate/Local-Installation-Guide.html`. That is the authoritative path;
+the steps below are for frontend-only work against an already-running backend.
 
 ```bash
 npm install
@@ -22,8 +30,8 @@ cp .env.example .env.local   # fill in the values below
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). `/entrar` is the entry point; `/dashboard`
-requires a workspace session, `/style-guide` does not.
+Open [http://localhost:3000](http://localhost:3000). `/entrar` is the entry point; every other
+route requires a workspace session, `/style-guide` does not.
 
 ### Environment variables (`.env.local`)
 
@@ -55,15 +63,15 @@ Redux/Zustand. `staleTime: 30s` / `refetchInterval: 60s` per RFC-001's Data Fres
 query-level retry only delayed the honest error signal (~8s → ~40s measured with the TanStack Query
 default). Not applied to the `QueryClient` global.
 
-## Known limitations (Release 0.2)
+## Known limitations (STRATECH V1)
 
-- Workspace session is a single shared password, not per-user identity — no logout endpoint exists
-  (not in TIP-001's scope); the session simply expires after 12h or via the kill switch above.
-- `GET /api/portfolio/summary` has no pagination on the backend — acceptable at MVP volume, flagged
-  as a risk in FS-001 §17.
-- W4 (Recent Analyses Feed) was adiado to a fast-follow release by the UX Review — not part of this
-  screen yet.
-- No "atualizado há Xmin" staleness indicator — explicitly deferred in RFC-001 (Pergunta em Aberto).
+Deliberately accepted for V1 — see `docs/product/release-candidate/V2-Candidate-Backlog.html` for
+the full list. The two still relevant to frontend work specifically:
+
+- Workspace session is a single shared password, not per-user identity — no logout endpoint exists;
+  the session simply expires after 12h or via the kill switch above.
+- `GET /api/portfolio/summary` has no pagination on the backend — acceptable at current volume,
+  tracked as `PRI-005` in `docs/product/platform-readiness/Platform-Readiness-Backlog.html`.
 
 ## Tests
 

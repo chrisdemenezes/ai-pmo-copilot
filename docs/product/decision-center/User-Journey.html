@@ -1,0 +1,303 @@
+<title>User Journey — Decision Center</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --ok:#2f7a4f; --ok-bg:#e1f0e5;
+    --warn:#a3742f; --warn-bg:#f3e9d8;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --ok:#7fd19f; --ok-bg:#1a3324;
+    --warn:#e0b567; --warn-bg:#332711;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --ok:#7fd19f; --ok-bg:#1a3324;
+      --warn:#e0b567; --warn-bg:#332711;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:270px minmax(0,1fr); max-width:1340px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:4px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  .toc .toc-num{color:var(--accent); margin-right:6px;}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:40px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.7rem,4vw,2.5rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:70ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:52px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink);}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.3rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:70ch;}
+  h3{font-size:1.02rem; margin:26px 0 8px; font-weight:600;}
+  p{margin:0 0 14px; max-width:74ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:72ch;}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout.warn{border-left-color:var(--warn);}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.ok{color:var(--ok); background:var(--ok-bg);}
+  .chip.warn{color:var(--warn); background:var(--warn-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">STRATECH V1 — Product Core<br>Decision Center</div>
+    <nav>
+      <a href="#s0"><span class="toc-num">00</span>Guardian Check</a>
+      <a href="#s1"><span class="toc-num">01</span>Persona e Pontos de Entrada</a>
+      <a href="#s2"><span class="toc-num">02</span>A Decision Queue</a>
+      <a href="#s3"><span class="toc-num">03</span>Jornada Passo a Passo</a>
+      <a href="#s4"><span class="toc-num">04</span>Jornada × Dado Real</a>
+      <a href="#s5"><span class="toc-num">05</span>Pontos de Decisão</a>
+      <a href="#s6"><span class="toc-num">06</span>Redução do Time To Decision</a>
+      <a href="#s7"><span class="toc-num">07</span>Conversa com a Plataforma</a>
+      <a href="#s8"><span class="toc-num">08</span>Evolução Futura</a>
+      <a href="#s9"><span class="toc-num">09</span>Fora de Escopo</a>
+      <a href="#s10"><span class="toc-num">10</span>Próximo Gate</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">STRATECH V1 · Product Core · Etapa 2 de 10 — User Journey</div>
+      <h1 class="title">User Journey — Decision Center</h1>
+      <p class="subtitle">Discovery aprovada com <b>escopo completo</b>: a leitura agregada de riscos em
+        zona de atenção entra desde o primeiro incremento, como investimento arquitetural reutilizável por
+        esta Capability, por Portfolio Intelligence e por futuras visões executivas -- reutilizando a
+        arquitetura existente, sem alteração de schema, sem migração, sem escrita. Esta Journey introduz o
+        conceito de produto <b>Decision Queue</b>: o objetivo não é listar decisões, é organizar, por
+        prioridade executiva, o que realmente depende da intervenção do usuário.</p>
+      <div class="meta-row">
+        <span><b>Fase</b> STRATECH V1 — Product Core</span>
+        <span><b>Módulo</b> Decision Center</span>
+        <span><b>Pergunta que a jornada responde</b> "Quais decisões exigem minha intervenção agora, em qual ordem?"</span>
+        <span><b>Data</b> 2026-07-14</span>
+        <span><b>Status</b> Aguardando aprovação — nenhuma UX Flow, FS ou código ainda</span>
+      </div>
+    </div>
+
+    <section id="s0">
+      <div class="section-head"><span class="section-num">00</span><h2>Guardian Check</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Verificação</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr><td>Conflito com Strategy/Constitution/Vision/Decision Framework?</td><td>SEM CONFLITO — nenhum documento normativo ainda existe em <code>docs/strategy/</code>.</td></tr>
+            <tr><td>Conflito com a Discovery aprovada?</td><td>SEM CONFLITO — Founder aprovou escopo completo: a leitura agregada de riscos em zona de atenção (Discovery §04, Opção 2) entra desde o Incremento 1. Nenhuma mudança de schema, nenhuma migração, nenhuma escrita -- mesma disciplina de Action Intelligence.</td></tr>
+            <tr><td>Reabre Executive Brief Contract, Comunicação estruturada ou o Achado #1 do RC-1?</td><td>NÃO — por instrução explícita e reiterada do Founder. Esta Journey trata os 3 Briefs existentes como estão, sem refatorar sua composição interna.</td></tr>
+            <tr><td>A jornada melhora alguma decisão do usuário?</td><td>SIM — ver Seções 5 e 6.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Persona e Pontos de Entrada</h2></div>
+      <p class="section-intro">Persona: PM/PMO, a mesma de toda a plataforma. Como em Action Intelligence,
+        "quais decisões exigem minha intervenção agora" é uma pergunta que atravessa projetos por natureza
+        -- não uma pergunta por projeto.</p>
+      <ul>
+        <li><b>Portfólio (novo item de navegação, ex.: "Decisões").</b> Ponto de entrada primário -- resposta
+          direta à pergunta, em todos os projetos, sem escolher um antes. Mesma Regra de Entrada já
+          formalizada na Runtime Navigation (<code>docs/product/platform-architecture/Platform-Navigation-Architecture.html</code>):
+          só entra em <code>navigation.ts</code> quando tiver rota real, dado real, estados completos e
+          testes -- exatamente o padrão já seguido por "Ações" (TIP-008 Incremento 2).</li>
+        <li><b>Workspace (sem componente novo).</b> As decisões individuais já existem, hoje, dentro do
+          Executive Brief (Status) e do painel de Riscos de cada projeto -- a Decision Queue não duplica
+          essas telas nem introduz uma 3ª composição visual ali. O que a Decision Queue devolve ao Workspace
+          é o clique de retorno: cada entrada da fila aponta de volta para o Brief/análise de origem daquele
+          projeto (ver Seção 7).</li>
+      </ul>
+      <p>Nenhuma tela de "minhas decisões" por usuário individual -- não existe login individual ainda
+        (mesma restrição já registrada na Discovery de Action Intelligence, Enterprise Expansion/V2).</p>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>A Decision Queue: conceito de produto</h2></div>
+      <p class="section-intro">Resposta direta à pergunta 1 do Founder: <b>"Como o executivo identifica
+        rapidamente as decisões mais críticas?"</b></p>
+      <p>Decision Queue não é sinônimo de "lista de decisões". Uma lista mostra tudo com o mesmo peso --
+        exatamente o padrão que Action Intelligence já rejeitou para itens de ação ("nunca listar tudo com o
+        mesmo peso", FS-007 §2.7) e que esta Capability rejeita também para decisões. Uma <b>fila</b>
+        pressupõe (a) ordem e (b) filtro: só entra na fila o que realmente exige intervenção -- um projeto
+        "no curso normal" não é uma decisão pendente, é ausência de decisão.</p>
+      <h3>Regra de priorização (fixa, nunca inventada pela IA)</h3>
+      <p>Reaproveita, sem reescrever, os dois sinais de Decision Momentum já reais e já aprovados
+        (<code>decision-momentum.ts</code>, <code>risk-momentum.ts</code>) -- a novidade é a ordem entre
+        eles, não o conteúdo:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Prioridade</th><th>Condição</th><th>Decisão sugerida (verbatim, já existente)</th></tr></thead>
+          <tbody>
+            <tr><td>1 -- mais crítico</td><td><code>latest_health_status == "red"</code></td><td>"Escalar ao patrocinador" (<code>suggestedDecision</code>)</td></tr>
+            <tr><td>1 -- mesmo nível</td><td>Riscos na zona de atenção da última análise &gt; 0</td><td>"Priorizar mitigação imediata" (<code>suggestedRiskDecision</code>)</td></tr>
+            <tr><td>2</td><td><code>latest_health_status == "yellow"</code></td><td>"Acompanhar de perto" (<code>suggestedDecision</code>)</td></tr>
+            <tr><td>Fora da fila</td><td><code>latest_health_status == "green"</code> <b>e</b> nenhum risco em atenção</td><td>"Manter o curso atual" / "Manter monitoramento de rotina" -- não é uma decisão pendente, não entra na fila</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Um mesmo projeto pode aparecer com <b>duas</b> entradas na fila (Status crítico <i>e</i> risco em
+        atenção) -- são duas decisões reais e independentes, nunca fundidas numa só (mesma disciplina de não
+        antecipar o Executive Brief Contract: cada fonte continua com seu próprio texto, sua própria
+        origem). Dentro da prioridade 1, a ordem entre múltiplas entradas (por nome de projeto, por contagem
+        de riscos em atenção, etc.) é decisão de UX Flow, não desta Journey.</p>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>Jornada Passo a Passo</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Passo</th><th>Detalhe</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Abrir "Decisões" (Sidebar)</td><td>Ponto de entrada primário, portfólio inteiro, nenhum projeto escolhido antes -- Seção 1</td></tr>
+            <tr><td>2</td><td>Ver a fila já ordenada por prioridade</td><td>Prioridade 1 (Status crítico e/ou risco em atenção) primeiro, depois prioridade 2 -- nunca uma lista plana, nunca reordenável pelo usuário (mesmo princípio de Action Intelligence)</td></tr>
+            <tr><td>3</td><td>Ler cada entrada</td><td>Projeto de origem, decisão sugerida (verbatim), e o dado real por trás dela (health_status ou contagem de riscos em atenção)</td></tr>
+            <tr><td>4</td><td>Clicar numa entrada</td><td>Leva ao Workspace do projeto, direto à seção correspondente (Executive Brief para Status, Riscos para Risco) -- navegação já existente, reaproveitada</td></tr>
+            <tr><td>5</td><td>Decidir e agir fora da fila</td><td>A ação real (ligar, escalar, revisar) acontece fora da Decision Queue -- mesmo princípio já confirmado em Action Intelligence: a plataforma nunca decide ou age sozinha</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>Jornada × Dado Real</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Passo</th><th>Fonte real</th><th>Cálculo/regra</th></tr></thead>
+          <tbody>
+            <tr><td>2 -- entrada de Status</td><td><code>latest_health_status</code>, já devolvido por <code>ProjectSummaryService.summarize_portfolio()</code></td><td>Zero leitura nova -- dado já portfolio-wide hoje</td></tr>
+            <tr><td>2 -- entrada de Risco</td><td>Riscos (<code>probability</code>/<code>impact</code>) da <b>última</b> análise de risco de cada projeto</td><td>Nova leitura agregada (decisão do Founder, escopo completo) -- mesma técnica de <code>list_action_items()</code>: uma consulta, agrupada em memória, zero tabela nova. Nome exato do método é decisão da Feature Specification.</td></tr>
+            <tr><td>2 -- ordenação</td><td>Prioridade fixa da Seção 2</td><td>Regra de UI, nunca inferência da IA -- mesmo princípio de <code>bucketByUrgency</code></td></tr>
+            <tr><td>3 -- decisão sugerida</td><td><code>suggestedDecision()</code> / <code>suggestedRiskDecision()</code></td><td>Verbatim, funções já existentes -- zero texto novo gerado por esta Capability</td></tr>
+            <tr><td>4 -- retorno ao Workspace</td><td><code>project_name</code></td><td>Mesma navegação já existente (<code>/workspace/[projectName]</code>), nenhuma rota nova para isso</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Pontos de Decisão Explícitos</h2></div>
+      <ul>
+        <li><b>Passo 2:</b> a plataforma decide a <i>ordem</i> (prioridade fixa), o executivo decide o que
+          revisitar primeiro dentro dela -- nunca o contrário.</li>
+        <li><b>Passo 3:</b> o único ponto que a plataforma ativamente propõe -- qual decisão olhar primeiro
+          e por quê (o dado real por trás dela é sempre visível, nunca uma nota de severidade opaca).</li>
+        <li><b>Passo 5:</b> a decisão real (escalar, aceitar o risco, redistribuir esforço) continua
+          inteiramente do executivo -- a plataforma nunca a toma, nunca a executa em nome dele.</li>
+      </ul>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>Como isso reduz o Time To Decision</h2></div>
+      <p class="section-intro">Resposta direta à pergunta 2 do Founder.</p>
+      <p><b>Hoje:</b> para saber quais dos N projetos do portfólio pedem uma decisão agora, o executivo abre
+        cada Workspace e lê 2 Briefs por projeto (Status e Riscos) -- custo de até 2N leituras antes de
+        identificar a mais crítica.</p>
+      <p><b>Com a Decision Queue:</b> uma tela, já ordenada por prioridade fixa, filtrada para excluir
+        projetos sem decisão pendente (Seção 2) -- o executivo lê a entrada 1 e já sabe qual projeto e qual
+        decisão exigem atenção primeiro, sem abrir nenhum Workspace antes. Mesmo padrão de redução de TTD já
+        demonstrado por Action Intelligence (Discovery §01, pergunta 4 do Executive Questions Framework):
+        Login → Dashboard → Decisões → decisão mais crítica do portfólio já no topo.</p>
+      <p>TTD (princípio oficial) e Return Rate (conceitual) continuam sem instrumentação nesta fase --
+        avaliação qualitativa, mesma disciplina de TIP-008 §02/§08.</p>
+    </section>
+
+    <section id="s7">
+      <div class="section-head"><span class="section-num">07</span><h2>Conversa com o resto da plataforma</h2></div>
+      <p class="section-intro">Resposta direta à pergunta 3 do Founder.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Módulo</th><th>Natureza da conversa</th></tr></thead>
+          <tbody>
+            <tr><td>Dashboard</td><td>Recebe contexto (posicionamento exato de KPI/link é decisão de UX Flow, mesmo padrão já usado por "Ações pendentes" em TIP-008 Incremento 3) -- Decision Queue devolve navegação para o Workspace correspondente, nunca o contrário</td></tr>
+            <tr><td>Workspace</td><td>Fonte de dado (Executive Brief e Riscos, sem alteração) e destino do clique de retorno -- fecha o Executive Loop exatamente como Action Intelligence já fecha (retorno à análise de origem)</td></tr>
+            <tr><td>Action Intelligence ("Ações")</td><td>Relação de irmãs, não de fusão -- duas páginas de portfólio distintas (decisões vs. compromissos de reunião), mesma posição na Sidebar, mesmo padrão de composição. Nenhum item de ação vira decisão, nenhuma decisão vira item de ação.</td></tr>
+            <tr><td>Executive Brief (Status) e Riscos</td><td>Fonte verbatim -- a Decision Queue lê exatamente <code>suggestedDecision()</code>/<code>suggestedRiskDecision()</code> que os Briefs já usam, nunca um texto novo. Nenhuma refatoração desses componentes (Executive Brief Contract permanece parado, por instrução do Founder).</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s8">
+      <div class="section-head"><span class="section-num">08</span><h2>Evolução futura sem reconstrução</h2></div>
+      <p class="section-intro">Resposta direta à pergunta 4 do Founder.</p>
+      <ul>
+        <li><b>Nova fonte de decisão, mesma fila.</b> O dia em que Comunicação ganhar uma decisão estruturada
+          (via Executive Brief Contract, quando retomado) é só mais uma linha na tabela de fontes da Seção 2
+          -- mesmo componente de fila, mesma regra de prioridade estendida, nenhuma reconstrução visual.</li>
+        <li><b>Leitura de risco reutilizável além desta Capability.</b> A leitura agregada de riscos em
+          zona de atenção (Seção 4), decidida pelo Founder como investimento arquitetural, nasce como uma
+          consulta de portfólio genérica -- não amarrada à Decision Queue. Portfolio Intelligence e outras
+          visões executivas futuras podem reaproveitá-la sem retrabalho, mesmo princípio de reuso máximo já
+          exigido em toda a plataforma.</li>
+        <li><b>Mesma navegação, mesmo ponto de entrada.</b> "Decisões" na Sidebar continua sendo o lugar
+          certo mesmo se o número de fontes crescer -- nenhuma tela nova a inventar depois.</li>
+        <li><b>Nenhuma decisão de escrita antecipada.</b> Diferente de Action Intelligence (que já reserva
+          o lugar para um <code>ActionStatus</code> persistido futuro), a Decision Queue não tem, nesta
+          fase, nenhum campo mutável a preparar -- ela é, por natureza, uma leitura sobre decisões que
+          continuam vivendo nos Briefs originais. Se isso mudar (ex.: marcar uma decisão como "resolvida"),
+          é uma nova Discovery, não uma extensão implícita desta.</li>
+      </ul>
+    </section>
+
+    <section id="s9">
+      <div class="section-head"><span class="section-num">09</span><h2>Fora de Escopo (confirmado)</h2></div>
+      <ul>
+        <li>Qualquer decisão estruturada para Comunicação -- Achado #1 do RC-1 permanece não implementado.</li>
+        <li>Executive Brief Contract, Decision Catalog/Domain/Context -- permanecem parados (Enterprise Essentials).</li>
+        <li>Qualquer refatoração dos 3 Briefs existentes (<code>executive-brief.tsx</code>, <code>risks-panel.tsx</code>, <code>communication-brief.tsx</code>).</li>
+        <li>Qualquer campo de status persistido para uma "decisão" (ex.: "resolvida", "adiada") -- leitura pura, mesma disciplina de Action Intelligence.</li>
+        <li>Qualquer critério de prioridade configurável pelo usuário -- a ordem é sempre a regra fixa da Seção 2.</li>
+        <li>Fusão da Decision Queue com a página "Ações" -- permanecem duas páginas distintas.</li>
+      </ul>
+    </section>
+
+    <section id="s10">
+      <div class="section-head"><span class="section-num">10</span><h2>Próximo Gate</h2></div>
+      <p>Nenhum código escrito. Esta é a User Journey (Etapa 2 de 10). A UX Flow (Etapa 3) só começa após
+        aprovação explícita do Founder -- inclusive sobre a ordenação exata dentro da Prioridade 1 (Seção 2)
+        e o posicionamento de entrada no Dashboard (Seção 7), ambos deixados como decisão da próxima etapa.</p>
+    </section>
+
+    <footer>
+      <span>Stratech — STRATECH V1 · Product Core</span>
+      <span>User Journey</span>
+      <span>2026-07-14</span>
+    </footer>
+  </main>
+</div>

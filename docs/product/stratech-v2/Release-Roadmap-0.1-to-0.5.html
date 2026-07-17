@@ -1,0 +1,96 @@
+<title>STRATECH V2 — Release Roadmap 0.1 to 0.5</title>
+<style>
+  :root{--bg:#f5f4f1;--surface:#ffffff;--surface-2:#ececE6;--border:#d8d5cd;--ink:#191712;--ink-dim:#5b5648;--accent:#4c4fc4;--ok:#2f7a4f;--ok-bg:#e1f0e5;--warn:#a3742f;--warn-bg:#f3e9d8;--mono-ink:#3a362c;--code-bg:#eeece4;--shadow:0 1px 2px rgba(20,18,10,.06),0 8px 24px -12px rgba(20,18,10,.12);}
+  :root[data-theme="dark"]{--bg:#12100c;--surface:#1b1813;--surface-2:#221e17;--border:#39352a;--ink:#efece2;--ink-dim:#a9a494;--accent:#9498f0;--ok:#7fd19f;--ok-bg:#1a3324;--warn:#e0b567;--warn-bg:#332711;--mono-ink:#cfcabb;--code-bg:#221e17;--shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px -16px rgba(0,0,0,.5);}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#12100c;--surface:#1b1813;--surface-2:#221e17;--border:#39352a;--ink:#efece2;--ink-dim:#a9a494;--accent:#9498f0;--ok:#7fd19f;--ok-bg:#1a3324;--warn:#e0b567;--warn-bg:#332711;--mono-ink:#cfcabb;--code-bg:#221e17;--shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px -16px rgba(0,0,0,.5);}}
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  main{max-width:1080px; margin:0 auto; padding:56px 40px 100px;}
+  .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1{font-size:clamp(1.5rem,4vw,2.1rem); margin:0 0 14px; font-weight:600;}
+  .subtitle{color:var(--ink-dim); max-width:84ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding:18px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim); margin-bottom:16px;}
+  h2{font-size:1.2rem; margin:40px 0 4px;}
+  .rcard{border:1px solid var(--border); border-radius:8px; padding:20px 24px; margin:16px 0 28px; background:var(--surface); box-shadow:var(--shadow);}
+  .rcard h3{margin:0 0 10px; font-size:1.05rem;}
+  dl{display:grid; grid-template-columns:160px 1fr; gap:8px 16px; margin:0;}
+  dt{font-family:ui-monospace,monospace; font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-dim); padding-top:2px;}
+  dd{margin:0 0 10px; max-width:70ch;}
+  code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  footer{border-top:1px solid var(--border); margin-top:50px; padding-top:18px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+<main>
+  <div class="kicker">Enterprise Architecture Blueprint v2.0 · Artefato Complementar</div>
+  <h1>Release Roadmap 0.1 → 0.5</h1>
+  <p class="subtitle">Detalhamento de objetivo, escopo, fora de escopo, dependências, riscos, critérios de
+    aceite e evidência esperada para cada release. Sequência inicial, não limitação da visão futura
+    (Blueprint Seção 20).</p>
+  <div class="meta-row"><span><b>Origem</b> Blueprint v2.0, Seção 20</span><span><b>Data</b> 2026-07-16</span></div>
+
+  <h2>Release 0.1 — Enterprise Foundation</h2>
+  <div class="rcard">
+    <dl>
+      <dt>Objetivo</dt><dd>Fundação de identidade, organização e projeto real -- pré-requisito de tudo mais.</dd>
+      <dt>Escopo</dt><dd>Organização (1 por instalação), autenticação individual, hash seguro de senha, sessão individual, RBAC com 4 papéis (Organization Admin, PMO, Project Manager, Viewer), Projeto como entidade persistente, vínculo usuário↔projeto, migração de <code>analysis_records</code>, auditoria básica, telas administrativas mínimas.</dd>
+      <dt>Fora de escopo</dt><dd>Portfólio, Programa, convite de usuário além do básico, atores externos, SSO, qualquer Acelerador de IA novo, Integration Hub, Orquestração.</dd>
+      <dt>Dependências</dt><dd>Nenhuma -- é a primeira release.</dd>
+      <dt>Riscos</dt><dd>Migração de <code>analysis_records</code> pode gerar projetos duplicados (mitigado por ADR-V2-003); mudança de banco para schema relacional real exige Alembic desde o primeiro commit.</dd>
+      <dt>Critérios de aceite</dt><dd>Os 12 listados no direcionamento do Founder: 2 usuários autenticados, 2 perfis com permissão distinta, 2 organizações sem acesso cruzado, criação real de projeto, associação usuário↔projeto, restrição por papel, análise de IA vinculada ao projeto real, dashboard com entidades reais, histórico de auditoria, instalação limpa, testes automatizados, documentação atualizada.</dd>
+      <dt>Evidência esperada</dt><dd>Testes de autorização e segregação entre organizações, testes de migração (contagem 1:1), captura de tela do fluxo completo (criar org → convidar usuário → criar projeto → associar → analisar → ver dashboard).</dd>
+    </dl>
+  </div>
+
+  <h2>Release 0.2 — Portfolio & Governance Foundation</h2>
+  <div class="rcard">
+    <dl>
+      <dt>Objetivo</dt><dd>Completar a hierarquia (Portfólio, Programa) e abrir a plataforma a atores além do usuário interno.</dd>
+      <dt>Escopo</dt><dd>Portfólio, Programa, equipes, convite de usuário, stakeholders, patrocinadores, atores externos (cliente/fornecedor/consultor/auditor/parceiro), expansão do RBAC para o conjunto completo de 14 papéis (ou o subconjunto que se mostrar necessário, com justificativa).</dd>
+      <dt>Fora de escopo</dt><dd>Aceleradores de IA novos, Integration Hub, Orquestração.</dd>
+      <dt>Dependências</dt><dd>Release 0.1 (Organização, Projeto, RBAC básico).</dd>
+      <dt>Riscos</dt><dd>Expansão de RBAC de 4 para até 14 papéis pode revelar lacunas no motor de permissões não visíveis com o conjunto reduzido.</dd>
+      <dt>Critérios de aceite</dt><dd>Portfólio/Programa como entidades reais relacionadas a Projeto; ator externo acessando apenas o escopo convidado, nunca herdando permissão de organização.</dd>
+      <dt>Evidência esperada</dt><dd>Testes de segregação para ator externo; teste de escopo por portfólio/programa/projeto.</dd>
+    </dl>
+  </div>
+
+  <h2>Release 0.3 — AI Foundation</h2>
+  <div class="rcard">
+    <dl>
+      <dt>Objetivo</dt><dd>Primeiro framework estruturado de Aceleradores operando sobre entidades reais.</dd>
+      <dt>Escopo</dt><dd>Contrato de Acelerador (Seção 11 do Blueprint) implementado; Project Health, Risk Intelligence e Meeting Intelligence migrados dos agentes do RC-1 para operar sobre a entidade Projeto real; evidência, confiança, validação humana e auditoria de análise.</dd>
+      <dt>Fora de escopo</dt><dd>Integration Hub, Orquestração, os demais 9 Aceleradores do mapa.</dd>
+      <dt>Dependências</dt><dd>Release 0.1 (Projeto real); Release 0.2 opcional (não bloqueia, mas enriquece o contexto).</dd>
+      <dt>Riscos</dt><dd>Migrar os agentes do RC-1 sem quebrar as Capabilities existentes que dependem deles -- exige testes de regressão completos antes e depois.</dd>
+      <dt>Critérios de aceite</dt><dd>Toda análise de IA carrega evidência e confiança; nenhuma recomendação com ação crítica é executada sem validação humana.</dd>
+      <dt>Evidência esperada</dt><dd>Suíte de regressão completa do RC-1 permanece verde; novos testes de auditoria de invocação de Acelerador.</dd>
+    </dl>
+  </div>
+
+  <h2>Release 0.4 — Integration Hub</h2>
+  <div class="rcard">
+    <dl>
+      <dt>Objetivo</dt><dd>Validar o padrão arquitetural de conector com uma integração real.</dd>
+      <dt>Escopo</dt><dd>Arquitetura de conectores (Seção 12), credenciais por organização, mapeamento de entidades, sincronização, monitoramento, tratamento de erros, 1 conector de referência (avaliação técnica define qual -- ClickUp, Teams, ou importação estruturada de MS Project são as opções iniciais sugeridas).</dd>
+      <dt>Fora de escopo</dt><dd>Qualquer outro conector; escrita de retorno, a menos que o conector escolhido a suporte com baixo risco.</dd>
+      <dt>Dependências</dt><dd>Release 0.1 (credenciais por organização), Release 0.2 (Projeto/Portfólio como alvo de sincronização).</dd>
+      <dt>Riscos</dt><dd>Autenticação segura com um sistema terceiro real introduz superfície de ataque nova -- exige revisão de segurança dedicada antes de ir a produção.</dd>
+      <dt>Critérios de aceite</dt><dd>Sincronização idempotente demonstrada (reprocessar o mesmo evento não duplica dado); erro tratado sem falha silenciosa; origem do dado sincronizado rastreável.</dd>
+      <dt>Evidência esperada</dt><dd>Teste de idempotência, teste de reprocessamento após falha simulada.</dd>
+    </dl>
+  </div>
+
+  <h2>Release 0.5 — Event Orchestration</h2>
+  <div class="rcard">
+    <dl>
+      <dt>Objetivo</dt><dd>Coordenar fluxos entre domínios e sistemas externos com governança.</dd>
+      <dt>Escopo</dt><dd>Event Bus, taxonomia de eventos (Event Map), regras e workflows simples, human-in-the-loop obrigatório para ação crítica, auditoria e observabilidade de orquestração.</dd>
+      <dt>Fora de escopo</dt><dd>Workflows totalmente configuráveis por organização (evolução pós-0.5); automação plena sem aprovação para qualquer ação com efeito em sistema externo.</dd>
+      <dt>Dependências</dt><dd>Releases 0.1-0.4 (todos os domínios produtores de evento já precisam existir).</dd>
+      <dt>Riscos</dt><dd>Maior complexidade de depuração em fluxos assíncronos multi-sistema -- exige observabilidade de ponta a ponta desde o primeiro workflow implementado.</dd>
+      <dt>Critérios de aceite</dt><dd>Fluxo de referência completo demonstrado (ex.: reunião → decisão/tarefa extraída → validação humana → sincronização com sistema externo → indicador recalculado → notificação), com toda etapa auditável e reversível em caso de falha.</dd>
+      <dt>Evidência esperada</dt><dd>Teste E2E do fluxo de referência completo; teste de compensação/rollback em falha simulada de uma etapa intermediária.</dd>
+    </dl>
+  </div>
+
+  <footer><span>Stratech — STRATECH V2</span><span>Release Roadmap 0.1 to 0.5</span><span>2026-07-16</span></footer>
+</main>

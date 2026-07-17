@@ -79,4 +79,56 @@ describe("proxy", () => {
     const response = proxy(requestFor("/projects", token));
     expect(response.status).toBe(200);
   });
+
+  // TIP-008 Incremento 2: /actions joins the same gate, same pattern as /projects.
+  it("redirects /actions to /entrar when there is no session cookie", async () => {
+    const response = proxy(requestFor("/actions"));
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/entrar");
+  });
+
+  it("passes /actions through with a valid session cookie", async () => {
+    const { token } = createSessionToken();
+    const response = proxy(requestFor("/actions", token));
+    expect(response.status).toBe(200);
+  });
+
+  // TIP-009: /decisions joins the same gate, same pattern as /actions.
+  it("redirects /decisions to /entrar when there is no session cookie", async () => {
+    const response = proxy(requestFor("/decisions"));
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/entrar");
+  });
+
+  it("passes /decisions through with a valid session cookie", async () => {
+    const { token } = createSessionToken();
+    const response = proxy(requestFor("/decisions", token));
+    expect(response.status).toBe(200);
+  });
+
+  // TIP-010: /portfolio joins the same gate, same pattern as /decisions.
+  it("redirects /portfolio to /entrar when there is no session cookie", async () => {
+    const response = proxy(requestFor("/portfolio"));
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/entrar");
+  });
+
+  it("passes /portfolio through with a valid session cookie", async () => {
+    const { token } = createSessionToken();
+    const response = proxy(requestFor("/portfolio", token));
+    expect(response.status).toBe(200);
+  });
+
+  // TIP-012: /aprendizados joins the same gate, same pattern as /portfolio.
+  it("redirects /aprendizados to /entrar when there is no session cookie", async () => {
+    const response = proxy(requestFor("/aprendizados"));
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/entrar");
+  });
+
+  it("passes /aprendizados through with a valid session cookie", async () => {
+    const { token } = createSessionToken();
+    const response = proxy(requestFor("/aprendizados", token));
+    expect(response.status).toBe(200);
+  });
 });

@@ -1,0 +1,81 @@
+<title>STRATECH V1 RC-1 — Founder Quick Start</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --ok:#2f7a4f; --ok-bg:#e1f0e5;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --ok:#7fd19f; --ok-bg:#1a3324;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --ok:#7fd19f; --ok-bg:#1a3324;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.55;}
+  main{max-width:760px; margin:0 auto; padding:44px 40px 70px;}
+  @media (max-width:600px){ main{padding:28px 18px 50px;} }
+  .kicker{font-family: ui-monospace, monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:10px;}
+  h1{font-size:clamp(1.5rem,3.6vw,2rem); line-height:1.16; margin:0 0 20px; font-weight:600; text-wrap:balance; border-bottom:2px solid var(--ink); padding-bottom:16px;}
+  h2{font-size:.98rem; margin:26px 0 6px; color:var(--accent); font-family:ui-monospace,monospace; text-transform:uppercase; letter-spacing:.04em;}
+  p{margin:0 0 10px; max-width:74ch;}
+  pre{background:var(--code-bg); border:1px solid var(--border); border-radius:6px; padding:12px 14px; overflow-x:auto; font-family:ui-monospace,monospace; font-size:.85rem; color:var(--mono-ink); margin:6px 0 14px;}
+  code{font-family: ui-monospace, monospace; font-size:.88em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  pre code{background:none; padding:0;}
+  .step{display:flex; gap:12px; margin-bottom:4px;}
+  .step .n{font-family:ui-monospace,monospace; font-weight:700; color:var(--accent); flex-shrink:0; width:22px;}
+  footer{border-top:1px solid var(--border); margin-top:36px; padding-top:14px; font-family: ui-monospace, monospace; font-size:10.5px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<main>
+  <div class="kicker">Founder Quick Start · 1 página</div>
+  <h1>STRATECH V1 RC-1 — como rodar localmente</h1>
+
+  <h2>1. Clonar</h2>
+  <pre><code>git clone &lt;url-do-repositorio&gt; ai-pmo-copilot
+cd ai-pmo-copilot</code></pre>
+
+  <h2>2. Configuração</h2>
+  <p>Nenhuma configuração manual é necessária. A primeira execução cria automaticamente
+    <code>demo/.env</code> com uma senha de sessão gerada e o Demo Mode ativado (sem chave de IA real
+    necessária).</p>
+
+  <h2>3. Setup (uma vez por máquina)</h2>
+  <p><b>macOS/Linux</b> — o próprio start já inclui o setup:</p>
+  <pre><code>bash scripts/rc1-local-start.sh</code></pre>
+  <p><b>Windows</b> — rodar uma vez:</p>
+  <pre><code>setup.bat</code></pre>
+
+  <h2>4. Start</h2>
+  <p><b>macOS/Linux</b> — o comando do passo 3 já inicia tudo. <b>Windows</b>:</p>
+  <pre><code>start.bat</code></pre>
+  <p>Aguardar ~15-30s até os dois serviços responderem.</p>
+
+  <h2>5. URL</h2>
+  <div class="step"><span class="n">→</span><span><code>http://localhost:3000/entrar</code></span></div>
+
+  <h2>6. Login Demo</h2>
+  <div class="step"><span class="n">→</span><span>Senha do workspace: <code>demo-local-password</code> (confirmar em <code>demo/.env</code> se personalizada)</span></div>
+  <p>Para popular o portfólio fictício (primeira vez): <code>python3 demo/seed_demo_data.py</code></p>
+
+  <h2>7. Como parar</h2>
+  <p><b>macOS/Linux</b>: <code>bash demo/stop-demo.sh</code>. <b>Windows</b>: <code>stop.bat</code>.</p>
+
+  <footer>
+    <span>Stratech — STRATECH V1 RC-1</span>
+    <span>Founder Quick Start</span>
+    <span>2026-07-16</span>
+  </footer>
+</main>

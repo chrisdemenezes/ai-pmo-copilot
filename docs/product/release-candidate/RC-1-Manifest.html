@@ -1,0 +1,164 @@
+<title>STRATECH V1 RC-1 — Release Candidate Manifest</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --ok:#2f7a4f; --ok-bg:#e1f0e5;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --ok:#7fd19f; --ok-bg:#1a3324;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --ok:#7fd19f; --ok-bg:#1a3324;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  main{max-width:1080px; margin:0 auto; padding:56px 40px 100px;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1{font-size:clamp(1.7rem,4vw,2.4rem); line-height:1.16; margin:0 0 14px; font-weight:600; text-wrap:balance;}
+  .subtitle{color:var(--ink-dim); max-width:84ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding:18px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim); margin-bottom:16px;}
+  .meta-row b{color:var(--ink);}
+  h2{font-size:1.25rem; margin:44px 0 6px; padding-bottom:10px; border-bottom:2px solid var(--ink);}
+  p{margin:0 0 12px; max-width:84ch;}
+  ul,ol{margin:0 0 14px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:80ch;}
+  .table-wrap{overflow-x:auto; margin:12px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.83rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 10px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top;}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.ok{color:var(--ok); background:var(--ok-bg);}
+  footer{border-top:1px solid var(--border); margin-top:60px; padding-top:20px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<main>
+  <div class="kicker">Configuration Manager · Release Candidate Manifest</div>
+  <h1>STRATECH V1 RC-1 — Manifest</h1>
+  <p class="subtitle">Composição oficial do Release Candidate. Este documento é a lista de materiais (BOM) do
+    RC-1 -- versão, commit, módulos, Capabilities, dependências, documentação oficial e artefatos aprovados.
+    Qualquer alteração a um item aqui listado exige atualização deste manifesto sob o controle formal da
+    <code>Baseline-Configuration.html</code>.</p>
+  <div class="meta-row">
+    <span><b>Versão</b> STRATECH V1 RC-1</span>
+    <span><b>Commit</b> <code>174f9a6</code></span>
+    <span><b>Branch</b> <code>claude/stratech-permanent-principles-yjnm74</code></span>
+    <span><b>Data</b> 2026-07-16</span>
+  </div>
+
+  <h2>Versão e commit</h2>
+  <div class="table-wrap">
+    <table>
+      <tbody>
+        <tr><td>Identificador de release</td><td><code>STRATECH V1 RC-1</code></td></tr>
+        <tr><td>Commit de referência</td><td><code>174f9a6aa07e8035dc0899e4d91b5a33c5d20021</code></td></tr>
+        <tr><td>Branch</td><td><code>claude/stratech-permanent-principles-yjnm74</code></td></tr>
+        <tr><td>Repositório</td><td><code>chrisdemenezes/ai-pmo-copilot</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Módulos</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Módulo</th><th>Caminho</th><th>Responsabilidade</th></tr></thead>
+      <tbody>
+        <tr><td>API</td><td><code>src/api/</code></td><td>Router único, autenticação, rate limiting, request context</td></tr>
+        <tr><td>Agents</td><td><code>src/agents/</code></td><td>Agentes de análise (project_status, risk_review, meeting_intelligence)</td></tr>
+        <tr><td>Database</td><td><code>src/database/</code></td><td><code>AnalysisRepository</code>, tabela única <code>analysis_records</code></td></tr>
+        <tr><td>LLM</td><td><code>src/llm/</code></td><td>Providers (real + <code>MockLLMProvider</code> para Demo Mode)</td></tr>
+        <tr><td>Prompts</td><td><code>src/prompts/</code></td><td>Templates de prompt por tipo de análise</td></tr>
+        <tr><td>Services</td><td><code>src/services/</code></td><td><code>ProjectSummaryService</code> -- agregação, fonte lógica única</td></tr>
+        <tr><td>Workflows</td><td><code>src/workflows/</code></td><td>Orquestração de análise</td></tr>
+        <tr><td>Frontend base</td><td><code>web/lib/dashboard/</code>, <code>web/lib/workspace/</code></td><td>Módulos base, zero dependência de Feature</td></tr>
+        <tr><td>Frontend features</td><td><code>web/lib/decision-center/</code>, <code>web/lib/portfolio-intelligence/</code>, <code>web/lib/executive-memory/</code>, <code>web/lib/organizational-intelligence/</code></td><td>Um módulo por Capability, camadas limpas sem ciclo</td></tr>
+        <tr><td>Shell/Navegação</td><td><code>web/components/shell/</code></td><td>Sidebar, 6 itens de navegação real</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Capabilities (8/8, congeladas)</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Capability</th><th>Rota</th><th>Documentação de origem</th></tr></thead>
+      <tbody>
+        <tr><td>01</td><td>Project Intelligence (Status)</td><td><code>/workspace/[projectName]</code></td><td><code>docs/product/fs-001/</code></td></tr>
+        <tr><td>02</td><td>Risk Intelligence</td><td><code>/workspace/[projectName]</code></td><td><code>docs/product/risk-intelligence/</code></td></tr>
+        <tr><td>03</td><td>Communication Intelligence</td><td><code>/workspace/[projectName]</code></td><td><code>docs/product/communication-intelligence/</code></td></tr>
+        <tr><td>04</td><td>Action Intelligence</td><td><code>/actions</code></td><td><code>docs/product/action-intelligence/</code></td></tr>
+        <tr><td>05</td><td>Decision Center</td><td><code>/decisions</code></td><td><code>docs/product/decision-center/</code></td></tr>
+        <tr><td>06</td><td>Portfolio Intelligence</td><td><code>/portfolio</code></td><td><code>docs/product/portfolio-intelligence/</code></td></tr>
+        <tr><td>07</td><td>Executive Memory</td><td>Transversal (Executive Brief)</td><td><code>docs/product/executive-memory/</code></td></tr>
+        <tr><td>08</td><td>Organizational Intelligence</td><td><code>/aprendizados</code></td><td><code>docs/product/organizational-intelligence/</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Dependências</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Camada</th><th>Runtime</th><th>Principais dependências</th></tr></thead>
+      <tbody>
+        <tr><td>Backend</td><td>Python 3.11+</td><td><code>fastapi</code>, <code>uvicorn</code>, <code>pydantic</code>, <code>sqlalchemy</code>, <code>psycopg2-binary</code>, <code>alembic</code>, <code>anthropic</code></td></tr>
+        <tr><td>Backend (dev/test)</td><td>—</td><td><code>pytest</code>, <code>pytest-cov</code>, <code>ruff</code>, <code>httpx</code></td></tr>
+        <tr><td>Frontend</td><td>Node 22</td><td><code>next 16.2.10</code>, <code>react 19.2.4</code>, <code>@tanstack/react-query</code>, Radix UI (<code>dialog</code>/<code>label</code>/<code>select</code>/<code>slot</code>/<code>tabs</code>), <code>tailwind-merge</code>, <code>lucide-react</code>, <code>sonner</code></td></tr>
+        <tr><td>Frontend (dev/test)</td><td>—</td><td><code>@playwright/test</code>, <code>vitest</code>, <code>@testing-library/*</code>, <code>eslint</code>, <code>typescript</code>, <code>tailwindcss</code></td></tr>
+        <tr><td>Banco de dados (produção)</td><td>—</td><td><code>postgres:16</code> (via <code>docker-compose.yml</code>)</td></tr>
+        <tr><td>Banco de dados (dev/Demo Mode)</td><td>—</td><td>SQLite (arquivo único, default de <code>AnalysisRepository</code>)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Documentação oficial</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Categoria</th><th>Documento</th></tr></thead>
+      <tbody>
+        <tr><td>Constituição</td><td><code>docs/product/stratech-constitution/STRATECH-Product-Constitution.html</code></td></tr>
+        <tr><td>Governança por Capability</td><td><code>docs/product/{action-intelligence,communication-intelligence,decision-center,portfolio-intelligence,executive-memory,organizational-intelligence,risk-intelligence,fs-001..fs-005,fs-004a}/</code></td></tr>
+        <tr><td>Gates de encerramento da V1</td><td><code>docs/product/{architecture-gate-v1,platform-readiness,visual-fidelity-gate,release-readiness,release-candidate}/</code></td></tr>
+        <tr><td>Documentação técnica</td><td><code>docs/technical/</code>, <code>docs/development/</code>, <code>docs/architecture/</code>, <code>docs/functional/</code></td></tr>
+        <tr><td>Documentação operacional</td><td><code>docs/operations/PRI-008-production-backup-restore-runbook.md</code>, <code>docs/operations/PRI-009-production-deployment-runbook.md</code>, <code>demo/README.md</code></td></tr>
+        <tr><td>ADRs</td><td>ADR-001 a ADR-008 (<code>docs/product/blueprint/Product-Blueprint.html</code>), ADR-012 (<code>docs/releases/ADR-012-founder-decision-release-0.3.md</code>)</td></tr>
+        <tr><td>RFCs</td><td>RFC-001 (<code>docs/product/rfc-001/RFC-001-frontend-architecture.html</code>)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Artefatos aprovados</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Artefato</th><th>Parecer</th></tr></thead>
+      <tbody>
+        <tr><td>STRATECH Product Constitution</td><td><span class="chip ok">Aprovada</span></td></tr>
+        <tr><td>Architecture Gate V1 Report</td><td><span class="chip ok">GO WITH CONDITIONS</span></td></tr>
+        <tr><td>Platform Readiness Assessment</td><td><span class="chip ok">GO WITH CONDITIONS</span></td></tr>
+        <tr><td>Visual Fidelity Gate Report</td><td><span class="chip ok">Aderente ao Figma V1 atualizado</span></td></tr>
+        <tr><td>Release Readiness Review</td><td><span class="chip ok">GO WITH CONDITIONS</span></td></tr>
+        <tr><td>RC Approval Review</td><td><span class="chip ok">SIM — Release Blockers encerrados</span></td></tr>
+        <tr><td>Release Candidate Declaration</td><td><span class="chip ok">Aprovada pelo Founder</span></td></tr>
+        <tr><td>Platform Readiness Backlog</td><td><span class="chip ok">PRI-001 a PRI-009 registrados</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    <span>Stratech — STRATECH V1 RC-1</span>
+    <span>Release Candidate Manifest</span>
+    <span>2026-07-16</span>
+  </footer>
+</main>

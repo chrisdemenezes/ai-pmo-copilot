@@ -127,6 +127,22 @@ export type ModelOutputForKind<K extends AnalysisListItem["kind"]> = K extends "
     ? MeetingModelOutput | UnstructuredModelOutput
     : StatusModelOutput | UnstructuredModelOutput;
 
+/**
+ * Mirrors ActionItemResponse in src/api/routes/intelligence.py -- one row of
+ * GET /api/action-items (FS-007 §2.2). due_date stays a raw string here: it
+ * is free text extracted by the AI, and bucketByUrgency
+ * (web/lib/workspace/action-momentum.ts) treats an unparseable value as
+ * "sem_prazo" instead of any layer rejecting it.
+ */
+export interface ActionItemView {
+  project_name: string | null;
+  description: string;
+  owner: string | null;
+  due_date: string | null;
+  source_analysis_id: number;
+  source_created_at: string;
+}
+
 export interface WorkspaceErrorBody {
   error: string;
   detail: string;

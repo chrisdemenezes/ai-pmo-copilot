@@ -1,0 +1,327 @@
+<title>Architecture Review — Portfolio Intelligence</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --fato:#0f6b5c; --fato-bg:#e2efe9;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --plan:#2f5f9e; --plan-bg:#e2ebf6;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --fato:#4fd6b8; --fato-bg:#173029;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --plan:#7fb4f2; --plan-bg:#1a2c42;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --fato:#4fd6b8; --fato-bg:#173029;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --plan:#7fb4f2; --plan-bg:#1a2c42;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:270px minmax(0,1fr); max-width:1340px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:4px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:40px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.7rem,4vw,2.5rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:70ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:52px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink);}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.3rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:70ch;}
+  h3{font-size:1.02rem; margin:26px 0 8px; font-weight:600;}
+  p{margin:0 0 14px; max-width:74ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:72ch;}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout.fato{border-left-color:var(--fato);}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.fato{color:var(--fato); background:var(--fato-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  .chip.plan{color:var(--plan); background:var(--plan-bg);}
+  .eqf-card{border:1px solid var(--border); border-radius:8px; padding:18px 22px; margin-bottom:14px; background:var(--surface);}
+  .eqf-card .eqf-q{font-family: ui-monospace, monospace; font-size:11px; text-transform:uppercase; letter-spacing:.03em; color:var(--accent); margin-bottom:8px;}
+  .eqf-card .eqf-a{margin:0;}
+  .cycle{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:16px 0 24px; font-family: ui-monospace, monospace; font-size:12px;}
+  .cycle span{background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:8px 14px; box-shadow:var(--shadow);}
+  .cycle .arrow{color:var(--ink-dim); border:none; box-shadow:none; padding:0;}
+  .cycle .loop{color:var(--fato); font-weight:700;}
+  .purpose-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px; margin:16px 0 24px;}
+  .purpose-card{border:1px solid var(--border); border-radius:8px; padding:14px 16px; background:var(--surface);}
+  .purpose-card .pname{font-weight:700; margin-bottom:4px;}
+  .purpose-card .ppurpose{font-family: ui-monospace, monospace; font-size:10px; text-transform:uppercase; letter-spacing:.03em; color:var(--accent); margin-bottom:6px;}
+  .purpose-card .pquestion{color:var(--ink-dim); font-size:.88rem; font-style:italic;}
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">Architecture Review<br>Portfolio Intelligence</div>
+    <nav>
+      <a href="#s0">00 Guardian Check</a>
+      <a href="#s1">01 Executive Questions Framework aplicado</a>
+      <a href="#s2">02 Posição no Executive Loop</a>
+      <a href="#s3">03 Progressive Purpose: validação da separação de responsabilidades</a>
+      <a href="#s4">04 Coerência da convenção técnica</a>
+      <a href="#s5">05 Ratificação dos princípios consolidados</a>
+      <a href="#s6">06 Ratificação das decisões da FS-009</a>
+      <a href="#s7">07 Próximo Gate</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">Architecture Review · STRATECH V1 — Product Core · Etapa 5 de 6</div>
+      <h1 class="title">Architecture Review — Portfolio Intelligence</h1>
+      <p class="subtitle">FS-009 aprovada. O Founder decidiu manter os widgets atuais do Dashboard
+        (<code>ProjectHealthGrid</code>, <code>RiskConcentrationRanking</code>) lado a lado com a Executive
+        Portfolio View, e acrescenta um refinamento permanente ao princípio Progressive Context:
+        <b>Progressive Purpose</b> -- reaproveitar um mesmo sinal entre duas telas não é duplicação quando o
+        propósito executivo de cada uma é diferente. Esta Review valida essa separação explicitamente.
+        Avaliação apenas -- nenhuma implementação nesta etapa.</p>
+      <div class="meta-row">
+        <span><b>Origem</b> FS-009 aprovada + refinamento Progressive Purpose do Founder</span>
+        <span><b>Data</b> 2026-07-14</span>
+        <span><b>Status</b> Em avaliação — aguardando aprovação do Founder antes do TIP</span>
+      </div>
+    </div>
+
+    <section id="s0">
+      <div class="section-head"><span class="section-num">00</span><h2>Guardian Check</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Verificação</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr><td>Conflito com Strategy/Constitution/Vision/Decision Framework?</td><td>SEM CONFLITO — nenhum documento normativo ainda existe em <code>docs/strategy/</code>.</td></tr>
+            <tr><td>Progressive Purpose altera a implementação já aprovada na FS-009?</td><td>NÃO — por instrução explícita do Founder, mantém <code>ProjectHealthGrid</code> e <code>RiskConcentrationRanking</code> exatamente como estão. É validação de responsabilidade, não mudança de escopo.</td></tr>
+            <tr><td>Reabre Single Decision Source, Executive Brief Contract, Comunicação estruturada ou o Achado #1 do RC-1?</td><td>NÃO — mantidos intocados.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Executive Questions Framework aplicado — Portfolio Intelligence</h2></div>
+      <p class="section-intro">Framework já registrado como princípio oficial na Architecture Review de
+        Action Intelligence -- aplicado aqui, não redefinido.</p>
+      <div class="eqf-card">
+        <p class="eqf-q">1. Qual pergunta executiva ela responde?</p>
+        <p class="eqf-a">"Onde devo concentrar meu tempo e minha atenção neste momento?" (Discovery, meta-row)
+          -- distinta de "o que está acontecendo" (Dashboard/Awareness) e de "o que depende de mim" (Decision
+          Center/Decision). Ver Seção 3 para a distinção formal de propósito.</p>
+      </div>
+      <div class="eqf-card">
+        <p class="eqf-q">2. Qual decisão ela permite tomar?</p>
+        <p class="eqf-a">Qual projeto abrir primeiro, entre todos, já em ordem de prioridade transparente
+          (FS-009 §3.2) -- sem o executivo precisar cruzar 3 widgets do Dashboard mentalmente.</p>
+      </div>
+      <div class="eqf-card">
+        <p class="eqf-q">3. Qual ação ela desencadeia?</p>
+        <p class="eqf-a">Nenhuma ação dentro do próprio módulo -- navegação para a Executive Decision Queue ou
+          para o Workspace do projeto (FS-009 §3.5/§4.3). A ação real acontece nessas superfícies ou fora da
+          plataforma, nunca dentro da Executive Portfolio View.</p>
+      </div>
+      <div class="eqf-card">
+        <p class="eqf-q">4. Com que frequência um executivo utilizará este módulo?</p>
+        <p class="eqf-a">Diária, e tipicamente a <b>primeira</b> tela do dia (UX Flow §5) -- antes mesmo de
+          "Ações" ou "Decisões", porque responde a pergunta mais ampla que precede as duas.</p>
+      </div>
+      <div class="eqf-card">
+        <p class="eqf-q">5. Como ela conversa com os demais módulos da plataforma?</p>
+        <p class="eqf-a">Consome a Executive Decision Queue e o ranking de risco já existentes (FS-009 §3.1,
+          §3.3); devolve navegação ao Workspace e ao Decision Center. Esta Review formaliza, na Seção 3, por
+          que esse reuso de sinal não conflita com os widgets do Dashboard que usam os mesmos dados.</p>
+      </div>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>Posição no Executive Loop</h2></div>
+      <div class="cycle">
+        <span class="loop">Priorização</span><span class="arrow">→</span>
+        <span>Pergunta</span><span class="arrow">→</span>
+        <span>Compreensão</span><span class="arrow">→</span>
+        <span>Decisão</span><span class="arrow">→</span>
+        <span>Ação</span><span class="arrow">→</span>
+        <span>Retorno</span>
+      </div>
+      <p>Observação, não uma alteração do Executive Loop (princípio permanente, mantido íntegro): Portfolio
+        Intelligence opera logicamente <b>antes</b> do elo "Pergunta" de qualquer projeto específico -- ela
+        ajuda o executivo a escolher <i>qual</i> loop entrar primeiro, entre N projetos, em vez de organizar um
+        loop já em andamento (papel do Workspace/Executive Brief, elo "Compreensão", e do Decision Center, elo
+        "Decisão"). O ciclo original de 5 elos permanece exatamente como está; esta Capability simplesmente
+        precede o primeiro elo quando há mais de um projeto candidato -- coerente com a própria definição de
+        "Priorização" no diagrama de Progressive Purpose do Founder (Seção 3).</p>
+      <p>O retorno natural (clique → Workspace/Decision Center) já estava desenhado desde a User Journey
+        (passo 4) -- esta Review confirma que ele favorece o mesmo Return Rate (RR, conceitual) que as demais
+        Capabilities, sem nenhuma mudança de design necessária.</p>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>Progressive Purpose: validação da separação de responsabilidades</h2></div>
+      <div class="callout guard">
+        <b>Refinamento do Founder, avaliado nesta seção:</b> "Cada nível da plataforma possui um propósito
+        próprio... O reaproveitamento de um mesmo sinal entre duas telas não caracteriza duplicação quando o
+        propósito executivo é diferente." Registrado como refinamento permanente de Progressive Context
+        (FS-009 §04) -- não o substitui, o completa: Progressive Context descreve <i>profundidade</i>
+        crescente sobre o mesmo objeto; Progressive Purpose descreve <i>por que</i> cada nível existe, mesmo
+        quando consome o mesmo dado que outro nível.
+      </div>
+
+      <h3>3.1 -- A hierarquia de propósito, por Capability</h3>
+      <div class="purpose-grid">
+        <div class="purpose-card"><div class="pname">Dashboard</div><div class="ppurpose">Awareness</div><div class="pquestion">"O que está acontecendo?"</div></div>
+        <div class="purpose-card"><div class="pname">Portfolio Intelligence</div><div class="ppurpose">Prioritization</div><div class="pquestion">"Onde devo concentrar meu tempo?"</div></div>
+        <div class="purpose-card"><div class="pname">Workspace</div><div class="ppurpose">Context</div><div class="pquestion">"O que preciso entender?"</div></div>
+        <div class="purpose-card"><div class="pname">Executive Brief</div><div class="ppurpose">Understanding</div><div class="pquestion">"O que isso significa?"</div></div>
+        <div class="purpose-card"><div class="pname">Decision Center</div><div class="ppurpose">Decision</div><div class="pquestion">"O que depende de mim?"</div></div>
+        <div class="purpose-card"><div class="pname">Action Intelligence</div><div class="ppurpose">Execution</div><div class="pquestion">"O que preciso fazer?"</div></div>
+      </div>
+
+      <h3>3.2 -- Validação, par a par, dos sinais reaproveitados (achado da FS-009 §4.2, resolvido)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Par</th><th>Sinal reaproveitado</th><th>Propósito de cada lado</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>ProjectHealthGrid</code> (Dashboard) × Executive Portfolio View</td>
+              <td><code>latest_health_status</code>, <code>open_risks</code> por projeto</td>
+              <td>Dashboard: inventário completo, sem ordenação, "o que existe agora" (Awareness). Portfolio Intelligence: os mesmos projetos, organizados em 4 camadas justificadas, "por onde eu começo" (Prioritization).</td>
+              <td><span class="chip fato">SEPARAÇÃO VÁLIDA</span></td>
+            </tr>
+            <tr>
+              <td><code>RiskConcentrationRanking</code> (Dashboard) × camada 3 (risco a monitorar)</td>
+              <td><code>open_risks</code>, ordenado (<code>rankByRisk()</code>)</td>
+              <td>Dashboard: fato isolado -- "quais 5 projetos concentram mais risco agora" (Awareness, sem navegação, sem relação com decisão pendente). Portfolio Intelligence: o mesmo ranking, mas integrado a uma prioridade única com Status e Decisão, navegável (Prioritization).</td>
+              <td><span class="chip fato">SEPARAÇÃO VÁLIDA</span></td>
+            </tr>
+            <tr>
+              <td>Executive Portfolio View × Executive Decision Queue (Decision Center)</td>
+              <td><code>ExecutiveDecision[]</code>, consumida via <code>buildExecutiveDecisionQueue()</code></td>
+              <td>Decision Center: só o que exige decisão, com as 5 perguntas completas -- "o que depende de mim" (Decision). Portfolio Intelligence: o mesmo sinal, ao lado de risco e de "sem sinal", como uma camada entre outras -- "onde olhar primeiro" (Prioritization), sempre remetendo de volta ao Decision Center para o detalhe completo.</td>
+              <td><span class="chip fato">SEPARAÇÃO VÁLIDA</span> — Single Decision Source preservado (nunca recalculado, FS-009 §3.3)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>3.3 -- Regra prática: quando o reaproveitamento deixaria de ser válido</h3>
+      <p>Esta Review formaliza um teste concreto, não apenas uma afirmação de princípio -- para que Progressive
+        Purpose seja verificável, não apenas invocado:</p>
+      <ul>
+        <li><b>Válido</b> quando o mesmo dado aparece com uma pergunta executiva diferente, uma composição
+          visual diferente (camada/justificativa vs. tabela/ranking bruto) e uma ação seguinte diferente
+          (navegação vs. nenhuma) -- exatamente o caso dos 3 pares da Seção 3.2.</li>
+        <li><b>Deixaria de ser válido</b> se a Executive Portfolio View reproduzisse a <i>mesma</i> composição
+          visual do <code>RiskConcentrationRanking</code> (top 5, sem camadas, sem navegação) -- aí sim seria
+          a mesma pergunta ("o que está acontecendo") respondida duas vezes, e a recomendação correta seria a
+          Opção 1 da FS-009 §4.2 (retirar ou reduzir o widget). Não é o caso: a composição aprovada na UX Flow
+          (4 camadas, 3 perguntas, navegação real) é estruturalmente distinta.</li>
+      </ul>
+
+      <h3>3.4 -- Conclusão da validação</h3>
+      <div class="callout fato">
+        <b>Confirmado:</b> Dashboard e Portfolio Intelligence respondem perguntas executivas diferentes
+        (Awareness vs. Prioritization), mesmo compartilhando os campos <code>latest_health_status</code> e
+        <code>open_risks</code>. Nenhum widget do Dashboard precisa ser retirado ou reduzido. A recomendação
+        registrada em FS-009 §17 é substituída por esta ratificação -- decisão do Founder, não revertida por
+        esta Review, apenas formalizada.
+      </div>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>Coerência da convenção técnica</h2></div>
+      <p class="section-intro">Validação, não implementação -- por instrução explícita do Founder.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Aspecto</th><th>Avaliação</th></tr></thead>
+          <tbody>
+            <tr><td>Nome do módulo (<code>portfolio-view.ts</code> vs. <code>decision-queue.ts</code>)</td><td><span class="chip fato">COERENTE</span> -- mesma família de módulo de composição pura no cliente, mesmo padrão de nomenclatura por domínio.</td></tr>
+            <tr><td>Zero rota nova, zero serviço novo</td><td><span class="chip fato">COERENTE</span> -- primeira Capability inteiramente construída sobre leituras já existentes, sem ampliar a superfície de API.</td></tr>
+            <tr><td>Dependência de <code>buildExecutiveDecisionQueue()</code> como parâmetro (FS-009 §3.3)</td><td><span class="chip fato">COERENTE, REFORÇA SINGLE DECISION SOURCE</span> -- mesma disciplina já estabelecida na Architecture Review de Decision Center §3 (consumidores leem o resultado, nunca recalculam).</td></tr>
+            <tr><td>Ausência de versionamento (<code>/api/</code>, sem <code>/v1/</code>)</td><td><span class="chip plan">HERDA UM GAP JÁ CONHECIDO</span> -- não aplicável a esta Feature (zero rota nova), mas o gap permanece registrado no Product Blueprint §12.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><b>Conclusão da validação:</b> a convenção proposta é coerente com a arquitetura global hoje. Nenhuma
+        mudança de implementação recomendada.</p>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Ratificação dos princípios consolidados</h2></div>
+      <p class="section-intro">Por instrução do Founder: confirmação explícita de que todos os princípios já
+        consolidados permanecem íntegros nesta Capability.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Princípio</th><th>Mantido?</th><th>Evidência</th></tr></thead>
+          <tbody>
+            <tr><td>Transparent Prioritization</td><td><span class="chip fato">SIM</span></td><td>Journey §2, FS-009 §3.2 — 4 camadas fixas e explicáveis</td></tr>
+            <tr><td>Single Decision Source</td><td><span class="chip fato">SIM</span></td><td>FS-009 §3.3, Seção 3.2 desta Review — <code>ExecutiveDecision[]</code> nunca recalculado</td></tr>
+            <tr><td>Executive Portfolio View</td><td><span class="chip fato">SIM</span></td><td>Journey §2, UX Flow §2-3 — 3 perguntas fixas, portfólio inteiro</td></tr>
+            <tr><td>Princípio da Atenção</td><td><span class="chip fato">SIM</span></td><td>Journey §2, UX Flow §4 — camada 4 discreta, nunca ausente nem competindo</td></tr>
+            <tr><td>Executive Trust</td><td><span class="chip fato">SIM</span></td><td>UX Flow §1/§3 — nenhum texto fabricado, nenhuma consequência inferida</td></tr>
+            <tr><td>Progressive Context</td><td><span class="chip fato">SIM</span></td><td>FS-009 §04 — hierarquia de profundidade validada campo a campo</td></tr>
+            <tr><td>Progressive Purpose (novo)</td><td><span class="chip fato">SIM</span></td><td>Seção 3 desta Review — separação de propósito validada par a par</td></tr>
+            <tr><td>Executive Behavior</td><td><span class="chip fato">SIM</span></td><td>FS-009 §02 — "Priorizar"</td></tr>
+            <tr><td>Arquitetura evolutiva</td><td><span class="chip fato">SIM</span></td><td>Seção 4 desta Review — zero rota/serviço novo, mesma disciplina de ADR-001</td></tr>
+            <tr><td>Máxima reutilização</td><td><span class="chip fato">SIM</span></td><td>FS-009 §3.1-§3.4 — zero componente novo além do Executive Portfolio Card, zero leitura nova</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>Ratificação das decisões técnicas da FS-009</h2></div>
+      <p>As decisões de arquitetura já detalhadas em FS-009 §03 (<code>portfolio-view.ts</code>,
+        <code>buildExecutivePortfolioView</code>, composição do Executive Portfolio Card, avaliação de
+        Executive Component Library, integração com Dashboard/Decision Center/Workspace/Action Intelligence)
+        permanecem como especificadas -- esta Architecture Review não as reabre, apenas as valida contra o
+        Executive Questions Framework (Seção 1), o Executive Loop (Seção 2) e Progressive Purpose (Seção 3),
+        todas confirmadas sem necessidade de ajuste. O único ponto em aberto na FS-009 (§4.2, retirar/reduzir
+        widgets do Dashboard) foi resolvido pelo Founder na aprovação: manter ambos, com a separação de
+        propósito agora formalmente ratificada.</p>
+    </section>
+
+    <section id="s7">
+      <div class="section-head"><span class="section-num">07</span><h2>Próximo Gate</h2></div>
+      <p>Architecture Review concluída. Nenhuma mudança de escopo em relação à FS-009. Nenhuma implementação
+        nesta etapa. Aguardando aprovação do Founder antes do Technical Implementation Plan (Etapa 6 de 6).</p>
+    </section>
+
+    <footer>
+      <span>Stratech — Architecture Review</span>
+      <span>Portfolio Intelligence</span>
+      <span>2026-07-14</span>
+    </footer>
+  </main>
+</div>

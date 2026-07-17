@@ -1,0 +1,135 @@
+<title>STRATECH V2 — Architecture Decision Log</title>
+<style>
+  :root{--bg:#f5f4f1;--surface:#ffffff;--surface-2:#ececE6;--border:#d8d5cd;--ink:#191712;--ink-dim:#5b5648;--accent:#4c4fc4;--mono-ink:#3a362c;--code-bg:#eeece4;--shadow:0 1px 2px rgba(20,18,10,.06),0 8px 24px -12px rgba(20,18,10,.12);}
+  :root[data-theme="dark"]{--bg:#12100c;--surface:#1b1813;--surface-2:#221e17;--border:#39352a;--ink:#efece2;--ink-dim:#a9a494;--accent:#9498f0;--mono-ink:#cfcabb;--code-bg:#221e17;--shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px -16px rgba(0,0,0,.5);}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#12100c;--surface:#1b1813;--surface-2:#221e17;--border:#39352a;--ink:#efece2;--ink-dim:#a9a494;--accent:#9498f0;--mono-ink:#cfcabb;--code-bg:#221e17;--shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px -16px rgba(0,0,0,.5);}}
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  main{max-width:1080px; margin:0 auto; padding:56px 40px 100px;}
+  .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1{font-size:clamp(1.5rem,4vw,2.1rem); margin:0 0 14px; font-weight:600;}
+  .subtitle{color:var(--ink-dim); max-width:84ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding:18px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim); margin-bottom:16px;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .adr{border:1px solid var(--border); border-left:4px solid var(--accent); border-radius:0 8px 8px 0; padding:18px 22px; margin:18px 0 24px; background:var(--surface); box-shadow:var(--shadow);}
+  .adr .adr-id{font-family:ui-monospace,monospace; font-size:11px; color:var(--accent); font-weight:700; letter-spacing:.04em; text-transform:uppercase; margin-bottom:6px;}
+  .adr h3{margin:0 0 10px; font-size:1.05rem;}
+  dl{display:grid; grid-template-columns:140px 1fr; gap:6px 16px; margin:0;}
+  dt{font-family:ui-monospace,monospace; font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-dim); padding-top:2px;}
+  dd{margin:0 0 8px;}
+  code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  footer{border-top:1px solid var(--border); margin-top:50px; padding-top:18px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+<main>
+  <div class="kicker">Enterprise Architecture Blueprint v2.0 · Artefato Complementar</div>
+  <h1>Architecture Decision Log</h1>
+  <p class="subtitle">Registro vivo de toda decisão arquitetural estrutural da STRATECH V2 -- não apenas o quê,
+    mas o raciocínio que levou à decisão. Atualizado incrementalmente à medida que novas decisões forem
+    tomadas, nunca recriado do zero.</p>
+  <div class="meta-row"><span><b>Origem</b> Blueprint v2.0, Seção 21</span><span><b>Última atualização</b> 2026-07-16</span></div>
+
+  <div class="callout"><b>Como usar este documento:</b> toda decisão arquitetural estrutural futura (não
+    apenas de código, mas de produto/segurança/IA/integração) ganha um novo <code>ADR-V2-00N</code> aqui,
+    nunca disperso em outro documento. Decisões já registradas nunca são apagadas, mesmo se revistas -- uma
+    revisão gera um novo ADR que referencia o anterior.</div>
+
+  <div class="adr">
+    <div class="adr-id">ADR-V2-001</div>
+    <h3>Evolução incremental por releases, não reescrita total</h3>
+    <dl>
+      <dt>Contexto</dt><dd>O RC-1 carece de fundação Enterprise, mas está funcional, testado e sem defeito conhecido.</dd>
+      <dt>Problema</dt><dd>Como evoluir para Enterprise sem descartar 8 Capabilities funcionais.</dd>
+      <dt>Alternativas</dt><dd>(a) Reescrever a plataforma do zero; (b) Fracionar em releases incrementais preservando o RC-1.</dd>
+      <dt>Decisão</dt><dd>(b) — releases incrementais 0.1 a 0.5, cada uma verificável isoladamente.</dd>
+      <dt>Justificativa</dt><dd>Reescrita total descartaria valor testado sem necessidade técnica real.</dd>
+      <dt>Consequências</dt><dd>Entrega mais lenta que "big bang", mas cada incremento é demonstrável.</dd>
+      <dt>Impacto futuro</dt><dd>Toda proposta de nova release deve se encaixar nesse mesmo padrão de fracionamento.</dd>
+    </dl>
+  </div>
+
+  <div class="adr">
+    <div class="adr-id">ADR-V2-002</div>
+    <h3>Projeto como entidade real desde o Release 0.1</h3>
+    <dl>
+      <dt>Contexto</dt><dd><code>project_name</code> é hoje um campo de texto livre em <code>analysis_records</code>.</dd>
+      <dt>Problema</dt><dd>Impossível construir hierarquia Enterprise sobre um campo de texto.</dd>
+      <dt>Alternativas</dt><dd>(a) Manter texto livre com metadado externo; (b) Promover Projeto a entidade relacional já no Release 0.1.</dd>
+      <dt>Decisão</dt><dd>(b).</dd>
+      <dt>Justificativa</dt><dd>É o pré-requisito de tudo mais na hierarquia -- adiar geraria retrabalho em toda release seguinte.</dd>
+      <dt>Consequências</dt><dd>Exige a estratégia de migração completa já no Release 0.1.</dd>
+      <dt>Impacto futuro</dt><dd>Toda nova entidade nativa (Portfólio, Programa) segue o mesmo padrão relacional desde a concepção.</dd>
+    </dl>
+  </div>
+
+  <div class="adr">
+    <div class="adr-id">ADR-V2-003</div>
+    <h3>Um projeto por <code>project_name</code> distinto na migração, sem fusão automática</h3>
+    <dl>
+      <dt>Contexto</dt><dd>Nomes de projeto no RC-1 podem ter variações textuais do mesmo projeto real.</dd>
+      <dt>Problema</dt><dd>Como migrar sem perder dado nem fundir projetos diferentes por engano.</dd>
+      <dt>Alternativas</dt><dd>(a) Fusão automática por similaridade textual; (b) Um projeto por nome distinto, reconciliação manual depois.</dd>
+      <dt>Decisão</dt><dd>(b) — decisão explícita do Founder.</dd>
+      <dt>Justificativa</dt><dd>Consistente com a rejeição de fusão por similaridade já estabelecida em Organizational Intelligence (RC-1).</dd>
+      <dt>Consequências</dt><dd>Pode gerar duplicatas pós-migração; mitigado por reconciliação administrativa futura.</dd>
+      <dt>Impacto futuro</dt><dd>Nenhuma migração futura de dado nativo pode usar fusão automática sem nova decisão explícita.</dd>
+    </dl>
+  </div>
+
+  <div class="adr">
+    <div class="adr-id">ADR-V2-004</div>
+    <h3>4 papéis no Release 0.1, não os 14 do RBAC de referência</h3>
+    <dl>
+      <dt>Contexto</dt><dd>O RBAC de referência tem 14 papéis; implementar todos de uma vez seria complexidade não validada.</dd>
+      <dt>Problema</dt><dd>Como validar o motor de permissões sem sobre-engenhar a primeira release.</dd>
+      <dt>Alternativas</dt><dd>(a) 14 papéis de uma vez; (b) 4 papéis essenciais primeiro.</dd>
+      <dt>Decisão</dt><dd>(b) — Organization Admin, PMO, Project Manager, Viewer.</dd>
+      <dt>Justificativa</dt><dd>Cobrem os 3 escopos de acesso já conceituais no RC-1 mais um nível read-only que valida negação de permissão.</dd>
+      <dt>Consequências</dt><dd>Atores externos e papéis granulares ficam para o Release 0.2.</dd>
+      <dt>Impacto futuro</dt><dd>Expansão de RBAC é sempre incremental, nunca "big bang" de todos os 14 papéis de uma vez.</dd>
+    </dl>
+  </div>
+
+  <div class="adr">
+    <div class="adr-id">ADR-V2-005</div>
+    <h3>Document e Process Intelligence como camadas de referência, não GED/BPM nativos</h3>
+    <dl>
+      <dt>Contexto</dt><dd>Empresas já usam SharePoint/Drive/GED e Bizagi/Camunda para essas funções.</dd>
+      <dt>Problema</dt><dd>Evitar duplicar investimento já feito pelo cliente e desviar o diferencial da STRATECH.</dd>
+      <dt>Alternativas</dt><dd>(a) Construir GED e motor BPMN próprios; (b) Referenciar e interpretar, nunca substituir.</dd>
+      <dt>Decisão</dt><dd>(b) — princípio de não competição.</dd>
+      <dt>Justificativa</dt><dd>(a) duplicaria investimento e desviaria o foco de inteligência/governança para execução genérica.</dd>
+      <dt>Consequências</dt><dd>Valor desses dois domínios depende da qualidade da integração com sistemas externos.</dd>
+      <dt>Impacto futuro</dt><dd>Toda proposta de "gestão documental completa" ou "modelador de processo próprio" deve ser rejeitada por padrão, salvo nova decisão explícita do Founder.</dd>
+    </dl>
+  </div>
+
+  <div class="adr">
+    <div class="adr-id">ADR-V2-006</div>
+    <h3>Documentação da V2 na mesma branch, diretório separado, por ora</h3>
+    <dl>
+      <dt>Contexto</dt><dd>Ambiente de execução restrito a uma branch salvo autorização explícita; Baseline Configuration do RC-1 exige que seus artefatos nunca sejam alterados diretamente.</dd>
+      <dt>Problema</dt><dd>Isolar a V2 do RC-1 sem mecanismo de branch ainda decidido.</dd>
+      <dt>Alternativas</dt><dd>(a) Nova branch já para documentação; (b) Mesma branch, diretório <code>docs/product/stratech-v2/</code> isolado.</dd>
+      <dt>Decisão</dt><dd>(b) — aprovado explicitamente pelo Founder.</dd>
+      <dt>Justificativa</dt><dd>Documentação pura não altera nenhum arquivo do RC-1 -- risco mínimo.</dd>
+      <dt>Consequências</dt><dd>Estratégia de branch revisada junto com o Founder no início do Release 0.1 (código).</dd>
+      <dt>Impacto futuro</dt><dd>Nenhum arquivo de código da V2 deve ser commitado nesta branch sem essa revisão conjunta ocorrer primeiro.</dd>
+    </dl>
+  </div>
+
+  <div class="adr">
+    <div class="adr-id">ADR-V2-007</div>
+    <h3>Toda ação crítica de IA exige validação humana por padrão</h3>
+    <dl>
+      <dt>Contexto</dt><dd>RC-1 já proibiu interpretação especulativa de IA; V2 introduz orquestração que pode agir em sistemas externos.</dd>
+      <dt>Problema</dt><dd>Confiança reportada por um modelo não é garantia de correção; ação externa tem custo de reversão maior que uma recomendação exibida.</dd>
+      <dt>Alternativas</dt><dd>(a) Automação plena para aceleradores de alta confiança; (b) Validação humana obrigatória para toda ação crítica.</dd>
+      <dt>Decisão</dt><dd>(b).</dd>
+      <dt>Justificativa</dt><dd>Consistente com o princípio permanente Human Accountability (Blueprint Seção 3).</dd>
+      <dt>Consequências</dt><dd>Reduz autonomia percebida da IA no curto prazo -- aceito como princípio permanente, não limitação temporária.</dd>
+      <dt>Impacto futuro</dt><dd>Nenhum Acelerador futuro pode executar ação em sistema externo sem aprovação humana registrada, independentemente do nível de confiança reportado.</dd>
+    </dl>
+  </div>
+
+  <footer><span>Stratech — STRATECH V2</span><span>Architecture Decision Log</span><span>2026-07-16</span></footer>
+</main>

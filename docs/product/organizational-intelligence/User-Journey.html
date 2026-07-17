@@ -1,0 +1,336 @@
+<title>User Journey — Organizational Intelligence</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --ok:#2f7a4f; --ok-bg:#e1f0e5;
+    --warn:#a3742f; --warn-bg:#f3e9d8;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --ok:#7fd19f; --ok-bg:#1a3324;
+    --warn:#e0b567; --warn-bg:#332711;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --ok:#7fd19f; --ok-bg:#1a3324;
+      --warn:#e0b567; --warn-bg:#332711;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:270px minmax(0,1fr); max-width:1340px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:4px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  .toc .toc-num{color:var(--accent); margin-right:6px;}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:40px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.7rem,4vw,2.5rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:70ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:52px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink);}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.3rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:70ch;}
+  h3{font-size:1.02rem; margin:26px 0 8px; font-weight:600;}
+  p{margin:0 0 14px; max-width:74ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:72ch;}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout.warn{border-left-color:var(--warn);}
+  .callout.ok{border-left-color:var(--ok);}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.ok{color:var(--ok); background:var(--ok-bg);}
+  .chip.warn{color:var(--warn); background:var(--warn-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">STRATECH V1 — Product Core<br>Organizational Intelligence</div>
+    <nav>
+      <a href="#s0"><span class="toc-num">00</span>Guardian Check</a>
+      <a href="#s1"><span class="toc-num">01</span>Persona e Onde a Superfície Vive</a>
+      <a href="#s2"><span class="toc-num">02</span>Organizational Intelligence: conceito de produto</a>
+      <a href="#s3"><span class="toc-num">03</span>Como apresentar sem virar BI/Dashboard/Relatório</a>
+      <a href="#s4"><span class="toc-num">04</span>Linguagem executiva</a>
+      <a href="#s5"><span class="toc-num">05</span>Limite de aprendizados simultâneos</a>
+      <a href="#s6"><span class="toc-num">06</span>Integração à navegação, sem competir</a>
+      <a href="#s7"><span class="toc-num">07</span>Jornada × Dado Real</a>
+      <a href="#s8"><span class="toc-num">08</span>Como isso reduz o tempo até a compreensão certa</a>
+      <a href="#s9"><span class="toc-num">09</span>Conversa com o resto da plataforma</a>
+      <a href="#s10"><span class="toc-num">10</span>Evolução futura sem reconstrução</a>
+      <a href="#s11"><span class="toc-num">11</span>Fora de Escopo (confirmado)</a>
+      <a href="#s12"><span class="toc-num">12</span>Próximo Gate</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">STRATECH V1 · Product Core · Etapa 2 — User Journey</div>
+      <h1 class="title">User Journey — Organizational Intelligence</h1>
+      <p class="subtitle">Discovery aprovada: <b>superfície própria</b>, decisão do Founder -- única
+        Capability, até aqui, cujo dado só existe quando se olha o portfólio inteiro, entre projetos, de uma
+        vez. Regra permanente estabelecida pelo Founder para esta V1: <b>1 ocorrência = evento, 2 = observação,
+        3 ou mais = aprendizado organizacional</b> -- só a 3ª categoria é apresentada. Nenhuma inferência,
+        nenhuma IA generativa, nenhuma interpretação especulativa; todo aprendizado deve ser completamente
+        auditável.</p>
+      <div class="meta-row">
+        <span><b>Fase</b> STRATECH V1 — reta final (Release Candidate)</span>
+        <span><b>Módulo</b> Organizational Intelligence</span>
+        <span><b>Pergunta que a jornada responde</b> "O que a organização inteira está aprendendo?"</span>
+        <span><b>Data</b> 2026-07-16</span>
+        <span><b>Status</b> Aguardando aprovação — nenhuma UX Flow, FS ou código ainda</span>
+      </div>
+    </div>
+
+    <section id="s0">
+      <div class="section-head"><span class="section-num">00</span><h2>Guardian Check</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Verificação</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr><td>Esta decisão aproxima a STRATECH do Release Candidate V1?</td><td>SIM — fecha a última pergunta executiva pendente (Discovery §01) sem introduzir BI/Analytics/Telemetria.</td></tr>
+            <tr><td>Conflito com a Discovery aprovada?</td><td>SEM CONFLITO — Founder fechou o fork da Discovery §02/§08 pela opção "superfície própria", com limites explícitos contra virar Dashboard/BI/Analytics/Telemetria/Relatórios/Painéis estatísticos.</td></tr>
+            <tr><td>Reabre Single Decision Source, Executive Responsibility Separation, Progressive Context/Purpose, Executive Trust ou Decision Context Preservation?</td><td>NÃO — todos reforçados nesta Journey (Seções 3, 6, 9).</td></tr>
+            <tr><td>Introduz inferência, IA generativa ou interpretação especulativa?</td><td>NÃO — cada aprendizado é uma contagem real de igualdade textual exata, auditável até os <code>analysis_records</code> que a compõem (Seção 2).</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Persona e Onde a Superfície Vive</h2></div>
+      <p class="section-intro">Persona: PM/PMO, a mesma de toda a plataforma. Diferente de Executive Memory
+        (transversal, sem tela própria), Organizational Intelligence <b>tem</b> um ponto de entrada dedicado --
+        única forma honesta de apresentar um dado que não pertence a nenhum projeto, decisão ou risco
+        individual, só ao portfólio como um todo.</p>
+      <ul>
+        <li><b>Novo item de navegação,</b> ao lado de Dashboard/Priorização/Projetos/Ações/Decisões -- o nome
+          exato, o rótulo e a posição na ordem são decisão da UX Flow (Seção 12), não desta Journey. O que já
+          fica fixo aqui: entra como item de navegação de primeira classe, nunca como uma aba escondida dentro
+          de outra tela.</li>
+        <li><b>Nenhuma duplicação de entrada:</b> não aparece como um widget dentro do Dashboard, nem como uma
+          camada dentro da Executive Portfolio View -- teria a mesma consequência já registrada no Guardian de
+          Executive Memory (uma pergunta respondida duas vezes, em dois lugares).</li>
+      </ul>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>Organizational Intelligence: conceito de produto</h2></div>
+      <p class="section-intro">Resposta direta à pergunta do Founder: <b>"O que a organização inteira está
+        aprendendo com seus projetos?"</b></p>
+      <p>Um "aprendizado organizacional" é um fato textual idêntico (mesma descrição de risco, ou mesmo
+        achado/recomendação de status) que se repete entre <b>projetos diferentes</b> do portfólio -- nunca
+        dentro de um projeto só (isso já é Executive Memory/Reapareceu) e nunca um padrão inventado ou
+        inferido pela IA.</p>
+      <h3>A régua oficial da V1 (Founder)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Ocorrências reais</th><th>Categoria</th><th>Aparece na superfície?</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Evento</td><td><span class="chip guard">NÃO</span> — um fato isolado de um projeto, já coberto por outras Capabilities (Executive Brief, Riscos)</td></tr>
+            <tr><td>2</td><td>Observação</td><td><span class="chip warn">NÃO</span> — ainda não é considerado estrutural o bastante para a organização como um todo nesta V1</td></tr>
+            <tr><td>3 ou mais</td><td>Aprendizado organizacional</td><td><span class="chip ok">SIM</span> — único nível apresentado nesta Capability</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Esta régua substitui qualquer limiar hipotético levantado na Discovery (§04) -- fixada agora como
+        regra permanente da V1, aplicável a toda contagem de recorrência que esta Capability produzir.</p>
+      <h3>Fronteira formalizada com Executive Memory (reafirmada)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>Executive Memory</th><th>Organizational Intelligence</th></tr></thead>
+          <tbody>
+            <tr><td>Escopo</td><td>Um projeto por vez, ao longo do tempo</td><td>Portfólio inteiro, entre projetos</td></tr>
+            <tr><td>Exemplo real</td><td>"Este projeto teve 3 análises de status crítico seguidas"</td><td>"Este risco real já apareceu em 3 projetos diferentes"</td></tr>
+            <tr><td>Onde vive</td><td>Dentro de superfícies já existentes (transversal)</td><td>Superfície própria (esta Journey)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>Como apresentar sem virar BI/Dashboard/Relatório</h2></div>
+      <p class="section-intro">Avaliação explícita exigida pelo Founder.</p>
+      <ul>
+        <li><b>Nenhum gráfico, nenhuma tendência ao longo do tempo, nenhum indicador estatístico.</b> Cada
+          aprendizado é uma frase executiva mais uma contagem inteira -- nunca uma linha do tempo, nunca um
+          percentual, nunca uma média.</li>
+        <li><b>Nenhum filtro, ordenação configurável, busca livre ou exportação.</b> A ordem é sempre fixa
+          (maior contagem de ocorrências primeiro, empate por ordem alfabética do texto -- mesma convenção já
+          usada em outras listas da plataforma), sem controle do usuário sobre como visualizar -- isso é
+          exatamente o que separaria isto de um BI.</li>
+        <li><b>Nenhum drill-down analítico.</b> O único aprofundamento permitido é abrir o Workspace de um dos
+          projetos citados (navegação já existente) -- nunca uma tela de exploração de dados dentro da própria
+          superfície.</li>
+        <li><b>Cada aprendizado aponta para os registros reais que o compõem</b> (nomes de projeto reais,
+          nunca anonimizados ou agregados a ponto de perder rastreabilidade) -- é isso que garante
+          "completamente auditável", nunca uma célula de uma tabela dinâmica.</li>
+      </ul>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>Linguagem executiva</h2></div>
+      <p class="section-intro">Avaliação explícita exigida pelo Founder -- mesma disciplina de linguagem já
+        aplicada em toda a plataforma (nunca o nome técnico do agente, nunca um termo de banco de dados).</p>
+      <ul>
+        <li><b>Nunca "recorrência", "N registros" ou "correspondência textual"</b> -- sempre a frase executiva
+          equivalente: <i>"Este risco já apareceu em 3 projetos diferentes."</i></li>
+        <li><b>O texto do próprio risco/achado permanece verbatim,</b> nunca resumido ou reescrito pela
+          interface -- mesma disciplina de Decision Context Preservation já aplicada em Executive Memory
+          (nunca concatenar com uma narrativa gerada).</li>
+        <li><b>Nomes de projeto reais, nunca códigos ou IDs internos</b> -- o mesmo <code>project_name</code>
+          já usado em toda a plataforma.</li>
+        <li><b>Nenhum verbo de conclusão</b> ("isso prova", "isso significa", "a causa é") -- só verbos de
+          constatação ("apareceu em", "foi identificado em"), preservando que a interpretação continua sendo
+          do executivo, nunca da plataforma (Discovery §05).</li>
+      </ul>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Limite de aprendizados simultâneos</h2></div>
+      <p class="section-intro">Avaliação explícita exigida pelo Founder -- mesma preocupação de sobrecarga
+        cognitiva já resolvida em Executive Memory pela One Memory Insight Rule, agora aplicada a uma lista
+        inteira, não a um único campo.</p>
+      <p><b>Proposta desta Journey (a ratificar na Architecture Review, mesmo processo de governança que
+        originou a One Memory Insight Rule):</b> no máximo <b>5</b> aprendizados organizacionais exibidos por
+        vez, ordenados por contagem de ocorrências decrescente. O número 5 não é arbitrário -- é o mesmo limite
+        já em produção em <code>rankByRisk()</code> (<code>web/lib/dashboard/aggregate.ts</code>, widget "Top
+        riscos" do Dashboard), mantendo consistência com um padrão de "top N" que a plataforma já usa e que o
+        Founder já validou implicitamente.</p>
+      <p>Se mais de 5 padrões reais atingirem o limiar de 3+ ocorrências, os demais permanecem auditáveis (a
+        contagem real continua existindo), mas não aparecem na superfície -- mesmo espírito do Princípio da
+        Atenção: mostrar o que mais importa agora, não tudo o que existe.</p>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>Integração à navegação, sem competir</h2></div>
+      <p class="section-intro">Avaliação explícita exigida pelo Founder.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Capability</th><th>Por que não compete</th></tr></thead>
+          <tbody>
+            <tr><td>Dashboard</td><td>Responde "como está o portfólio agora" (contagens/KPIs por projeto individual); Organizational Intelligence nunca mostra um projeto isolado, só padrões que atravessam vários</td></tr>
+            <tr><td>Portfolio Intelligence</td><td>Responde "onde concentrar meu tempo agora" (decisão pendente, momento presente); Organizational Intelligence não é sobre decisão pendente, é sobre recorrência ao longo de múltiplos projetos, sem urgência implícita</td></tr>
+            <tr><td>Decision Center</td><td>Responde "o que depende de mim agora"; Organizational Intelligence nunca lista uma decisão pendente, nunca uma ação a tomar -- só um fato de contexto</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Cada aprendizado pode citar projetos por nome, com link para o Workspace de cada um -- mas nunca
+        reapresenta a fila de decisões, o status ou os riscos desse projeto dentro da própria superfície
+        (Executive Responsibility Separation).</p>
+    </section>
+
+    <section id="s7">
+      <div class="section-head"><span class="section-num">07</span><h2>Jornada × Dado Real</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Aprendizado</th><th>Fonte real</th><th>Cálculo/regra</th></tr></thead>
+          <tbody>
+            <tr><td>Risco recorrente entre projetos</td><td><code>list_latest_risks(project_name=None)</code> (já existente, Decision Center)</td><td>Agrupa por igualdade textual exata de <code>description</code>; conta projetos distintos; exige 3+ (Seção 2)</td></tr>
+            <tr><td>Achado/recomendação de status recorrente entre projetos</td><td><code>list_analyses(kind="status", limit=None)</code>, mais recente por projeto</td><td>Mesma agregação, aplicada a <code>key_findings</code>/<code>recommendations</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Nenhuma leitura nova é necessária -- ambas já existem e já são portfolio-wide (Discovery §00/§03). A
+        única peça nova é a agregação em memória por igualdade textual exata, com o corte de 3+ ocorrências.</p>
+    </section>
+
+    <section id="s8">
+      <div class="section-head"><span class="section-num">08</span><h2>Como isso reduz o tempo até a compreensão certa</h2></div>
+      <p><b>Hoje:</b> reconhecer que o mesmo risco real afeta vários projetos exigiria o PMO abrir cada
+        Workspace manualmente e comparar riscos um a um -- um custo que cresce com o tamanho do portfólio e que,
+        na prática, quase nunca é pago.</p>
+      <p><b>Com Organizational Intelligence:</b> esse fato chega pronto, já filtrado pelo limiar de 3+
+        ocorrências (Seção 2) e limitado a 5 por vez (Seção 5) -- o PMO reconhece o padrão estrutural em
+        segundos, sem precisar cruzar dado manualmente, coerente com os princípios de Time To Decision/Time To
+        Attention já oficiais.</p>
+    </section>
+
+    <section id="s9">
+      <div class="section-head"><span class="section-num">09</span><h2>Conversa com o resto da plataforma</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Módulo</th><th>Natureza da conversa</th></tr></thead>
+          <tbody>
+            <tr><td>Decision Center / Portfolio Intelligence</td><td><code>list_latest_risks(project_name=None)</code> reaproveitada tal como está -- nenhuma leitura duplicada, nenhum novo endpoint</td></tr>
+            <tr><td>Executive Memory</td><td>Nenhuma dependência direta -- opera em escopos diferentes (1 projeto vs. portfólio); nenhum dos dois cálculos é reaproveitado do outro, mas ambos usam a mesma técnica de igualdade textual exata</td></tr>
+            <tr><td>Workspace de cada projeto</td><td>Destino de navegação a partir de um aprendizado -- nenhuma duplicação do conteúdo do Workspace dentro desta superfície</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s10">
+      <div class="section-head"><span class="section-num">10</span><h2>Evolução futura sem reconstrução</h2></div>
+      <ul>
+        <li><b>Novos tipos de aprendizado</b> (ex.: ações recorrentes entre projetos) podem ser adicionados no
+          futuro reaproveitando a mesma régua de 3+ ocorrências e o mesmo limite de exibição -- nenhuma
+          reconstrução da superfície, só uma nova fonte de agregação.</li>
+        <li><b>BI/Analytics/Telemetria (V2),</b> se algum dia aprovados, seriam uma Capability -- ou um
+          produto -- inteiramente novo, nunca uma extensão implícita desta superfície (Guardian §00,
+          Discovery §05).</li>
+        <li><b>Categorização por tema/causa-raiz,</b> se algum dia um campo estruturado for adicionado aos
+          schemas de risco/status, poderia refinar o agrupamento além da igualdade textual exata -- decisão
+          de uma Discovery futura, não desta Journey.</li>
+      </ul>
+    </section>
+
+    <section id="s11">
+      <div class="section-head"><span class="section-num">11</span><h2>Fora de Escopo (confirmado)</h2></div>
+      <ul>
+        <li>Qualquer gráfico, tendência ao longo do tempo, percentual ou indicador estatístico -- decisão explícita do Founder</li>
+        <li>Qualquer filtro, ordenação configurável, busca livre ou exportação -- características de BI, fora desta V1</li>
+        <li>Qualquer painel de Telemetria (uso do produto) -- Roadmap V2</li>
+        <li>Qualquer interpretação, causa-raiz ou narrativa gerada pela IA -- proibido em qualquer fase, não só nesta V1</li>
+        <li>Qualquer aprendizado com menos de 3 ocorrências reais -- eventos e observações não são apresentados</li>
+        <li>Qualquer categorização temática automática -- nenhum schema tem esse campo hoje (Discovery §00)</li>
+      </ul>
+    </section>
+
+    <section id="s12">
+      <div class="section-head"><span class="section-num">12</span><h2>Próximo Gate</h2></div>
+      <p>Nenhum código escrito. Esta é a User Journey (Etapa 2). A UX Flow (Etapa 3) só começa após aprovação
+        explícita do Founder -- inclusive sobre o nome/rótulo exato da nova entrada de navegação, a posição
+        exata na ordem da Sidebar, e a redação exata da frase de cada aprendizado, todas deixadas como decisão
+        da próxima etapa.</p>
+    </section>
+
+    <footer>
+      <span>Stratech — STRATECH V1 · Product Core</span>
+      <span>User Journey</span>
+      <span>2026-07-16</span>
+    </footer>
+  </main>
+</div>

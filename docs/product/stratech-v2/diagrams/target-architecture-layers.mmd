@@ -1,0 +1,30 @@
+%% STRATECH V2 -- Target Architecture, layered
+%% See Enterprise-Architecture-Blueprint-v2.0.html Section 5
+flowchart TB
+    EI["Executive Intelligence\n(cockpit views by profile)"]
+    AI["AI Intelligence Layer\n(accelerator framework, transversal)"]
+    ORCH["Event & Orchestration Layer\n(events, rules, workflows, human-in-the-loop)"]
+
+    subgraph SEM["Semantic and Context Layer"]
+        PPI["Portfolio, Program & Project Intelligence"]
+        DOC["Document Intelligence"]
+        PROC["Process Intelligence"]
+    end
+
+    INT["Integration Hub\n(connectors: Teams, ClickUp, MS Project, Jira, ...)"]
+    EF["Enterprise Foundation\n(org, users, RBAC, sessions, audit)"]
+    SEC["Security, Audit & Compliance"]
+    OBS["Data & Observability"]
+
+    EI --> AI
+    AI --> ORCH
+    ORCH --> SEM
+    SEM --> INT
+    SEM --> EF
+    INT -.->|external systems, never duplicated| EXT["External Specialist Systems\n(MS Project, ClickUp, Jira, Teams,\nSharePoint, ERPs, CRMs, BPM engines...)"]
+    EF --> SEC
+    EF --> OBS
+
+    style EF fill:#e7e7f8,stroke:#4c4fc4
+    style SEC fill:#f6e2dd,stroke:#a13d2f
+    style EXT fill:#eeece4,stroke:#5b5648

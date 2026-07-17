@@ -1,0 +1,237 @@
+<title>Platform Readiness Backlog</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --ok:#2f7a4f; --ok-bg:#e1f0e5;
+    --warn:#a3742f; --warn-bg:#f3e9d8;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --ok:#7fd19f; --ok-bg:#1a3324;
+    --warn:#e0b567; --warn-bg:#332711;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --ok:#7fd19f; --ok-bg:#1a3324;
+      --warn:#e0b567; --warn-bg:#332711;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  main{max-width:1100px; margin:0 auto; padding:56px 40px 100px;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1{font-size:clamp(1.7rem,4vw,2.3rem); line-height:1.16; margin:0 0 14px; font-weight:600; text-wrap:balance;}
+  .subtitle{color:var(--ink-dim); max-width:80ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding:18px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim); margin-bottom:16px;}
+  .meta-row b{color:var(--ink);}
+  h2{font-size:1.2rem; margin:40px 0 6px; padding-bottom:10px; border-bottom:2px solid var(--ink);}
+  p{margin:0 0 12px; max-width:80ch;}
+  .table-wrap{overflow-x:auto; margin:12px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.85rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 10px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top;}
+  td code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.ok{color:var(--ok); background:var(--ok-bg);}
+  .chip.warn{color:var(--warn); background:var(--warn-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout b{color:var(--ink);}
+  footer{border-top:1px solid var(--border); margin-top:60px; padding-top:20px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<main>
+  <div class="kicker">STRATECH V1 · Product Core (fase final) · Documento vivo</div>
+  <h1>Platform Readiness Backlog</h1>
+  <p class="subtitle">Backlog único, por instrução do Founder/CTO (aprovação da Architecture Review de
+    Executive Memory): todo Platform Readiness Item identificado durante qualquer etapa do processo STRATECH
+    -- Discovery, Journey, UX Flow, FS, Architecture Review ou TIP -- passa a integrar este documento único,
+    nunca disperso por Capability. Cada item registra categoria, prioridade, impacto e se bloqueia ou não o
+    Release Candidate (RC). Este documento é atualizado incrementalmente -- nunca recriado do zero.</p>
+  <div class="meta-row">
+    <span><b>Origem</b> Architecture Review — Executive Memory</span>
+    <span><b>Última atualização</b> 2026-07-16 (Architecture Gate V1)</span>
+    <span><b>Status</b> Registro apenas — nenhum item implementado</span>
+  </div>
+
+  <h2>Itens registrados</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Categoria</th>
+          <th>Item</th>
+          <th>Origem</th>
+          <th>Prioridade</th>
+          <th>Impacto</th>
+          <th>Bloqueia o RC?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>PRI-001</td>
+          <td>Escalabilidade</td>
+          <td>Se Executive Memory Insights forem estendidos a Decision Center e Portfolio Intelligence
+            (Capabilities de escala de portfólio), a leitura de histórico por projeto individual não escala
+            sem uma leitura agregada dedicada (mesma técnica de <code>list_latest_risks()</code>) --
+            buscar N análises por projeto, um a um, seria N+1.</td>
+          <td>Executive Memory, Architecture Review §3.2/§4/§9</td>
+          <td><span class="chip warn">MÉDIA</span> — só relevante se/quando a extensão for aprovada</td>
+          <td>Nenhum hoje -- Executive Memory V1 permanece escopada ao Executive Brief (leitura por projeto único, já eficiente)</td>
+          <td><span class="chip ok">NÃO BLOQUEIA</span> — condicional a uma extensão futura ainda não aprovada</td>
+        </tr>
+        <tr>
+          <td>PRI-002</td>
+          <td>Operação</td>
+          <td>O rate limiter do backend (60 req/60s por chave de API, <code>src/api/rate_limiter.py</code>) é
+            compartilhado entre produção, homologação e Demo Mode -- durante a verificação manual da Executive
+            Memory em Demo Mode, uma sequência rápida de leituras (navegação + submissões reais de análise)
+            atingiu o limite e recebeu <code>429</code>. Comportamento correto do limiter, não um defeito --
+            mas nenhum ambiente de demonstração/homologação tem hoje uma chave ou limite dedicado.</td>
+          <td>Executive Memory, T9 (verificação em Demo Mode)</td>
+          <td><span class="chip warn">BAIXA</span> — não impede a verificação, só exige espaçar as chamadas</td>
+          <td>Nenhum hoje -- apenas atrito operacional ao verificar manualmente múltiplas Capabilities em sequência</td>
+          <td><span class="chip ok">NÃO BLOQUEIA</span></td>
+        </tr>
+        <tr>
+          <td>PRI-003</td>
+          <td>Escalabilidade</td>
+          <td>Se Organizational Intelligence for estendida a "Decisões recorrentes" e "Tendências de status"
+            (categorias adiadas na V1), a leitura agregada nova precisaria trafegar o texto completo de
+            <code>decisions</code>/<code>key_findings</code>/<code>recommendations</code> de todo o
+            portfólio -- volume de texto maior que as descrições curtas de risco/ação já agregadas hoje.</td>
+          <td>Organizational Intelligence, Architecture Review §04/§09</td>
+          <td><span class="chip warn">MÉDIA</span> — só relevante se/quando a extensão for aprovada</td>
+          <td>Nenhum hoje -- Organizational Intelligence V1 permanece escopada a Riscos/Ações recorrentes (rotas já existentes, sem leitura de texto longo)</td>
+          <td><span class="chip ok">NÃO BLOQUEIA</span> — condicional a uma extensão futura ainda não aprovada</td>
+        </tr>
+        <tr>
+          <td>PRI-004</td>
+          <td>Documentação</td>
+          <td>"Executive Brief Contract" e "Decision Catalog / Domain / Context" são citados como recomendação
+            real e pendente em pelo menos 5 documentos distintos (FS-006 §Recomendações, FS-007, Action
+            Intelligence Architecture Review, Decision Center Architecture Review/FS-008, Communication
+            Intelligence Executive Progress Report) -- sempre como "adiado, não iniciar agora", nunca como
+            escopo cancelado. Nenhum desses dois itens está registrado neste Backlog nem no V1 Release Notes
+            ("itens adiados para V2") -- o único lugar hoje que preserva essa decisão é a prosa dispersa das
+            próprias Capabilities que o adiaram.</td>
+          <td>Architecture Gate V1, Domínio 9 (Documentação)</td>
+          <td><span class="chip warn">MÉDIA</span> — risco de a recomendação se perder entre Capabilities</td>
+          <td>Nenhum hoje -- é uma lacuna de rastreabilidade documental, não uma lacuna funcional</td>
+          <td><span class="chip ok">NÃO BLOQUEIA</span> — recomenda-se apenas consolidar a referência aqui</td>
+        </tr>
+        <tr>
+          <td>PRI-005</td>
+          <td>Escalabilidade</td>
+          <td>As colunas <code>analysis_records.created_at</code> e <code>analysis_records.kind</code>
+            (<code>src/database/repository.py</code>) não têm índice, apesar de serem usadas em todo
+            <code>ORDER BY</code>/filtro de <code>list_analyses()</code> -- inclusive nas leituras completas de
+            <code>summarize_portfolio()</code>, <code>list_action_items()</code> e <code>list_latest_risks()</code>
+            (todas com <code>limit=None</code>, sem paginação). Apenas <code>id</code> e <code>project_name</code>
+            têm índice hoje.</td>
+          <td>Architecture Gate V1, Domínio 6 (Performance)</td>
+          <td><span class="chip warn">MÉDIA</span> — agrava-se junto com PRI-001/PRI-003 conforme o histórico cresce</td>
+          <td>Nenhum hoje -- volume atual (piloto/demo) não expõe o custo de um full scan sem índice</td>
+          <td><span class="chip ok">NÃO BLOQUEIA</span> — condicional a crescimento real de volume</td>
+        </tr>
+        <tr>
+          <td>PRI-006</td>
+          <td>Testes / CI</td>
+          <td><span class="chip ok">RESOLVIDO</span> — Release Blocker RB-001. A suíte E2E (Playwright, 68
+            testes/9 arquivos) não estava conectada a <code>.github/workflows/ci.yml</code>. Corrigido: o job
+            <code>frontend</code> agora instala os browsers do Playwright e executa
+            <code>npx playwright test</code> (todos os projetos) em todo PR/push. Também corrigido
+            <code>web/playwright.config.ts</code>, cujo <code>executablePath</code> estava fixado a um caminho
+            exclusivo do sandbox de desenvolvimento desta sessão (inexistente em runners de CI) -- agora
+            condicional via <code>fs.existsSync</code>, com fallback ao Chromium instalado pelo próprio CI.</td>
+          <td>Architecture Gate V1, Domínio 7 (Qualidade e testes) -- Release Blocker RB-001, Release Readiness Review</td>
+          <td><span class="chip ok">RESOLVIDO</span></td>
+          <td>Nenhum -- as 2 regressões reais encontradas nesta sessão (invalidação ausente de
+            <code>workspace-recent</code>; <code>/aprendizados</code> fora do matcher de autenticação) foram
+            detectadas por testes E2E; agora esse mecanismo roda automaticamente a cada PR</td>
+          <td><span class="chip ok">NÃO BLOQUEIA — RESOLVIDO</span></td>
+        </tr>
+        <tr>
+          <td>PRI-007</td>
+          <td>Documentação</td>
+          <td>Action Intelligence (Capability 04) é a única Capability com feature implementada e testada (rota
+            <code>/actions</code>, cobertura unit/E2E) cuja trilha de documentação para em
+            <code>TIP-008-implementation-plan.html</code> -- não existem
+            <code>TIP-008-executive-progress-report.html</code> nem um Visual Fidelity Report para esta
+            Capability, ao contrário de todas as demais (Communication Intelligence em diante têm ao menos os
+            2 documentos de fechamento).</td>
+          <td>Architecture Gate V1, Domínios 8 e 9</td>
+          <td><span class="chip warn">BAIXA</span> — lacuna documental, feature em produção não é afetada</td>
+          <td>Nenhum -- funcionalidade e testes não são afetados, apenas o registro histórico de fechamento</td>
+          <td><span class="chip ok">NÃO BLOQUEIA</span> — recomenda-se completar antes da publicação do V1 Release Notes</td>
+        </tr>
+        <tr>
+          <td>PRI-008</td>
+          <td>Operação</td>
+          <td><span class="chip ok">RESOLVIDO</span> — Release Blocker RB-002. Não existia procedimento
+            documentado de backup/restore para o banco de produção (PostgreSQL, serviço <code>database</code>
+            em <code>docker-compose.yml</code>). Produzido
+            <code>docs/operations/PRI-008-production-backup-restore-runbook.md</code>: estratégia
+            (<code>pg_dump -Fc</code>), periodicidade (diário/semanal), restauração (<code>pg_restore</code> +
+            <code>alembic upgrade head</code>), validação (health check + contagem + registro mais recente) e
+            recuperação após falha (4 cenários). Uma limitação permanece registrada no próprio runbook:
+            armazenamento externo dos arquivos de backup e a automação de disparo dependem da escolha do
+            provedor de infraestrutura de produção, ainda não definida neste repositório.</td>
+          <td>Release Readiness Review, Founder (Release Blocker RB-002)</td>
+          <td><span class="chip ok">RESOLVIDO</span></td>
+          <td>Nenhum -- documentação operacional, sem mudança de código</td>
+          <td><span class="chip ok">NÃO BLOQUEIA — RESOLVIDO</span></td>
+        </tr>
+        <tr>
+          <td>PRI-009</td>
+          <td>Operação</td>
+          <td><span class="chip ok">RESOLVIDO</span> — Release Blocker RB-003. Não existia runbook de
+            deployment de produção. Produzido
+            <code>docs/operations/PRI-009-production-deployment-runbook.md</code>: pré-requisitos, implantação,
+            rollback, validação pós-deploy, smoke tests e critérios de sucesso. Duas lacunas pré-existentes
+            foram documentadas com transparência, não resolvidas por este item (fora do escopo de um runbook):
+            (1) a hospedagem de produção do frontend nunca foi decidida (pergunta em aberto desde
+            <code>RFC-001-frontend-architecture.html</code>); (2) <code>POST /api/bff/session</code> não tem
+            mitigação de força bruta -- risco já formalmente aceito apenas para uso interno/piloto
+            (<code>docs/development/01-project-structure.md</code>, "Decision: Security Finding"), com condição
+            explícita e ainda não cumprida antes de qualquer deploy além desse escopo. O runbook restringe
+            explicitamente seu próprio escopo a esse mesmo cenário já aprovado.</td>
+          <td>Release Readiness Review, Founder (Release Blocker RB-003)</td>
+          <td><span class="chip ok">RESOLVIDO (runbook)</span> / <span class="chip warn">DECISÕES EM ABERTO CITADAS</span></td>
+          <td>Nenhum para o escopo interno/piloto já aprovado -- as 2 lacunas citadas bloqueiam apenas uma expansão futura a produção pública/clientes externos, não a V1 como aprovada</td>
+          <td><span class="chip ok">NÃO BLOQUEIA — RESOLVIDO</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <b>Como usar este documento:</b> ao final de qualquer etapa do processo STRATECH que identifique uma
+    oportunidade real de fortalecimento da plataforma (segurança, performance, escalabilidade, operação,
+    observabilidade, backup/recuperação, auditoria, versionamento, testes automatizados, experiência do
+    usuário), o item é acrescentado aqui com um novo número sequencial (<code>PRI-00N</code>) -- nunca
+    duplicado em outro documento. Itens já resolvidos permanecem aqui, marcados como resolvidos, para
+    preservar o histórico de decisão.
+  </div>
+
+  <footer>
+    <span>Stratech — STRATECH V1</span>
+    <span>Platform Readiness Backlog</span>
+    <span>2026-07-16</span>
+  </footer>
+</main>

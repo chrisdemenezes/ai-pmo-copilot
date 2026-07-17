@@ -1,0 +1,376 @@
+<title>TIP-012 — Organizational Intelligence</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --fato:#0f6b5c; --fato-bg:#e2efe9;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --plan:#2f5f9e; --plan-bg:#e2ebf6;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --fato:#4fd6b8; --fato-bg:#173029;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --plan:#7fb4f2; --plan-bg:#1a2c42;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --fato:#4fd6b8; --fato-bg:#173029;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --plan:#7fb4f2; --plan-bg:#1a2c42;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:270px minmax(0,1fr); max-width:1340px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:4px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:40px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.7rem,4vw,2.5rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:70ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:52px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink);}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.3rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:70ch;}
+  h3{font-size:1.02rem; margin:26px 0 8px; font-weight:600;}
+  p{margin:0 0 14px; max-width:74ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:72ch;}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout.fato{border-left-color:var(--fato);}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.fato{color:var(--fato); background:var(--fato-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  .chip.plan{color:var(--plan); background:var(--plan-bg);}
+  .value-card{border:1px solid var(--border); border-radius:8px; padding:18px 22px; margin-bottom:14px; background:var(--surface);}
+  .value-card .value-q{font-family: ui-monospace, monospace; font-size:11px; text-transform:uppercase; letter-spacing:.03em; color:var(--accent); margin-bottom:8px;}
+  .value-card .value-a{margin:0;}
+  .slice{border:1px solid var(--border); border-radius:8px; padding:16px 20px; margin-bottom:16px; background:var(--surface);}
+  .slice h4{margin:0 0 4px; font-size:1rem;}
+  .slice .slice-tag{font-family: ui-monospace, monospace; font-size:10px; text-transform:uppercase; color:var(--fato); margin-bottom:8px; display:block;}
+  .slice .slice-q{font-family: ui-monospace, monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.02em; color:var(--ink-dim); margin:10px 0 2px;}
+  .budget-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:12px; margin:16px 0 24px;}
+  .budget-card{border:1px solid var(--border); border-radius:8px; padding:14px 16px; background:var(--surface);}
+  .budget-card .blabel{font-family: ui-monospace, monospace; font-size:10px; text-transform:uppercase; letter-spacing:.03em; color:var(--accent); margin-bottom:6px;}
+  .budget-card .bval{font-weight:700; margin-bottom:4px;}
+  .budget-card .bnote{color:var(--ink-dim); font-size:.85rem;}
+  .flow{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:16px 0 24px; font-family: ui-monospace, monospace; font-size:13px;}
+  .flow span{background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:10px 16px; box-shadow:var(--shadow);}
+  .flow .arrow{color:var(--ink-dim); border:none; box-shadow:none; padding:0;}
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">TIP-012<br>Organizational Intelligence</div>
+    <nav>
+      <a href="#s0">00 Guardian Check</a>
+      <a href="#s1">01 Entrega de Valor</a>
+      <a href="#s2">02 Redução do esforço de reconstrução de contexto</a>
+      <a href="#s3">03 Princípios Preservados</a>
+      <a href="#s4">04 Evidence First</a>
+      <a href="#s5">05 Language Contract</a>
+      <a href="#s6">06 Incrementos de Valor ao Executivo</a>
+      <a href="#s7">07 Tarefas Técnicas</a>
+      <a href="#s8">08 Ordem de Execução</a>
+      <a href="#s9">09 Critérios de Conclusão</a>
+      <a href="#s10">10 Architecture Budget</a>
+      <a href="#s11">11 Platform Readiness Backlog</a>
+      <a href="#s12">12 Próximo Gate</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">Technical Implementation Plan · STRATECH V1 — reta final (Release Candidate)</div>
+      <h1 class="title">TIP-012 — Organizational Intelligence</h1>
+      <p class="subtitle">Decompõe FS-011 e a Architecture Review (ambas aprovadas) em tarefas técnicas
+        executáveis, organizadas em Incrementos de Valor ao Executivo. Duas práticas novas do Founder/CTO
+        registradas nesta Capability: <b>Evidence First</b> (Seção 4) -- todo Aprendizado Organizacional nasce
+        obrigatoriamente de evidência real → regra determinística → texto, nunca o caminho inverso -- e
+        <b>Language Contract</b> (Seção 5) -- vocabulário permitido/proibido, formalizando e ampliando o
+        achado da Architecture Review §3.2. Nenhuma Feature nova, nenhuma ampliação de arquitetura, nenhuma
+        mudança do escopo já ratificado (Riscos recorrentes + Ações recorrentes).</p>
+      <div class="meta-row">
+        <span><b>Origem</b> FS-011 + Architecture Review, ambas aprovadas</span>
+        <span><b>Data</b> 2026-07-16</span>
+        <span><b>Status</b> Em elaboração — aguardando aprovação do Founder antes da implementação</span>
+      </div>
+    </div>
+
+    <section id="s0">
+      <div class="section-head"><span class="section-num">00</span><h2>Guardian Check</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Verificação</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr><td>Este plano altera o escopo já ratificado em FS-011/Architecture Review?</td><td>NÃO — reorganiza a ordem de construção por valor executivo; escopo confirmado: Riscos recorrentes + Ações recorrentes apenas.</td></tr>
+            <tr><td>Cria alguma Feature nova ou amplia arquitetura?</td><td>NÃO, por instrução explícita do Founder — apenas organização da implementação.</td></tr>
+            <tr><td>Evidence First e Language Contract alteram a composição já especificada?</td><td>NÃO — formalizam disciplinas já implícitas (agregação pura sobre dado real, vocabulário neutro já usado nos exemplos da UX Flow/FS-011) como requisitos explícitos e testáveis.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Entrega de Valor</h2></div>
+      <div class="value-card">
+        <p class="value-q">1. Em qual momento o usuário começa a perceber valor?</p>
+        <p class="value-a">Assim que "Riscos recorrentes" existir na nova superfície -- não é preciso esperar
+          "Ações recorrentes". É o menor incremento que já responde, com dado real, à pergunta central da
+          Discovery: "o que a organização inteira está aprendendo?".</p>
+      </div>
+      <div class="value-card">
+        <p class="value-q">2. Qual será a primeira funcionalidade utilizável?</p>
+        <p class="value-a">A nova página mostrando cards de "Riscos recorrentes" reais (3+ ocorrências),
+          navegáveis até o Workspace de cada projeto citado -- funciona sozinha, de ponta a ponta.</p>
+      </div>
+      <div class="value-card">
+        <p class="value-q">3. Como organizar para entregar valor incremental mantendo a arquitetura completa?</p>
+        <p class="value-a">2 incrementos (Seção 6), cada um demonstrável sozinho -- mesma disciplina de toda
+          Capability anterior. Ao final do Incremento 2, o escopo integral da FS-011 está entregue, incluindo
+          o limite de 5 e a ordem fixa de categorias.</p>
+      </div>
+      <div class="value-card">
+        <p class="value-q">4. Qual é o caminho mais curto entre abrir a STRATECH e reconhecer um padrão estrutural do portfólio?</p>
+        <p class="value-a">Hoje: o PMO abriria cada Workspace manualmente e compararia riscos/ações um a um.
+          Depois desta Feature: uma única tela nova entrega o padrão já reconhecido, com os projetos reais
+          citados, sem esse trabalho manual.</p>
+      </div>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>Redução do esforço de reconstrução de contexto</h2></div>
+      <div class="callout fato">
+        <b>TTD e Return Rate (RR) já são princípios oficiais</b> (TIP-008 §08) -- esta seção os aplica a
+        Organizational Intelligence, cujo efeito é sobre um esforço que hoje quase nunca é pago (Journey
+        §08): cruzar riscos/ações de todos os projetos manualmente.<br/><br/>
+        <b>Efeito esperado:</b> quando um padrão real existe (3+ ocorrências), o PMO o reconhece em segundos,
+        sem abrir nenhum Workspace. Quando não existe nenhum padrão real, a tela mostra o estado honesto de
+        vazio (UX Flow §06) -- nenhum custo adicional em nenhum dos dois casos. Nenhuma métrica implementada,
+        nenhuma telemetria criada nesta entrega.
+      </div>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>Princípios Preservados</h2></div>
+      <ul>
+        <li><b>Executive Behavior ("Reconhecer")</b> -- FS-011 §02; nenhuma tarefa introduz uma ação executada dentro do próprio card.</li>
+        <li><b>Executive Trust</b> -- reforçado nesta etapa pelo Language Contract (Seção 5): nenhuma tarefa produz texto fabricado, narrativa, causa ou consequência.</li>
+        <li><b>Decision Context Preservation</b> -- cada aprendizado permanece o menor contexto necessário (frase + texto verbatim + projetos).</li>
+        <li><b>Executive Responsibility Separation</b> -- nenhuma tarefa introduz uma pergunta executiva já respondida por outra Capability.</li>
+        <li><b>Progressive Context / Progressive Purpose</b> -- a nova superfície existe porque nenhuma outra tem este escopo (portfólio, entre projetos); nenhuma tarefa repete Dashboard/Portfolio Intelligence/Decision Center.</li>
+        <li><b>Single Decision Source</b> -- nenhuma tarefa calcula ou consolida uma decisão; só conta e agrupa um fato real.</li>
+        <li><b>Zero Labels Rule</b> (FS-011 §5, exclusiva desta Capability) -- nenhum componente carrega um rótulo/chip de conceito por card.</li>
+        <li><b>Arquitetura evolutiva / máxima reutilização</b> -- toda tarefa reaproveita uma rota já real (<code>GET .../risks/latest</code>, <code>GET .../action-items</code>); zero rota nova, zero serviço novo (escopo ratificado na Architecture Review §4).</li>
+      </ul>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>Evidence First</h2></div>
+      <div class="callout">
+        <b>Registrado nesta etapa, por instrução do Founder:</b> "Todo Aprendizado Organizacional deverá
+        nascer obrigatoriamente da sequência: evidência real → regra determinística → texto apresentado ao
+        executivo. Nunca o caminho inverso."
+      </div>
+      <div class="flow">
+        <span>Evidência real</span><span class="arrow">→</span>
+        <span>Regra determinística</span><span class="arrow">→</span>
+        <span>Texto ao executivo</span>
+      </div>
+      <p><b>Aplicação concreta na arquitetura já especificada (FS-011 §3.4):</b> <code>buildRecurringRisks</code>
+        e <code>buildRecurringActions</code> recebem exclusivamente <i>evidência já buscada</i> (as listas
+        portfolio-wide de <code>GET .../risks/latest</code>/<code>GET .../action-items</code>) como único
+        parâmetro de entrada -- nunca uma string, um template ou uma sugestão de texto. A <i>regra
+        determinística</i> (igualdade textual exata + corte de 3+ ocorrências, Journey §02) é aplicada sobre
+        essa evidência, produzindo uma estrutura de dados (<code>OrganizationalLearning</code>: categoria,
+        texto verbatim, contagem, projetos). Só então essa estrutura é traduzida para a frase final (Language
+        Contract, Seção 5) -- nunca ao contrário.</p>
+      <p><b>Garantia estrutural, não apenas de processo:</b> nenhuma função desta Feature aceita texto livre
+        como entrada, nem gera uma frase antes de ter a evidência e a contagem em mãos -- a própria assinatura
+        de tipo de <code>buildRecurringRisks</code>/<code>buildRecurringActions</code> impede o caminho
+        inverso (elas devolvem <code>OrganizationalLearning[]</code>, nunca recebem um). Coberto por teste
+        unitário dedicado (Seção 9): para a mesma evidência, o mesmo resultado, sempre -- nenhuma
+        variabilidade, nenhuma chamada a IA generativa em nenhum ponto deste módulo.</p>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Language Contract</h2></div>
+      <div class="callout">
+        <b>Registrado nesta etapa, por instrução do Founder, para preservar permanentemente o Executive
+        Trust nesta Capability:</b> contrato de linguagem explícito, separando vocabulário permitido de
+        vocabulário proibido. Amplia e formaliza o achado já registrado na Architecture Review §3.2.
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>Vocabulário</th><th>Motivo</th></tr></thead>
+          <tbody>
+            <tr><td rowspan="4"><span class="chip fato">PERMITIDO</span></td><td><code>apareceu em</code></td><td>Constatação neutra, sobre um fato já registrado</td></tr>
+            <tr><td><code>foi registrado em</code></td><td>Constatação neutra</td></tr>
+            <tr><td><code>ocorreu em</code></td><td>Constatação neutra</td></tr>
+            <tr><td><code>repetiu-se em</code></td><td>Constatação neutra, nomeia a recorrência sem julgar sua gravidade</td></tr>
+            <tr><td rowspan="7"><span class="chip guard">PROIBIDO</span></td><td><code>revela</code></td><td>Verbo de conclusão -- atribui significado que a plataforma não deve inferir</td></tr>
+            <tr><td><code>demonstra</code></td><td>Verbo de conclusão</td></tr>
+            <tr><td><code>indica</code></td><td>Verbo de conclusão</td></tr>
+            <tr><td><code>significa</code></td><td>Verbo de conclusão -- exatamente a pergunta que permanece do executivo (Architecture Review §3)</td></tr>
+            <tr><td><code>crítico</code></td><td>Adjetivo de gravidade sobre o padrão em si</td></tr>
+            <tr><td><code>sistêmico</code></td><td>Adjetivo de gravidade/causalidade</td></tr>
+            <tr><td><code>grave</code></td><td>Adjetivo de gravidade</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><b>Herdado da Architecture Review §3.2, mantido em vigor:</b> também proibidos "prova", "causado por",
+        "preocupante", "alarmante", "significativo", e qualquer comparação relativa ("mais que o normal",
+        "acima do esperado").</p>
+      <p><b>Aplicação técnica:</b> um único módulo de redação (dentro de
+        <code>organizational-learnings.ts</code> ou um arquivo irmão) concentra os templates de frase, usando
+        exclusivamente o vocabulário permitido -- nenhum outro ponto do código monta texto para esta Feature.
+        Um teste unitário dedicado varre a saída renderizada em busca de qualquer palavra da lista proibida
+        (Seção 9) -- falha o build se uma delas aparecer, mesmo que introduzida acidentalmente em uma alteração
+        futura.</p>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>Incrementos de Valor ao Executivo</h2></div>
+      <p class="section-intro">Cada incremento responde as 3 perguntas obrigatórias (TIP-009 §08), além de
+        continuar demonstrável, gerador de valor real e independente da conclusão da Capability inteira.</p>
+
+      <div class="slice">
+        <span class="slice-tag">Incremento 1 -- demonstrável isoladamente</span>
+        <h4>Nova superfície + Riscos recorrentes</h4>
+        <p class="slice-q">Qual valor entrega</p>
+        <p>Primeira vez que a plataforma reconhece, de ponta a ponta, que o mesmo risco real atravessa vários
+          projetos do portfólio -- com a nova página, a navegação, o Evidence First e o Language Contract já
+          em vigor desde o primeiro incremento.</p>
+        <p class="slice-q">Qual comportamento executivo habilita</p>
+        <p>Reconhecer (FS-011 §02) -- primeira aplicação concreta, sobre o sinal de Risco.</p>
+        <p class="slice-q">Qual parte da plataforma passa a reutilizar</p>
+        <p>Nenhuma ainda -- nascimento do módulo (<code>organizational-learnings.ts</code>) e da nova página,
+          consumindo <code>GET .../risks/latest</code> já existente.</p>
+      </div>
+
+      <div class="slice">
+        <span class="slice-tag">Incremento 2 -- reaproveita 100% do Incremento 1</span>
+        <h4>Ações recorrentes + limite de 5 + ordem fixa completa</h4>
+        <p class="slice-q">Qual valor entrega</p>
+        <p>Cobertura das 2 categorias reais desta V1, com a garantia arquitetural de no máximo 5 aprendizados
+          simultâneos, ordenados por contagem, na ordem fixa de categorias (Riscos antes de Ações).</p>
+        <p class="slice-q">Qual comportamento executivo habilita</p>
+        <p>Reconhecer, agora completo para o escopo desta V1 -- nenhuma lacuna entre as 2 categorias
+          ratificadas.</p>
+        <p class="slice-q">Qual parte da plataforma passa a reutilizar</p>
+        <p><code>selectTopLearnings()</code> nasce como a única implementação do corte/ordenação -- reaproveita
+          o mesmo limite de 5 já usado por <code>rankByRisk()</code> (Journey §05).</p>
+      </div>
+    </section>
+
+    <section id="s7">
+      <div class="section-head"><span class="section-num">07</span><h2>Tarefas Técnicas</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Tarefa</th><th>Incremento</th><th>Detalhe</th></tr></thead>
+          <tbody>
+            <tr><td>T1</td><td><code>web/lib/organizational-intelligence/organizational-learnings.ts</code> -- tipos + <code>buildRecurringRisks</code></td><td>1</td><td>FS-011 §3.4 -- Evidence First (Seção 4); testes unitários (1-2 ocorrências → excluído; 3+ → incluído com contagem/projetos corretos)</td></tr>
+            <tr><td>T2</td><td>Módulo de redação -- templates de frase usando só o Language Contract (Seção 5)</td><td>1</td><td>Teste unitário varrendo a saída em busca de vocabulário proibido</td></tr>
+            <tr><td>T3</td><td>Componente: cabeçalho de categoria + card de aprendizado (Zero Labels Rule)</td><td>1</td><td>FS-011 §3.5 -- 3 linhas (frase, texto verbatim, projetos), sem chip de conceito</td></tr>
+            <tr><td>T4</td><td>Nova página + item de navegação</td><td>1</td><td>FS-011 §3.6, Journey §01 -- rótulo/ícone/posição a definir na implementação, coerente com "Aprendizado Organizacional" como nome institucional (FS-011 §6)</td></tr>
+            <tr><td>T5</td><td>E2E -- Incremento 1</td><td>1</td><td>Fluxo completo com múltiplos projetos no mock compartilhando um risco, backend real em Demo Mode</td></tr>
+            <tr><td>T6</td><td>Estender <code>organizational-learnings.ts</code> -- <code>buildRecurringActions</code></td><td>2</td><td>Mesma agregação de T1, aplicada a <code>ActionItem.description</code></td></tr>
+            <tr><td>T7</td><td><code>selectTopLearnings(learnings, limit=5)</code></td><td>2</td><td>Architecture Review §05/Journey §05 -- teste unitário (corta em 5, ordena por contagem, nunca preenche artificialmente)</td></tr>
+            <tr><td>T8</td><td>Página -- ordem fixa (Riscos antes de Ações), 1 aprendizado válido / 0 aprendizados (estados honestos)</td><td>2</td><td>UX Flow §05/§06 -- teste de integração para ambos os casos extremos</td></tr>
+            <tr><td>T9</td><td>E2E -- Incremento 2</td><td>2</td><td>As 2 categorias + limite de 5 + ordem fixa, múltiplos projetos</td></tr>
+            <tr><td>T10</td><td>Verificação real (Demo Mode)</td><td>1-2</td><td>Ao menos uma passada completa contra o backend real, incluindo verificação manual do Language Contract na redação renderizada</td></tr>
+            <tr><td>T11</td><td>Documentação e evidência</td><td>1-2</td><td>Executive Progress Report + Visual Fidelity Report</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s8">
+      <div class="section-head"><span class="section-num">08</span><h2>Ordem de Execução</h2></div>
+      <p>T1 → T2 → T3 → T4 → T5 (Incremento 1, sequencial) → T6 → T7 → T8 → T9 (Incremento 2, T6 e T7 podem ser
+        paralelas entre si) → T10 → T11. Nenhuma tarefa de um incremento posterior bloqueia a conclusão e
+        demonstração do incremento anterior.</p>
+    </section>
+
+    <section id="s9">
+      <div class="section-head"><span class="section-num">09</span><h2>Critérios de Conclusão</h2></div>
+      <ul>
+        <li>Todos os critérios de aceite da FS-011 §14 cumpridos</li>
+        <li>Cada incremento (Seção 6) demonstrável isoladamente durante a implementação</li>
+        <li>Zero regressão nos testes de backend -- nenhum arquivo de backend tocado</li>
+        <li>Zero regressão nos testes de frontend já existentes</li>
+        <li>Evidence First respeitado: teste unitário confirmando que <code>buildRecurringRisks</code>/<code>buildRecurringActions</code> são determinísticas (mesma evidência → mesmo resultado, sempre) e nunca aceitam texto livre como entrada</li>
+        <li>Language Contract respeitado: teste unitário varrendo toda a redação renderizada contra a lista de vocabulário proibido (Seção 5) -- zero ocorrência</li>
+        <li>Zero Labels Rule respeitada: nenhum card individual carrega um rótulo/chip de conceito</li>
+        <li>Limite de 5 e ordem fixa de categorias respeitados (verificável por teste unitário de <code>selectTopLearnings</code>)</li>
+        <li>1 aprendizado válido exibido normalmente; 0 aprendizados exibe estado honesto de vazio -- ambos cobertos por teste de integração</li>
+      </ul>
+    </section>
+
+    <section id="s10">
+      <div class="section-head"><span class="section-num">10</span><h2>Architecture Budget</h2></div>
+      <p class="section-intro">Avaliação qualitativa do custo arquitetural desta entrega, para acompanhamento
+        contínuo do custo da plataforma.</p>
+      <div class="budget-grid">
+        <div class="budget-card"><div class="blabel">Complexidade</div><div class="bval">Baixa</div><div class="bnote">2 funções de agregação puras + 1 função de seleção/corte + 1 módulo de redação + 2 componentes mínimos</div></div>
+        <div class="budget-card"><div class="blabel">Acoplamento</div><div class="bval">Baixo</div><div class="bnote">Depende só de tipos já existentes (entradas de risco/ação já retornadas pelas rotas atuais); nenhuma Capability existente passa a depender de Organizational Intelligence</div></div>
+        <div class="budget-card"><div class="blabel">Leituras agregadas</div><div class="bval">Zero novas</div><div class="bnote">Reuso de <code>GET .../risks/latest</code> e <code>GET .../action-items</code>, ambas já em produção</div></div>
+        <div class="budget-card"><div class="blabel">Componentes novos</div><div class="bval">2</div><div class="bnote">Cabeçalho de categoria, card de aprendizado</div></div>
+        <div class="budget-card"><div class="blabel">Endpoints novos</div><div class="bval">0</div><div class="bnote">Nenhuma rota de API criada ou alterada</div></div>
+        <div class="budget-card"><div class="blabel">Impacto em performance</div><div class="bval">Mínimo</div><div class="bnote">2 requisições já existentes, agregação em memória sobre um volume pequeno (portfólio piloto)</div></div>
+        <div class="budget-card"><div class="blabel">Impacto em escalabilidade</div><div class="bval">Nenhum no escopo atual</div><div class="bnote">Ver Platform Readiness Backlog (Seção 11) para a dependência futura registrada (PRI-003)</div></div>
+        <div class="budget-card"><div class="blabel">Dívida técnica</div><div class="bval">Nenhuma nova</div><div class="bnote">A única dependência conhecida (leitura de texto longo para decisões/tendências de status) já está registrada como item de backlog, não como dívida silenciosa</div></div>
+      </div>
+    </section>
+
+    <section id="s11">
+      <div class="section-head"><span class="section-num">11</span><h2>Platform Readiness Backlog</h2></div>
+      <p class="section-intro">Todo Platform Readiness Item integra o backlog único e vivo --
+        <code>docs/product/platform-readiness/Platform-Readiness-Backlog.html</code>. Este TIP não acrescenta
+        item novo além do já registrado na Architecture Review (<code>PRI-003</code>, escalabilidade de texto
+        para uma futura extensão a Decisões recorrentes/Tendências de status) -- nenhuma implementação de
+        mitigação nesta etapa.</p>
+    </section>
+
+    <section id="s12">
+      <div class="section-head"><span class="section-num">12</span><h2>Próximo Gate</h2></div>
+      <p>Plano concluído. <b>Implementação não autorizada nesta etapa</b> -- por instrução explícita do
+        Founder, aguardando aprovação antes de iniciar o Incremento 1.</p>
+    </section>
+
+    <footer>
+      <span>Stratech — TIP-012</span>
+      <span>Organizational Intelligence</span>
+      <span>2026-07-16</span>
+    </footer>
+  </main>
+</div>

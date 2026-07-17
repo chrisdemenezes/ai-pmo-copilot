@@ -21,6 +21,14 @@ async function resetFixtures() {
   await ctx.dispose();
 }
 
+async function setLatestRisksScenario(scenario: "data" | "unavailable" | "timeout") {
+  const ctx = await playwrightRequest.newContext();
+  await ctx.post(`${MOCK_BACKEND_URL}/__control/workspace-scenario`, {
+    data: { endpoint: "latestRisks", scenario },
+  });
+  await ctx.dispose();
+}
+
 test.beforeEach(async () => {
   // The mock server process is shared across every spec file and breakpoint
   // project in a run -- workspace.spec.ts's "Analisar Projeto" (TIP-005)
@@ -28,6 +36,7 @@ test.beforeEach(async () => {
   // every Dashboard test too, regardless of run order.
   await resetFixtures();
   await setBackendScenario("data");
+  await setLatestRisksScenario("data");
 });
 
 // 1. Acesso a /dashboard sem sessão
@@ -48,6 +57,44 @@ test("logs in with the correct password and lands on /dashboard", async ({ page 
   await login(page);
   await expect(page).toHaveURL(/\/dashboard/);
   await expect(page.getByRole("heading", { name: "Dashboard Executivo" })).toBeVisible();
+});
+
+// TIP-008 Incremento 3 -- KPI "Ações pendentes" vira link para a página de
+// portfólio "Ações" (Incremento 2), fechando o caminho mais curto entre
+// abrir a STRATECH e tomar uma decisão executiva (FS-007 §01, pergunta 4).
+test("clicking the Ações pendentes KPI navigates to the portfolio Ações page", async ({
+  page,
+}) => {
+  await login(page);
+  await page.getByRole("link", { name: /Ações pendentes/ }).click();
+  await expect(page).toHaveURL(/\/actions/);
+  await expect(page.getByRole("heading", { name: "Ações" })).toBeVisible();
+});
+
+// TIP-009 Incremento 3 -- KPI "Decisões críticas" vira o ponto de entrada
+// da Executive Decision Queue, primeira aplicação real do Single Decision
+// Source por outra superfície da plataforma (Architecture Review §3.2).
+test("clicking the Decisões críticas KPI navigates to the Executive Decision Queue", async ({
+  page,
+}) => {
+  await login(page);
+  await expect(page.getByRole("link", { name: /Decisões críticas/ })).toBeVisible();
+  await page.getByRole("link", { name: /Decisões críticas/ }).click();
+  await expect(page).toHaveURL(/\/decisions/);
+  await expect(page.getByRole("heading", { name: "Decisões" })).toBeVisible();
+});
+
+// TIP-010 Incremento 3 -- KPI "Projetos" vira o ponto de entrada da
+// Executive Portfolio View. Mesmo número (Awareness), destino aprofunda
+// para Prioritization -- Progressive Context/Purpose (Architecture Review §3).
+test("clicking the Projetos KPI navigates to the Executive Portfolio View", async ({ page }) => {
+  await login(page);
+  // Scoped to main -- the Sidebar/bottom-nav "Projetos" link has the exact
+  // same accessible-name prefix as this KPI ("Projetos" + the count),
+  // ambiguous outside of main.
+  await page.locator("main").getByRole("link", { name: /^Projetos/ }).click();
+  await expect(page).toHaveURL(/\/portfolio/);
+  await expect(page.getByRole("heading", { name: "Portfólio" })).toBeVisible();
 });
 
 // 5 + 12 (sucesso). Dashboard com dados

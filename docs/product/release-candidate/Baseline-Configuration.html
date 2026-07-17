@@ -1,0 +1,189 @@
+<title>STRATECH V1 RC-1 — Baseline Configuration</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --ok:#2f7a4f; --ok-bg:#e1f0e5;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --ok:#7fd19f; --ok-bg:#1a3324;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --ok:#7fd19f; --ok-bg:#1a3324;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  main{max-width:1080px; margin:0 auto; padding:56px 40px 100px;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1{font-size:clamp(1.7rem,4vw,2.4rem); line-height:1.16; margin:0 0 14px; font-weight:600; text-wrap:balance;}
+  .subtitle{color:var(--ink-dim); max-width:84ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding:18px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim); margin-bottom:16px;}
+  .meta-row b{color:var(--ink);}
+  h2{font-size:1.25rem; margin:44px 0 6px; padding-bottom:10px; border-bottom:2px solid var(--ink);}
+  p{margin:0 0 12px; max-width:84ch;}
+  ul,ol{margin:0 0 14px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:80ch;}
+  .table-wrap{overflow-x:auto; margin:12px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.83rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 10px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top;}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.ok{color:var(--ok); background:var(--ok-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  .callout{border-left:3px solid var(--guard); background:var(--guard-bg); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout b{color:var(--ink);}
+  footer{border-top:1px solid var(--border); margin-top:60px; padding-top:20px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<main>
+  <div class="kicker">Configuration Manager · Baseline Configuration</div>
+  <h1>STRATECH V1 RC-1 — Baseline Configuration</h1>
+  <p class="subtitle">Registro formal dos artefatos que compõem a baseline do RC-1. A partir da aprovação deste
+    documento, nenhum artefato listado abaixo pode ser alterado sem controle formal de versão -- uma nova
+    entrada na coluna "Revisão" deste documento, com data, motivo da mudança e categoria da mudança (correção
+    de defeito, segurança, documentação, observabilidade ou hardening -- nunca evolução funcional).</p>
+  <div class="meta-row">
+    <span><b>Baseline</b> STRATECH V1 RC-1</span>
+    <span><b>Commit de referência</b> <code>174f9a6</code></span>
+    <span><b>Data de estabelecimento</b> 2026-07-16</span>
+    <span><b>Status</b> Baseline travada</span>
+  </div>
+
+  <div class="callout">
+    <b>Regra de controle de versão.</b> Qualquer PR que altere um dos artefatos abaixo deve referenciar
+    explicitamente este documento e declarar a categoria da mudança. Uma mudança que não se enquadre em
+    correção de defeito, ajuste de segurança, documentação, observabilidade ou hardening não deve ser aceita
+    nesta branch -- deve ser registrada no <code>V2-Candidate-Backlog.html</code> em vez disso.
+  </div>
+
+  <h2>Product Constitution</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Artefato</th><th>Revisão na baseline</th></tr></thead>
+      <tbody>
+        <tr><td><code>docs/product/stratech-constitution/STRATECH-Product-Constitution.html</code></td><td>Commit <code>698df96</code> (editorial fix -- contagem 10 Princípios Permanentes)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Architecture Gate</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Artefato</th><th>Revisão na baseline</th></tr></thead>
+      <tbody>
+        <tr><td><code>docs/product/architecture-gate-v1/Architecture-Gate-V1-Report.html</code></td><td>Commit <code>d331437</code></td></tr>
+        <tr><td><code>docs/product/platform-readiness/Platform-Readiness-Assessment.html</code></td><td>Commit <code>74e9950</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Visual Fidelity Gate</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Artefato</th><th>Revisão na baseline</th></tr></thead>
+      <tbody>
+        <tr><td><code>docs/product/visual-fidelity-gate/Visual-Fidelity-Gate-Report.html</code></td><td>Commit <code>940871c</code></td></tr>
+        <tr><td>Figma <code>futjiBle0AYkphK695t2a6</code> (Login, Sidebar, Dashboard)</td><td>Sincronizado nesta revisão -- fonte de verdade visual passa a ser a implementação real, não o inverso</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Release Readiness Review</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Artefato</th><th>Revisão na baseline</th></tr></thead>
+      <tbody>
+        <tr><td><code>docs/product/release-readiness/Release-Readiness-Review.html</code></td><td>Commit <code>443ef71</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>RC Approval Review</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Artefato</th><th>Revisão na baseline</th></tr></thead>
+      <tbody>
+        <tr><td><code>docs/product/release-readiness/RC-Approval-Review.html</code></td><td>Commit <code>174f9a6</code></td></tr>
+        <tr><td><code>.github/workflows/ci.yml</code> (RB-001 -- E2E no CI)</td><td>Commit <code>174f9a6</code></td></tr>
+        <tr><td><code>web/playwright.config.ts</code> (portabilidade do Chromium)</td><td>Commit <code>174f9a6</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Runbooks</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Artefato</th><th>Revisão na baseline</th></tr></thead>
+      <tbody>
+        <tr><td><code>docs/operations/PRI-008-production-backup-restore-runbook.md</code></td><td>Commit <code>174f9a6</code></td></tr>
+        <tr><td><code>docs/operations/PRI-009-production-deployment-runbook.md</code></td><td>Commit <code>174f9a6</code></td></tr>
+        <tr><td><code>demo/README.md</code>, <code>demo/SESSION-RUNBOOK.md</code></td><td>Escopo exclusivamente Demo Mode -- não é runbook de produção</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>ADRs</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Artefato</th><th>Revisão na baseline</th></tr></thead>
+      <tbody>
+        <tr><td>ADR-001 a ADR-008 (<code>docs/product/blueprint/Product-Blueprint.html</code>)</td><td>Pré-existentes, referenciados sem alteração</td></tr>
+        <tr><td>ADR-012 (<code>docs/releases/ADR-012-founder-decision-release-0.3.md</code>)</td><td>Pré-existente, referenciado sem alteração</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>RFCs</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Artefato</th><th>Revisão na baseline</th></tr></thead>
+      <tbody>
+        <tr><td>RFC-001 (<code>docs/product/rfc-001/RFC-001-frontend-architecture.html</code>)</td><td>Pré-existente; uma pergunta em aberto (hospedagem do frontend) permanece sem resposta -- registrada em <code>PRI-009-production-deployment-runbook.md</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Documentação operacional</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Artefato</th><th>Revisão na baseline</th></tr></thead>
+      <tbody>
+        <tr><td><code>docs/product/platform-readiness/Platform-Readiness-Backlog.html</code></td><td>PRI-001 a PRI-009 registrados, commit <code>174f9a6</code></td></tr>
+        <tr><td><code>docs/product/platform-readiness/V1-Release-Notes.html</code></td><td>Rascunho, ainda não publicado -- <code>PRI-007</code> pendente antes da publicação</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Escopo de exclusão desta baseline</h2>
+  <p>Os documentos <code>docs/69-autonomous-governance.md</code> a
+    <code>docs/79-autonomous-pmo-platform.md</code> e <code>docs/10-product-roadmap.md</code> descrevem
+    conceitos especulativos anteriores/paralelos à STRATECH V1 (Autonomous Governance, Enterprise Knowledge
+    Marketplace, AI Digital Workforce, Workflow Automation Engine, Predictive Project Intelligence, Enterprise
+    API Ecosystem, Global Operating Model, Autonomous Enterprise Twin, Board Strategic Intelligence, Enterprise
+    AI Governance, Autonomous PMO Platform) -- nenhum implementado, nenhum ratificado por nenhuma FS/Architecture
+    Review da V1. <b>Excluídos explicitamente desta baseline</b> e catalogados em
+    <code>V2-Candidate-Backlog.html</code> em vez disso.</p>
+
+  <footer>
+    <span>Stratech — STRATECH V1 RC-1</span>
+    <span>Baseline Configuration</span>
+    <span>2026-07-16</span>
+  </footer>
+</main>

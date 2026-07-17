@@ -1,0 +1,161 @@
+<title>TIP-012 — Executive Progress Report</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --ok:#2f7a4f; --ok-bg:#e1f0e5;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --ok:#7fd19f; --ok-bg:#1a3324;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --ok:#7fd19f; --ok-bg:#1a3324;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  main{max-width:980px; margin:0 auto; padding:56px 40px 100px;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1{font-size:clamp(1.7rem,4vw,2.3rem); line-height:1.16; margin:0 0 14px; font-weight:600; text-wrap:balance;}
+  .subtitle{color:var(--ink-dim); max-width:74ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding:18px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim); margin-bottom:16px;}
+  .meta-row b{color:var(--ink);}
+  h2{font-size:1.2rem; margin:40px 0 6px; padding-bottom:10px; border-bottom:2px solid var(--ink);}
+  p{margin:0 0 12px; max-width:76ch;}
+  ul{margin:0 0 14px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:74ch;}
+  table{width:100%; border-collapse:collapse; font-size:.85rem; margin:12px 0 24px;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 10px; border-bottom:1px solid var(--ink);}
+  td{padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top;}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.ok{color:var(--ok); background:var(--ok-bg);}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout b{color:var(--ink);}
+  footer{border-top:1px solid var(--border); margin-top:60px; padding-top:20px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<main>
+  <div class="kicker">Chief Product Engineer · TIP-012 · Encerramento</div>
+  <h1>Executive Progress Report — Organizational Intelligence</h1>
+  <p class="subtitle">Sétima e última Capability funcional da STRATECH V1 -- fecha a identidade conceitual
+    das 8 perguntas executivas. Entrega "Aprendizados": uma superfície própria e minimalista mostrando
+    apenas riscos e ações que realmente se repetem em 3 ou mais projetos do portfólio, nunca uma
+    interpretação, nunca um BI.</p>
+  <div class="meta-row">
+    <span><b>Capability</b> 07 — Organizational Intelligence</span>
+    <span><b>Feature</b> Aprendizados (Riscos + Ações recorrentes)</span>
+    <span><b>Data</b> 2026-07-16</span>
+    <span><b>Status</b> Concluído — aguardando autorização do Founder</span>
+  </div>
+
+  <h2>O que foi entregue</h2>
+  <ul>
+    <li><code>web/lib/organizational-intelligence/organizational-learnings.ts</code> --
+      <code>buildRecurringRisks</code>/<code>buildRecurringActions</code> (Evidence First: evidência real →
+      regra determinística → estrutura de dados, nunca o caminho inverso), <code>selectTopLearnings</code>
+      (teto de 5, ordem fixa de categorias) -- reaproveita 100% <code>GET .../risks/latest</code> e
+      <code>GET .../action-items</code>, ambas já portfolio-wide, zero rota nova</li>
+    <li><code>web/lib/organizational-intelligence/language-contract.ts</code> -- único módulo que monta a
+      frase executiva de cada aprendizado, usando exclusivamente o vocabulário permitido do Language
+      Contract; <code>FORBIDDEN_VOCABULARY</code> mais um teste dedicado impedem que qualquer palavra
+      proibida (revela, demonstra, indica, significa, crítico, sistêmico, grave...) chegue à interface</li>
+    <li><code>OrganizationalLearningCard</code> -- Zero Labels Rule (exclusiva desta Capability): nenhum
+      chip/rótulo de conceito, só frase executiva, texto verbatim e projetos reais navegáveis</li>
+    <li>Nova página <code>/aprendizados</code>, novo item de navegação "Aprendizados" (último da Sidebar,
+      por ser consultado esporadicamente) -- 2 categorias reais nesta V1: Riscos recorrentes, Ações
+      recorrentes; Decisões recorrentes e Tendências de status ficam para evolução futura</li>
+  </ul>
+
+  <h2>Processo de governança seguido (6 etapas completas)</h2>
+  <p>User Decision Discovery (pergunta: o que a organização inteira está aprendendo, sem BI/Analytics/
+    Telemetria/interpretação especulativa) → User Journey (decisão do Founder: superfície própria; régua
+    1=evento/2=observação/3+=aprendizado organizacional) → UX Flow (sensação de reunião executiva, não
+    relatório; comparativo de nomenclatura registrado sem decisão; ordem fixa de categorias) → Feature
+    Specification (FS-011, com a Zero Labels Rule resolvendo o comparativo de nomes -- nenhum rótulo visível
+    por card) → Architecture Review (validação específica: "o que ocorreu" vs. "o que significa", risco
+    avaliado como baixo e mitigado por um vocabulário proibido explícito; escopo V1 ratificado) → Technical
+    Implementation Plan (TIP-012, com Evidence First e o Language Contract formalizados). Cada etapa recebeu
+    aprovação explícita do Founder antes da seguinte; nenhum código escrito antes da aprovação do TIP.</p>
+
+  <h2>Práticas novas registradas nesta Capability</h2>
+  <table>
+    <thead><tr><th>Prática</th><th>Aplicação concreta</th></tr></thead>
+    <tbody>
+      <tr><td>Zero Labels Rule</td><td>Exclusiva desta Capability -- nenhum componente carrega um rótulo/chip de conceito por card; o cabeçalho de categoria já dá o contexto</td></tr>
+      <tr><td>Evidence First</td><td><code>buildRecurringRisks</code>/<code>buildRecurringActions</code> aceitam só evidência real, nunca texto livre -- garantia estrutural (assinatura de tipo) mais teste de determinismo</td></tr>
+      <tr><td>Language Contract</td><td>Vocabulário permitido/proibido formalizado em <code>language-contract.ts</code>, com teste dedicado varrendo a redação renderizada</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Critérios de reuso (Founder) — aderência</h2>
+  <table>
+    <thead><tr><th>Elemento a reutilizar</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td><code>GET .../risks/latest</code></td><td><span class="chip ok">REUTILIZADO</span> — já portfolio-wide (Decision Center, FS-008), zero rota nova</td></tr>
+      <tr><td><code>GET .../action-items</code></td><td><span class="chip ok">REUTILIZADO</span> — já portfolio-wide (Action Intelligence, FS-007), zero rota nova</td></tr>
+      <tr><td>Limite de 5 (<code>rankByRisk</code>)</td><td><span class="chip ok">MESMO TETO REAPROVEITADO</span> — <code>selectTopLearnings</code> usa o mesmo precedente do Dashboard</td></tr>
+      <tr><td>Executive Component Library (Card/CardContent)</td><td><span class="chip ok">REUTILIZADO</span></td></tr>
+      <tr><td>Nenhum schema/migração/rota nova</td><td><span class="chip ok">CUMPRIDO</span></td></tr>
+      <tr><td>Testes</td><td><span class="chip ok">REUTILIZADO</span> — mesma estrutura de suíte (unit/componente/página/E2E)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Testes executados</h2>
+  <table>
+    <thead><tr><th>Gate</th><th>Resultado</th></tr></thead>
+    <tbody>
+      <tr><td>Backend — <code>ruff check</code> / <code>pytest</code></td><td>não aplicável — zero arquivo de backend tocado (100% frontend)</td></tr>
+      <tr><td>Frontend — unit/component (vitest)</td><td>400/400 (22 novos: <code>organizational-learnings.ts</code>, <code>language-contract.ts</code>, card, página, proxy)</td></tr>
+      <tr><td>Frontend — <code>eslint .</code></td><td>limpo</td></tr>
+      <tr><td>Frontend — <code>tsc --noEmit</code></td><td>limpo (1 erro pré-existente e não relacionado em <code>portfolio-view.ts</code>, fora de escopo)</td></tr>
+      <tr><td>E2E (Playwright, 3 breakpoints)</td><td>67 passed, 1 skip esperado, 0 failed — navegação, estado honesto de vazio, degradação independente de cada sinal, toda a suíte existente re-verificada sem regressão</td></tr>
+      <tr><td>Backend real, sem mock (Demo Mode)</td><td>Recorrência real de 3 projetos criada e verificada para as 2 categorias (ver Visual Fidelity Report)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout guard">
+    <b>Achado real, corrigido durante o próprio E2E:</b> a nova rota <code>/aprendizados</code> não estava no
+    matcher de autenticação (<code>proxy.ts</code>) -- ficaria acessível sem sessão de workspace. Corrigido
+    (mesmo padrão de <code>/portfolio</code>/<code>/decisions</code>/<code>/actions</code>), com teste de
+    regressão dedicado em <code>proxy.test.ts</code>. Nenhuma exposição real ocorreu -- o gap foi descoberto e
+    fechado antes do commit.
+  </div>
+
+  <div class="callout">
+    <b>Achado honesto, registrado:</b> a fixture compartilhada de E2E (mock) só tem 2 projetos com Workspace
+    real -- insuficiente para atingir o limiar de 3+ ocorrências. O E2E prova honestamente o caminho real de
+    ponta a ponta contra esse limite (estado de vazio, degradação por sinal) sem fabricar uma recorrência
+    artificial; a recorrência real de 3+ projetos, para ambas as categorias, foi verificada em Demo Mode
+    (6 projetos fictícios).
+  </div>
+
+  <h2>Próximo passo</h2>
+  <p>TIP-012 concluído e pronto para commit/push. A plataforma agora tem 7 Capabilities reais, fechando a
+    identidade conceitual completa da STRATECH (8 perguntas executivas, cada uma respondida por exatamente 1
+    Capability). Aguardando a Visual Fidelity Report e a Executive Review -- que aplicará, pela primeira vez,
+    a Capability Completion Checklist -- para autorização do Founder. Após a aprovação, a próxima etapa deixa
+    de ser uma Capability: passa a ser a STRATECH Product Constitution.</p>
+
+  <footer>
+    <span>Stratech — TIP-012</span>
+    <span>Executive Progress Report</span>
+    <span>2026-07-16</span>
+  </footer>
+</main>

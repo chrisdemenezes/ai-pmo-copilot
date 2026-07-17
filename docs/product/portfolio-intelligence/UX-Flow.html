@@ -1,0 +1,314 @@
+<title>UX Flow — Portfolio Intelligence</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --ok:#2f7a4f; --ok-bg:#e1f0e5;
+    --warn:#a3742f; --warn-bg:#f3e9d8;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --ok:#7fd19f; --ok-bg:#1a3324;
+    --warn:#e0b567; --warn-bg:#332711;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --ok:#7fd19f; --ok-bg:#1a3324;
+      --warn:#e0b567; --warn-bg:#332711;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:270px minmax(0,1fr); max-width:1340px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:4px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  .toc .toc-num{color:var(--accent); margin-right:6px;}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:40px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.7rem,4vw,2.5rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:70ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:52px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink);}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.3rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:70ch;}
+  h3{font-size:1.02rem; margin:26px 0 8px; font-weight:600;}
+  p{margin:0 0 14px; max-width:74ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:72ch;}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout.warn{border-left-color:var(--warn);}
+  .callout.ok{border-left-color:var(--ok);}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.ok{color:var(--ok); background:var(--ok-bg);}
+  .chip.warn{color:var(--warn); background:var(--warn-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  .wire{border:1px solid var(--border); border-radius:8px; padding:16px 18px; margin:14px 0; background:var(--surface); font-family: ui-monospace, monospace; font-size:.82rem;}
+  .wire .wtitle{font-weight:700; text-transform:uppercase; letter-spacing:.04em; font-size:10px; color:var(--accent); margin-bottom:10px;}
+  .wire .wcard{border:1px dashed var(--border); border-radius:6px; padding:10px 12px; margin:8px 0; background:var(--surface-2);}
+  .wire .wdim{color:var(--ink-dim);}
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">STRATECH V1 — Product Core<br>Portfolio Intelligence</div>
+    <nav>
+      <a href="#s0"><span class="toc-num">00</span>Guardian Check</a>
+      <a href="#s1"><span class="toc-num">01</span>Princípio</a>
+      <a href="#s2"><span class="toc-num">02</span>Executive Portfolio View: camadas</a>
+      <a href="#s3"><span class="toc-num">03</span>Composição do Executive Portfolio Card</a>
+      <a href="#s4"><span class="toc-num">04</span>Camada 4: apresentação discreta</a>
+      <a href="#s5"><span class="toc-num">05</span>Como o usuário organiza seu dia</a>
+      <a href="#s6"><span class="toc-num">06</span>Diálogo com a Plataforma</a>
+      <a href="#s7"><span class="toc-num">07</span>Wireflow</a>
+      <a href="#s8"><span class="toc-num">08</span>Fora de Escopo</a>
+      <a href="#s9"><span class="toc-num">09</span>Próximo Gate</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">STRATECH V1 · Product Core · Etapa 3 de 6 — UX Flow</div>
+      <h1 class="title">UX Flow — Portfolio Intelligence</h1>
+      <p class="subtitle">Nenhuma implementação. A User Journey foi aprovada com um ajuste conceitual do
+        Founder: a camada "Risco a monitorar" nunca responde "o que acontece se eu não agir" (pressupõe uma
+        consequência que a plataforma não pode inferir); e a consolidação do conceito de <b>Executive
+        Portfolio Card</b>, com 3 perguntas fixas, únicas, válidas para as 4 camadas.</p>
+      <div class="meta-row">
+        <span><b>Fase</b> STRATECH V1 — Product Core</span>
+        <span><b>Módulo</b> Portfolio Intelligence</span>
+        <span><b>Origem</b> User Journey aprovada + ajuste conceitual do Founder</span>
+        <span><b>Data</b> 2026-07-14</span>
+        <span><b>Status</b> Aguardando aprovação — nenhuma Feature Specification ou código ainda</span>
+      </div>
+    </div>
+
+    <section id="s0">
+      <div class="section-head"><span class="section-num">00</span><h2>Guardian Check</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Verificação</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr><td>Conflito com Strategy/Constitution/Vision/Decision Framework?</td><td>SEM CONFLITO — nenhum ainda escrito.</td></tr>
+            <tr><td>Conflito com a User Journey aprovada?</td><td>SEM CONFLITO — o ajuste do Founder substitui uma pergunta específica da camada 3 e consolida a composição do card; nenhuma mudança de camadas, de dado ou de escopo (Discovery/Journey) já aprovados.</td></tr>
+            <tr><td>Alguma pergunta do card exige dado que a plataforma não possui?</td><td>NÃO, por desenho desta UX Flow — ver Seção 3: as 3 perguntas do Executive Portfolio Card são respondidas exclusivamente com sinais reais já existentes, nunca com uma consequência inferida.</td></tr>
+            <tr><td>Reabre Single Decision Source, Executive Brief Contract, Comunicação estruturada ou o Achado #1 do RC-1?</td><td>NÃO — Single Decision Source é reforçado (Seção 2), os demais permanecem intocados.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Princípio</h2></div>
+      <p class="section-intro">Reforço do Founder, elevado a princípio-guia desta UX Flow: <b>"Nenhum texto
+        deverá ser fabricado. Nenhuma consequência deverá ser inferida."</b> Mesma disciplina de honestidade já
+        aplicada em <code>decision-momentum.ts</code>/<code>risk-momentum.ts</code> (Decision Center) --
+        aplicada agora à camada onde a plataforma <i>não</i> tem um fato real equivalente a "o que acontece se
+        eu não agir".</p>
+      <p>Corolários concretos, válidos para toda decisão de design desta UX Flow:</p>
+      <ul>
+        <li>Cada pergunta do Executive Portfolio Card (Seção 3) só existe porque <b>todas as 4 camadas</b>
+          conseguem respondê-la com dado real -- se uma camada não tivesse uma resposta honesta, a pergunta
+          não entraria no card (foi exatamente o caso identificado pela UX Flow anterior e corrigido aqui).</li>
+        <li>Nenhum filtro, tag ou view customizável pelo usuário -- mesma restrição já confirmada em Action
+          Intelligence e Decision Center.</li>
+        <li>A plataforma nunca decide nem age em nome do executivo -- ela mostra onde olhar e para onde ir,
+          nunca o que vai acontecer se ele não for (Princípio da Atenção, Journey §2).</li>
+      </ul>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>Executive Portfolio View: as 4 camadas</h2></div>
+      <p class="section-intro">Retomando a regra fixa da User Journey §2 (Transparent Prioritization), sem
+        nenhuma mudança de cálculo -- apenas a nomenclatura de UX de cada camada, coerente com o vocabulário já
+        estabelecido em Decision Center.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Camada</th><th>Nome de UX</th><th>Fonte real (Journey §2)</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Decisão pendente hoje</td><td><code>buildExecutiveDecisionQueue()</code>, janela <code>hoje</code></td></tr>
+            <tr><td>2</td><td>Decisão pendente esta semana</td><td><code>buildExecutiveDecisionQueue()</code>, janela <code>esta_semana</code></td></tr>
+            <tr><td>3</td><td>Risco a monitorar</td><td><code>rankByRisk()</code>, projetos sem entrada na Executive Decision Queue</td></tr>
+            <tr><td>4</td><td>Sem sinal de atenção</td><td><code>ProjectSummary</code> puro -- nenhuma decisão pendente, nenhum risco identificado</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Vocabulário: cada projeto listado é sempre um <b>"projeto"</b>, nunca "item" ou "card genérico" --
+        mesmo cuidado de vocabulário exclusivamente executivo já usado nas Capabilities anteriores. A leitura
+        é sempre de cima para baixo, camada 1 primeiro -- regra fixa, nunca reordenável pelo usuário.</p>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>Composição do Executive Portfolio Card</h2></div>
+      <p class="section-intro">Consolidação pedida pelo Founder: 3 perguntas fixas, <b>as mesmas para as 4
+        camadas</b> -- diferente do Executive Decision Card (5 perguntas, exclusivo de decisões), este card
+        precisa ser honesto também para projetos sem decisão pendente e sem risco algum.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Pergunta</th><th>Camada 1/2 (decisão)</th><th>Camada 3 (risco)</th><th>Camada 4 (sem sinal)</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><b>Por que este projeto merece minha atenção?</b></td>
+              <td>"Decisão pendente hoje/esta semana"</td>
+              <td>"Por que este projeto merece acompanhamento?" -- reformulação exata do Founder, substituindo a antiga pergunta de consequência</td>
+              <td>"Sem sinal de atenção -- no curso esperado" (afirmativo, nunca um espaço vazio)</td>
+            </tr>
+            <tr>
+              <td><b>Quais sinais reais justificam essa posição?</b></td>
+              <td><code>ExecutiveDecision.context</code>, verbatim (ex.: "Status: Crítico", "2 risco(s) na zona de atenção") -- mesmo campo já usado pelo Executive Decision Card</td>
+              <td><code>open_risks</code> -- contagem real, cumulativa, já existente em <code>ProjectSummary</code></td>
+              <td>Ausência real, não inferida: nenhuma entrada na Executive Decision Queue e <code>open_risks == 0</code></td>
+            </tr>
+            <tr>
+              <td><b>Qual o próximo movimento recomendado dentro da plataforma?</b></td>
+              <td>Navegação real -- leva à Executive Decision Queue (entrada correspondente) ou direto ao Workspace do projeto; texto reaproveita <code>nextStep</code>/<code>decision</code> do Executive Decision Card, verbatim</td>
+              <td>Navegação real -- leva ao painel de Riscos do Workspace do projeto; <b>nunca</b> um texto de consequência, só o destino ("Ver riscos no Workspace")</td>
+              <td>"Nenhum movimento necessário agora" -- texto fixo, sem link de ação (mesmo princípio do Estado Vazio de Decision Center, aplicado por projeto em vez de por tela inteira)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout ok">
+        <b>Por que este desenho resolve a lacuna registrada na User Journey:</b> a antiga 3ª pergunta ("o que
+        acontece se eu não agir") exigia, para a camada 3, uma consequência que nenhum dado real sustenta --
+        exatamente o tipo de fabricação que o Founder proíbe. A nova 3ª pergunta ("qual o próximo movimento
+        recomendado") é sempre respondível com um fato 100% real e neutro: a navegação em si sempre existe
+        (Workspace, painel de Riscos, Executive Decision Queue), mesmo quando não há nada relevante a decidir.
+        Nenhuma pergunta do card depende de dado que a plataforma não possui, para nenhuma das 4 camadas.
+      </div>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>Camada 4: apresentação discreta (Princípio da Atenção)</h2></div>
+      <p class="section-intro">Diretriz do Founder na Journey (Princípio da Atenção): "a ausência de
+        prioridade também comunica" -- diferente da Executive Decision Queue (que omite o card inteiro),
+        aqui o projeto continua presente (a Executive Portfolio View cobre o portfólio inteiro), mas nunca
+        compete visualmente com as camadas 1-3.</p>
+      <ul>
+        <li><b>Densidade reduzida:</b> cards da camada 4 usam menos altura/peso visual que os das camadas 1-3
+          -- escolha exata de composição (lista compacta vs. card completo) é decisão de implementação, mas o
+          princípio de discrição fica fixado aqui.</li>
+        <li><b>Nenhum ícone de alerta, nenhuma cor de atenção:</b> mesma disciplina de <code>healthStatusVariant</code>
+          já usada em <code>green</code> -- tom neutro, nunca um destaque que competiria com o vermelho/amarelo
+          das camadas anteriores.</li>
+        <li><b>Sempre no fim da lista:</b> ordem fixa (Seção 2) garante que a camada 4 nunca aparece antes de
+          uma camada com sinal real -- reforça, por posição, que estes projetos exigem menos tempo do
+          executivo agora.</li>
+      </ul>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Como o usuário organiza seu dia utilizando este módulo?</h2></div>
+      <p>Ele não organiza -- a visão já chega organizada em camadas fixas (Seção 2, Princípio Transparent
+        Prioritization). A Executive Portfolio View é, tipicamente, o <b>primeiro</b> lugar que um PM/PMO abre
+        no dia -- antes mesmo de "Decisões" ou "Ações" -- porque responde à pergunta mais ampla ("onde
+        concentro meu tempo") antes de qualquer uma das perguntas mais específicas que essas duas páginas já
+        respondem.</p>
+      <p>Terminada a leitura das camadas 1-3, o usuário navega para o Workspace, para a Executive Decision
+        Queue ou para o painel de Riscos do projeto correspondente -- o módulo é ponto de partida, nunca um
+        lugar onde ele permanece trabalhando (mesmo princípio de Action Intelligence e Decision Center).</p>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>Diálogo com Dashboard, Workspace, Decision Center e Action Intelligence</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Superfície</th><th>Conversa proposta</th></tr></thead>
+          <tbody>
+            <tr><td>Dashboard</td><td>Recebe um ponto de entrada (posicionamento exato de KPI/link é decisão da Feature Specification, mesmo padrão já usado por "Ações pendentes" e "Decisões críticas")</td></tr>
+            <tr><td>Decision Center</td><td>Fonte verbatim para as camadas 1-2 e destino de navegação -- Single Decision Source: a Executive Portfolio View nunca recalcula, nunca diverge da Executive Decision Queue</td></tr>
+            <tr><td>Workspace</td><td>Destino de qualquer "próximo movimento recomendado" (Seção 3) -- fecha o Executive Loop, mesmo padrão das Capabilities anteriores</td></tr>
+            <tr><td>Action Intelligence ("Ações") e Decision Center ("Decisões")</td><td>Páginas irmãs, não fundidas -- 3 páginas de portfólio distintas, mesma posição na Sidebar, mesmo padrão de composição</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Em nenhuma dessas conversas o usuário digita ou configura algo -- toda ponte é navegação para um dado
+        que já existe, mesmo princípio já confirmado em Action Intelligence e Decision Center.</p>
+    </section>
+
+    <section id="s7">
+      <div class="section-head"><span class="section-num">07</span><h2>Wireflow (baixa fidelidade)</h2></div>
+      <p class="section-intro">Mostra a estrutura da conversa e a composição do Executive Portfolio Card, não a Baseline Visual.</p>
+      <div class="wire">
+        <div class="wtitle">Executive Portfolio View</div>
+        <div class="wcard">
+          <div><b>Implantação SAP S/4HANA</b> <span class="wdim">— Decisão pendente hoje</span></div>
+          <div class="wdim">Sinais reais: Status Crítico -- 4 risco(s) na zona de atenção</div>
+          <div>Próximo movimento: Ver decisão completa →</div>
+        </div>
+        <div class="wcard">
+          <div><b>Migração de Data Center</b> <span class="wdim">— Decisão pendente esta semana</span></div>
+          <div class="wdim">Sinais reais: Status Atenção</div>
+          <div>Próximo movimento: Ver decisão completa →</div>
+        </div>
+        <div class="wcard">
+          <div><b>Portal do Cliente 2.0</b> <span class="wdim">— Risco a monitorar</span></div>
+          <div class="wdim">Por que merece acompanhamento: 3 risco(s) identificado(s)</div>
+          <div>Próximo movimento: Ver riscos no Workspace →</div>
+        </div>
+        <div class="wdim">(camada 4 -- lista compacta, tom neutro, sem link de ação em destaque)</div>
+        <div class="wcard">
+          <div><b>Programa de Governança de Dados</b> <span class="wdim">— Sem sinal de atenção</span></div>
+          <div class="wdim">Nenhum movimento necessário agora</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="s8">
+      <div class="section-head"><span class="section-num">08</span><h2>Fora de Escopo (confirmado)</h2></div>
+      <ul>
+        <li>Qualquer pergunta do card que exija consequência inferida ou dado não sustentado -- corrigido nesta UX Flow (Seção 3).</li>
+        <li>Tendência histórica, séries temporais, comparação entre períodos, previsões -- permanecem fora, por instrução do Founder (Journey §0/§9).</li>
+        <li>Qualquer recálculo de decisão fora da Executive Decision Queue -- Single Decision Source permanece absoluto.</li>
+        <li>Qualquer refatoração dos 3 Briefs existentes ou do Executive Decision Card (Decision Center permanece intocado).</li>
+        <li>Qualquer decisão estruturada para Comunicação (Achado #1 do RC-1 permanece não implementado).</li>
+        <li>Qualquer filtro, tag ou ordenação customizável pelo usuário.</li>
+        <li>Fusão da Executive Portfolio View com "Ações" ou "Decisões".</li>
+      </ul>
+    </section>
+
+    <section id="s9">
+      <div class="section-head"><span class="section-num">09</span><h2>Próximo Gate</h2></div>
+      <p>Nenhum código escrito. Esta é a UX Flow (Etapa 3 de 6). A Feature Specification (Etapa 4) só começa
+        após aprovação explícita do Founder -- inclusive sobre a redação exata do texto fixo da camada 3
+        (Seção 3), a Executive Component Library aplicável a este card, o Executive Behavior desta Capability
+        e o posicionamento de entrada no Dashboard, todos deixados para a próxima etapa.</p>
+    </section>
+
+    <footer>
+      <span>Stratech — STRATECH V1 · Product Core</span>
+      <span>UX Flow</span>
+      <span>2026-07-14</span>
+    </footer>
+  </main>
+</div>

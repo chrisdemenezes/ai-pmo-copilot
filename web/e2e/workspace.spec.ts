@@ -10,7 +10,14 @@ async function setBackendScenario(scenario: "data" | "empty" | "unavailable" | "
 }
 
 async function setWorkspaceScenario(
-  endpoint: "summary" | "analyses" | "detail" | "analyze" | "analyzeRisk" | "analyzeMeeting",
+  endpoint:
+    | "summary"
+    | "analyses"
+    | "detail"
+    | "analyze"
+    | "analyzeRisk"
+    | "analyzeMeeting"
+    | "actionItems",
   scenario: "data" | "unavailable" | "timeout" | "rate_limited",
 ) {
   const ctx = await playwrightRequest.newContext();
@@ -50,6 +57,7 @@ test.beforeEach(async () => {
   await setWorkspaceScenario("analyze", "data");
   await setWorkspaceScenario("analyzeRisk", "data");
   await setWorkspaceScenario("analyzeMeeting", "data");
+  await setWorkspaceScenario("actionItems", "data");
 });
 
 test("redirects unauthenticated access to /workspace/:projectName to the login page", async ({
@@ -100,11 +108,103 @@ test("Riscos and Comunicação sections render real content from the mocked anal
   await login(page);
   await page.goto("/workspace/Aurora");
 
-  await expect(page.getByText("Atraso na entrega")).toBeVisible();
+  // Escopado ao painel Riscos: desde o Executive Memory (TIP-011), o
+  // Executive Brief também pode mostrar um Insight "Reapareceu" contendo o
+  // mesmo texto verbatim do risco (ex.: Aurora tem recorrência real) --
+  // sem o escopo, o locator global colide com os 2 elementos.
+  const risks = page.locator("section", { has: page.locator("#risks-heading") });
+  await expect(risks.getByText("Atraso na entrega")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Comunicação" })).toBeVisible();
-  await expect(page.getByText("Atualizar cronograma")).toBeVisible();
+  // .first(): desde TIP-008 o mesmo item também aparece na seção "Ações".
+  await expect(page.getByText("Atualizar cronograma").first()).toBeVisible();
   await expect(page.getByText("Adiar o go-live em 1 semana")).toBeVisible();
   await expect(page.getByText("Manter cadência atual")).toBeVisible();
+});
+
+// TIP-008, Incremento 1 -- seção "Ações" do Workspace, de ponta a ponta
+// (backend → BFF → hook → action-momentum → componente).
+test("Ações section shows the project's meeting commitments grouped by urgency", async ({
+  page,
+}) => {
+  await login(page);
+  await page.goto("/workspace/Aurora");
+
+  const section = page.locator("section", { has: page.locator("#actions-heading") });
+  await section.scrollIntoViewIfNeeded();
+
+  // "O que exige minha atenção hoje?" -- contagem real: 1 atrasada (reunião
+  // 204) e 1 vencendo em breve (reunião 202), nunca uma nota inventada.
+  await expect(section.getByText("1 atrasada(s) · 1 vence(m) em breve")).toBeVisible();
+
+  // Agrupamento fixo por urgência, atrasado sempre primeiro.
+  await expect(section.getByText("Atrasado", { exact: true })).toBeVisible();
+  await expect(
+    section.getByText("Cobrar plano de contingência do fornecedor").first(),
+  ).toBeVisible();
+  await expect(section.getByText("Vence em breve", { exact: true })).toBeVisible();
+  await expect(section.getByText("Atualizar cronograma", { exact: true })).toBeVisible();
+  await expect(section.getByText("Sem prazo", { exact: true })).toBeVisible();
+  await expect(section.getByText("Documentar acordos da reunião")).toBeVisible();
+});
+
+test("clicking an action item opens its meeting analysis of origin", async ({ page }) => {
+  await login(page);
+  await page.goto("/workspace/Aurora");
+
+  const section = page.locator("section", { has: page.locator("#actions-heading") });
+  await section.scrollIntoViewIfNeeded();
+  await section.getByRole("button", { name: /Documentar acordos da reunião/ }).click();
+
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByText("Reunião de alinhamento com o fornecedor.")).toBeVisible();
+});
+
+// TIP-008 Incremento 3 -- linha de contexto nos 3 Briefs (FS-007 §2.7):
+// mesma contagem de atenção da seção "Ações", nunca o total bruto.
+test("the 3 Briefs show the same actions context line the Ações section shows", async ({
+  page,
+}) => {
+  await login(page);
+  await page.goto("/workspace/Aurora");
+
+  const executiveBrief = page.locator("section", { has: page.getByText("Executive Brief") });
+  const risks = page.locator("section", { has: page.locator("#risks-heading") });
+  const communication = page.locator("section", { has: page.locator("#communication-heading") });
+
+  await expect(executiveBrief.getByText("2 ações exigem atenção")).toBeVisible();
+  await expect(risks.getByText("2 ações exigem atenção")).toBeVisible();
+  await expect(communication.getByText("2 ações exigem atenção")).toBeVisible();
+
+  // A mesma contagem aparece na própria seção "Ações", como manchete real.
+  const actionsSection = page.locator("section", { has: page.locator("#actions-heading") });
+  await actionsSection.scrollIntoViewIfNeeded();
+  await expect(actionsSection.getByText("1 atrasada(s) · 1 vence(m) em breve")).toBeVisible();
+});
+
+test("omits the actions context line from the 3 Briefs when nothing needs attention", async ({
+  page,
+}) => {
+  await login(page);
+  await page.goto("/workspace/Implantacao%20SAP%20S%2F4HANA");
+
+  // Este projeto não tem reunião fixture (nenhum item de ação) -- contagem
+  // de atenção é 0, a linha deve estar ausente nos 3 Briefs.
+  await expect(page.getByText(/ações exigem atenção|ação exige atenção/)).toHaveCount(0);
+});
+
+test("a failing Ações section does not block the other Workspace panels", async ({ page }) => {
+  await setWorkspaceScenario("actionItems", "unavailable");
+
+  await login(page);
+  await page.goto("/workspace/Aurora");
+
+  await expect(page.getByText("Não foi possível carregar as ações.")).toBeVisible();
+  // Painel C (Riscos) continua renderizando dado real. Escopado (ver
+  // comentário na Riscos/Comunicação acima) -- colide com o Insight
+  // "Reapareceu" do Executive Memory (TIP-011) se não escopado.
+  const risks = page.locator("section", { has: page.locator("#risks-heading") });
+  await expect(risks.getByText("Atraso na entrega")).toBeVisible();
 });
 
 test("opening an item in Histórico completo shows its detail in a dialog", async ({ page }) => {
@@ -156,11 +256,12 @@ test.describe("Analisar Projeto (TIP-005)", () => {
     ).toBeVisible();
 
     // Dashboard reflects it too, on the next client-side navigation --
-    // same shared QueryClient, no WebSocket/polling (FS-005 §3). href-based
-    // locator, filtered to visible: the Sidebar (md+) and the mobile bottom
-    // tab bar both render a[href="/dashboard"] simultaneously, one of them
-    // always display:none at any given breakpoint (TIP-004A precedent).
-    await page.locator('a[href="/dashboard"]').filter({ visible: true }).first().click();
+    // same shared QueryClient, no WebSocket/polling (FS-005 §3). Uses the
+    // Workspace's own "Dashboard" breadcrumb (WorkspaceHeader), scoped to
+    // main, rather than a nav-wide href locator -- avoids an intermittent
+    // collision with the Next.js dev-mode indicator over the mobile bottom
+    // tab bar (dev-tooling artifact, absent from production builds).
+    await page.locator("main").getByRole("link", { name: "Dashboard" }).click();
     await expect(page).toHaveURL(/\/dashboard/);
     // ProjectHealthGrid renders both a desktop table and a mobile card list
     // simultaneously (one always display:none); scope to whichever is
@@ -245,8 +346,11 @@ test.describe("Avaliação de Riscos (TIP-006)", () => {
     // portfolio-wide "Riscos identificados" strip is a single instance (not
     // duplicated per breakpoint like the grid), so the exact new total
     // (Multilift 3 + Aurora 0+2 + Implantacao SAP 1 = 6) is an unambiguous
-    // signal that this specific submission's 2 risks were counted.
-    await page.locator('a[href="/dashboard"]').filter({ visible: true }).first().click();
+    // signal that this specific submission's 2 risks were counted. Uses the
+    // Workspace's own "Dashboard" breadcrumb, scoped to main -- avoids an
+    // intermittent collision with the Next.js dev-mode indicator over the
+    // mobile bottom tab bar (dev-tooling artifact, not a product defect).
+    await page.locator("main").getByRole("link", { name: "Dashboard" }).click();
     await expect(page).toHaveURL(/\/dashboard/);
     const riscosCard = page.getByText("Riscos identificados").locator("xpath=..");
     await expect(riscosCard.getByText("6")).toBeVisible();
@@ -323,8 +427,11 @@ test.describe("O que mudou na última reunião? (TIP-007)", () => {
 
     // Dashboard reflects it too -- "Ações pendentes" strip is a single
     // instance, so the exact new total (Multilift 2 + Aurora 1+2 +
-    // Implantacao SAP 1 = 6) is unambiguous.
-    await page.locator('a[href="/dashboard"]').filter({ visible: true }).first().click();
+    // Implantacao SAP 1 = 6) is unambiguous. Uses the Workspace's own
+    // "Dashboard" breadcrumb, scoped to main -- avoids an intermittent
+    // collision with the Next.js dev-mode indicator over the mobile
+    // bottom tab bar (dev-tooling artifact, not a product defect).
+    await page.locator("main").getByRole("link", { name: "Dashboard" }).click();
     await expect(page).toHaveURL(/\/dashboard/);
     const acoesCard = page.getByText("Ações pendentes").locator("xpath=..");
     await expect(acoesCard.getByText("6")).toBeVisible();

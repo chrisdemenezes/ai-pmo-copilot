@@ -1,0 +1,540 @@
+<title>FS-011 — Organizational Intelligence</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --fato:#0f6b5c; --fato-bg:#e2efe9;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --plan:#2f5f9e; --plan-bg:#e2ebf6;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --fato:#4fd6b8; --fato-bg:#173029;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --plan:#7fb4f2; --plan-bg:#1a2c42;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --fato:#4fd6b8; --fato-bg:#173029;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --plan:#7fb4f2; --plan-bg:#1a2c42;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  .doc-shell{display:grid; grid-template-columns:270px minmax(0,1fr); max-width:1340px; margin:0 auto;}
+  @media (max-width:900px){ .doc-shell{grid-template-columns:1fr;} .toc{position:static !important; height:auto !important;} }
+  .toc{position:sticky; top:0; height:100vh; overflow-y:auto; padding:32px 20px; border-right:1px solid var(--border); font-family: ui-monospace, Menlo, monospace; font-size:11px;}
+  .toc .brand{font-family: ui-serif, Georgia, serif; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;}
+  .toc .doc-name{color:var(--ink-dim); margin-bottom:24px; line-height:1.4;}
+  .toc nav a{display:block; color:var(--ink-dim); text-decoration:none; padding:4px 0;}
+  .toc nav a:hover{color:var(--accent);}
+  main{padding:56px 64px 120px; min-width:0;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .masthead{margin-bottom:40px;}
+  .masthead .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1.title{font-size:clamp(1.7rem,4vw,2.5rem); line-height:1.14; margin:0 0 16px; text-wrap:balance; font-weight:600;}
+  .masthead .subtitle{color:var(--ink-dim); font-size:1.02rem; max-width:70ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding-top:20px; border-top:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim);}
+  .meta-row b{color:var(--ink); font-weight:600;}
+  section{margin-bottom:52px; scroll-margin-top:24px;}
+  .section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:8px; padding-bottom:14px; border-bottom:2px solid var(--ink);}
+  .section-num{font-family: ui-monospace, monospace; font-size:1.02rem; color:var(--accent); font-weight:700;}
+  h2{font-size:1.3rem; margin:0; font-weight:600; text-wrap:balance;}
+  .section-intro{color:var(--ink-dim); margin:14px 0 20px; max-width:70ch;}
+  h3{font-size:1.02rem; margin:26px 0 8px; font-weight:600;}
+  p{margin:0 0 14px; max-width:74ch;}
+  ul,ol{margin:0 0 16px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:72ch;}
+  .table-wrap{overflow-x:auto; margin:14px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.84rem; margin:0;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 12px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:1px solid var(--ink);}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  pre{background:var(--code-bg); color:var(--mono-ink); padding:14px 16px; border-radius:8px; overflow-x:auto; font-size:.8rem; line-height:1.5; margin:12px 0 20px;}
+  pre code{background:none; padding:0;}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout.fato{border-left-color:var(--fato);}
+  .callout b{color:var(--ink);}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.fato{color:var(--fato); background:var(--fato-bg);}
+  .chip.guard{color:var(--guard); background:var(--guard-bg);}
+  .chip.plan{color:var(--plan); background:var(--plan-bg);}
+  .us-card{border:1px solid var(--border); border-radius:6px; padding:16px 20px; margin-bottom:12px; background:var(--surface);}
+  .us-card .us-text{font-weight:600; margin-bottom:6px;}
+  .us-card .us-ac{color:var(--ink-dim); font-size:.87rem; margin:0;}
+  footer{border-top:1px solid var(--border); margin-top:64px; padding-top:24px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<div class="doc-shell">
+  <aside class="toc">
+    <div class="brand">Stratech</div>
+    <div class="doc-name">FS-011<br>Organizational Intelligence</div>
+    <nav>
+      <a href="#s0">00 Guardian Check</a>
+      <a href="#s1">01 Contexto e Objetivo</a>
+      <a href="#s2">02 Comportamento Executivo</a>
+      <a href="#s3">03 Architecture Review (preliminar)</a>
+      <a href="#s4">04 Sensação de Executive Brief organizacional</a>
+      <a href="#s5">05 Zero Labels Rule (regra de UX exclusiva desta Capability)</a>
+      <a href="#s6">06 Nomenclatura — resolução</a>
+      <a href="#s7">07 Confirmações Explícitas</a>
+      <a href="#s8">08 Query Keys e Cache</a>
+      <a href="#s9">09 UX Review</a>
+      <a href="#s10">10 Escopo</a>
+      <a href="#s11">11 Fora de Escopo</a>
+      <a href="#s12">12 User Stories</a>
+      <a href="#s13">13 NFRs</a>
+      <a href="#s14">14 Critérios de Aceite</a>
+      <a href="#s15">15 Estratégia de Testes</a>
+      <a href="#s16">16 Riscos Específicos</a>
+      <a href="#s17">17 Checklist de Segurança</a>
+      <a href="#s18">18 Rollback</a>
+      <a href="#s19">19 Validação de Aderência à Constituição da STRATECH</a>
+      <a href="#s20">20 Definition of Ready</a>
+      <a href="#s21">21 Recomendações Registradas</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="masthead">
+      <div class="kicker">Feature Specification · STRATECH V1 — reta final (Release Candidate) · Etapa 4</div>
+      <h1 class="title">FS-011 — Organizational Intelligence</h1>
+      <p class="subtitle">Formaliza a User Decision Discovery, a User Journey e a UX Flow já aprovadas, mais 4
+        novas diretrizes do Founder: sensação de <b>Executive Brief organizacional</b> (nunca Dashboard,
+        relatório ou painel analítico); avaliação de composição minimalista sem rótulos por card; registro da
+        <b>Zero Labels Rule</b>, exclusiva desta Capability, não um princípio permanente; e confirmação de que
+        Organizational Intelligence permanece distinta de Executive Memory, Dashboard, Portfolio Intelligence e
+        Decision Center.</p>
+      <div class="meta-row">
+        <span><b>Origem</b> User Decision Discovery + User Journey + UX Flow (aprovadas)</span>
+        <span><b>Data</b> 2026-07-16</span>
+        <span><b>Status</b> Em elaboração — aguardando aprovação do Founder antes da Architecture Review</span>
+      </div>
+    </div>
+
+    <section id="s0">
+      <div class="section-head"><span class="section-num">00</span><h2>Guardian Check</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Verificação</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr><td>Esta decisão aproxima a STRATECH do Release Candidate V1?</td><td>SIM — fecha a especificação da última Capability conceitual pendente, sem introduzir BI/Analytics/Telemetria.</td></tr>
+            <tr><td>Conflito com Discovery/Journey/UX Flow aprovadas?</td><td>SEM CONFLITO — as 4 novas diretrizes refinam composição e nomenclatura; nenhuma reabre a régua de 3+ ocorrências, o limite de 5, ou a ordem fixa de categorias.</td></tr>
+            <tr><td>Introduz um princípio permanente novo?</td><td>NÃO — a Zero Labels Rule (Seção 5) é registrada explicitamente como regra de UX exclusiva desta Capability, por instrução direta do Founder.</td></tr>
+            <tr><td>Introduz BI, Dashboard, relatório, painel analítico, gráfico ou IA especulativa?</td><td>NÃO — reafirmado nas Seções 4, 11 e 19.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s1">
+      <div class="section-head"><span class="section-num">01</span><h2>Contexto e Objetivo</h2></div>
+      <p>Esta FS formaliza os 3 documentos já aprovados (Discovery, Journey, UX Flow). Organizational
+        Intelligence entrega, em uma superfície própria, apenas fatos reais e auditáveis de recorrência entre
+        projetos diferentes do portfólio -- nunca um dado de um projeto só (isso já é outras Capabilities),
+        nunca uma inferência, nunca um gráfico.</p>
+      <p>Diferente de toda Capability anterior, o próprio conceito desta Capability é a última peça que fecha
+        a identidade conceitual da STRATECH (Discovery §01): as 8 perguntas executivas, cada uma respondida
+        por exatamente 1 Capability, nenhuma sobreposição.</p>
+    </section>
+
+    <section id="s2">
+      <div class="section-head"><span class="section-num">02</span><h2>Comportamento Executivo</h2></div>
+      <p class="section-intro">Seção obrigatória em toda Feature Specification, por instrução do Founder:
+        <b>qual comportamento executivo esta Capability pretende incentivar?</b></p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Capability</th><th>Comportamento incentivado</th></tr></thead>
+          <tbody>
+            <tr><td>Project Intelligence (Status)</td><td>Acompanhar</td></tr>
+            <tr><td>Risk Intelligence</td><td>Mitigar</td></tr>
+            <tr><td>Communication Intelligence</td><td>Alinhar</td></tr>
+            <tr><td>Action Intelligence</td><td>Executar</td></tr>
+            <tr><td>Decision Center</td><td>Decidir</td></tr>
+            <tr><td>Portfolio Intelligence</td><td>Priorizar</td></tr>
+            <tr><td>Executive Memory</td><td>Lembrar</td></tr>
+            <tr><td><b>Organizational Intelligence</b></td><td><b>Reconhecer</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><b>Natureza distinta:</b> "Reconhecer" não é uma ação sobre um projeto -- é o reconhecimento de que um
+        mesmo fato real, estruturalmente, atravessa vários projetos ao mesmo tempo. Diferente de "Lembrar"
+        (Executive Memory, sobre 1 projeto ao longo do tempo), "Reconhecer" só existe quando se olha o
+        portfólio inteiro de uma vez -- coerente com a Seção 1 e com a Discovery/Journey já aprovadas.</p>
+    </section>
+
+    <section id="s3">
+      <div class="section-head"><span class="section-num">03</span><h2>Architecture Review (preliminar)</h2></div>
+
+      <h3>3.1 -- Riscos recorrentes: zero leitura nova</h3>
+      <p><code>GET /api/bff/risks/latest</code> já existe, já é portfolio-wide (usado pelo Decision Center,
+        FS-008) e já devolve a descrição, probabilidade e impacto do risco mais recente de cada projeto. A
+        agregação por igualdade textual exata de <code>description</code>, com o corte de 3+ ocorrências
+        (Journey §02), é uma função pura em memória sobre um dado já buscado -- zero rota nova, zero método
+        novo no backend.</p>
+
+      <h3>3.2 -- Ações recorrentes: zero leitura nova</h3>
+      <p><code>GET /api/bff/action-items</code> já existe, já é portfolio-wide (usado por Action Intelligence,
+        FS-007) e já devolve a descrição de cada item de ação de cada reunião de cada projeto. Mesma agregação
+        da Seção 3.1, aplicada a este outro conjunto -- zero rota nova.</p>
+
+      <h3>3.3 -- Achado explícito: Decisões recorrentes e Tendências de status exigiriam uma leitura nova</h3>
+      <div class="callout guard">
+        <b>Para a Architecture Review resolver explicitamente, não decidido nesta FS:</b> verificado contra
+        <code>ProjectSummaryService</code> -- <code>summarize_portfolio()</code> já lê todo o portfólio, mas
+        só agrega <i>contagens</i> (<code>total_analyses</code>, <code>open_risks</code>,
+        <code>pending_action_items</code>, <code>latest_health_status</code>), nunca o texto completo de
+        <code>decisions</code> (do <code>MeetingModelOutput</code>) ou de <code>key_findings</code>/
+        <code>recommendations</code> (do <code>StatusModelOutput</code>) através de todos os projetos. Nenhuma
+        rota hoje devolve esse texto em escala de portfólio -- diferente de riscos e ações (Seções 3.1/3.2),
+        que já têm uma rota dedicada por terem sido necessárias em Capabilities anteriores (Decision Center,
+        Action Intelligence).
+        <br><br>
+        <b>Duas saídas possíveis, nenhuma decidida aqui:</b>
+        <ol>
+          <li><b>Recomendada (escopo desta entrega):</b> Organizational Intelligence entrega, nesta V1, apenas
+            <b>Riscos recorrentes</b> e <b>Ações recorrentes</b> (Seções 3.1/3.2) -- zero leitura nova, RC-V1
+            mais rápido. "Decisões recorrentes" e "Tendências de status" (UX Flow §03) ficam registradas como
+            extensão futura, condicionada a uma leitura agregada nova (mesmo padrão de decisão já usado em
+            FS-010 §3.2 para a extensão de Executive Memory a Decision Center/Portfolio Intelligence).</li>
+          <li><b>Escopo ampliado:</b> introduzir a leitura agregada nova (ex.: um método de serviço que
+            devolva <code>decisions</code>/<code>key_findings</code>/<code>recommendations</code> de todo o
+            portfólio, mesmo padrão de <code>list_latest_risks()</code>/<code>list_action_items()</code>) já
+            nesta entrega, para que as 4 categorias apareçam desde o início.</li>
+        </ol>
+        Recomendo a Opção 1 -- mesmo raciocínio já usado em Executive Memory (FS-010) e em toda Capability
+        anterior: entrega o valor central mais rápido, sem uma dependência técnica nova bloqueando a primeira
+        entrega, e responde diretamente ao critério "isto aproxima a STRATECH do RC V1?" (Journey masthead).
+        A ordem fixa de 5 categorias (UX Flow §03) permanece válida -- as categorias 2 e 4 (Decisões
+        recorrentes, Tendências de status) simplesmente não aparecem nesta V1, mesma disciplina de "categoria
+        vazia nunca preenchida artificialmente" já registrada na UX Flow §03/§05.
+      </div>
+
+      <h3>3.4 -- <code>organizational-learnings.ts</code> (novo, mesma família de <code>memory-insights.ts</code>)</h3>
+      <pre><code>export type OrganizationalLearningCategory = "risco" | "acao";
+// "decisao" e "status" reservados para a extensao futura (Sec.3.3).
+
+export interface OrganizationalLearning {
+  category: OrganizationalLearningCategory;
+  text: string; // texto verbatim que se repete, nunca reescrito
+  occurrences: number; // sempre >= 3 (Journey Sec.02)
+  projectNames: string[]; // nomes reais, auditavel (Journey Sec.03)
+}
+
+export function buildRecurringRisks(
+  latestRisksPortfolioWide: RiskEntry[], // ja existente, GET .../risks/latest
+): OrganizationalLearning[] {
+  // agrupa por igualdade textual exata de description entre projetos
+  // diferentes; mantem so grupos com 3+ projetos distintos.
+}
+
+export function buildRecurringActions(
+  actionItemsPortfolioWide: ActionItemEntry[], // ja existente, GET .../action-items
+): OrganizationalLearning[] {
+  // mesma agregacao, aplicada a description de ActionItem.
+}
+
+export function selectTopLearnings(
+  learnings: OrganizationalLearning[],
+  limit = 5, // Journey Sec.05 -- mesmo limite de rankByRisk()
+): OrganizationalLearning[] {
+  // ordena por occurrences decrescente, empate por ordem alfabetica do texto;
+  // nunca preenche artificialmente se houver menos de `limit` itens reais.
+}</code></pre>
+      <p>Todas as funções são puras, sem chamada de rede própria -- recebem o que a página já buscou.
+        Nenhuma decide, prioriza ou consolida nada além de contar e agrupar um fato real (Executive
+        Responsibility Separation preservado, Seção 7).</p>
+
+      <h3>3.5 -- Executive Component Library: avaliação de reuso</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Componente candidato</th><th>Já existe?</th><th>Decisão</th></tr></thead>
+          <tbody>
+            <tr><td><code>Card</code>/<code>CardContent</code> (Design System já existente)</td><td>Sim</td><td>Reaproveitado -- mesma composição já usada em toda a plataforma</td></tr>
+            <tr><td>Cabeçalho de categoria (ex.: "Riscos recorrentes")</td><td>Não existe ainda</td><td><b>Novo</b>, mínimo -- um <code>h3</code>/rótulo de seção, sem chip ou tag adicional (Seção 5)</td></tr>
+            <tr><td>Card de aprendizado individual</td><td>Não existe ainda</td><td><b>Novo</b>, mínimo -- 3 linhas de texto (frase, texto verbatim, nomes de projeto), nenhum ícone de gráfico/tendência (UX Flow §04)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>3.6 -- Integração à navegação</h3>
+      <p>Novo item em <code>navigation.ts</code> (Journey §01) -- rótulo exato, ícone e posição na ordem
+        deixados para a Architecture Review confirmar antes do TIP, coerente com o próximo Gate desta FS.</p>
+    </section>
+
+    <section id="s4">
+      <div class="section-head"><span class="section-num">04</span><h2>Sensação de Executive Brief organizacional</h2></div>
+      <p class="section-intro">Diretriz 1 do Founder, refinando a Seção 1 da UX Flow ("reunião executiva, não
+        relatório"): a referência de composição passa a ser, especificamente, o <b>Executive Brief</b> já
+        existente -- não o Dashboard, não um relatório, não um painel analítico.</p>
+      <h3>Por que o Executive Brief é a referência certa, e não o Dashboard</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>Dashboard</th><th>Executive Brief</th><th>Organizational Intelligence (esta Feature)</th></tr></thead>
+          <tbody>
+            <tr><td>Unidade de composição</td><td>KPIs numéricos, grade de projetos</td><td>Um card por projeto, com contexto e próximo passo</td><td>Um card por aprendizado, com contexto e projetos reais</td></tr>
+            <tr><td>Tom</td><td>Contagem, visão geral</td><td>Narrativo curto, decisório</td><td>Narrativo curto, constatação (Seção 2)</td></tr>
+            <tr><td>Densidade visual</td><td>Alta (muitos números de uma vez)</td><td>Baixa (poucos campos, um de cada vez)</td><td>Baixa -- no máximo 5 cards (Journey §05)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Aplicação concreta: cada aprendizado é composto como um Executive Brief seria -- uma frase de
+        contexto, o fato real, e o "para onde ir depois" (os projetos, navegáveis) -- nunca uma célula de
+        tabela, nunca uma linha de grade densa como o Dashboard.</p>
+    </section>
+
+    <section id="s5">
+      <div class="section-head"><span class="section-num">05</span><h2>Zero Labels Rule (regra de UX exclusiva desta Capability)</h2></div>
+      <div class="callout">
+        <b>Registrado oficialmente nesta etapa, por instrução explícita do Founder, exclusivamente para
+        Organizational Intelligence -- <u>não</u> um princípio permanente da plataforma:</b> "Quando o contexto
+        da tela já explicar o significado do conteúdo, evitar rótulos redundantes."
+      </div>
+      <p>Aplicação concreta: a própria tela já se chama Organizational Intelligence, e cada card já vive sob um
+        cabeçalho de categoria (Riscos recorrentes, Ações recorrentes -- Seção 3.3, UX Flow §03). Nesse
+        contexto, um rótulo adicional por card (uma tag do tipo "Executive Finding" ou "Aprendizado
+        Organizacional" sobre cada item individual) seria redundante -- o significado já está dado pela
+        categoria e pela própria tela. Por isso, <b>nenhum card individual carrega um rótulo de tipo/conceito
+        visível</b> -- só a frase executiva, o texto verbatim, e os projetos (Seção 3.4/9).</p>
+      <p><b>Escopo explícito da regra:</b> aplica-se somente a esta Capability. Nenhuma outra tela da
+        plataforma é reavaliada retroativamente por esta regra -- Executive Brief, Executive Decision Card e
+        Executive Portfolio Card mantêm seus rótulos/badges já aprovados em Capabilities anteriores.</p>
+    </section>
+
+    <section id="s6">
+      <div class="section-head"><span class="section-num">06</span><h2>Nomenclatura — resolução</h2></div>
+      <p class="section-intro">Resolve o comparativo registrado na UX Flow §02, à luz da Zero Labels Rule
+        (Seção 5).</p>
+      <p>Como nenhum rótulo de conceito aparece visivelmente sobre um card individual, o comparativo de 3
+        nomes ("Aprendizado Organizacional" / "Organizational Finding" / "Executive Finding") deixa de ser uma
+        decisão de <i>copy visível na tela</i> -- passa a ser, apenas, o nome do <b>conceito</b> usado
+        internamente: em código (nomes de tipo/função, ex.: <code>OrganizationalLearning</code>, Seção 3.4), em
+        textos institucionais como este FS, e em qualquer comunicação de produto sobre a Capability como um
+        todo (ex.: o nome da própria entrada de navegação, Journey §01 -- que continua sendo decidido à parte,
+        não é o rótulo por card que esta seção resolve).</p>
+      <p>Dado que "Aprendizado Organizacional" já é o termo usado desde a Discovery, aprovado pelo Founder em
+        cada etapa, e é 100% português (consistente com toda a interface, UX Flow §02), <b>recomenda-se seu
+        uso como o nome interno/institucional do conceito</b> -- não como um rótulo visível em cada card,
+        que a Zero Labels Rule elimina. Nenhuma decisão final é forçada aqui além dessa recomendação; o nome da
+        entrada de navegação (que é, sim, um rótulo visível, mas de tela inteira, não de card individual)
+        permanece em aberto para a Architecture Review confirmar.</p>
+    </section>
+
+    <section id="s7">
+      <div class="section-head"><span class="section-num">07</span><h2>Confirmações Explícitas</h2></div>
+      <p class="section-intro">Confirmação direta às diretrizes exigidas pelo Founder nesta etapa e nas
+        anteriores.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Propriedade exigida</th><th>Confirmação</th></tr></thead>
+          <tbody>
+            <tr><td>Transmite sensação de Executive Brief organizacional, nunca Dashboard/relatório/painel analítico</td><td><span class="chip fato">SIM</span> — composição narrativa curta por aprendizado, densidade baixa, sem KPIs/grade (Seção 4)</td></tr>
+            <tr><td>Composição minimalista, sem rótulo redundante por card</td><td><span class="chip fato">SIM</span> — Zero Labels Rule aplicada (Seção 5); card traz só frase, texto verbatim, projetos</td></tr>
+            <tr><td>Zero Labels Rule registrada como regra exclusiva desta Capability, não princípio permanente</td><td><span class="chip fato">SIM</span> — escopo explícito na Seção 5</td></tr>
+            <tr><td>Permanece distinta de Executive Memory, Dashboard, Portfolio Intelligence e Decision Center</td><td><span class="chip fato">SIM</span> — cada uma responde exclusivamente sua própria pergunta executiva (Seção 2, Discovery §01, Journey §06/§09); nenhuma pergunta é respondida duas vezes</td></tr>
+            <tr><td>Só aprendizados com 3+ ocorrências reais aparecem</td><td><span class="chip fato">SIM</span> — <code>selectTopLearnings</code>/agregação (Seção 3.4) aplicam a régua da Journey §02 antes de qualquer exibição</td></tr>
+            <tr><td>Nenhuma inferência, IA generativa ou interpretação especulativa</td><td><span class="chip fato">SIM</span> — toda categoria usa igualdade textual exata, nunca um julgamento de similaridade ou causa (Seção 3.4)</td></tr>
+            <tr><td>Um único aprendizado válido é exibido normalmente, sem preenchimento artificial</td><td><span class="chip fato">SIM</span> — regra explícita do Founder, sem exceção de implementação (UX Flow §05)</td></tr>
+            <tr><td>Usa somente dados reais já existentes ou leituras estritamente necessárias</td><td><span class="chip fato">SIM</span> — Riscos/Ações recorrentes usam rotas já existentes (Seção 3.1/3.2); Decisões/Tendências de status ficam fora de escopo por exigirem leitura nova (achado §3.3)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s8">
+      <div class="section-head"><span class="section-num">08</span><h2>Query Keys e Cache</h2></div>
+      <p>Leitura pura -- nenhuma mutação nesta Feature. Reaproveita as mesmas <code>queryKey</code>s já usadas
+        por <code>useLatestRisks</code> (Decision Center) e pelo hook de ações do Action Intelligence -- zero
+        chave nova, zero requisição adicional além do que essas 2 telas já fazem hoje.</p>
+    </section>
+
+    <section id="s9">
+      <div class="section-head"><span class="section-num">09</span><h2>UX Review</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Elemento (UX Flow/diretrizes)</th><th>Implementação</th></tr></thead>
+          <tbody>
+            <tr><td>Ordem fixa de categorias</td><td>Riscos recorrentes, depois Ações recorrentes (as 2 reais desta V1, achado §3.3) -- categorias vazias simplesmente não aparecem</td></tr>
+            <tr><td>Sensação de Executive Brief organizacional</td><td>Card por aprendizado, narrativo, baixa densidade (Seção 4)</td></tr>
+            <tr><td>Zero Labels Rule</td><td>Nenhum chip/tag de conceito por card (Seção 5)</td></tr>
+            <tr><td>Máximo 5 aprendizados</td><td><code>selectTopLearnings(learnings, 5)</code> (Seção 3.4)</td></tr>
+            <tr><td>1 aprendizado válido / 0 aprendizados</td><td>Ambos exibidos honestamente, sem preenchimento nem erro (UX Flow §05/§06)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s10">
+      <div class="section-head"><span class="section-num">10</span><h2>Escopo</h2></div>
+      <ul>
+        <li><code>web/lib/organizational-intelligence/organizational-learnings.ts</code> -- <code>buildRecurringRisks</code>, <code>buildRecurringActions</code>, <code>selectTopLearnings</code>, tipos <code>OrganizationalLearning</code>/<code>OrganizationalLearningCategory</code> (§3.4)</li>
+        <li>Nova página/rota de navegação -- rótulo/ícone/posição a confirmar na Architecture Review (§3.6)</li>
+        <li>Cabeçalho de categoria + card de aprendizado individual (Executive Component Library, §3.5) -- ambos novos, mínimos</li>
+        <li>2 categorias reais nesta V1: Riscos recorrentes, Ações recorrentes (achado §3.3)</li>
+      </ul>
+    </section>
+
+    <section id="s11">
+      <div class="section-head"><span class="section-num">11</span><h2>Fora de Escopo (confirmado)</h2></div>
+      <ul>
+        <li>Qualquer gráfico, linha do tempo, percentual ou indicador estatístico -- decisão explícita do Founder (UX Flow §01/§04)</li>
+        <li>Qualquer filtro, ordenação configurável, busca livre ou exportação -- características de BI, fora desta V1</li>
+        <li>"Decisões recorrentes" e "Tendências de status" -- achado explícito §3.3, extensão futura condicionada a uma leitura agregada nova</li>
+        <li>Qualquer rótulo/chip de conceito visível por card -- Zero Labels Rule (Seção 5)</li>
+        <li>Qualquer decisão final de nomenclatura do nome de navegação -- Seção 6, deixado para a Architecture Review</li>
+        <li>Qualquer interpretação, causa-raiz ou narrativa gerada pela IA -- proibido em qualquer fase</li>
+        <li>Qualquer aprendizado com menos de 3 ocorrências reais</li>
+        <li>Qualquer novo princípio permanente -- a Zero Labels Rule é exclusiva desta Capability (Seção 5)</li>
+        <li>Migração de banco, alteração de schema</li>
+      </ul>
+    </section>
+
+    <section id="s12">
+      <div class="section-head"><span class="section-num">12</span><h2>User Stories</h2></div>
+      <div class="us-card">
+        <p class="us-text">Como PMO, reconheço em segundos que o mesmo risco real afeta vários projetos, sem precisar abrir cada Workspace e comparar manualmente.</p>
+        <p class="us-ac">Critério: o card de "Riscos recorrentes" mostra o texto verbatim do risco, a contagem real de projetos, e os nomes desses projetos, navegáveis.</p>
+      </div>
+      <div class="us-card">
+        <p class="us-text">Como PMO, quando existe apenas 1 aprendizado real, ainda vejo essa tela como completa e útil -- nunca um aviso de "poucos dados".</p>
+        <p class="us-ac">Critério: 1 card real é uma tela válida, sem preenchimento artificial (UX Flow §05).</p>
+      </div>
+      <div class="us-card">
+        <p class="us-text">Como PMO, a tela se sente como uma reunião executiva curta, nunca como um relatório ou um dashboard analítico.</p>
+        <p class="us-ac">Critério: nenhum rótulo redundante por card (Zero Labels Rule), nenhuma tabela densa, nenhum gráfico.</p>
+      </div>
+    </section>
+
+    <section id="s13">
+      <div class="section-head"><span class="section-num">13</span><h2>NFRs Aplicáveis</h2></div>
+      <ul>
+        <li>Nenhuma regressão nos testes de backend -- zero arquivo de backend tocado (100% frontend, mesma disciplina de Executive Memory/Portfolio Intelligence)</li>
+        <li>Nenhuma regressão nos testes de frontend já existentes</li>
+        <li>Contraste WCAG AA mantido, ambos os temas, no novo card de aprendizado</li>
+        <li>Responsividade nos 3 breakpoints já estabelecidos</li>
+        <li>Reaproveitar <code>GET /api/bff/risks/latest</code> e <code>GET /api/bff/action-items</code> não introduz latência perceptível -- mesmas rotas já usadas por Decision Center e Action Intelligence</li>
+      </ul>
+    </section>
+
+    <section id="s14">
+      <div class="section-head"><span class="section-num">14</span><h2>Critérios de Aceite</h2></div>
+      <ul>
+        <li>Um aprendizado aparece quando e só quando o mesmo texto (risco ou ação) atinge 3+ projetos distintos</li>
+        <li>No máximo 5 aprendizados exibidos, ordenados por contagem decrescente</li>
+        <li>Categorias sem aprendizado real (0 itens com 3+) não aparecem -- nenhum espaço reservado</li>
+        <li>Exatamente 1 aprendizado válido é exibido normalmente, sem aviso ou estado especial</li>
+        <li>Zero aprendizados exibe o estado honesto de vazio, nunca um erro</li>
+        <li>Nenhum card individual carrega um rótulo/chip de conceito (Zero Labels Rule)</li>
+        <li>Nenhum gráfico, percentual, filtro, ordenação configurável ou exportação em nenhum lugar da tela</li>
+        <li>Testes: <code>organizational-learnings.ts</code> (unit), componente, integração na página, E2E, backend como regressão (nenhuma mudança)</li>
+        <li>Verificação real contra Demo Mode, mesma disciplina das Features anteriores</li>
+      </ul>
+    </section>
+
+    <section id="s15">
+      <div class="section-head"><span class="section-num">15</span><h2>Estratégia de Testes</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Camada</th><th>O que cobrir</th></tr></thead>
+          <tbody>
+            <tr><td><code>organizational-learnings.ts</code> (unit)</td><td><code>buildRecurringRisks</code>/<code>buildRecurringActions</code>: 1-2 ocorrências → excluído; 3+ → incluído com contagem e projetos corretos; <code>selectTopLearnings</code>: corta em 5, ordena por contagem, nunca preenche artificialmente com menos de 5 reais</td></tr>
+            <tr><td>Componente (unit)</td><td>Card de aprendizado: renderiza frase/texto verbatim/projetos, nunca um rótulo de conceito (Zero Labels Rule)</td></tr>
+            <tr><td>Integração (página)</td><td>1 aprendizado válido → tela completa e normal; 0 aprendizados → estado honesto de vazio; categoria sem itens → ausente, sem espaço reservado</td></tr>
+            <tr><td>E2E (Playwright, 3 breakpoints)</td><td>Fluxo real com múltiplos projetos no mock compartilhando o mesmo risco/ação, confirmando a régua de 3+ e a navegação para o Workspace de cada projeto citado</td></tr>
+            <tr><td>Backend</td><td>Nenhuma mudança -- regressão da suíte já existente apenas</td></tr>
+            <tr><td>Backend real, sem mock</td><td>Verificação contra Demo Mode com múltiplos projetos reais compartilhando um risco/ação</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s16">
+      <div class="section-head"><span class="section-num">16</span><h2>Riscos Específicos</h2></div>
+      <ul>
+        <li>Igualdade textual exata é frágil se a IA redigir o mesmo risco/ação com palavras ligeiramente diferentes entre projetos -- mesmo trade-off já aceito e documentado em Executive Memory (Reapareceu); nenhuma correspondência aproximada é introduzida, por ser interpretação especulativa</li>
+        <li>Volume de projetos/dado fictício ainda pequeno (ambiente piloto) -- atingir 3+ ocorrências reais pode ser raro na fixture/Demo Mode atual; mesmo gap já conhecido de outras Capabilities, registrado, não bloqueante</li>
+        <li>Se o Founder decidir, na Architecture Review, ampliar para as 4 categorias (achado §3.3, Opção 2), o esforço de leitura agregada nova precisa ser reavaliado antes do TIP</li>
+      </ul>
+    </section>
+
+    <section id="s17">
+      <div class="section-head"><span class="section-num">17</span><h2>Checklist de Segurança (ADR-011)</h2></div>
+      <p>Nenhuma rota nova nesta V1 (achado §3.3, Opção 1) -- esta Feature lê exclusivamente dado já trafegado
+        hoje via <code>GET /api/bff/risks/latest</code> e <code>GET /api/bff/action-items</code>, ambas já em
+        produção. Nenhuma categoria de dado sensível nova. Checklist completo na escrita do TIP.</p>
+    </section>
+
+    <section id="s18">
+      <div class="section-head"><span class="section-num">18</span><h2>Rollback</h2></div>
+      <p>Reverter o commit remove <code>organizational-learnings.ts</code>, a nova página/rota de navegação, e
+        os 2 componentes novos (cabeçalho de categoria, card de aprendizado) -- nenhuma outra tela é afetada.
+        Nenhuma migração de dado, nenhuma mudança de schema, nenhum dado persistido a desfazer.</p>
+    </section>
+
+    <section id="s19">
+      <div class="section-head"><span class="section-num">19</span><h2>Validação de Aderência à Constituição da STRATECH</h2></div>
+      <p class="section-intro">Confirmação exigida pelo Founder: nenhuma decisão desta FS viola os princípios
+        e frameworks já estáveis da plataforma.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Princípio/Framework</th><th>Aderência</th></tr></thead>
+          <tbody>
+            <tr><td>Product Philosophy</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — nenhuma decisão automática, nenhuma causa ou narrativa inferida (Seção 3.4, 16)</td></tr>
+            <tr><td>Executive Questions Framework</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — responde "o que a organização inteira está aprendendo", última pergunta da identidade conceitual (Discovery §01)</td></tr>
+            <tr><td>Executive Decision Performance</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — reduz tempo até reconhecer um padrão estrutural sem instrumentação nova (Journey §08)</td></tr>
+            <tr><td>Progressive Context / Progressive Purpose</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — superfície própria porque nenhuma outra Capability tem esse escopo (portfólio, entre projetos); nunca repete Dashboard/Portfolio Intelligence/Decision Center (Seção 2, 4)</td></tr>
+            <tr><td>Executive Behavior</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — "Reconhecer" registrado e distinto dos demais verbos já fixados (Seção 2)</td></tr>
+            <tr><td>Executive Trust</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — nenhum texto fabricado; toda contagem é auditável até os projetos reais (Seção 3.4, 7)</td></tr>
+            <tr><td>Single Decision Source</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — nenhuma decisão calculada; só conta e agrupa um fato real</td></tr>
+            <tr><td>Executive Responsibility Separation</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — pergunta própria e distinta, confirmado na Seção 7</td></tr>
+            <tr><td>Decision Context Preservation</td><td><span class="chip fato">SEM VIOLAÇÃO</span> — cada aprendizado é o menor contexto necessário (frase + texto verbatim + projetos), nunca mais (Seção 4)</td></tr>
+            <tr><td>Architecture Budget / Platform Readiness Backlog / Feature Exit Criteria / Reuse Index</td><td><span class="chip fato">A APLICAR</span> — nas etapas TIP e Executive Review desta Capability, quando alcançadas</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s20">
+      <div class="section-head"><span class="section-num">20</span><h2>Definition of Ready — Próximo Gate</h2></div>
+      <p>Esta FS formalizou Discovery + Journey + UX Flow + Architecture Review preliminar (Seção 3), aplicou
+        as 4 novas diretrizes do Founder (Seções 4-6), confirmou as propriedades exigidas (Seção 7) e validou
+        aderência à Constituição da STRATECH (Seção 19). Um achado arquitetural honesto (§3.3) permanece para a
+        Architecture Review resolver antes do TIP. Por instrução explícita do Founder, aguardando aprovação
+        desta FS antes de iniciar a Architecture Review.</p>
+    </section>
+
+    <section id="s21">
+      <div class="section-head"><span class="section-num">21</span><h2>Recomendações Registradas</h2></div>
+      <div class="callout">
+        O achado da Seção 3.3 (Decisões recorrentes e Tendências de status exigiriam uma leitura agregada
+        nova) é a recomendação central desta FS: avaliar, na Architecture Review, se essa extensão deve entrar
+        já nesta Capability ou ficar registrada como incremento futuro. Recomendação desta FS: manter a Opção 1
+        (escopo reduzido a Riscos/Ações recorrentes), coerente com o critério "isto aproxima a STRATECH do RC
+        V1?".
+      </div>
+      <div class="callout">
+        A recomendação da Seção 6 (usar "Aprendizado Organizacional" como nome interno/institucional do
+        conceito, nunca como rótulo visível por card) fica registrada para a Architecture Review confirmar,
+        junto com o nome final da entrada de navegação (Seção 3.6).
+      </div>
+    </section>
+
+    <footer>
+      <span>Stratech — FS-011</span>
+      <span>STRATECH V1 · Product Core (reta final)</span>
+      <span>2026-07-16</span>
+    </footer>
+  </main>
+</div>

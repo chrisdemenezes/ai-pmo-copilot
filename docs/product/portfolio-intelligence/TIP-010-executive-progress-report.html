@@ -1,0 +1,156 @@
+<title>TIP-010 — Executive Progress Report</title>
+<style>
+  :root{
+    --bg:#f5f4f1; --surface:#ffffff; --surface-2:#ececE6; --border:#d8d5cd;
+    --ink:#191712; --ink-dim:#5b5648; --accent:#4c4fc4;
+    --ok:#2f7a4f; --ok-bg:#e1f0e5;
+    --guard:#a13d2f; --guard-bg:#f6e2dd;
+    --mono-ink:#3a362c; --code-bg:#eeece4;
+    --shadow: 0 1px 2px rgba(20,18,10,.06), 0 8px 24px -12px rgba(20,18,10,.12);
+  }
+  :root[data-theme="dark"]{
+    --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+    --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+    --ok:#7fd19f; --ok-bg:#1a3324;
+    --guard:#e8897a; --guard-bg:#3a2018;
+    --mono-ink:#cfcabb; --code-bg:#221e17;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#12100c; --surface:#1b1813; --surface-2:#221e17; --border:#39352a;
+      --ink:#efece2; --ink-dim:#a9a494; --accent:#9498f0;
+      --ok:#7fd19f; --ok-bg:#1a3324;
+      --guard:#e8897a; --guard-bg:#3a2018;
+      --mono-ink:#cfcabb; --code-bg:#221e17;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.5);
+    }
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  main{max-width:980px; margin:0 auto; padding:56px 40px 100px;}
+  @media (max-width:600px){ main{padding:32px 20px 80px;} }
+  .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1{font-size:clamp(1.7rem,4vw,2.3rem); line-height:1.16; margin:0 0 14px; font-weight:600; text-wrap:balance;}
+  .subtitle{color:var(--ink-dim); max-width:74ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding:18px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim); margin-bottom:16px;}
+  .meta-row b{color:var(--ink);}
+  h2{font-size:1.2rem; margin:40px 0 6px; padding-bottom:10px; border-bottom:2px solid var(--ink);}
+  p{margin:0 0 12px; max-width:76ch;}
+  ul{margin:0 0 14px; padding-left:22px;}
+  li{margin-bottom:6px; max-width:74ch;}
+  table{width:100%; border-collapse:collapse; font-size:.85rem; margin:12px 0 24px;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-dim); padding:8px 10px; border-bottom:1px solid var(--ink);}
+  td{padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top;}
+  td code, p code, li code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .chip{display:inline-flex; align-items:center; gap:5px; font-family: ui-monospace, monospace; font-size:10px; letter-spacing:.02em; padding:3px 8px; border-radius:3px; font-weight:600; white-space:nowrap;}
+  .chip.ok{color:var(--ok); background:var(--ok-bg);}
+  .callout{border-left:3px solid var(--accent); background:var(--surface-2); padding:14px 18px; margin:16px 0; font-size:.92rem; border-radius:0 4px 4px 0;}
+  .callout.guard{border-left-color:var(--guard);}
+  .callout b{color:var(--ink);}
+  footer{border-top:1px solid var(--border); margin-top:60px; padding-top:20px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+
+<main>
+  <div class="kicker">Chief Product Engineer · TIP-010 · Encerramento</div>
+  <h1>Executive Progress Report — Portfolio Intelligence</h1>
+  <p class="subtitle">Quinta Capability da plataforma, primeira a nascer com dois novos princípios permanentes
+    de arquitetura de informação — Progressive Context e Progressive Purpose — e o primeiro framework
+    conceitual de navegação executiva (Executive Navigation). Entrega a Executive Portfolio View: uma única
+    visão do portfólio inteiro, organizada em 4 camadas transparentes de atenção, sem calcular ou duplicar
+    nenhum sinal que a plataforma já não produzisse.</p>
+  <div class="meta-row">
+    <span><b>Capability</b> 05 — Portfolio Intelligence</span>
+    <span><b>Feature</b> Executive Portfolio View</span>
+    <span><b>Data</b> 2026-07-14</span>
+    <span><b>Status</b> Concluído — aguardando autorização do Founder</span>
+  </div>
+
+  <h2>O que foi entregue</h2>
+  <ul>
+    <li><code>web/lib/portfolio-intelligence/portfolio-view.ts</code> — <code>buildExecutivePortfolioView()</code>,
+      função pura que organiza o portfólio inteiro em 4 camadas fixas e transparentes (decisão pendente hoje,
+      decisão pendente esta semana, risco a monitorar, sem sinal de atenção), reaproveitando 100%
+      <code>buildExecutiveDecisionQueue()</code> (Decision Center) e <code>rankByRisk()</code> (Dashboard) —
+      zero leitura nova, zero rota nova, zero cálculo de decisão duplicado (Single Decision Source)</li>
+    <li><code>ExecutivePortfolioCard</code> — as 3 perguntas fixas do Founder (por que atenção, quais sinais
+      reais, qual próximo movimento), idênticas para as 4 camadas; a camada de risco nunca infere consequência
+      (ajuste do Founder na aprovação da User Journey) — só navegação real</li>
+    <li><code>/portfolio</code> — nova rota "Portfólio", cobre o portfólio inteiro (nunca filtra, diferente da
+      Executive Decision Queue); camada "sem sinal de atenção" presente mas visualmente discreta, nunca
+      ausente, nunca competindo com quem exige atenção (Princípio da Atenção)</li>
+    <li>Incremento 3 — KPI "Projetos" no Dashboard vira o ponto de entrada da Executive Portfolio View (mesma
+      contagem real, destino aprofundado); novo item "Priorização" na Sidebar/bottom-nav, logo após Dashboard,
+      primeiro ritual do dia por desenho (Executive Navigation)</li>
+  </ul>
+
+  <h2>Processo de governança seguido (6 etapas completas)</h2>
+  <p>User Decision Discovery (uma pergunta: onde o executivo deve concentrar seu tempo e atenção) → User
+    Journey (Executive Portfolio View, 4 princípios: Transparent Prioritization, Single Decision Source,
+    Executive Portfolio View, Princípio da Atenção) → UX Flow (ajuste conceitual do Founder: pergunta da
+    camada 3 reformulada para nunca inferir consequência; Executive Portfolio Card consolidado com 3 perguntas
+    unificadas) → Feature Specification (FS-009, com avaliação explícita de Progressive Context e achado
+    honesto sobre sobreposição com widgets do Dashboard) → Architecture Review (Progressive Purpose validado
+    par a par, teste concreto formalizado para quando o reuso deixaria de ser válido) → Technical
+    Implementation Plan (TIP-010, 2 novos princípios registrados: Executive Responsibility Separation,
+    Executive Navigation). Cada etapa recebeu aprovação explícita do Founder antes da seguinte; nenhum código
+    escrito antes da aprovação do TIP.</p>
+
+  <h2>Princípios permanentes consolidados nesta Capability</h2>
+  <table>
+    <thead><tr><th>Princípio</th><th>Definição</th></tr></thead>
+    <tbody>
+      <tr><td>Progressive Context</td><td>A STRATECH não navega entre telas, ela aprofunda contexto — cada Capability entrega um nível maior de compreensão do mesmo objeto (Dashboard → Portfolio Intelligence → Workspace → Executive Brief)</td></tr>
+      <tr><td>Progressive Purpose</td><td>Cada nível da plataforma tem um propósito próprio — reaproveitar um mesmo sinal entre duas telas não é duplicação quando a pergunta executiva de cada uma difere</td></tr>
+      <tr><td>Executive Responsibility Separation</td><td>Duas Capabilities podem usar os mesmos sinais reais, mas nunca devem responder à mesma pergunta executiva — a responsabilidade funcional de cada uma permanece distinta</td></tr>
+      <tr><td>Executive Navigation (framework conceitual)</td><td>Sequência natural: Onde devo olhar? → Portfolio Intelligence → O que depende de mim? → Decision Center → O que preciso entender? → Workspace → O que significa? → Executive Brief → O que preciso fazer? → Action Intelligence. Descritivo, não uma navegação imposta</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Critérios de reuso (Founder) — aderência</h2>
+  <table>
+    <thead><tr><th>Elemento a reutilizar</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td>Executive Decision Queue</td><td><span class="chip ok">REUTILIZADO</span> — <code>buildExecutiveDecisionQueue()</code> consumido tal como está, nunca recalculado (Single Decision Source)</td></tr>
+      <tr><td>Ranking de risco</td><td><span class="chip ok">REUTILIZADO</span> — <code>rankByRisk()</code>, primeira vez usado fora do Dashboard</td></tr>
+      <tr><td>Executive Component Library</td><td><span class="chip ok">AUDITADO E REUTILIZADO</span> — Card/Skeleton, mesma composição do Executive Decision Card</td></tr>
+      <tr><td>Widgets do Dashboard</td><td><span class="chip ok">MANTIDOS</span> — decisão explícita do Founder, Progressive Purpose formalmente ratificado</td></tr>
+      <tr><td>Nenhum schema/migração/rota nova</td><td><span class="chip ok">CUMPRIDO</span></td></tr>
+      <tr><td>Executive Brief Contract / Comunicação estruturada / Achado #1</td><td><span class="chip ok">NÃO REABERTOS</span></td></tr>
+      <tr><td>Testes</td><td><span class="chip ok">REUTILIZADO</span> — mesma estrutura de suíte (unit/componente/página/E2E)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Testes executados</h2>
+  <table>
+    <thead><tr><th>Gate</th><th>Resultado</th></tr></thead>
+    <tbody>
+      <tr><td>Backend — <code>ruff check</code> / <code>pytest</code></td><td>não aplicável — zero arquivo de backend tocado (100% frontend, Architecture Review §04)</td></tr>
+      <tr><td>Frontend — unit/component (vitest)</td><td>350/350 (27 novos: portfolio-view.ts, Executive Portfolio Card, página, navigation.ts, dashboard-widgets, proxy)</td></tr>
+      <tr><td>Frontend — <code>eslint .</code></td><td>limpo</td></tr>
+      <tr><td>E2E (Playwright, 3 breakpoints)</td><td>178 passed, 2 skip esperados, 0 failed — 4 camadas, navegação via Sidebar e KPI do Dashboard, degradação do sinal de Risco</td></tr>
+      <tr><td>Backend real, sem mock (Demo Mode)</td><td>Fluxo completo contra o backend real — Dashboard e <code>/portfolio</code> capturados com dado 100% real (6 projetos): 3 com decisão pendente, 3 discretamente "sem sinal de atenção"</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <b>Achado honesto, registrado:</b> a camada "risco a monitorar" não foi observável na verificação de Demo
+    Mode nem na suíte E2E compartilhada — nem o portfólio fictício semeado, nem a fixture de mock de E2E, têm
+    hoje um projeto com risco identificado mas sem decisão pendente simultânea. A lógica está integralmente
+    coberta por 4 testes unitários dedicados (<code>portfolio-view.test.ts</code>) e por testes de componente e
+    de página com dado controlado — cobertura equivalente, mesma disciplina já aplicada a outros casos de
+    borda nesta base de código quando a fixture compartilhada não os produz naturalmente.
+  </div>
+
+  <h2>Próximo passo</h2>
+  <p>TIP-010 concluído e pronto para commit/push. A plataforma agora tem 5 Capabilities reais, dois novos
+    princípios de arquitetura de informação (Progressive Context/Purpose) e um framework de navegação
+    executiva registrado para orientar a evolução futura. Aguardando a Visual Fidelity Report e a Executive
+    Review para autorização do Founder.</p>
+
+  <footer>
+    <span>Stratech — TIP-010</span>
+    <span>Executive Progress Report</span>
+    <span>2026-07-14</span>
+  </footer>
+</main>
