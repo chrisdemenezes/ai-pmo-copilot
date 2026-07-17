@@ -2,12 +2,17 @@ import logging
 import os
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, DateTime, Integer, String, JSON, create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, JSON, create_engine
+from sqlalchemy.orm import sessionmaker
+
+from src.database.base import Base
+# Imported for its side effect: registers the Enterprise Foundation tables on
+# Base.metadata so create_all provisions the full schema on installs that do
+# not run alembic (the SQLite/demo path).
+from src.database import models  # noqa: F401
+from src.database.enterprise_repository import EnterpriseRepository
 
 logger = logging.getLogger(__name__)
-
-Base = declarative_base()
 
 
 class AnalysisRecord(Base):
@@ -16,6 +21,11 @@ class AnalysisRecord(Base):
     id = Column(Integer, primary_key=True, index=True)
     kind = Column(String(50), nullable=False)
     project_name = Column(String(255), nullable=True, index=True)
+    # Real Project link (V2 Release 0.1). Nullable during the transition:
+    # records written before migration 0002 are backfilled by it; records
+    # written after are linked at save time below. The NOT NULL constraint
+    # lands in Épico 4, when the API itself starts requiring a project_id.
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
     payload = Column(JSON, nullable=False)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
@@ -30,14 +40,26 @@ class AnalysisRepository:
         self.engine = create_engine(self.database_url, connect_args=connect_args)
         Base.metadata.create_all(self.engine)
         self.SessionLocal = sessionmaker(bind=self.engine, autoflush=False, autocommit=False)
+        self.enterprise = EnterpriseRepository(self.SessionLocal)
 
     def save_analysis(self, kind: str, payload: dict, project_name: str | None = None) -> int:
         with self.SessionLocal() as session:
-            record = AnalysisRecord(kind=kind, payload=payload, project_name=project_name)
+            # Same transaction: the analysis row and its Project resolution
+            # commit (or roll back) together, so no orphan can be written.
+            project = self.enterprise.get_or_create_project_for_name(session, project_name)
+            record = AnalysisRecord(
+                kind=kind, payload=payload, project_name=project_name, project_id=project.id
+            )
             session.add(record)
             session.commit()
             session.refresh(record)
-            logger.info("Saved analysis id=%s kind=%s project_name=%s", record.id, kind, project_name)
+            logger.info(
+                "Saved analysis id=%s kind=%s project_name=%s project_id=%s",
+                record.id,
+                kind,
+                project_name,
+                record.project_id,
+            )
             return record.id
 
     def list_analyses(
