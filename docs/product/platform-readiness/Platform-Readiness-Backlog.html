@@ -152,17 +152,19 @@
         <tr>
           <td>PRI-006</td>
           <td>Testes / CI</td>
-          <td>A suíte E2E (Playwright, 68 testes/9 arquivos) não está conectada a
-            <code>.github/workflows/ci.yml</code> -- o job <code>frontend</code> executa apenas
-            <code>tsc --noEmit</code>, <code>eslint</code>, <code>vitest run</code> e <code>build</code>; o
-            script <code>npm run test:e2e</code> existe mas nunca é chamado pelo pipeline. As 2 regressões reais
-            encontradas nesta sessão (invalidação ausente de <code>workspace-recent</code>; <code>/aprendizados</code>
-            fora do matcher de autenticação) foram detectadas exclusivamente por testes E2E -- hoje esse
-            mecanismo de detecção roda apenas manualmente, nunca automaticamente a cada PR.</td>
-          <td>Architecture Gate V1, Domínio 7 (Qualidade e testes)</td>
-          <td><span class="chip warn">ALTA</span> — é o mecanismo que já provou detectar regressões reais nesta V1</td>
-          <td>Nenhum defeito hoje -- risco é de regressão futura não capturada antes do merge</td>
-          <td><span class="chip ok">NÃO BLOQUEIA</span> — recomenda-se fortemente antes do Release Candidate</td>
+          <td><span class="chip ok">RESOLVIDO</span> — Release Blocker RB-001. A suíte E2E (Playwright, 68
+            testes/9 arquivos) não estava conectada a <code>.github/workflows/ci.yml</code>. Corrigido: o job
+            <code>frontend</code> agora instala os browsers do Playwright e executa
+            <code>npx playwright test</code> (todos os projetos) em todo PR/push. Também corrigido
+            <code>web/playwright.config.ts</code>, cujo <code>executablePath</code> estava fixado a um caminho
+            exclusivo do sandbox de desenvolvimento desta sessão (inexistente em runners de CI) -- agora
+            condicional via <code>fs.existsSync</code>, com fallback ao Chromium instalado pelo próprio CI.</td>
+          <td>Architecture Gate V1, Domínio 7 (Qualidade e testes) -- Release Blocker RB-001, Release Readiness Review</td>
+          <td><span class="chip ok">RESOLVIDO</span></td>
+          <td>Nenhum -- as 2 regressões reais encontradas nesta sessão (invalidação ausente de
+            <code>workspace-recent</code>; <code>/aprendizados</code> fora do matcher de autenticação) foram
+            detectadas por testes E2E; agora esse mecanismo roda automaticamente a cada PR</td>
+          <td><span class="chip ok">NÃO BLOQUEIA — RESOLVIDO</span></td>
         </tr>
         <tr>
           <td>PRI-007</td>
@@ -177,6 +179,42 @@
           <td><span class="chip warn">BAIXA</span> — lacuna documental, feature em produção não é afetada</td>
           <td>Nenhum -- funcionalidade e testes não são afetados, apenas o registro histórico de fechamento</td>
           <td><span class="chip ok">NÃO BLOQUEIA</span> — recomenda-se completar antes da publicação do V1 Release Notes</td>
+        </tr>
+        <tr>
+          <td>PRI-008</td>
+          <td>Operação</td>
+          <td><span class="chip ok">RESOLVIDO</span> — Release Blocker RB-002. Não existia procedimento
+            documentado de backup/restore para o banco de produção (PostgreSQL, serviço <code>database</code>
+            em <code>docker-compose.yml</code>). Produzido
+            <code>docs/operations/PRI-008-production-backup-restore-runbook.md</code>: estratégia
+            (<code>pg_dump -Fc</code>), periodicidade (diário/semanal), restauração (<code>pg_restore</code> +
+            <code>alembic upgrade head</code>), validação (health check + contagem + registro mais recente) e
+            recuperação após falha (4 cenários). Uma limitação permanece registrada no próprio runbook:
+            armazenamento externo dos arquivos de backup e a automação de disparo dependem da escolha do
+            provedor de infraestrutura de produção, ainda não definida neste repositório.</td>
+          <td>Release Readiness Review, Founder (Release Blocker RB-002)</td>
+          <td><span class="chip ok">RESOLVIDO</span></td>
+          <td>Nenhum -- documentação operacional, sem mudança de código</td>
+          <td><span class="chip ok">NÃO BLOQUEIA — RESOLVIDO</span></td>
+        </tr>
+        <tr>
+          <td>PRI-009</td>
+          <td>Operação</td>
+          <td><span class="chip ok">RESOLVIDO</span> — Release Blocker RB-003. Não existia runbook de
+            deployment de produção. Produzido
+            <code>docs/operations/PRI-009-production-deployment-runbook.md</code>: pré-requisitos, implantação,
+            rollback, validação pós-deploy, smoke tests e critérios de sucesso. Duas lacunas pré-existentes
+            foram documentadas com transparência, não resolvidas por este item (fora do escopo de um runbook):
+            (1) a hospedagem de produção do frontend nunca foi decidida (pergunta em aberto desde
+            <code>RFC-001-frontend-architecture.html</code>); (2) <code>POST /api/bff/session</code> não tem
+            mitigação de força bruta -- risco já formalmente aceito apenas para uso interno/piloto
+            (<code>docs/development/01-project-structure.md</code>, "Decision: Security Finding"), com condição
+            explícita e ainda não cumprida antes de qualquer deploy além desse escopo. O runbook restringe
+            explicitamente seu próprio escopo a esse mesmo cenário já aprovado.</td>
+          <td>Release Readiness Review, Founder (Release Blocker RB-003)</td>
+          <td><span class="chip ok">RESOLVIDO (runbook)</span> / <span class="chip warn">DECISÕES EM ABERTO CITADAS</span></td>
+          <td>Nenhum para o escopo interno/piloto já aprovado -- as 2 lacunas citadas bloqueiam apenas uma expansão futura a produção pública/clientes externos, não a V1 como aprovada</td>
+          <td><span class="chip ok">NÃO BLOQUEIA — RESOLVIDO</span></td>
         </tr>
       </tbody>
     </table>
