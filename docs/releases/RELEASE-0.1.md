@@ -6,7 +6,7 @@
 
 ## Objetivo da Release
 
-Estabelecer a fundação de identidade, organização e projeto real como pré-requisito de toda evolução subsequente da STRATECH V2 — substituindo o modelo single-tenant e o `project_name` em texto livre da V1 por um modelo relacional real, multi-organização desde a fundação, operando inicialmente com uma organização principal por instalação.
+Estabelecer progressivamente a fundação de identidade, organização e projeto real como pré-requisito da STRATECH V2, evoluindo do modelo baseado em `project_name` para um modelo relacional multi-organização, operando inicialmente com uma organização principal por instalação. O Épico 1 entrega a fundação e a migração inicial preservando compatibilidade — `project_name` permanece preservado durante a transição e `project_id` permanece nullable; a conclusão do vínculo obrigatório (`project_id` NOT NULL) ocorrerá no Épico 4.
 
 ## Escopo (6 épicos, per Macro Backlog)
 
