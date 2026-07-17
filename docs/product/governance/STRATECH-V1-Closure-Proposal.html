@@ -1,0 +1,169 @@
+<title>STRATECH V1 — Proposta de Encerramento Formal</title>
+<style>
+  :root{--bg:#f5f4f1;--surface:#ffffff;--border:#d8d5cd;--ink:#191712;--ink-dim:#5b5648;--accent:#4c4fc4;--ok:#2f7a4f;--ok-bg:#e1f0e5;--warn:#a3742f;--warn-bg:#f3e9d8;--mono-ink:#3a362c;--code-bg:#eeece4;--shadow:0 1px 2px rgba(20,18,10,.06),0 8px 24px -12px rgba(20,18,10,.12);}
+  :root[data-theme="dark"]{--bg:#12100c;--surface:#1b1813;--border:#39352a;--ink:#efece2;--ink-dim:#a9a494;--accent:#9498f0;--ok:#7fd19f;--ok-bg:#1a3324;--warn:#e0b567;--warn-bg:#332711;--mono-ink:#cfcabb;--code-bg:#221e17;--shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px -16px rgba(0,0,0,.5);}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#12100c;--surface:#1b1813;--border:#39352a;--ink:#efece2;--ink-dim:#a9a494;--accent:#9498f0;--ok:#7fd19f;--ok-bg:#1a3324;--warn:#e0b567;--warn-bg:#332711;--mono-ink:#cfcabb;--code-bg:#221e17;--shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px -16px rgba(0,0,0,.5);}}
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  main{max-width:1080px; margin:0 auto; padding:56px 40px 100px;}
+  .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1{font-size:clamp(1.5rem,4vw,2.1rem); margin:0 0 14px; font-weight:600;}
+  .subtitle{color:var(--ink-dim); max-width:84ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding:18px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim); margin-bottom:24px;}
+  h2{font-size:1.15rem; margin:40px 0 8px; padding-bottom:8px; border-bottom:2px solid var(--ink);}
+  .table-wrap{overflow-x:auto; margin:12px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.82rem;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; text-transform:uppercase; color:var(--ink-dim); padding:8px 10px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top;}
+  code{font-family: ui-monospace, monospace; font-size:.85em; background:var(--code-bg); color:var(--mono-ink); padding:1px 5px; border-radius:3px;}
+  .chip{display:inline-flex; font-family: ui-monospace, monospace; font-size:10px; padding:3px 8px; border-radius:3px; font-weight:600;}
+  .chip.ok{color:var(--ok); background:var(--ok-bg);}
+  .chip.warn{color:var(--warn); background:var(--warn-bg);}
+  .banner{border:2px solid var(--warn); border-radius:8px; background:var(--warn-bg); padding:14px 20px; margin:0 0 24px; font-size:.95rem;}
+  ol,ul{max-width:84ch;}
+  p{max-width:86ch;}
+  footer{border-top:1px solid var(--border); margin-top:50px; padding-top:18px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+<main>
+  <div class="kicker">Governança de Produto · Encerramento de Geração</div>
+  <h1>STRATECH V1 — Proposta de Encerramento Formal</h1>
+  <p class="subtitle">Formaliza o encerramento da primeira geração da STRATECH após a consolidação da
+    <code>main</code> (PR #36), define as duas baselines oficiais, a política de manutenção, os critérios de
+    hotfix e as regras de transição para a V2. Versão integral em Markdown no mesmo diretório.</p>
+  <div class="banner"><b>PROPOSTA</b> — aguardando aprovação do Founder. Nada neste documento é decisão tomada.</div>
+  <div class="meta-row">
+    <span><b>Data</b> 2026-07-17</span>
+    <span><b>Merge commit</b> e53c21e3</span>
+    <span><b>Baseline Histórica</b> v1.0.0-rc.1 · c97d37b</span>
+    <span><b>Baseline Certificada</b> v1.0.0-rc.2 · e53c21e3</span>
+  </div>
+
+  <h2>1. Baselines oficiais</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Baseline</th><th>Tag</th><th>Commit</th><th>Papel</th></tr></thead>
+    <tbody>
+      <tr><td><b>Histórica</b></td><td><code>v1.0.0-rc.1</code></td><td><code>c97d37b</code></td><td>O RC-1 como declarado à época, com F-01 registrado como known-issue. Referência de auditoria; <b>não recomendada para novas instalações</b></td></tr>
+      <tr><td><b>Certificada</b></td><td><code>v1.0.0-rc.2</code></td><td><code>e53c21e3</code> (merge do PR #36)</td><td>Árvore integral consolidada, todos os gates verdes. <b>Referência oficial para instalação, pilot e manutenção</b></td></tr>
+    </tbody>
+  </table></div>
+  <p>Merge commit oficial: <code>e53c21e3ea3fb234f6c2d06f052be8c8e14e0752</code> — parents
+    <code>a1513c95</code> + <code>0f0db568</code>, 57 commits preservados.</p>
+
+  <h2>2. Composição funcional da V1</h2>
+  <p>Oito Capabilities aprovadas por Executive Review: Análise de Status, Avaliação de Riscos, Meeting
+    Intelligence, Ações (TIP-008), Decision Center (TIP-009), Portfolio Intelligence (TIP-010), Executive
+    Memory (TIP-011), Organizational Intelligence (TIP-012). Plataforma: FastAPI + SQLite/Alembic, Next.js
+    (BFF), autenticação de workspace compartilhada (Nível 1, RFC-001), Demo Mode, instalação local
+    multiplataforma.</p>
+
+  <h2>3. Gates de qualidade (baseline certificada)</h2>
+  <p><span class="chip ok">ruff limpo</span> <span class="chip ok">pytest 114 · cov 98,91%</span>
+    <span class="chip ok">alembic up/down</span> <span class="chip ok">API real: 200/401/200</span>
+    <span class="chip ok">tsc limpo</span> <span class="chip ok">eslint limpo</span>
+    <span class="chip ok">vitest 400/400</span> <span class="chip ok">build produção</span>
+    <span class="chip ok">playwright 67 passed</span> <span class="chip ok">instalação local E2E</span>
+    <span class="chip ok">CI PR #36 verde</span></p>
+
+  <h2>4. Known issues residuais e condicionante LGPD</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Item</th><th>Severidade</th><th>Situação</th></tr></thead>
+    <tbody>
+      <tr><td>2 <i>moderate</i> no npm audit (postcss via Next)</td><td>Baixa</td><td>Pré-existente; upgrade de Next na janela V2</td></tr>
+      <tr><td>Condicionante de privacidade e proteção de dados (LGPD) — detalhada abaixo</td><td><span class="chip warn">Alta (condicionante de pilot)</span></td><td>Product Blueprint §8/§12; Pilot Readiness Checklist</td></tr>
+      <tr><td>Scripts Windows sem cobertura de CI (inspeção + validação de campo)</td><td>Baixa</td><td>Aceito; CI roda em Linux</td></tr>
+      <tr><td>Autenticação compartilhada, sem RBAC</td><td>Por design na V1</td><td>Núcleo da V2 Release 0.1</td></tr>
+    </tbody>
+  </table></div>
+  <p><b>Condicionante LGPD:</b> até a formalização dos controles mínimos, é <b>proibido</b> utilizar no Founder
+    Pilot (ou em qualquer uso da linha V1): dados pessoais reais (art. 5º, I, LGPD); dados pessoais sensíveis
+    (art. 5º, II); dados identificáveis de clientes ou colaboradores; documentos corporativos confidenciais;
+    credenciais; segredos comerciais; dados produtivos não anonimizados. A baseline certificada <b>pode</b> ser
+    usada para: instalação local, demonstração, validação técnica, testes, e Founder Pilot com dados sintéticos,
+    anonimizados ou formalmente controlados. <b>A existência da tag não autoriza, por consequência automática,
+    piloto externo nem uso de dados reais</b> — isso exige decisão formal específica do Founder, precedida do
+    endereçamento do gap de LGPD.</p>
+
+  <h2>5. Política de manutenção · 6. Critérios de hotfix · 7. Feature Freeze funcional</h2>
+  <p><b>Manutenção:</b> a V1 entra em modo manutenção — apenas correção de defeito, segurança, documentação e
+    observabilidade; sempre via branch <code>fix/</code>/<code>hotfix/</code> + PR + CI verde + aprovação do
+    Founder. <b>Hotfix</b> exige, cumulativamente: defeito reproduzível na baseline certificada; impacto real em
+    fluxo funcional/segurança/dados; sem workaround razoável; correção dentro das categorias permitidas; escopo
+    mínimo com teste de regressão — resultando em tag <code>rc.3</code> (pré-promoção) ou <code>v1.0.1</code>
+    (pós).</p>
+  <p><b>Feature Freeze funcional permanente:</b> nenhuma nova funcionalidade, capacidade, evolução de produto ou
+    ampliação de escopo será incorporada à STRATECH V1. Permanecem autorizadas exclusivamente manutenções
+    corretivas, de segurança, documentação e observabilidade, desde que atendam à política formal de manutenção
+    e hotfix. <b>Proibido:</b> nova funcionalidade; evolução funcional; alteração de arquitetura; ampliação de
+    escopo; antecipação de recurso da V2. <b>Permitido sob governança:</b> correção de defeito; correção de
+    segurança; atualização motivada por vulnerabilidade; documentação; observabilidade; teste de regressão.
+    O congelamento é funcional — não impede a manutenção governada; impede a evolução.</p>
+
+  <h2>8. Transição para a V2 · 9. Promoção futura a v1.0.0</h2>
+  <p><b>Transição:</b> referência única é o Blueprint v2.0 (<code>922b19e</code>); V2 nasce em branches
+    <code>feature/</code> próprias a partir da <code>main</code> consolidada; schema evolui por migração
+    preservando <code>analysis_records</code> (ADR-V2-002/003); as 8 Capabilities e o Demo Mode permanecem
+    funcionais como critério de regressão permanente; nenhum pilot externo na V2 até
+    segurança/segregação/governança mínimas. <b>Promoção <code>rc.2</code> → <code>v1.0.0</code></b> somente
+    após: Founder Pilot com parecer formal positivo; zero defeitos altos abertos; known issues reavaliados;
+    decisão explícita do Founder registrada. <b>Cenário A</b> (sem alteração após o pilot): <code>v1.0.0</code>
+    aponta para o mesmo commit de <code>rc.2</code> (<code>e53c21e3</code>). <b>Cenário B</b> (com hotfix antes
+    da promoção): <code>v1.0.0</code> aponta para o último hotfix formalmente validado — cada hotfix exigindo
+    reprodução do defeito, correção mínima, teste de regressão, CI verde, validação da instalação, atualização
+    das evidências e aprovação explícita do Founder. A tag <code>v1.0.0</code> não é criada nesta etapa.</p>
+
+  <h2>10. Procedimento canônico de criação e validação de tags anotadas</h2>
+  <p>Procedimento permanente para qualquer tag futura da STRATECH (ex.: <code>v1.0.0-rc.3</code>,
+    <code>v1.0.0</code>). As tags <code>v1.0.0-rc.1</code> e <code>v1.0.0-rc.2</code> já foram publicadas e
+    validadas remotamente por este método. Princípios: nunca usar <code>git tag -f</code> às cegas, nunca usar
+    <code>git push --force</code>, sempre inspecionar antes de publicar.</p>
+
+  <p><b>Passos (Bash — Git Bash/Linux/macOS):</b></p>
+  <pre style="background:var(--code-bg); color:var(--mono-ink); padding:14px 18px; border-radius:6px; overflow-x:auto; font-family:ui-monospace,monospace; font-size:.8rem; line-height:1.55;"><code># 1. Verificar se a tag existe localmente
+git tag -l vX.Y.Z-rc.N
+
+# 2. Se existir, inspecionar alvo e mensagem
+git show vX.Y.Z-rc.N --no-patch
+
+# 3. Excluir a tag local SOMENTE se estiver incorreta (alvo ou mensagem errados)
+git tag -d vX.Y.Z-rc.N
+
+# 4. Criar a tag anotada (sem -f), com a mensagem em arquivo
+git tag -a vX.Y.Z-rc.N &lt;SHA-completo-do-commit&gt; -F mensagem.txt
+
+# 5. Confirmar alvo e mensagem antes de publicar
+git show vX.Y.Z-rc.N --no-patch
+
+# 6. Publicar (NUNCA usar --force)
+git push origin vX.Y.Z-rc.N</code></pre>
+
+  <p><b>Passos equivalentes (PowerShell — Windows):</b></p>
+  <pre style="background:var(--code-bg); color:var(--mono-ink); padding:14px 18px; border-radius:6px; overflow-x:auto; font-family:ui-monospace,monospace; font-size:.8rem; line-height:1.55;"><code># 1-3. Verificar, inspecionar e excluir somente se incorreta
+git tag -l vX.Y.Z-rc.N
+git show vX.Y.Z-rc.N --no-patch
+git tag -d vX.Y.Z-rc.N   # somente se incorreta
+
+# 4. Criar a tag anotada (sem -f); a mensagem em arquivo UTF-8
+git tag -a vX.Y.Z-rc.N &lt;SHA-completo-do-commit&gt; -F mensagem.txt
+
+# 5-6. Confirmar e publicar (nunca --force)
+git show vX.Y.Z-rc.N --no-patch
+git push origin vX.Y.Z-rc.N</code></pre>
+
+  <p><b>Interpretação do <code>^{}</code>:</b> <code>git ls-remote --tags origin</code> retorna, para uma tag
+    anotada, o SHA do <b>objeto da tag</b> (não do commit) e, em uma segunda linha terminada em
+    <code>^{}</code>, o SHA do commit-alvo dereferenciado. Por isso a validação final deve dereferenciar
+    explicitamente:</p>
+  <pre style="background:var(--code-bg); color:var(--mono-ink); padding:14px 18px; border-radius:6px; overflow-x:auto; font-family:ui-monospace,monospace; font-size:.8rem; line-height:1.55;"><code>git fetch --tags origin
+git rev-list -n 1 v1.0.0-rc.1   # esperado: c97d37be0b9f117c2e644f34ccfb36a5b2ceb79a
+git rev-list -n 1 v1.0.0-rc.2   # esperado: e53c21e3ea3fb234f6c2d06f052be8c8e14e0752</code></pre>
+
+  <p><b>Registro de validação executada (2026-07-17):</b> ambas as tags publicadas, anotadas, com alvos
+    dereferenciados confirmados exatamente nos SHAs esperados acima. As mensagens publicadas preservam: os
+    commits-alvo, o caráter histórico da <code>rc.1</code>, o caráter certificado da <code>rc.2</code>, o
+    registro transparente do F-01, e a confirmação de que a V2 é exclusivamente documental. As mensagens foram
+    gravadas deliberadamente em ASCII sem acentuação — objetos de tag Git são imutáveis e a grafia sem acento
+    evita corrupção de codificação entre Windows/Git Bash/Linux; o conteúdo material é o registrado na Seção 1
+    e no relatório de auditoria.</p>
+
+  <footer><span>Stratech — Governança de Produto</span><span>V1 Closure Proposal</span><span>2026-07-17</span></footer>
+</main>
