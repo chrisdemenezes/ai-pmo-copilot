@@ -1,0 +1,31 @@
+%% STRATECH V2 -- Canonical Enterprise Model
+%% See Enterprise-Architecture-Blueprint-v2.0.html Section 7
+erDiagram
+    ORGANIZATION ||--o{ BUSINESS_UNIT : has
+    ORGANIZATION ||--o{ USER : employs
+    ORGANIZATION ||--o{ TEAM : contains
+    ORGANIZATION ||--o{ STAKEHOLDER : recognizes
+    BUSINESS_UNIT ||--o{ PORTFOLIO : owns
+    PORTFOLIO ||--o{ PROGRAM : contains
+    PORTFOLIO ||--o{ PROJECT : "may directly contain (small orgs)"
+    PROGRAM ||--o{ PROJECT : contains
+    PROJECT ||--o{ PHASE : has
+    PROJECT ||--o{ MILESTONE : has
+    PROJECT ||--o{ DELIVERABLE : produces
+    PROJECT ||--o{ TASK : breaks_into
+    PROJECT ||--o{ COST : incurs
+    PROJECT ||--o{ RISK : exposes
+    PROJECT ||--o{ DECISION : requires
+    PROJECT ||--o{ ACTION : generates
+    PROJECT ||--o{ DOCUMENT_REF : references
+    PROJECT ||--o{ INDICATOR : tracks
+    PROJECT }o--o{ USER : "assigns (sponsor, manager, team)"
+    PROJECT ||--o{ AI_ANALYSIS : "analyzed by"
+    AI_ANALYSIS ||--o{ EVIDENCE : cites
+    AI_ANALYSIS ||--o{ RECOMMENDATION : produces
+    USER }o--o{ ROLE : "granted via"
+    ROLE ||--o{ PERMISSION : grants
+    TEAM }o--o{ USER : includes
+    RISK ||--o{ ACTION : "mitigated by"
+    DECISION ||--o{ ACTION : "results in"
+    EVERY_ENTITY ||--o{ AUDIT_RECORD : "tracked by (cross-cutting, not a real table)"

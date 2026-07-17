@@ -1,0 +1,33 @@
+%% STRATECH RC-1 -- Current-State Architecture (verified directly against
+%% commit c97d37b -- see Enterprise-Architecture-Blueprint-v2.0.html Section 4)
+flowchart TB
+    subgraph Frontend["web/ (Next.js 16 / React 19)"]
+        Login["/entrar -- workspace password"]
+        Nav["6 nav items: Dashboard, Priorizacao,\nProjetos, Acoes, Decisoes, Aprendizados"]
+        BFF["app/api/bff/ -- shields X-API-Key from browser"]
+        Session["lib/session.ts -- HMAC session cookie,\nsingle shared WORKSPACE_PASSWORD"]
+    end
+
+    subgraph Backend["src/ (FastAPI)"]
+        Router["api/routes/intelligence.py --\nsingle router, X-API-Key auth"]
+        RateLimit["api/rate_limiter.py --\n60 req/60s, in-process"]
+        Agents["agents/ -- project_status, risk_review,\nmeeting_intelligence"]
+        Services["services/project_summary_service.py --\nsingle aggregation service"]
+        Repo["database/repository.py --\nAnalysisRepository"]
+    end
+
+    subgraph Data["Persistence"]
+        DB[("analysis_records\n(1 table, project_name is a free-text field,\nnot a foreign key)")]
+    end
+
+    Login --> Session
+    Session --> BFF
+    Nav --> BFF
+    BFF -->|X-API-Key| Router
+    Router --> RateLimit
+    Router --> Agents
+    Agents --> Services
+    Services --> Repo
+    Repo --> DB
+
+    style DB fill:#f6e2dd,stroke:#a13d2f

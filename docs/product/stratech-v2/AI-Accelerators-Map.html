@@ -1,0 +1,48 @@
+<title>STRATECH V2 — AI Accelerators Map</title>
+<style>
+  :root{--bg:#f5f4f1;--surface:#ffffff;--surface-2:#ececE6;--border:#d8d5cd;--ink:#191712;--ink-dim:#5b5648;--accent:#4c4fc4;--ok:#2f7a4f;--ok-bg:#e1f0e5;--mono-ink:#3a362c;--code-bg:#eeece4;}
+  :root[data-theme="dark"]{--bg:#12100c;--surface:#1b1813;--surface-2:#221e17;--border:#39352a;--ink:#efece2;--ink-dim:#a9a494;--accent:#9498f0;--ok:#7fd19f;--ok-bg:#1a3324;--mono-ink:#cfcabb;--code-bg:#221e17;}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#12100c;--surface:#1b1813;--surface-2:#221e17;--border:#39352a;--ink:#efece2;--ink-dim:#a9a494;--accent:#9498f0;--ok:#7fd19f;--ok-bg:#1a3324;--mono-ink:#cfcabb;--code-bg:#221e17;}}
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family: ui-serif, Georgia, serif; font-size:16px; line-height:1.6;}
+  main{max-width:1100px; margin:0 auto; padding:56px 40px 100px;}
+  .kicker{font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:14px;}
+  h1{font-size:clamp(1.5rem,4vw,2.1rem); margin:0 0 14px; font-weight:600;}
+  .subtitle{color:var(--ink-dim); max-width:84ch; margin:0 0 24px;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:20px; padding:18px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); font-family: ui-monospace, monospace; font-size:12px; color:var(--ink-dim); margin-bottom:16px;}
+  .table-wrap{overflow-x:auto; margin:12px 0 24px;}
+  table{width:100%; border-collapse:collapse; font-size:.82rem;}
+  th{text-align:left; font-family: ui-monospace, monospace; font-size:10px; text-transform:uppercase; color:var(--ink-dim); padding:8px 10px; border-bottom:1px solid var(--ink); white-space:nowrap;}
+  td{padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top;}
+  .chip{display:inline-flex; font-family: ui-monospace, monospace; font-size:10px; padding:3px 8px; border-radius:3px; font-weight:600;}
+  .chip.ok{color:var(--ok); background:var(--ok-bg);}
+  footer{border-top:1px solid var(--border); margin-top:50px; padding-top:18px; font-family: ui-monospace, monospace; font-size:11px; color:var(--ink-dim); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+</style>
+<main>
+  <div class="kicker">Enterprise Architecture Blueprint v2.0 · Artefato Complementar</div>
+  <h1>AI Accelerators Map</h1>
+  <p class="subtitle">Os 12 Aceleradores previstos, todos seguindo o contrato único da Seção 11 do Blueprint.
+    Os 3 marcados como Release 0.3 são extensões diretas de agentes já existentes e testados no RC-1.</p>
+  <div class="meta-row"><span><b>Origem</b> Blueprint v2.0, Seção 11</span><span><b>Data</b> 2026-07-16</span></div>
+
+  <div class="table-wrap"><table>
+    <thead><tr><th>Acelerador</th><th>Gatilho</th><th>Base no RC-1</th><th>Release</th></tr></thead>
+    <tbody>
+      <tr><td>Project Health</td><td>Nova análise de status ou evento de sincronização</td><td><code>src/agents/project_status/</code> (extensão direta)</td><td><span class="chip ok">0.3</span></td></tr>
+      <tr><td>Risk Intelligence</td><td>Nova avaliação de risco ou evento de sincronização</td><td><code>src/agents/risk_review/</code> (extensão direta)</td><td><span class="chip ok">0.3</span></td></tr>
+      <tr><td>Meeting Intelligence</td><td>Reunião registrada (Teams ou manual)</td><td><code>src/agents/meeting_intelligence/</code> (extensão direta)</td><td><span class="chip ok">0.3</span></td></tr>
+      <tr><td>Executive Brief</td><td>Acesso ao cockpit por um perfil executivo</td><td>Herdado do padrão Executive Brief do RC-1, agora sobre entidades reais</td><td>0.3</td></tr>
+      <tr><td>Portfolio Intelligence</td><td>Mudança de estado em qualquer projeto do portfólio</td><td>Herdado de Portfolio Intelligence (RC-1)</td><td>0.3</td></tr>
+      <tr><td>Decision Advisor</td><td>Decisão pendente identificada</td><td>Herdado do padrão Decision Center (RC-1)</td><td>0.3</td></tr>
+      <tr><td>Schedule Intelligence</td><td>Sincronização de cronograma (MS Project)</td><td>Novo -- depende do Integration Hub</td><td>0.4+</td></tr>
+      <tr><td>Cost Intelligence</td><td>Atualização de custo (nativo ou sincronizado de ERP)</td><td>Novo</td><td>0.4+</td></tr>
+      <tr><td>Delivery Intelligence</td><td>Marco ou entrega atualizada</td><td>Novo -- depende de Portfolio/Program & Project Intelligence completo</td><td>0.4+</td></tr>
+      <tr><td>Document Intelligence</td><td>Documento referenciado ou versão nova</td><td>Novo -- depende da camada Document Intelligence (Seção 13)</td><td>0.4+</td></tr>
+      <tr><td>Process Intelligence</td><td>Evento de instância de processo (Bizagi/Camunda)</td><td>Novo -- depende da camada Process Intelligence (Seção 14)</td><td>0.5+</td></tr>
+      <tr><td>Dependency Intelligence</td><td>Mudança que afeta dependência entre projetos/tarefas</td><td>Novo -- depende de Event &amp; Orchestration (Seção 15)</td><td>0.5+</td></tr>
+      <tr><td>Knowledge Intelligence</td><td>Padrão recorrente identificado (herdado de Organizational Intelligence, RC-1)</td><td>Herdado diretamente -- mesma régua de 3+ ocorrências, Evidence First, Language Contract</td><td>0.5+</td></tr>
+    </tbody>
+  </table></div>
+
+  <footer><span>Stratech — STRATECH V2</span><span>AI Accelerators Map</span><span>2026-07-16</span></footer>
+</main>

@@ -1,0 +1,43 @@
+%% STRATECH V2 -- Domain Map
+%% See Enterprise-Architecture-Blueprint-v2.0.html Section 6
+flowchart LR
+    subgraph D1["Enterprise Foundation"]
+        d1a["Org / BU / User / Team / Role / Session / Audit"]
+    end
+    subgraph D2["Portfolio, Program & Project"]
+        d2a["Portfolio / Program / Project / Phase / Milestone /\nDeliverable / Task / Cost / Risk / Decision / Action"]
+    end
+    subgraph D3["Document Intelligence"]
+        d3a["Document reference / Metadata / Version / Extraction"]
+    end
+    subgraph D4["Process Intelligence"]
+        d4a["Process reference / Instance / SLA / Deviation"]
+    end
+    subgraph D5["Integration Hub"]
+        d5a["Connector / Credential / Sync run / Mapping"]
+    end
+    subgraph D6["AI Intelligence Layer"]
+        d6a["Accelerator / Evidence / Confidence / Recommendation"]
+    end
+    subgraph D7["Event & Orchestration"]
+        d7a["Event / Rule / Workflow / Approval"]
+    end
+    subgraph D8["Executive Intelligence"]
+        d8a["Cockpit view / Indicator / Alert / Scenario"]
+    end
+
+    D1 -->|owns tenancy for| D2
+    D1 -->|owns tenancy for| D3
+    D1 -->|owns tenancy for| D4
+    D2 -->|referenced by| D3
+    D2 -->|referenced by| D4
+    D5 -->|feeds, never owns| D2
+    D5 -->|feeds, never owns| D3
+    D5 -->|feeds, never owns| D4
+    D2 --> D6
+    D3 --> D6
+    D4 --> D6
+    D6 --> D7
+    D2 --> D8
+    D6 --> D8
+    D7 -.->|produces events consumed by| D8
