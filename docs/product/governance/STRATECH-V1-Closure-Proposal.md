@@ -1,8 +1,11 @@
-# STRATECH V1 — Proposta de Encerramento Formal
+# STRATECH V1 — Encerramento Formal
 
-- **Status:** PROPOSTA — aguardando aprovação do Founder. Não publicada; não representa decisão tomada.
+- **Status:** **APROVADO** — Encerramento institucional da STRATECH V1, aprovado pelo Founder e incorporado à `main` em 17/07/2026. A linha V1 encontra-se em modo manutenção, sob Feature Freeze funcional permanente.
 - **Data:** 2026-07-17
-- **Pré-condições satisfeitas:** consolidação da `main` (PR #36 mesclado via Merge Commit), validação pós-merge integral, tags de baseline criadas.
+- **Revisão Estratégica:** aprovada
+- **Merge institucional:** `e14cfa56c076b9bb5b55dcb1c5709e670dcce0d7` (PR #37, Merge Commit)
+- **Linha V1:** manutenção · **V2:** implementação bloqueada
+- **Pré-condições satisfeitas:** consolidação da `main` (PR #36 mesclado via Merge Commit), validação pós-merge integral, tags de baseline publicadas e validadas.
 
 ---
 
@@ -190,4 +193,4 @@ git rev-list -n 1 v1.0.0-rc.2   # esperado: e53c21e3ea3fb234f6c2d06f052be8c8e14e
 
 ---
 
-*Proposta produzida após a consolidação da `main` (merge commit `e53c21e3`), validação pós-merge integral e criação das tags de baseline. Aguarda revisão e aprovação do Founder; nada aqui é decisão tomada.*
+*Documento produzido após a consolidação da `main` (merge commit `e53c21e3`), validação pós-merge integral e publicação das tags de baseline. Aprovado pela Revisão Estratégica do Founder e incorporado institucionalmente à `main` pelo merge commit `e14cfa56` (PR #37) em 17/07/2026 — registro definitivo do encerramento da STRATECH V1.*
