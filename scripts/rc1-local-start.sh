@@ -47,8 +47,19 @@ if [ ! -d "$VENV_DIR" ]; then
   echo "Creating Python virtual environment at .venv ..."
   "$PYTHON_BIN" -m venv "$VENV_DIR"
 fi
-# shellcheck disable=SC1091
-source "$VENV_DIR/bin/activate"
+# venv layout differs by platform: POSIX python puts the activate script in
+# bin/, the Windows python.org/Store build puts it in Scripts/ -- including
+# when driven from Git Bash on Windows, which is still a Windows-built venv.
+if [ -f "$VENV_DIR/bin/activate" ]; then
+  ACTIVATE_SCRIPT="$VENV_DIR/bin/activate"
+elif [ -f "$VENV_DIR/Scripts/activate" ]; then
+  ACTIVATE_SCRIPT="$VENV_DIR/Scripts/activate"
+else
+  echo "ERROR: could not find an activate script under $VENV_DIR (checked bin/ and Scripts/)." >&2
+  exit 1
+fi
+# shellcheck disable=SC1090,SC1091
+source "$ACTIVATE_SCRIPT"
 echo "Installing backend dependencies (requirements.txt) ..."
 pip install --quiet --upgrade pip
 pip install --quiet -r "$ROOT_DIR/requirements.txt"
