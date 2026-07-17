@@ -29,16 +29,16 @@ The official application tree is `src/`.
 
 Legacy or parallel implementations must not be expanded. New code must be added only inside `src/` until the MVP baseline has passing CI evidence.
 
-## Current MVP Scope
+## Current Scope (STRATECH V1 RC-1)
 
 - FastAPI application entrypoint in `src/main.py`
 - Intelligence router in `src/api/routes/intelligence.py`
-- Meeting Intelligence agent
-- Project Status agent
+- Project Status, Risk Review, and Meeting Intelligence agents
 - Single prompt registry
-- Production LLM provider using Anthropic via environment configuration
-- SQLAlchemy persistence repository
-- CI workflow running lint and tests
+- Production LLM provider using Anthropic via environment configuration (or `mock` for Demo Mode, no key required)
+- SQLAlchemy persistence repository (SQLite locally, Postgres in production)
+- 8 Capabilities on the frontend (`web/`) — see the Product Constitution for the full list
+- CI workflow running lint, tests, and E2E (`.github/workflows/ci.yml`)
 
 ## Repository Structure
 
@@ -68,22 +68,39 @@ Backend (`src/`) and frontend (`web/`) are two separate applications with indepe
 trees — see `web/README.md` for frontend setup and RFC-001 (referenced in
 `docs/development/01-project-structure.md`) for its architecture.
 
-## Run locally
+## Run locally (full platform — backend + frontend)
+
+```bash
+git clone <this-repo-url> ai-pmo-copilot
+cd ai-pmo-copilot
+bash scripts/rc1-local-start.sh   # macOS/Linux — one command, no prior setup needed
+```
+
+Windows: `setup.bat` once, then `start.bat` (PowerShell equivalents: `setup.ps1` / `start.ps1`).
+Stop with `demo/stop-demo.sh` (macOS/Linux) or `stop.bat` (Windows).
+
+This is the single, authoritative path to run the whole platform locally — see
+[`docs/product/release-candidate/Local-Installation-Guide.html`](docs/product/release-candidate/Local-Installation-Guide.html)
+for the full walkthrough (prerequisites, environment variables, database, troubleshooting) and
+[`docs/product/release-candidate/Founder-Quick-Start.html`](docs/product/release-candidate/Founder-Quick-Start.html)
+for a one-page version. Validated against a genuinely clean install — see
+`docs/product/release-candidate/Installation-Report.html`.
+
+### Backend only
+
+If you're only working inside `src/` and don't need the frontend:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-export ANTHROPIC_API_KEY="your-key"
+export LLM_PROVIDER=mock   # or ANTHROPIC_API_KEY=your-key for the real provider
 export API_KEY="choose-a-local-secret"
 uvicorn src.main:app --reload
 ```
 
-To develop without calling the real Anthropic API (no API key or cost required), set
-`LLM_PROVIDER=mock` instead of `ANTHROPIC_API_KEY` — see `.env.example`.
-
-By default the app uses a local SQLite file with the schema auto-created. To run against a real
-Postgres database with a proper migration history instead:
+By default this uses a local SQLite file with the schema auto-created — no migration needed. To
+run against a real Postgres database with a proper migration history instead:
 
 ```bash
 export DATABASE_URL="postgresql://user:password@localhost:5432/ai_pmo_copilot"
