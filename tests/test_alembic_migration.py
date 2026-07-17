@@ -27,11 +27,14 @@ def test_alembic_upgrade_head_matches_sqlalchemy_model(tmp_path):
     assert "analysis_records" in inspector.get_table_names()
 
     columns = {col["name"]: col for col in inspector.get_columns("analysis_records")}
-    assert set(columns) == {"id", "kind", "project_name", "payload", "created_at"}
+    assert set(columns) == {"id", "kind", "project_name", "project_id", "payload", "created_at"}
     assert not columns["id"]["nullable"]
     assert not columns["kind"]["nullable"]
     assert columns["project_name"]["nullable"]
+    # Nullable during the Release 0.1 transition; NOT NULL lands in Épico 4.
+    assert columns["project_id"]["nullable"]
     assert not columns["payload"]["nullable"]
 
     index_names = {idx["name"] for idx in inspector.get_indexes("analysis_records")}
     assert "ix_analysis_records_project_name" in index_names
+    assert "ix_analysis_records_project_id" in index_names
