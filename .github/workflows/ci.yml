@@ -48,4 +48,4 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
       - name: E2E test
-        run: npx playwright test
+        run: npx playwright test --project=lg
