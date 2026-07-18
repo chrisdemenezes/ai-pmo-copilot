@@ -36,7 +36,7 @@ Continuidade de `CAPABILITY-01-PORTFOLIO-MANAGEMENT.md` (aprovada e encerrada pe
 ### Verificação
 
 - **Evidência:** `tsc --noEmit` limpo, `eslint .` limpo, `vitest run` — 418 testes verdes (9 novos em `program.test.ts` para `Program`/`consolidatePortfolios`, 3 novos em `program-management/page.test.tsx`, 1 ajuste em `navigation.test.ts`).
-- **Commit:** `(a registrar no push desta entrega)`.
+- **Commit:** `34cf3ce`.
 
 ---
 
