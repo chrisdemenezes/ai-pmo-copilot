@@ -180,6 +180,13 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Decisão:** produzido `docs/architecture/PHASE-2-FOUNDATION-TECHNICAL-DESIGN.md`, com Protocols nomeados (`PortfolioRepository`, `ProgramRepository`, `ProjectDeliveryRepository`, `PermissionChecker`, `EventEmitter`), estrutura de diretórios concreta e planos de teste/migração, fundamentados em código real já existente (`intelligence.py`, `identity_context.py`, `enterprise_repository.py`, `identity/interfaces.py`). O risco já nomeado na proposta (D-028) sobre `projects_delivery` virar um 4º conceito de "Project" caso o Épico 4 não seja decidido antes (TD-008) foi mantido e tornado explícito como gate obrigatório antes de qualquer migração de dados reais. Nenhum ADR foi criado — permanece a mesma regra de D-028 (ADR vem quando a implementação começar).
 - **Sprint:** Phase 2, Foundation Technical Design (missão de governança, sem implementação).
 
+### D-030 — Épicos e Capabilities deixam de ser linhas paralelas de evolução; Waves passam a ser o único eixo
+
+- **Contexto:** desde D-010 (Capabilities substituindo a numeração "2.N") existiam, de fato, duas sequências de trabalho evoluindo lado a lado — os 6 Épicos do Release 0.1 e as Capabilities do Release 0.2 — nunca formalmente unificadas em um único plano. A missão "STRATECH Enterprise Master Execution Program" pediu essa unificação.
+- **Decisão:** produzido `docs/product/ENTERPRISE-MASTER-EXECUTION-PROGRAM.md`, reclassificando todo Épico e toda Capability já existente como item dentro de uma de 6 Waves (Foundation, Platform, Intelligence, Operations, Analytics, Productization). Nenhum documento aprovado (Product Constitution, Foundation Architecture, Foundation Technical Design, Decision Logs, Technical Debts) foi reescrito — apenas referenciado. Um Decision Proposal foi produzido (não decidido unilateralmente) para o único conflito de escopo real encontrado: Enterprise Administration completa (pedida pela missão) vs. "administração mínima" (Épico 5, já aprovado via EO-016). As Waves 3 (Enterprise Intelligence) e 6 (Productization) foram documentadas como **sem Blueprint/decisão de negócio hoje** — não tiveram arquitetura inventada para preencher a lacuna, por instrução explícita da própria missão.
+- **Missão encerrada sem autorizar implementação ponta a ponta** (regra explícita da própria missão): pendências residuais listadas no documento (§13) e no Executive Report desta missão.
+- **Sprint:** Enterprise Master Execution Program (missão de governança, sem implementação).
+
 ---
 
 ## Convenção

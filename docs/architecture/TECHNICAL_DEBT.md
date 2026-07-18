@@ -2,6 +2,8 @@
 
 Registro vivo de débitos arquiteturais conhecidos. Cada item tem origem, status e o gatilho que exige sua resolução — nenhum item aqui é corrigido automaticamente por esta entrada; a correção é um trabalho futuro separado, autorizado individualmente quando seu gatilho ocorrer.
 
+**Referência cruzada por Wave:** `docs/product/ENTERPRISE-MASTER-EXECUTION-PROGRAM.md` §11 mapeia cada item abaixo a uma Wave do Enterprise Master Execution Program, sem duplicar ou alterar o conteúdo original deste registro.
+
 ---
 
 ## TD-001 — SQLite Foreign Keys não aplicadas pelo motor

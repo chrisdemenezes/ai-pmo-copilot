@@ -99,6 +99,7 @@ export interface RecentDecisionEntry {
 }
 
 export const RECENT_DECISIONS: RecentDecisionEntry[] = [
+  { id: "D-030", summary: "Épicos e Capabilities deixam de ser linhas paralelas de evolução — Waves do Enterprise Master Execution Program passam a ser o único eixo" },
   { id: "D-029", summary: "Phase 2 Foundation Technical Design produzido (5 áreas, 15 elementos cada) — ainda sem código, sem ADR, sem alteração de Baseline" },
   { id: "D-028", summary: "Phase 2 Foundation Architecture produzida como proposta, não como ADR aprovada" },
   { id: "D-027", summary: "CI encontrou uma regressão real de E2E que a suíte local não pegou (e2e/shell.spec.ts)" },
@@ -121,11 +122,65 @@ export const PRODUCT_PULSE_TODAY: ProductPulseEntry[] = [
   { label: "Phase 1 — Enterprise Platform Foundation encerrada", done: true },
   { label: "Phase 2 — Enterprise AI Platform iniciada (Foundation Architecture proposta, sem implementação)", done: true },
   { label: "Phase 2 Foundation Technical Design produzido (API, Persistence, Org Scoping, RBAC, Events) — ainda sem implementação", done: true },
+  { label: "Enterprise Master Execution Program publicado — Épicos e Capabilities unificados em Waves, dualidade encerrada", done: true },
   { label: "Regressão real de E2E encontrada pelo CI e corrigida (e2e/shell.spec.ts)", done: true },
 ];
 
 export const PRODUCT_DNA_STATEMENT =
   "Transformar documentos, processos, indicadores e conhecimento corporativo em inteligência para tomada de decisão.";
+
+export interface WaveEntry {
+  code: string;
+  name: string;
+  status: "Not Started" | "In Progress" | "Done";
+  detail: string;
+}
+
+/**
+ * Enterprise Master Execution Program (docs/product/ENTERPRISE-MASTER-EXECUTION-PROGRAM.md)
+ * -- the single active planning axis from this mission forward. Every Épico
+ * and every Capability below (PROGRAM_PHASES, CAPABILITY_PROGRESS) is a
+ * historical label reclassified into exactly one Wave; neither is a
+ * parallel evolution track anymore (Decision Log D-030).
+ */
+export const ENTERPRISE_PROGRAM_WAVES: WaveEntry[] = [
+  {
+    code: "Wave 1",
+    name: "Enterprise Foundation",
+    status: "In Progress",
+    detail: "Schema + Identity 100% (Épicos 1-2). Persistence/Org Scoping/RBAC seam/API/Event Foundation: Technical Design produzido, 0% implementado.",
+  },
+  {
+    code: "Wave 2",
+    name: "Enterprise Platform",
+    status: "In Progress",
+    detail: "RBAC (Épico 3) e Domain unificado (Épico 4) com Technical Design, 0% implementado. Enterprise Administration com conflito de escopo aberto (Decision Proposal, ver documento §9). Portfolio/Program/Project (Capabilities 01-03): ~75%, sem persistência.",
+  },
+  {
+    code: "Wave 3",
+    name: "Enterprise Intelligence",
+    status: "Not Started",
+    detail: "Sem Blueprint próprio ainda -- 3 de 12 Accelerators existem, mas sobre o modelo V1. Nenhuma Sprint planejável em detalhe até um Blueprint dedicado existir.",
+  },
+  {
+    code: "Wave 4",
+    name: "Enterprise Operations",
+    status: "Not Started",
+    detail: "Corresponde às Releases 0.4/0.5 já aprovadas (Integration Hub, Event Orchestration) -- não implementado.",
+  },
+  {
+    code: "Wave 5",
+    name: "Enterprise Analytics",
+    status: "Not Started",
+    detail: "Executive Cockpit já cobre uma fatia (~15-20%); Operational/AI/Audit Analytics não existem.",
+  },
+  {
+    code: "Wave 6",
+    name: "Productization",
+    status: "Not Started",
+    detail: "Sem nenhuma base aprovada -- requer decisão de modelo de negócio do Founder antes de qualquer planejamento técnico.",
+  },
+];
 
 export interface ProgramPhaseEntry {
   code: string;
@@ -135,12 +190,10 @@ export interface ProgramPhaseEntry {
 }
 
 /**
- * Executive Directive (RC-2 Enterprise Certification) -- Phase 1/Phase 2
- * tracking, distinto de Release (0.x) e de Capability. Phase 2's
- * sub-sequence (Foundation Architecture -> AI Foundation -> Knowledge
- * Platform -> Executive Copilot -> Workflow Automation -> Executive
- * Intelligence) is tracked as its own list, not folded into Capability
- * Progress above.
+ * Histórico -- Phase 1/Phase 2 (Executive Directive, RC-2 Enterprise
+ * Certification). Substituído por ENTERPRISE_PROGRAM_WAVES como eixo ativo
+ * de planejamento a partir do Enterprise Master Execution Program
+ * (Decision Log D-030); mantido aqui como registro, não apagado.
  */
 export const PROGRAM_PHASES: ProgramPhaseEntry[] = [
   {
@@ -169,6 +222,10 @@ export interface CapabilityProgressEntry {
  * Release 0.2 -- Capability Progress (substitui a numeração "2.N" a
  * partir desta Release, Decision Log D-010). Portfolio é a primeira
  * Capability com entidade real de domínio (lib/domain/portfolio.ts).
+ *
+ * Histórico -- reclassificado como item da Wave 2 (Enterprise Platform) no
+ * Enterprise Master Execution Program; mantido aqui como registro, deixa
+ * de ser uma linha de evolução paralela aos Épicos (Decision Log D-030).
  */
 export const CAPABILITY_PROGRESS: CapabilityProgressEntry[] = [
   {
