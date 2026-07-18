@@ -49,6 +49,7 @@ export interface PullRequestEntry {
 }
 
 export const PULL_REQUESTS: PullRequestEntry[] = [
+  { number: 44, title: "Sprint 1 + Capabilities 01-03 + AR-1 + RC-2 Certification", status: "Merged" },
   { number: 43, title: "Product Engineering Framework (EO-021)", status: "Open" },
   { number: 42, title: "Close Epic 2 and update Release 0.1", status: "Merged" },
   { number: 41, title: "Épico 2 — Identity Foundation", status: "Merged" },
@@ -98,13 +99,13 @@ export interface RecentDecisionEntry {
 }
 
 export const RECENT_DECISIONS: RecentDecisionEntry[] = [
+  { id: "D-028", summary: "Phase 2 Foundation Architecture produzida como proposta, não como ADR aprovada" },
+  { id: "D-027", summary: "CI encontrou uma regressão real de E2E que a suíte local não pegou (e2e/shell.spec.ts)" },
   { id: "D-026", summary: "AR-1 não gerou nenhuma nova decisão arquitetural — arquitetura certificada sem alterações de princípio" },
   { id: "D-025", summary: "Mock morto (PortfolioSituation/ProgramSituation) removido de cockpit-data.ts" },
   { id: "D-024", summary: "Faixa de KPIs do Executive Overview corrigida para dados reais (AR-1)" },
   { id: "D-023", summary: "Regra de consolidação duplicada extraída para consolidateFromChildren() (AR-1)" },
   { id: "D-022", summary: "Founder recomenda uma Architecture Review (AR-1) antes da Capability 04" },
-  { id: "D-021", summary: "ADR-V2-009 usa o número 009, não 008, para não colidir com uma reserva pendente" },
-  { id: "D-020", summary: "Cadeia de consolidação passa a ser transitiva (Project → Program → Portfolio)" },
 ];
 
 export interface ProductPulseEntry {
@@ -114,15 +115,45 @@ export interface ProductPulseEntry {
 
 /** Release 0.2, Capability 03 -- Product Pulse (topo do Mission Control). */
 export const PRODUCT_PULSE_TODAY: ProductPulseEntry[] = [
-  { label: "Architecture Review AR-1 concluída: APPROVED WITH OBSERVATIONS", done: true },
-  { label: "ARCHITECTURE-BASELINE-RC2.md publicado como baseline oficial pós Capabilities 01-03", done: true },
-  { label: "Regra de consolidação duplicada eliminada (consolidateFromChildren)", done: true },
-  { label: "Faixa de KPIs do Executive Overview corrigida para dados reais", done: true },
-  { label: "436 testes de frontend executados com sucesso, build de produção limpo", done: true },
+  { label: "RC-2 Enterprise Certification concluída e publicada", done: true },
+  { label: "PR #44 mergeado em main — baseline oficial pós Capabilities 01-03 + AR-1 + RC-2", done: true },
+  { label: "Phase 1 — Enterprise Platform Foundation encerrada", done: true },
+  { label: "Phase 2 — Enterprise AI Platform iniciada (Foundation Architecture proposta, sem implementação)", done: true },
+  { label: "Regressão real de E2E encontrada pelo CI e corrigida (e2e/shell.spec.ts)", done: true },
 ];
 
 export const PRODUCT_DNA_STATEMENT =
   "Transformar documentos, processos, indicadores e conhecimento corporativo em inteligência para tomada de decisão.";
+
+export interface ProgramPhaseEntry {
+  code: string;
+  name: string;
+  status: "Not Started" | "In Progress" | "Done";
+  detail: string;
+}
+
+/**
+ * Executive Directive (RC-2 Enterprise Certification) -- Phase 1/Phase 2
+ * tracking, distinto de Release (0.x) e de Capability. Phase 2's
+ * sub-sequence (Foundation Architecture -> AI Foundation -> Knowledge
+ * Platform -> Executive Copilot -> Workflow Automation -> Executive
+ * Intelligence) is tracked as its own list, not folded into Capability
+ * Progress above.
+ */
+export const PROGRAM_PHASES: ProgramPhaseEntry[] = [
+  {
+    code: "Phase 1",
+    name: "Enterprise Platform Foundation",
+    status: "Done",
+    detail: "Release 0.1 (Épicos 1-2) + Release 0.2 Capabilities 01-03 + AR-1 + RC-2 Certification",
+  },
+  {
+    code: "Phase 2",
+    name: "Enterprise AI Platform",
+    status: "In Progress",
+    detail: "Foundation Architecture proposal produzida (docs/architecture/PHASE-2-FOUNDATION-ARCHITECTURE.md), pendente de aprovação -- nenhuma implementação ainda",
+  },
+];
 
 export interface CapabilityProgressEntry {
   code: string;
