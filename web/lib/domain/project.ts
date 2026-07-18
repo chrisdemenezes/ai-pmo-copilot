@@ -18,7 +18,7 @@
  */
 
 import { Program, type ProgramProps } from "./program";
-import { worstHealth, type DomainHealth, type DomainStatus, type DomainPriority } from "./shared";
+import { consolidateFromChildren, type DomainHealth, type DomainStatus, type DomainPriority } from "./shared";
 
 export interface Owner {
   name: string;
@@ -331,24 +331,22 @@ export async function listProjects(): Promise<Project[]> {
  * real Projects (Domain Blueprint CB-003 §2) -- feeds consolidatePortfolios()
  * (program.ts), making Portfolio -> Program -> Project rollup transitive.
  * A Program with no Projects yet keeps its own values (nothing to derive).
+ * Algorithm lives in consolidateFromChildren() (shared.ts, AR-1) -- only
+ * the rebuild step (Program.create(), since Program is a class) is
+ * specific to Program.
  */
 export function consolidatePrograms(programs: Program[], projects: Project[]): Program[] {
-  return programs.map((program) => {
-    const ownProjects = projects.filter((project) => project.belongsToProgram(program.id));
-    if (ownProjects.length === 0) {
-      return program;
-    }
-    const progressPercentage = Math.round(
-      ownProjects.reduce((sum, project) => sum + project.completionPercentage(), 0) / ownProjects.length,
-    );
-    const props: ProgramProps = {
-      ...program.toProps(),
-      projectCount: ownProjects.length,
-      progressPercentage,
-      health: worstHealth(ownProjects.map((project) => project.health())),
-    };
-    return Program.create(props);
-  });
+  return consolidateFromChildren(
+    programs,
+    projects,
+    (project, program) => project.belongsToProgram(program.id),
+    (project) => project.completionPercentage(),
+    (project) => project.health(),
+    (program, projectCount, progressPercentage, health) => {
+      const props: ProgramProps = { ...program.toProps(), projectCount, progressPercentage, health };
+      return Program.create(props);
+    },
+  );
 }
 
 /**

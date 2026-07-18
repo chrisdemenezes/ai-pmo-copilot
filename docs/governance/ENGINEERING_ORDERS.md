@@ -112,3 +112,12 @@ Registro cronológico e append-only de todas as Engineering Orders (EOs) e decis
 - **Data:** 2026-07-18.
 - **Status:** Executada — merge realizado (commit `ef760ee426f58eb3dad48f7d3eb3ed248308107d`). Exclusão da branch **não executada**: nenhuma ferramenta de exclusão de branch disponível nesta sessão e `git push --delete` rejeitado (HTTP 403) pelo proxy do repositório — requer ação do Founder (botão "Delete branch" no GitHub, ou concessão de escopo adicional).
 - **Artefatos relacionados:** PR #41, `docs/releases/RELEASE-0.1.md`, `docs/product/STRATECH_V2_MASTER_ROADMAP.md`, `docs/governance/ARCHITECTURE_REVIEWS.md` (AR-003).
+
+> **Nota de auditoria (AR-1):** EO-019 (Epic 2 Closure), EO-020 (Foundation Release Closure) e EO-021 (Product Engineering Framework) são referenciadas em prosa em `docs/product/STRATECH_V2_MASTER_ROADMAP.md` e no Decision Log, mas nunca foram formalmente registradas neste arquivo — lacuna pré-existente, anterior às Capabilities 01-03, fora do escopo desta Architecture Review (que audita a arquitetura de domínio, não a completude retroativa deste registro). Sinalizada aqui para transparência, não corrigida retroativamente sem autorização do Founder.
+
+### EO-023 — Architecture Review AR-1 Authorization
+
+- **Objetivo:** autorizar uma Architecture Review completa (auditoria de arquitetura, DDD, Domain Model, Blueprints, Executive Cockpit, Mission Control, governança, engenharia, dívida técnica, multi-tenancy) após a conclusão das Capabilities 01-03 (Portfolio/Program/Project), antes de iniciar a Capability 04. Sem implementar nova funcionalidade, sem alterar comportamento funcional.
+- **Data:** 2026-07-18.
+- **Status:** Executada — ver AR-1 em `docs/governance/ARCHITECTURE_REVIEWS.md`, decisão **APPROVED WITH OBSERVATIONS**.
+- **Artefatos relacionados:** `docs/architecture/ARCHITECTURE-BASELINE-RC2.md`, `docs/architecture/DOMAIN-MODEL.md` (atualizado), `docs/architecture/TECHNICAL_DEBT.md` (TD-007/008), `docs/product/governance/AR-1-EXECUTIVE-REPORT.md`, Decision Log D-023 a D-026.

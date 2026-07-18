@@ -136,6 +136,30 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Decisão:** registrado como recomendação aceita para o próximo passo, condicionada a nova instrução do Founder para efetivamente iniciar a AR-1 (mesmo padrão de D-010/D-016: registrar a direção, não executá-la preventivamente).
 - **Sprint:** Release 0.2, Capability 03 (recomendação para o próximo passo).
 
+### D-023 — Regra de consolidação duplicada extraída para `consolidateFromChildren()`
+
+- **Contexto:** a Architecture Review AR-1 encontrou `consolidatePortfolios()` (program.ts) e `consolidatePrograms()` (project.ts) implementando o mesmo algoritmo duas vezes (filtrar filhos por pai, média de progresso, saúde por pior-caso), violando "nunca duplicar código" (CLAUDE.md).
+- **Decisão:** extrair `consolidateFromChildren()` (`shared.ts`), parametrizada por um `rebuild` callback — a única parte que legitimamente difere entre Portfolio (objeto simples) e Program (classe, via `Program.create()`). Comportamento idêntico, comprovado pelos mesmos testes já existentes permanecendo verdes sem alteração.
+- **Sprint:** Release 0.2, Architecture Review AR-1.
+
+### D-024 — Faixa de KPIs do Executive Overview corrigida para dados reais
+
+- **Contexto:** a AR-1 encontrou `COCKPIT_KPIS` (mock, Sprint 1) ainda em uso no Dashboard mesmo depois de Portfolio/Program/Project virarem domínio real — "Programas em Execução"/"Projetos em Andamento" mostravam 8/24 (mock) contra 4/7 reais; "Decisões Pendentes" (5) nem batia com o próprio mock de Decision Center (4 itens).
+- **Decisão:** substituir por um array computado a partir de `usePortfolios()`/`usePrograms()`/`useProjects()` (filtrados por `status === "Ativo"`) e `criticalDecisionsCount` (o mesmo valor já usado pelo link `/decisions` para o qual o KPI aponta). `COCKPIT_KPIS` removido de `cockpit-data.ts` (export sem nenhum consumidor restante).
+- **Sprint:** Release 0.2, Architecture Review AR-1.
+
+### D-025 — Mock morto (`PortfolioSituation`/`ProgramSituation`) removido
+
+- **Contexto:** a AR-1 encontrou `PortfolioSituation`/`PORTFOLIO_SITUATIONS` e `ProgramSituation`/`PROGRAM_SITUATIONS` em `cockpit-data.ts` sem nenhum consumidor — as Capabilities 01/02 já haviam migrado `PortfolioSituationGrid`/`ProgramSituationGrid` para as entidades reais, mas o mock antigo nunca foi apagado.
+- **Decisão:** remover os 2 tipos + 2 arrays (e `CockpitHealth`, que só existia para eles). Nenhum comportamento muda — eram exports mortos.
+- **Sprint:** Release 0.2, Architecture Review AR-1.
+
+### D-026 — AR-1 não gerou nenhuma nova decisão arquitetural
+
+- **Contexto:** a Architecture Review AR-1 pediu explicitamente para registrar uma ADR nova caso alguma decisão arquitetural relevante surgisse da revisão, ou declarar explicitamente que a arquitetura foi validada sem alterações, caso contrário.
+- **Decisão:** nenhuma ADR nova foi necessária. As 3 correções aplicadas (D-023/024/025) são ajustes de qualidade dentro dos princípios já decididos em ADR-V2-009 — nenhuma mudou um princípio, convenção DDD ou regra de evolução. A arquitetura das Capabilities 01-03 foi certificada como consistente pela AR-1 (ver `docs/architecture/ARCHITECTURE-BASELINE-RC2.md` e o AR-1 Executive Report).
+- **Sprint:** Release 0.2, Architecture Review AR-1.
+
 ---
 
 ## Convenção

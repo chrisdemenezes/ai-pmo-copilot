@@ -14,7 +14,7 @@
  */
 
 import type { Portfolio } from "./portfolio";
-import { worstHealth, type DomainHealth, type DomainStatus, type DomainPriority } from "./shared";
+import { consolidateFromChildren, type DomainHealth, type DomainStatus, type DomainPriority } from "./shared";
 
 export interface ProgramProps {
   // Identificação
@@ -279,22 +279,21 @@ export async function listPrograms(): Promise<Program[]> {
  * real Programs (Domain Blueprint CB-002 §2) -- the Executive Cockpit
  * reads this, never the seed values baked into a Portfolio at rest. A
  * Portfolio with no Programs yet keeps its seed values (nothing to derive
- * from).
+ * from). Algorithm lives in consolidateFromChildren() (shared.ts, AR-1) --
+ * only the rebuild step (plain object spread) is specific to Portfolio.
  */
 export function consolidatePortfolios(portfolios: Portfolio[], programs: Program[]): Portfolio[] {
-  return portfolios.map((portfolio) => {
-    const ownPrograms = programs.filter((program) => program.belongsToPortfolio(portfolio.id));
-    if (ownPrograms.length === 0) {
-      return portfolio;
-    }
-    const progressPercentage = Math.round(
-      ownPrograms.reduce((sum, program) => sum + program.progressPercentage, 0) / ownPrograms.length,
-    );
-    return {
+  return consolidateFromChildren(
+    portfolios,
+    programs,
+    (program, portfolio) => program.belongsToPortfolio(portfolio.id),
+    (program) => program.progressPercentage,
+    (program) => program.health,
+    (portfolio, programCount, progressPercentage, health) => ({
       ...portfolio,
-      programCount: ownPrograms.length,
+      programCount,
       progressPercentage,
-      health: worstHealth(ownPrograms.map((program) => program.health)),
-    };
-  });
+      health,
+    }),
+  );
 }

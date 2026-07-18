@@ -22,3 +22,33 @@ export function worstHealth(healths: DomainHealth[]): DomainHealth {
   if (healths.some((health) => health === "yellow")) return "yellow";
   return "green";
 }
+
+/**
+ * AR-1 finding: consolidatePortfolios() (program.ts) and
+ * consolidatePrograms() (project.ts) implemented the exact same
+ * algorithm twice -- filter children by parent, average their progress,
+ * roll up worst-case health -- differing only in field names and how
+ * the parent gets rebuilt (Portfolio is a plain object spread; Program
+ * goes through Program.create()). Extracted here so the rule exists
+ * once; `rebuild` is the only part that legitimately differs per entity.
+ */
+export function consolidateFromChildren<Parent, Child>(
+  parents: Parent[],
+  children: Child[],
+  belongsTo: (child: Child, parent: Parent) => boolean,
+  childProgress: (child: Child) => number,
+  childHealth: (child: Child) => DomainHealth,
+  rebuild: (parent: Parent, count: number, progressPercentage: number, health: DomainHealth) => Parent,
+): Parent[] {
+  return parents.map((parent) => {
+    const ownChildren = children.filter((child) => belongsTo(child, parent));
+    if (ownChildren.length === 0) {
+      return parent;
+    }
+    const progressPercentage = Math.round(
+      ownChildren.reduce((sum, child) => sum + childProgress(child), 0) / ownChildren.length,
+    );
+    const health = worstHealth(ownChildren.map(childHealth));
+    return rebuild(parent, ownChildren.length, progressPercentage, health);
+  });
+}

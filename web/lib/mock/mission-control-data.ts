@@ -65,9 +65,9 @@ export interface GovernanceSummary {
 }
 
 export const GOVERNANCE_SUMMARY: GovernanceSummary = {
-  technicalDebtOpen: 6,
+  technicalDebtOpen: 8,
   baselineDefects: 3,
-  adrCount: 7,
+  adrCount: 8,
   adrCollision: true,
   lessonsLearned: 2,
 };
@@ -98,13 +98,13 @@ export interface RecentDecisionEntry {
 }
 
 export const RECENT_DECISIONS: RecentDecisionEntry[] = [
+  { id: "D-026", summary: "AR-1 não gerou nenhuma nova decisão arquitetural — arquitetura certificada sem alterações de princípio" },
+  { id: "D-025", summary: "Mock morto (PortfolioSituation/ProgramSituation) removido de cockpit-data.ts" },
+  { id: "D-024", summary: "Faixa de KPIs do Executive Overview corrigida para dados reais (AR-1)" },
+  { id: "D-023", summary: "Regra de consolidação duplicada extraída para consolidateFromChildren() (AR-1)" },
   { id: "D-022", summary: "Founder recomenda uma Architecture Review (AR-1) antes da Capability 04" },
   { id: "D-021", summary: "ADR-V2-009 usa o número 009, não 008, para não colidir com uma reserva pendente" },
   { id: "D-020", summary: "Cadeia de consolidação passa a ser transitiva (Project → Program → Portfolio)" },
-  { id: "D-019", summary: "Terceiro \"Project\" no código: distinto do ProjectSummary (V1) e do Project real do backend" },
-  { id: "D-018", summary: "Project implementado como classe DDD, com Saúde/Progresso encapsulados por método" },
-  { id: "D-017", summary: "Mission Control ganha layout.tsx (AppShell), corrigindo lacuna de Sidebar da Sprint 1" },
-  { id: "D-016", summary: "Recomendação de substituir \"Release 0.x\" por Épicos de Produto, a partir da Capability 03" },
 ];
 
 export interface ProductPulseEntry {
@@ -114,11 +114,11 @@ export interface ProductPulseEntry {
 
 /** Release 0.2, Capability 03 -- Product Pulse (topo do Mission Control). */
 export const PRODUCT_PULSE_TODAY: ProductPulseEntry[] = [
-  { label: "Project implementado como entidade DDD real, ligado a Program (Capability 03)", done: true },
-  { label: "Cadeia de consolidação transitiva: Project → Program → Portfolio", done: true },
-  { label: "Novo painel Program Execution + página Project Delivery publicados", done: true },
-  { label: "docs/architecture/DOMAIN-MODEL.md publicado como referência oficial do domínio", done: true },
-  { label: "436 testes de frontend executados com sucesso", done: true },
+  { label: "Architecture Review AR-1 concluída: APPROVED WITH OBSERVATIONS", done: true },
+  { label: "ARCHITECTURE-BASELINE-RC2.md publicado como baseline oficial pós Capabilities 01-03", done: true },
+  { label: "Regra de consolidação duplicada eliminada (consolidateFromChildren)", done: true },
+  { label: "Faixa de KPIs do Executive Overview corrigida para dados reais", done: true },
+  { label: "436 testes de frontend executados com sucesso, build de produção limpo", done: true },
 ];
 
 export const PRODUCT_DNA_STATEMENT =
@@ -155,9 +155,26 @@ export const CAPABILITY_PROGRESS: CapabilityProgressEntry[] = [
   {
     code: "Capability 03",
     name: "Project Delivery",
-    progress: 80,
-    status: "In Progress",
-    nextMilestone: "Architecture Review (AR-1) antes da Capability 04 — Demand",
+    progress: 100,
+    status: "Done",
+    nextMilestone: "Capability 04 — Demand (após Architecture Review AR-1, concluída)",
+  },
+];
+
+export interface ArchitectureReviewEntry {
+  code: string;
+  name: string;
+  status: "Approved" | "Approved with Observations" | "Rework Required";
+  note: string;
+}
+
+/** AR-1 (Release 0.2) -- checkpoint formal entre a Capability 03 e a Capability 04, não uma Capability em si. */
+export const ARCHITECTURE_REVIEWS: ArchitectureReviewEntry[] = [
+  {
+    code: "AR-1",
+    name: "Baseline Certification (Capabilities 01-03)",
+    status: "Approved with Observations",
+    note: "3 correções aplicadas (dedupe de consolidação, KPIs reais, mock morto removido); ver ARCHITECTURE-BASELINE-RC2.md",
   },
 ];
 

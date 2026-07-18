@@ -23,9 +23,11 @@ import {
   PRODUCT_DNA_STATEMENT,
   CAPABILITY_PROGRESS,
   DOMAIN_EVOLUTION,
+  ARCHITECTURE_REVIEWS,
   type EpicStatus,
   type CapabilityProgressEntry,
   type DomainEvolutionNode,
+  type ArchitectureReviewEntry,
 } from "@/lib/mock/mission-control-data";
 
 /**
@@ -117,6 +119,29 @@ export default function MissionControlPage() {
                   </Badge>
                   <span className="text-ink-muted">Próximo marco: {capability.nextMilestone}</span>
                 </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="font-display text-lg font-semibold text-ink">Architecture Reviews</h2>
+        <p className="text-sm text-ink-muted">
+          Checkpoint formal entre Capabilities — não conta como uma Capability em si.
+        </p>
+        <div className="flex flex-col gap-2">
+          {ARCHITECTURE_REVIEWS.map((review) => (
+            <Card key={review.code}>
+              <CardContent className="flex flex-col gap-2 p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="font-display font-semibold">{review.code}</span>
+                    <span className="ml-2 text-sm text-ink-muted">{review.name}</span>
+                  </div>
+                  <Badge variant={architectureReviewVariant(review.status)}>{review.status}</Badge>
+                </div>
+                <p className="text-xs text-ink-muted">{review.note}</p>
               </CardContent>
             </Card>
           ))}
@@ -313,4 +338,10 @@ function domainNodeVariant(status: DomainEvolutionNode["status"]) {
   if (status === "Done") return "ok" as const;
   if (status === "In Progress") return "warn" as const;
   return "neutral" as const;
+}
+
+function architectureReviewVariant(status: ArchitectureReviewEntry["status"]) {
+  if (status === "Approved") return "ok" as const;
+  if (status === "Approved with Observations") return "warn" as const;
+  return "danger" as const;
 }

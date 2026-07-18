@@ -27,6 +27,22 @@ Registro vivo de débitos arquiteturais conhecidos. Cada item tem origem, status
 - **Descrição:** `EnterpriseRepository` mistura dois padrões: a maioria dos métodos abre sua própria sessão (`with self._session_factory() as session`), mas dois métodos (`get_or_create_default_organization`, `get_or_create_project_for_name`) recebem uma sessão externa para participar da transação do chamador. Funciona e está documentado via docstring, mas não há convenção de nome (ex.: sufixo `_in_session`) que distinga os dois grupos à primeira vista.
 - **Resolver durante:** o Épico RBAC (Épico 3), quando a classe crescer com novos métodos de escrita e o risco de uso incorreto do padrão errado aumentar.
 
+## TD-007 — Domínio Portfolio/Program/Project (Capabilities 01-03) ainda sem persistência, sem escopo multi-tenant
+
+- **Origem:** Architecture Review AR-1 (Release 0.2), auditando as Capabilities 01-03.
+- **Classificação:** Médio.
+- **Status:** Aberto (aceito conscientemente — decisão explícita do Founder, ver ADR-V2-009).
+- **Descrição:** `web/lib/domain/{portfolio,program,project}.ts` existem apenas como domínio de frontend, sem tabela/model/migração em `src/database`. Quando forem persistidos, precisarão de `organization_id` desde a primeira migração, seguindo exatamente o padrão já estabelecido pela Enterprise Foundation (Épico 1) — hoje não há esse campo porque não há persistência, então não há risco de vazamento cross-tenant ainda (nada é gravado). O risco é apenas prospectivo: nasce no dia em que a Release 0.2 wireener um backend real para essas 3 entidades.
+- **Resolver antes de:** qualquer migração de banco que persista Portfolio/Program/Project.
+
+## TD-008 — Três conceitos "Project" coexistem no código, sem unificação
+
+- **Origem:** Capability 03 (Decision Log D-019), confirmado na Architecture Review AR-1.
+- **Classificação:** Médio.
+- **Status:** Aberto (aceito conscientemente até o Épico 4).
+- **Descrição:** (1) o `Project` real do backend (`src/database/models.py`, Épico 1, persistido, hoje só usado para membership); (2) `ProjectSummary` (`web/lib/dashboard/types.ts`, dado real do V1/BFF, chaveado por `project_name` livre); (3) `Project` do domínio (`web/lib/domain/project.ts`, Capability 03, vinculado a Program). Nenhum compartilha ID. Risco real: um novo engenheiro pode importar o `Project` errado para uma nova feature sem perceber a diferença — mitigado hoje por documentação explícita (docstrings + Decision Log), não por um mecanismo que impeça o erro em tempo de compilação.
+- **Resolver antes de:** Épico 4 (unificação de `Project`) — candidato natural a também resolver este item.
+
 ---
 
 ## Baseline Defects — falhas E2E pré-existentes, não introduzidas por Épicos

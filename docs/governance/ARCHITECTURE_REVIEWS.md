@@ -55,3 +55,20 @@ Registro cronológico e write-once de todas as Architecture Reviews independente
 - **Decisão:** **APPROVED WITH OBSERVATIONS**.
 - **Observações:** autorizou a Engineering Order EO-MERGE-001 e a conclusão do Épico 2.
 - **Data:** 2026-07-18. Merge executado — commit `ef760ee426f58eb3dad48f7d3eb3ed248308107d`.
+
+---
+
+### AR-1 — Baseline Certification (Capabilities 01-03, Release 0.2)
+
+- **Identificador:** AR-1 (nomenclatura do próprio Founder — trilha distinta de AR-001/002/003, que cobriam TDS/PR review sob a governança da Foundation Phase; AR-1 nasce sob o fluxo Product-First/Capability-based, EO-021).
+- **Escopo:** auditoria arquitetural completa após Portfolio Management (Capability 01), Program Management (Capability 02) e Project Delivery (Capability 03) — arquitetura/camadas, DDD, Domain Model, os 3 Domain Blueprints, Executive Cockpit, Mission Control, governança (ADRs/Decision Log/Sprint Notes/Master Roadmap), engenharia (tsc/eslint/testes/build/smoke), dívida técnica, multi-tenancy. Não implementou a Capability 04, não alterou comportamento funcional.
+- **Achados e correções aplicadas:**
+  1. `consolidatePortfolios()`/`consolidatePrograms()` duplicavam o mesmo algoritmo de rollup — extraído `consolidateFromChildren()` (`shared.ts`), comportamento idêntico (Decision Log D-023).
+  2. Faixa de KPIs do Executive Overview lia mock (`COCKPIT_KPIS`) desatualizado (8/24 contra 4/7 reais; "Decisões Pendentes" nem batia com o próprio mock de Decision Center) — corrigida para dado real (D-024).
+  3. `PortfolioSituation`/`ProgramSituation` (mock) sem nenhum consumidor desde as Capabilities 01/02 — removidos (D-025).
+- **Dívida técnica identificada:** TD-007 (domínio sem persistência/multi-tenant ainda — aceito, prospectivo) e TD-008 (3 conceitos "Project" sem unificação — aceito até o Épico 4). Nenhuma bloqueia a Capability 04.
+- **Nenhuma nova ADR necessária** — as correções são ajustes de qualidade dentro dos princípios já decididos em ADR-V2-009, não uma mudança de decisão arquitetural (D-026).
+- **Entregável:** `docs/architecture/ARCHITECTURE-BASELINE-RC2.md` (nova baseline oficial), `docs/product/governance/AR-1-EXECUTIVE-REPORT.md` (relatório executivo completo).
+- **Decisão:** **APPROVED WITH OBSERVATIONS**.
+- **Observações:** observações = as 2 dívidas técnicas aceitas (TD-007/008) e a colisão de numeração ADR-V2-004 pré-existente (não introduzida nem resolvida por esta AR-1). Nenhuma impede o início da Capability 04. Recomendação registrada: segunda opinião independente (ex.: revisão externa) antes de iniciar a Capability 04, por decisão do próprio Founder.
+- **Data:** 2026-07-18.

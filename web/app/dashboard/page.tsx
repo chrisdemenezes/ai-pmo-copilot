@@ -28,12 +28,12 @@ import { RecentActivityTimeline } from "@/components/cockpit/recent-activity-tim
 import { AIRecommendationsPanel } from "@/components/cockpit/ai-recommendations-panel";
 import { computeExecutiveFocus } from "@/lib/dashboard/executive-focus";
 import {
-  COCKPIT_KPIS,
   WORK_ITEM_BREAKDOWN,
   PENDING_DECISIONS,
   PRIORITY_ACTIONS,
   RECENT_ACTIVITY,
   AI_RECOMMENDATIONS,
+  type CockpitKPI,
 } from "@/lib/mock/cockpit-data";
 
 export default function DashboardPage() {
@@ -73,6 +73,32 @@ export default function DashboardPage() {
     risks.isPending && !risks.isError
       ? null
       : buildExecutiveDecisionQueue(projects, groupLatestRisksByProject(risks.data ?? [])).length;
+  // AR-1 finding: a faixa de KPIs lia COCKPIT_KPIS (mock, Sprint 1) mesmo
+  // depois de Portfolio/Program/Project virarem domínio real (Capabilities
+  // 01-03) -- "Programas em Execução"/"Projetos em Andamento" mostravam
+  // 8/24 (mock antigo) contra 4/7 reais, e "Decisões Pendentes" (5) não
+  // batia nem com o próprio PENDING_DECISIONS mock (4 itens). Corrigido
+  // para contagens reais; "Decisões Pendentes" reaproveita o mesmo
+  // criticalDecisionsCount do link para o qual o KPI já apontava (/decisions).
+  const kpis: CockpitKPI[] = [
+    {
+      label: "Portfólios Ativos",
+      value: String((portfolios.data ?? []).filter((p) => p.status === "Ativo").length),
+    },
+    {
+      label: "Programas em Execução",
+      value: String((programs.data ?? []).filter((p) => p.status === "Ativo").length),
+    },
+    {
+      label: "Projetos em Andamento",
+      value: String((deliveryProjects.data ?? []).filter((p) => p.status === "Ativo").length),
+    },
+    {
+      label: "Decisões Pendentes",
+      value: criticalDecisionsCount === null ? "…" : String(criticalDecisionsCount),
+      href: "/decisions",
+    },
+  ];
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 p-6">
@@ -92,17 +118,17 @@ export default function DashboardPage() {
         <div>
           <h2 className="font-display text-lg font-semibold text-ink">Executive Overview</h2>
           <p className="text-sm text-ink-muted">
-            Indicadores de Portfólio/Programa/Projeto — demonstração (Sprint 1, dados simulados).
+            Contagens reais de Portfólio/Programa/Projeto (Capabilities 01–03); Decisões Pendentes reflete a Executive Decision Queue real.
           </p>
         </div>
-        <CockpitKpiStrip kpis={COCKPIT_KPIS} />
+        <CockpitKpiStrip kpis={kpis} />
       </section>
 
       <section className="flex flex-col gap-3">
         <div>
           <h2 className="font-display text-lg font-semibold text-ink">Situação do Portfólio</h2>
           <p className="text-sm text-ink-muted">
-            Capability 01/02 (Release 0.2) — indicadores consolidados a partir dos Programs reais.
+            Capabilities 01–03 (Release 0.2) — indicadores consolidados transitivamente a partir dos Projects e Programs reais.
           </p>
         </div>
         {portfolios.isPending || programs.isPending ? (
