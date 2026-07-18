@@ -5,15 +5,42 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Header } from "@/components/shell/header";
 import { usePortfolioSummary } from "@/lib/hooks/use-portfolio-summary";
+import { usePortfolios } from "@/lib/hooks/use-portfolios";
+import { usePrograms } from "@/lib/hooks/use-programs";
+import { useProjects } from "@/lib/hooks/use-projects";
 import { useLatestRisks } from "@/lib/hooks/use-latest-risks";
+import { consolidatePortfolios } from "@/lib/domain/program";
+import { consolidatePrograms } from "@/lib/domain/project";
 import { PortfolioSummaryStrip } from "@/components/dashboard/portfolio-summary-strip";
 import { ProjectHealthGrid } from "@/components/dashboard/project-health-grid";
 import { HealthStatusDistribution } from "@/components/dashboard/health-status-distribution";
 import { RiskConcentrationRanking } from "@/components/dashboard/risk-concentration-ranking";
 import { buildExecutiveDecisionQueue, groupLatestRisksByProject } from "@/lib/decision-center/decision-queue";
+import { CockpitKpiStrip } from "@/components/cockpit/cockpit-kpi-strip";
+import { PortfolioSituationGrid } from "@/components/cockpit/portfolio-situation-grid";
+import { ProgramSituationGrid } from "@/components/cockpit/program-situation-grid";
+import { ProgramExecutionPanel } from "@/components/cockpit/program-execution-panel";
+import { WorkItemsOverview } from "@/components/cockpit/work-items-overview";
+import { ExecutiveFocusPanel } from "@/components/cockpit/executive-focus-panel";
+import { DecisionCenterPanel } from "@/components/cockpit/decision-center-panel";
+import { ActionsCenterTable } from "@/components/cockpit/actions-center-table";
+import { RecentActivityTimeline } from "@/components/cockpit/recent-activity-timeline";
+import { AIRecommendationsPanel } from "@/components/cockpit/ai-recommendations-panel";
+import { computeExecutiveFocus } from "@/lib/dashboard/executive-focus";
+import {
+  WORK_ITEM_BREAKDOWN,
+  PENDING_DECISIONS,
+  PRIORITY_ACTIONS,
+  RECENT_ACTIVITY,
+  AI_RECOMMENDATIONS,
+  type CockpitKPI,
+} from "@/lib/mock/cockpit-data";
 
 export default function DashboardPage() {
   const { data, isPending, isError, error, refetch, isFetching } = usePortfolioSummary();
+  const portfolios = usePortfolios();
+  const programs = usePrograms();
+  const deliveryProjects = useProjects();
   const risks = useLatestRisks();
 
   if (isPending) {
@@ -31,6 +58,13 @@ export default function DashboardPage() {
   }
 
   const projects = data ?? [];
+  const executiveFocus = computeExecutiveFocus(projects);
+  // Capability 03: a cadeia de consolidação é transitiva -- Program deriva
+  // de seus Projects reais primeiro, e só então Portfolio deriva desses
+  // Programs já consolidados (Domain Blueprint CB-003 §2), nunca mais dos
+  // valores semeados de Program isolado (Capability 02).
+  const consolidatedPrograms = consolidatePrograms(programs.data ?? [], deliveryProjects.data ?? []);
+  const consolidatedPortfolios = consolidatePortfolios(portfolios.data ?? [], consolidatedPrograms);
   // Single Decision Source (TIP-009 §08): a mesma buildExecutiveDecisionQueue()
   // do /decisions, nunca uma contagem recalculada aqui. null enquanto o
   // sinal de Risco ainda não resolveu -- nunca afirma um número que pode
@@ -39,13 +73,39 @@ export default function DashboardPage() {
     risks.isPending && !risks.isError
       ? null
       : buildExecutiveDecisionQueue(projects, groupLatestRisksByProject(risks.data ?? [])).length;
+  // AR-1 finding: a faixa de KPIs lia COCKPIT_KPIS (mock, Sprint 1) mesmo
+  // depois de Portfolio/Program/Project virarem domínio real (Capabilities
+  // 01-03) -- "Programas em Execução"/"Projetos em Andamento" mostravam
+  // 8/24 (mock antigo) contra 4/7 reais, e "Decisões Pendentes" (5) não
+  // batia nem com o próprio PENDING_DECISIONS mock (4 itens). Corrigido
+  // para contagens reais; "Decisões Pendentes" reaproveita o mesmo
+  // criticalDecisionsCount do link para o qual o KPI já apontava (/decisions).
+  const kpis: CockpitKPI[] = [
+    {
+      label: "Portfólios Ativos",
+      value: String((portfolios.data ?? []).filter((p) => p.status === "Ativo").length),
+    },
+    {
+      label: "Programas em Execução",
+      value: String((programs.data ?? []).filter((p) => p.status === "Ativo").length),
+    },
+    {
+      label: "Projetos em Andamento",
+      value: String((deliveryProjects.data ?? []).filter((p) => p.status === "Ativo").length),
+    },
+    {
+      label: "Decisões Pendentes",
+      value: criticalDecisionsCount === null ? "…" : String(criticalDecisionsCount),
+      href: "/decisions",
+    },
+  ];
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 p-6">
       <Header>
         <div>
           <p className="font-mono text-xs font-semibold uppercase tracking-wide text-accent">
-            Portfólio Executivo
+            STRATECH · Executive Cockpit
           </p>
           <h1 className="font-display text-2xl font-semibold">Dashboard Executivo</h1>
         </div>
@@ -53,6 +113,115 @@ export default function DashboardPage() {
           {isFetching ? "Atualizando…" : "Atualizar"}
         </Button>
       </Header>
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="font-display text-lg font-semibold text-ink">Executive Overview</h2>
+          <p className="text-sm text-ink-muted">
+            Contagens reais de Portfólio/Programa/Projeto (Capabilities 01–03); Decisões Pendentes reflete a Executive Decision Queue real.
+          </p>
+        </div>
+        <CockpitKpiStrip kpis={kpis} />
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="font-display text-lg font-semibold text-ink">Situação do Portfólio</h2>
+          <p className="text-sm text-ink-muted">
+            Capabilities 01–03 (Release 0.2) — indicadores consolidados transitivamente a partir dos Projects e Programs reais.
+          </p>
+        </div>
+        {portfolios.isPending || programs.isPending ? (
+          <Skeleton className="h-48" />
+        ) : (
+          <PortfolioSituationGrid portfolios={consolidatedPortfolios} />
+        )}
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="font-display text-lg font-semibold text-ink">Situação dos Programas</h2>
+          <p className="text-sm text-ink-muted">
+            Capability 02/03 (Release 0.2) — indicadores consolidados a partir dos Projects reais.
+          </p>
+        </div>
+        {programs.isPending || portfolios.isPending || deliveryProjects.isPending ? (
+          <Skeleton className="h-48" />
+        ) : (
+          <ProgramSituationGrid programs={consolidatedPrograms} portfolios={portfolios.data ?? []} />
+        )}
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="font-display text-lg font-semibold text-ink">Program Execution</h2>
+          <p className="text-sm text-ink-muted">
+            Capability 03 (Release 0.2) — Projects por Program, saúde consolidada e Top 5 que exigem atenção.
+          </p>
+        </div>
+        {programs.isPending || deliveryProjects.isPending ? (
+          <Skeleton className="h-48" />
+        ) : (
+          <ProgramExecutionPanel programs={consolidatedPrograms} projects={deliveryProjects.data ?? []} />
+        )}
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="font-display text-lg font-semibold text-ink">
+            Demandas, Riscos, Issues e Mudanças
+          </h2>
+          <p className="text-sm text-ink-muted">Demonstração — inventário formal de portfólio, ainda não implementado.</p>
+        </div>
+        <WorkItemsOverview items={WORK_ITEM_BREAKDOWN} />
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="font-display text-lg font-semibold text-ink">Executive Focus</h2>
+          <p className="text-sm text-ink-muted">Onde devo concentrar minha atenção hoje?</p>
+        </div>
+        <ExecutiveFocusPanel focus={executiveFocus} />
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="font-display text-lg font-semibold text-ink">Decision Center</h2>
+          <p className="text-sm text-ink-muted">
+            Quais decisões dependem de mim? — demonstração (Sprint 1, dados simulados).
+          </p>
+        </div>
+        <DecisionCenterPanel decisions={PENDING_DECISIONS} />
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="font-display text-lg font-semibold text-ink">Actions Center</h2>
+          <p className="text-sm text-ink-muted">
+            O que devo fazer em seguida? — demonstração (Sprint 1, dados simulados).
+          </p>
+        </div>
+        <ActionsCenterTable actions={PRIORITY_ACTIONS} />
+      </section>
+
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="flex flex-col gap-3">
+          <div>
+            <h2 className="font-display text-lg font-semibold text-ink">Recent Activity</h2>
+            <p className="text-sm text-ink-muted">O que mudou desde meu último acesso?</p>
+          </div>
+          <RecentActivityTimeline events={RECENT_ACTIVITY} />
+        </div>
+        <div className="flex flex-col gap-3">
+          <div>
+            <h2 className="font-display text-lg font-semibold text-ink">AI Recommendations</h2>
+            <p className="text-sm text-ink-muted">
+              Camada de inteligência futura — demonstração (Sprint 1, dados simulados).
+            </p>
+          </div>
+          <AIRecommendationsPanel recommendations={AI_RECOMMENDATIONS} />
+        </div>
+      </section>
 
       {projects.length === 0 ? (
         <EmptyState />

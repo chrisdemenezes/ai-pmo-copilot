@@ -7,7 +7,7 @@
 | **Autorização de criação** | Engineering Order EO-016 (Program Management Office) |
 | **Autorização de revisão** | EO-016A — APPROVED WITH OBSERVATIONS (Executive Dashboard, Product Lifecycle, Capability Tree, agrupamento Platform Foundation/Business Platform, visão consolidada de progresso e indicador global de maturidade) |
 | **Autor** | Claude / Engineering Lead |
-| **Última atualização factual** | PR #41 aberto (Épico 2, aguardando Architecture Review), Release 0.1 em andamento |
+| **Última atualização factual** | Architecture Review AR-1 (Release 0.2) — baseline certificada após as Capabilities 01-03 (Portfolio/Program/Project); ver `docs/architecture/ARCHITECTURE-BASELINE-RC2.md` |
 | **Natureza** | Artefato de planejamento executivo. Não substitui Blueprint, ADRs, TDS ou Technical Debt Register — consolida e referencia esses documentos, não os duplica. |
 
 > Este documento é construído exclusivamente a partir de decisões já aprovadas: `Enterprise-Architecture-Blueprint-v2.0.html`, `Release-0.1-Macro-Backlog.html`, `Release-Roadmap-0.1-to-0.5.html`, `Architecture-Decision-Log.html`, `TECHNICAL_DEBT.md`, `LESSONS_LEARNED.md`, `RELEASE-0.1.md` e o histórico real de PRs/ADRs deste repositório. Onde uma seção pedida pelas EO-016/EO-016A (ex.: rótulos RC-1..RC-5/GA) não corresponde a nenhuma decisão aprovada até agora, isso é declarado explicitamente como **proposta pendente de aprovação**, nunca apresentado como fato consolidado. A taxonomia de 8 domínios do Domain Map do Blueprint **não é alterada** em nenhum ponto deste documento — os agrupamentos e vistas adicionais (Executive Dashboard, Capability Tree, Platform Foundation/Business Platform) são lentes executivas sobre a mesma taxonomia aprovada, não uma segunda arquitetura.
@@ -24,14 +24,14 @@ Indicadores consolidados, calculados a partir das seções deste documento (meto
 | **Épico atual** | Nenhum em implementação — Épico 2 concluído (merge commit `ef760ee426f58eb3dad48f7d3eb3ed248308107d`, PR #41, EO-MERGE-001) |
 | **Próximo épico** | Épico 3 — Organização e RBAC inicial (Not Started) |
 | **Progresso do Release 0.1** | ~33% — média simples dos 6 Épicos (Épico 1 = 100%, Épico 2 = 100%, Épicos 3-6 = 0%) |
-| **Progresso geral da STRATECH V2** | ~7% — estimativa provisória tratando as 5 Releases com peso igual (1/5 cada) e aplicando o progresso conhecido apenas à Release 0.1, já que Releases 0.2-0.5 ainda não têm Épicos desmembrados para medir. Metodologia a refinar assim que 0.2-0.5 forem desmembradas em Épicos. |
-| **Indicador Global de Maturidade** | ~33% — média ponderada dos 10 pilares do Product Maturity Model (Seção 8); ver cálculo completo lá |
-| **Arquitetura** | Aderente ao Blueprint aprovado; 0 desvios de taxonomia registrados; **1 pendência aberta**: colisão de numeração ADR-V2-004 (Seção 10) |
-| **Capacidades de negócio** (Capability Matrix, Seção 7) | 3 de 17 completas (100%), 3 em andamento parcial (90%/33%/~15%), 11 não iniciadas — média simples ≈ 26% |
-| **Dívida técnica** (Technical Debt Register) | 6 itens abertos/planejados: TD-001/002/003 (arquiteturais, desde o Épico 1) + TD-004/005/006 (Baseline Defects, desde o Épico 2) |
+| **Progresso geral da STRATECH V2** | ~14% — estimativa provisória tratando as 5 Releases com peso igual (1/5 cada): Release 0.1 = 33%, Release 0.2 = 35%, Releases 0.3-0.5 = 0%. Metodologia a refinar assim que 0.3-0.5 forem desmembradas em Épicos/Capabilities. |
+| **Indicador Global de Maturidade** | ~39% — média ponderada dos 10 pilares do Product Maturity Model (Seção 8), recalculada na Architecture Review AR-1; ver cálculo completo lá |
+| **Arquitetura** | Aderente ao Blueprint aprovado; 0 desvios de taxonomia registrados; 1 duplicação de regra de consolidação encontrada e corrigida pela AR-1 (`consolidateFromChildren`, `shared.ts`); **1 pendência aberta**: colisão de numeração ADR-V2-004 (Seção 10, pré-existente, não resolvida por esta AR-1) |
+| **Capacidades de negócio** (Capability Matrix, Seção 7) | 3 de 17 completas (100%), 4 em andamento parcial (90%/33%/~75%/~15%), 10 não iniciadas — média simples ≈ 32% |
+| **Dívida técnica** (Technical Debt Register) | 8 itens abertos/planejados: TD-001/002/003 (arquiteturais, desde o Épico 1) + TD-004/005/006 (Baseline Defects, desde o Épico 2) + TD-007/008 (domínio Capabilities 01-03, identificados pela AR-1) — nenhum bloqueia a Capability 04 |
 | **Baseline Defects** | 3 (TD-004/005/006) — falhas E2E comprovadamente pré-existentes, aceitas conscientemente, não bloqueiam PR/Release |
-| **Pull Requests** | 6 no total (#36-#41): **6 merged**, 0 aberto (#41 mergeado — AR-003 APPROVED WITH OBSERVATIONS, EO-MERGE-001) |
-| **Governança** | Modelo de 3 papéis em uso ativo desde o Épico 1 (LL-002); 100% dos PRs até aqui seguiram o fluxo EO→Architecture Review→PR→(aguardar)→merge |
+| **Pull Requests** | ver PR mais recente para a contagem atual — Sprint 1 + Capabilities 01-03 + Architecture Review AR-1 consolidados em um único PR a partir de `feature/v2-sprint1-design-system` |
+| **Governança** | Modelo de 3 papéis em uso ativo desde o Épico 1 (LL-002); Domain Blueprints (CB-001/002/003) + Domain Model + ADR-V2-009 consolidam a arquitetura de domínio; Architecture Review AR-1 é o primeiro checkpoint formal pós-Épico-2 |
 
 ---
 
@@ -138,7 +138,7 @@ Por pedido da EO-016A, os mesmos 8 domínios + 3 transversais são também agrup
 
 | Programa (= Domínio do Blueprint) | Objetivo | Dependências | Épicos/Releases relacionados | Status atual | Critério de conclusão |
 |---|---|---|---|---|---|
-| **Portfolio, Program & Project Intelligence** (inclui Projects, Portfolio, Actions, Decisions) | Projeto como entidade real; portfólio e programa como agregações; ações e decisões como objetos de primeira classe | Enterprise Foundation (Organização, RBAC) | Épico 4 (Release 0.1); expansão em Release 0.2 | **Não iniciado** — hoje `analysis_records.project_name` é texto livre; migração para entidade `Project` real é o Épico 4 | Portfolio/Program modelados, Projeto com ciclo de vida completo, ações/decisões vinculadas a entidades reais (não a texto livre) |
+| **Portfolio, Program & Project Intelligence** (inclui Projects, Portfolio, Actions, Decisions) | Projeto como entidade real; portfólio e programa como agregações; ações e decisões como objetos de primeira classe | Enterprise Foundation (Organização, RBAC) | Épico 4 (Release 0.1); expansão em Release 0.2 | **Em andamento** — Capabilities 01/02/03 implementaram Portfolio, Program e (este) Project como domínio real de frontend (`web/lib/domain/{portfolio,program,project}.ts`), cadeia vinculada e consolidação transitiva (Project→Program→Portfolio), consolidado em `docs/architecture/DOMAIN-MODEL.md`; nenhum tem persistência em banco ainda; este `Project` é distinto do `Project` real do backend (Épico 1) e de `ProjectSummary` (V1) — os três se unificam apenas no Épico 4, ainda não iniciado; Demand é a Capability 04 | Portfolio/Program modelados, Projeto com ciclo de vida completo, ações/decisões vinculadas a entidades reais (não a texto livre) |
 | **Document Intelligence** | Documentos como camada de referência (não GED nativo) — metadados, versão, extração | Integration Hub (fonte dos documentos) | Release 0.4 | **Não iniciado** | Referenciamento de documento funcional conforme ADR-V2-005 (camada de referência, não GED nativo) |
 | **Process Intelligence** | Processos como camada de referência (não BPM nativo) — instância, SLA, desvio | Integration Hub | Release 0.4/0.5 | **Não iniciado** | Referenciamento de processo funcional conforme ADR-V2-005 |
 | **AI Intelligence Layer** (inclui "AI Core", Executive Memory, Knowledge/Organizational Intelligence como Accelerators) | Contrato formal de Accelerator (evidência, confiança, validação humana); portar os 3 Accelerators do RC-1 para `Project` real; adicionar os 9 Accelerators restantes do AI-Accelerators-Map | Portfolio/Project Intelligence (entidade real) | Release 0.3 (6 Accelerators) + 0.4/0.5 (6 restantes) | **Não iniciado** (os 3 Accelerators atuais operam sobre V1/`project_name` livre, ainda não portados) | 12 Accelerators do AI-Accelerators-Map implementados sobre entidades reais, com evidência/confiança/validação humana auditável |
@@ -275,7 +275,7 @@ O roadmap de releases **formalmente aprovado** hoje é `Release-Roadmap-0.1-to-0
 | Administração mínima (UI) | Não iniciado | 0% | Auditoria de mutações | Épico 5. |
 | AI Accelerators sobre entidade real (Project Health, Risk Intelligence, Meeting Intelligence) | Implementado sobre V1 (`project_name` livre); não portado para V2 | 33% (3 de 12 do mapa, e mesmo esses ainda sobre o modelo antigo) | Projeto como entidade real | Release 0.3. Código-base já existe e está validado em produção (RC-1) — o trabalho da V2 é portar, não recriar. |
 | AI Accelerators adicionais (9 restantes do AI-Accelerators-Map) | Não iniciado | 0% | AI Accelerators sobre entidade real | Release 0.3 (parcial) / 0.4 / 0.5. |
-| Portfolio/Program como agregações | Não iniciado | 0% | Projeto como entidade real | Release 0.2. |
+| Portfolio/Program/Project como agregações | Em andamento (Portfolio + Program + Project) | ~75% | Projeto como entidade real (unificação, Épico 4) | Release 0.2, Capabilities 01/02/03. Portfolio, Program e Project implementados como domínio real de frontend (`web/lib/domain/{portfolio,program,project}.ts`), cadeia completa vinculada e consolidação transitiva — adiantado explicitamente pelo Founder em relação à dependência formal (Épico 4, ainda não concluído). Sem persistência em banco, sem impacto no backend. Demand é a Capability 04, após uma Architecture Review (AR-1) recomendada pelo Founder. |
 | Convites, stakeholders, atores externos | Não iniciado | 0% | Portfolio/Program | Release 0.2. |
 | Integration Hub (conectores) | Não iniciado | 0% | Enterprise Foundation (credenciais), Portfolio (alvo) | Release 0.4. |
 | Document Intelligence (referência) | Não iniciado | 0% | Integration Hub | Release 0.4. |
@@ -284,7 +284,7 @@ O roadmap de releases **formalmente aprovado** hoje é `Release-Roadmap-0.1-to-0
 | Executive Intelligence / Cockpit por perfil (8 perfis do Cockpit-Views-Matrix) | Parcial (Dashboard/Executive Brief/Executive Memory do RC-1 cobrem parte de 1-2 perfis) | ~15% | AI Intelligence Layer + Portfolio Intelligence | Transversal, a partir de 0.2/0.3. |
 | Governança rastreável (EO→ADR/TDS→Architecture Review→PR→merge) | Implementado e em uso ativo | 100% para o processo em si | — | LL-002. Formalizado e seguido desde o Épico 1; ADR-V2-004 tem colisão de numeração não resolvida (ver Seção 10). |
 
-**Resumo:** 3 de 17 capacidades completas (100%), 3 em andamento parcial (90% / 33% / ~15%), 11 não iniciadas (0%). Média simples ≈ 26% — número citado no Executive Dashboard.
+**Resumo:** 3 de 17 capacidades completas (100%), 4 em andamento parcial (90% / 33% / ~75% / ~15%), 10 não iniciadas (0%). Média simples ≈ 32%. Recalculo completo do Indicador Global de Maturidade (Seção 8) e do Executive Dashboard (≈26%) segue postergado (ver nota da Capability 01) — a Architecture Review (AR-1) recomendada pelo Founder após a Capability 03 é o próximo ponto natural para essa reconciliação numérica completa.
 
 ---
 
@@ -294,26 +294,26 @@ Pesos somam 100, refletindo a ordem de dependência real do produto (fundação 
 
 | Pilar | Peso | Descrição | Critério de maturidade (nível atual → alvo) | Nível atual estimado |
 |---|---|---|---|---|
-| **Arquitetura** | 15 | Aderência ao Blueprint (Domain Map, Target Architecture, ADRs), ausência de arquitetura paralela | Atual: fundação (Épico 1) e identidade (Épico 2) aderentes, sem duplicação de camada. Alvo: todos os 8 domínios implementados sem desvio do Blueprint aprovado. | ~25% |
-| **Governança** | 15 | Rastreabilidade EO→ADR/TDS→Architecture Review→PR→merge; Technical Debt e Baseline Defects registrados, nunca silenciosos | Atual: processo formalizado (LL-002) e seguido em 100% dos PRs até aqui (#36-#41); 1 colisão de numeração de ADR aberta. Alvo: zero colisões/inconsistências de numeração, 100% dos TDs com gatilho de resolução explícito. | ~85% |
-| **Segurança** | 15 | Segregação multi-tenant, autenticação, política de exclusão (FK/cascade), auditoria | Atual: segregação validada (schema+login); TD-001/002 (FK/delete policy) abertos e conscientemente aceitos até o primeiro endpoint de exclusão. Alvo: TD-001/002 resolvidos antes de qualquer DELETE exposto; RBAC aplicado (não só armazenado); auditoria completa (Épico 5). | ~40% |
-| **Workspace / Domínio de Produto** | 15 | Projeto/Portfolio/Programa como entidades reais com ciclo de vida completo | Atual: Projeto ainda é `project_name` livre nas análises de IA; `projects` existe no schema desde o Épico 1 mas não está em uso pelos Accelerators. Alvo: Épico 4 completo + Release 0.2 (Portfolio/Programa). | ~15% |
+| **Arquitetura** | 15 | Aderência ao Blueprint (Domain Map, Target Architecture, ADRs), ausência de arquitetura paralela | Atual: fundação (Épico 1), identidade (Épico 2) e domínio Portfolio/Program/Project de frontend (Capabilities 01-03, Release 0.2, ADR-V2-009) aderentes, sem duplicação de camada — 1 duplicação de regra de consolidação encontrada e corrigida pela AR-1. Alvo: todos os 8 domínios implementados sem desvio do Blueprint aprovado. | ~35% |
+| **Governança** | 15 | Rastreabilidade EO→ADR/TDS→Architecture Review→PR→merge; Technical Debt e Baseline Defects registrados, nunca silenciosos | Atual: processo formalizado (LL-002) e seguido em 100% dos PRs até aqui; Domain Blueprints + Decision Log + Domain Model consolidam as Capabilities 01-03; AR-1 é a primeira Architecture Review pós-Épico-2; 1 colisão de numeração de ADR aberta (pré-existente, não resolvida por esta AR-1). Alvo: zero colisões/inconsistências de numeração, 100% dos TDs com gatilho de resolução explícito. | ~85% |
+| **Segurança** | 15 | Segregação multi-tenant, autenticação, política de exclusão (FK/cascade), auditoria | Atual: segregação validada (schema+login); TD-001/002 (FK/delete policy) abertos e conscientemente aceitos até o primeiro endpoint de exclusão; domínio Portfolio/Program/Project (Capabilities 01-03) ainda não é multi-tenant porque ainda não é persistido (TD-007). Alvo: TD-001/002 resolvidos antes de qualquer DELETE exposto; RBAC aplicado (não só armazenado); auditoria completa (Épico 5). | ~40% |
+| **Workspace / Domínio de Produto** | 15 | Projeto/Portfolio/Programa como entidades reais com ciclo de vida completo | Atual: Portfolio, Program e Project existem como domínio real de frontend (DDD, cadeia vinculada e consolidação transitiva, Capabilities 01-03) — mas `analysis_records.project_name` continua texto livre e o `Project` real do backend (Épico 1) segue sem uso pelos Accelerators; 3 conceitos "Project" coexistem sem unificação (TD-008). Alvo: Épico 4 completo (unificação de Project) + backend real para Portfolio/Program. | ~45% |
 | **IA (Accelerators)** | 15 | Contrato formal de Accelerator, evidência/confiança/validação humana, cobertura dos 12 Accelerators do mapa | Atual: 3 de 12 Accelerators existem, todos ainda sobre o modelo V1 (`project_name` livre), sem contrato formal de evidência/confiança ainda aplicado. Alvo: Release 0.3 completa (contrato + 6 Accelerators) como marco intermediário; 12/12 como alvo final. | ~20% |
 | **Knowledge / Organizational Intelligence** | 5 | Accelerators de conhecimento organizacional (Knowledge Intelligence, Process/Dependency Intelligence) | Atual: 0/3 destes Accelerators específicos implementados (todos são Release 0.5+ no mapa). Alvo: conforme Release 0.5. | 0% |
 | **Observabilidade** | 5 | Camada transversal Data & Observability do Blueprint | Atual: sem iniciativa formal dedicada ainda. Alvo: requisitos não-funcionais do Blueprint (Seção 18) mensuráveis e monitorados. | 0% |
 | **Escalabilidade / Performance** | 5 | Requisitos não-funcionais (Seção 18 do Blueprint) | Atual: descritos, não medidos. Alvo: mesmo critério da Observabilidade — medição real, não apenas declaração. | ~5% |
-| **UX / Experiência Executiva** | 5 | Cockpit por perfil de stakeholder (8 perfis do Cockpit-Views-Matrix) | Atual: ~15% (Dashboard/Executive Brief do RC-1 cobrem parcialmente 1-2 dos 8 perfis). Alvo: 8/8 perfis com view dedicada. | ~15% |
-| **Testes** | 5 | Regressão completa (backend+frontend+E2E) antes de cada PR; Baseline Defects nunca confundidos com regressão | Atual: disciplina seguida em 100% dos PRs até aqui; 3 Baseline Defects (TD-004/005/006) documentados e conscientemente aceitos, não bloqueando releases. Alvo: TD-004/005/006 resolvidos (mesma causa raiz — race de invalidação do React Query) sem introduzir novos Baseline Defects não investigados. | ~80% |
+| **UX / Experiência Executiva** | 5 | Cockpit por perfil de stakeholder (8 perfis do Cockpit-Views-Matrix) | Atual: ~20% (Dashboard/Executive Brief do RC-1 cobrem parcialmente 1-2 dos 8 perfis; Program Execution + Top 5 Projects em atenção são widgets novos de dado real, ainda dentro do mesmo 1-2 perfis, não um perfil novo). Alvo: 8/8 perfis com view dedicada. | ~20% |
+| **Testes** | 5 | Regressão completa (backend+frontend+E2E) antes de cada PR; Baseline Defects nunca confundidos com regressão | Atual: disciplina seguida em 100% dos PRs até aqui (436 testes de frontend, 21 novos nas Capabilities 01-03); 3 Baseline Defects (TD-004/005/006) documentados e conscientemente aceitos, não bloqueando releases; nenhum novo Baseline Defect introduzido. Alvo: TD-004/005/006 resolvidos (mesma causa raiz — race de invalidação do React Query) sem introduzir novos Baseline Defects não investigados. | ~80% |
 
 ### Indicador Global de Maturidade
 
 Média ponderada: `Σ(peso × nível atual) / 100`.
 
-`(15×25 + 15×85 + 15×40 + 15×15 + 15×20 + 5×0 + 5×0 + 5×5 + 5×15 + 5×80) / 100`
-`= (375 + 1275 + 600 + 225 + 300 + 0 + 0 + 25 + 75 + 400) / 100`
-`= 3275 / 100 ≈ 32,75%`
+`(15×35 + 15×85 + 15×40 + 15×45 + 15×20 + 5×0 + 5×0 + 5×5 + 5×20 + 5×80) / 100`
+`= (525 + 1275 + 600 + 675 + 300 + 0 + 0 + 25 + 100 + 400) / 100`
+`= 3900 / 100 = 39%`
 
-**Indicador Global de Maturidade da STRATECH V2 ≈ 33%** — número citado no Executive Dashboard. Os "níveis atuais estimados" por pilar são estimativas qualitativas derivadas da própria descrição de cada pilar nesta tabela, não métricas medidas automaticamente — a atualizar para medição real assim que instrumentação de Observabilidade (pilar hoje em 0%) existir.
+**Indicador Global de Maturidade da STRATECH V2 ≈ 39%** (recalculado na Architecture Review AR-1, Release 0.2 — anteriormente ≈33%, medido antes das Capabilities 01-03). Os "níveis atuais estimados" por pilar são estimativas qualitativas derivadas da própria descrição de cada pilar nesta tabela, não métricas medidas automaticamente — a atualizar para medição real assim que instrumentação de Observabilidade (pilar hoje em 0%) existir.
 
 ---
 
@@ -380,6 +380,8 @@ Média ponderada: `Σ(peso × nível atual) / 100`.
 
 **⚠️ Colisão de numeração não resolvida:** `docs/architecture/ADR-V2-004-schema-foundation-integrated.md` reivindica o mesmo ID **ADR-V2-004** com um conteúdo completamente diferente (integração do schema do Épico 1 ao `main` via PR #39), já sinalizada desde o encerramento do GP-001 e nunca renumerada. Nenhuma renumeração foi autorizada até este documento — permanece um item pendente de decisão do Founder (normalização da árvore de ADRs, proposta e não executada durante a TDS Rev. 2 do Épico 2).
 
+**ADR-V2-009 (Capability 03, Release 0.2):** `docs/architecture/adr/ADR-V2-009-frontend-domain-layer.md` — Portfolio/Program/Project como camada de domínio de frontend (DDD, pré-persistência). Usa 009, não 008, porque 008 já está reservado em prosa (Architecture Evolution Proposal, Revisão 2) para uma extensão do Domain Map ainda não autorizada (Decision Log D-021).
+
 ### Technical Design Specifications (TDS)
 
 - **TDS Épico 2 — Identity Foundation, Rev. 2**: aprovada via AR-001/AR-002, implementada conforme EO-015 (Authorized to Implement) e corrigida em escopo organizacional (EO-015, Organizational Identity Scope Correction).
@@ -414,6 +416,8 @@ Média ponderada: `Σ(peso × nível atual) / 100`.
 | TD-004 | Baseline Defect — race de invalidação React Query (painel Riscos) | Aberto |
 | TD-005 | Baseline Defect — mesmo race (painel Comunicação) | Aberto |
 | TD-006 | Baseline Defect — mesmo race (Executive Memory "Mudou") | Aberto |
+| TD-007 | Domínio Portfolio/Program/Project (Capabilities 01-03) sem persistência, sem multi-tenant ainda | Aberto (aceito, AR-1) |
+| TD-008 | Três conceitos "Project" coexistem sem unificação (backend real, ProjectSummary, domínio) | Aberto (aceito até o Épico 4, AR-1) |
 
 ### Baseline Defects
 

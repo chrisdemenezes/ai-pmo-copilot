@@ -34,6 +34,21 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Progress } from "@/components/ui/progress";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const COLOR_TOKENS: Array<{ name: string; swatch: string }> = [
   { name: "bg", swatch: "bg-bg border border-border-strong" },
@@ -77,14 +92,15 @@ export default function StyleGuidePage() {
     <div className="mx-auto w-full max-w-4xl px-6 py-12">
       <header className="mb-12">
         <p className="font-mono text-xs uppercase tracking-wide text-accent">
-          Sprint 1 · Design System
+          STRATECH V2 · Design System
         </p>
         <h1 className="mt-2 font-display text-3xl font-bold text-ink">
-          AI PMO Copilot — Style Guide
+          STRATECH — Style Guide
         </h1>
         <p className="mt-2 max-w-2xl text-ink-muted">
-          Tokens e primitivos vivos, per RFC-001 Seção 5. Nenhum dado de API
-          real nesta página — isso é escopo dos próximos sprints.
+          Tokens e primitivos vivos, consolidados a partir do Design System da
+          V1 (RFC-001 Seção 5) para a evolução Enterprise da V2. Nenhum dado
+          de API real nesta página.
         </p>
       </header>
 
@@ -261,6 +277,61 @@ export default function StyleGuidePage() {
             <span className="text-sm text-ink-muted">2 riscos abertos</span>
           </CardContent>
         </Card>
+      </Section>
+
+      <Section
+        title="Table"
+        description="Base para listagens de Portfólio, Projetos e Documentos (Sprint 1)."
+      >
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Projeto</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Progresso</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell>Multilift</TableCell>
+              <TableCell>
+                <Badge variant={healthStatusVariant("yellow")}>yellow</Badge>
+              </TableCell>
+              <TableCell className="w-40">
+                <Progress value={62} />
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Aurora</TableCell>
+              <TableCell>
+                <Badge variant={healthStatusVariant("green")}>green</Badge>
+              </TableCell>
+              <TableCell className="w-40">
+                <Progress value={91} />
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </Section>
+
+      <Section title="Tooltip">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="outline">Passe o mouse</Button>
+          </TooltipTrigger>
+          <TooltipContent>KPI: % de conclusão do cronograma</TooltipContent>
+        </Tooltip>
+      </Section>
+
+      <Section title="Avatar">
+        <div className="flex gap-3">
+          <Avatar>
+            <AvatarFallback>AN</AvatarFallback>
+          </Avatar>
+          <Avatar>
+            <AvatarFallback>CP</AvatarFallback>
+          </Avatar>
+        </div>
       </Section>
     </div>
   );

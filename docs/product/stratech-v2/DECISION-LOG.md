@@ -1,0 +1,174 @@
+# STRATECH V2 — Product Decision Log
+
+Registro leve e cronológico de decisões de produto/técnicas tomadas durante a execução de Sprints — distinto dos ADRs (`docs/architecture/adr/`), que registram decisões arquiteturais formais e passam por Architecture Review. Aqui ficam decisões de menor porte, tomadas dentro da autonomia técnica já concedida pelo Founder, mas que vale registrar para rastreabilidade.
+
+---
+
+### D-001 — Marca visível renomeada para "STRATECH"
+
+- **Contexto:** produto ainda exibia "AI PMO Copilot" (V1) em sidebar/metadata/style guide.
+- **Decisão:** renomear para "STRATECH" em toda a superfície visível, consistente com a visão de produto já usada em toda a documentação da V2.
+- **Sprint:** 1, Dia 1.
+
+### D-002 — Novos primitivos de Design System seguem o padrão V1, não um novo
+
+- **Contexto:** Sprint 1 pedia consolidar um Design System; um já existia (RFC-001).
+- **Decisão:** estender (Table, Progress, Tooltip, Avatar), nunca recriar. Nenhuma nova convenção visual introduzida.
+- **Sprint:** 1, Dia 1.
+
+### D-003 — Dado mock do Executive Cockpit centralizado em um único arquivo
+
+- **Contexto:** Portfolio/Program não são entidades reais ainda (Release 0.2); a Sprint pede mock.
+- **Decisão:** todo dado simulado do Cockpit vive em `web/lib/mock/cockpit-data.ts` — quando a Release 0.2/0.3 wire dado real, só esse arquivo (e seus consumidores diretos) muda, não cada componente.
+- **Sprint:** 1, Entrega 2.1.
+
+### D-004 — Situação do Portfólio/Programa como grids novos, não retrofit do grid real de Projetos
+
+- **Contexto:** poderia ter reaproveitado `ProjectHealthGrid` genericamente para as 3 entidades.
+- **Decisão:** dois componentes novos (`PortfolioSituationGrid`, `ProgramSituationGrid`), mesma forma visual, mas sem generalizar prematuramente uma abstração comum entre 3 formatos de dado ainda em fluxo (2 mock, 1 real) — evita uma abstração errada agora que teria que ser desfeita quando o dado real chegar.
+- **Sprint:** 1, Entrega 2.2.
+
+### D-005 — "Riscos" do inventário de portfólio é distinto do Risk Intelligence de IA
+
+- **Contexto:** a Entrega 2.3 pediu "Riscos" como uma das 4 categorias (Demandas/Riscos/Issues/Mudanças); a V1 já tem um "Risk Intelligence" real (análise de IA sobre reuniões/riscos).
+- **Decisão:** manter os dois conceitos explicitamente separados — o "Riscos" do Mission Control/Cockpit é um item de trabalho formal de portfólio (com mitigação, dono, status), não a mesma coisa que a saída do agente `risk_review`. Documentado no componente para não confundir o próximo engenheiro.
+- **Sprint:** 1, Entrega 2.3.
+
+### D-006 — Mission Control usa dado real estático, não mock
+
+- **Contexto:** diferente do Executive Cockpit (Portfolio/Program simulados, porque não existem), o Mission Control mostra o estado real da governança (Épicos, PRs, débito técnico) — que já existe, só não está exposto via API.
+- **Decisão:** popular `mission-control-data.ts` com os fatos reais atuais (lidos manualmente dos artefatos de governança e do GitHub), não dado fictício — deixando claro no código que uma versão futura pode ler isso ao vivo (arquivo ou API), sem mudar a forma dos componentes.
+- **Sprint:** 1, Mission Control.
+
+### D-007 — Mission Control atrás da sessão, mas sem RBAC de Founder ainda
+
+- **Contexto:** a diretriz pede um painel "exclusivo do Founder"; RBAC funcional não existe (Épico 3 não iniciado).
+- **Decisão:** adicionar a rota ao gate de sessão existente (`proxy.ts`) — exige login, mas não distingue papel. Limitação documentada explicitamente na página, no código e neste log, não ocultada.
+- **Sprint:** 1, Mission Control.
+
+### D-008 — Executive Focus calculado a partir de dado real, não mock
+
+- **Contexto:** Executive Focus precisa responder "onde devo concentrar atenção hoje?" de forma confiável para um executivo real.
+- **Decisão:** reaproveitar `rankByRisk()` (já usado pelo Risk Concentration Ranking real) em vez de criar um novo cálculo ou usar dado simulado — o painel mais visualmente proeminente do Cockpit é o único, além do Mission Control, que não é mock.
+- **Sprint:** 1.4, Entrega 2.4.
+
+### D-009 — "Riscos" do inventário permanece distinto do Risk Intelligence de IA (reforço de D-005)
+
+- **Contexto:** Actions Center/AI Recommendations citam "Multilift" e riscos, criando risco de confundir com o Risk Concentration real.
+- **Decisão:** manter a separação de conceitos já registrada em D-005; nenhum texto novo combina os dois modelos de dado.
+- **Sprint:** 1.4, Entrega 2.4.
+
+### D-010 — Numeração "2.N" será substituída por Capabilities de produto
+
+- **Contexto:** o Founder recomendou abandonar a sequência "2.4/2.5" e passar a organizar o trabalho por Capability de negócio (Capability 01 — Executive Decision, 02 — Portfolio Intelligence, 03 — Governance, 04 — AI Copilot, 05 — Knowledge Intelligence).
+- **Decisão:** registrado como direção aprovada para a próxima Sprint — não aplicado retroativamente a esta Sprint 1 (que mantém "Dia N"/"2.N"/"Sprint 1.4" como já documentado, por não reescrever histórico).
+- **Sprint:** 1.4 (decisão para vigorar a partir da Sprint seguinte).
+
+### D-011 — Portfolio real, mas ainda sem persistência em banco
+
+- **Contexto:** Capability 01 pede Portfolio como "entidade real de domínio", mas o Founder também instrui manter o backend mockado nesta fase e preservar a arquitetura RC-1 — sem migração/model/provider novo (CLAUDE.md).
+- **Decisão:** implementar `web/lib/domain/portfolio.ts` como a primeira camada de domínio explícita do frontend — uma interface `Portfolio` completa (Identificação/Gestão/Indicadores/Governança) e um acessor assíncrono `listPortfolios()` com a mesma forma de um repositório real, resolvendo hoje a partir de dado semeado em memória. Nenhuma tabela/migração criada em `src/database`. Quando a Release 0.2 wireener um endpoint real, apenas o corpo de `listPortfolios()` muda — nenhum consumidor (`usePortfolios()`, `PortfolioSituationGrid`, Dashboard) é afetado.
+- **Sprint:** Release 0.2, Capability 01.
+
+### D-012 — Entidade Portfolio (V2) é distinta de "Portfolio Intelligence" (V1)
+
+- **Contexto:** `lib/portfolio-intelligence/portfolio-view.ts` já existe e é uma feature real do V1 (priorização executiva por projeto, via `buildExecutivePortfolioView`) — nome próximo ao da nova entidade `Portfolio` da Capability 01.
+- **Decisão:** manter os dois conceitos explicitamente separados, mesmo padrão de D-005/D-009 — a entidade `Portfolio` (`lib/domain/portfolio.ts`) representa um agrupamento estratégico real; "Portfolio Intelligence" continua sendo a visão de priorização por projeto do V1. Nenhum novo código combina os dois.
+- **Sprint:** Release 0.2, Capability 01.
+
+### D-013 — Definição de Pronto por Capability: 4 dimensões (Domínio, Experiência, Engenharia, Governança)
+
+- **Contexto:** o Founder recomendou uma "regra de ouro" — toda Capability só é considerada concluída quando a entidade existe corretamente (Domínio), está integrada ao Executive Cockpit com boa experiência (Experiência), arquitetura/testes permanecem íntegros (Engenharia) e os artefatos vivos foram atualizados (Governança).
+- **Decisão:** adotar essa regra como o padrão de Definition of Done para todas as Capabilities a partir da Release 0.2, registrado aqui como a fonte formal (não é um ADR, é uma norma de processo leve).
+- **Sprint:** Release 0.2 (decisão para vigorar a partir da Capability 01, em diante).
+
+### D-014 — Program implementado como classe DDD; Portfolio permanece como estava
+
+- **Contexto:** a partir da Capability 02, o Founder instituiu uma Diretriz Arquitetural Permanente contra modelos anêmicos — cada entidade deve encapsular seu próprio comportamento.
+- **Decisão:** `Program` (`web/lib/domain/program.ts`) nasce como classe, com invariante de construção (`Program.create()` recusa um Program sem `portfolioId`) e comportamento próprio (`belongsToPortfolio()`, `isAtRisk()`, `isOverdue()`). `Portfolio` (Capability 01) permanece `interface` + array — a diretriz vale a partir desta Capability; retrofitá-la agora seria refatoração desnecessária, sem requisito que a exija (Domain Blueprint CB-002 §1).
+- **Sprint:** Release 0.2, Capability 02.
+
+### D-015 — Vocabulário de domínio compartilhado (`shared.ts`)
+
+- **Contexto:** `Program` precisava dos mesmos três vocabulários já existentes em `Portfolio` (saúde/status/prioridade) — declará-los de novo seria duplicar código (CLAUDE.md).
+- **Decisão:** criado `web/lib/domain/shared.ts` (`DomainHealth`/`DomainStatus`/`DomainPriority`/`worstHealth`), reaproveitado por `Portfolio` e `Program`. `worstHealth()` é a regra de consolidação (vermelho vence amarelo vence verde) usada por `consolidatePortfolios()` e reaproveitável quando Program também precisar consolidar a partir de Projects.
+- **Sprint:** Release 0.2, Capability 02.
+
+### D-016 — Recomendação de substituir "Release 0.x" por Épicos de Produto, a partir da Capability 03
+
+- **Contexto:** o Founder recomendou, a partir da Capability 03, organizar a comunicação externa (clientes/parceiros/investidores) por Épicos de Produto (ex.: Epic 1 — Strategic Portfolio Management) em vez de "Release 0.x", sem perder o controle técnico das Capabilities.
+- **Decisão:** registrado como direção aprovada para vigorar a partir da Capability 03 — não aplicado retroativamente às Capabilities 01/02 ou à numeração "Release 0.2" já em uso nesta entrega, mesmo padrão de D-010 (Capability numbering).
+- **Sprint:** Release 0.2 (decisão para vigorar a partir da Capability 03).
+
+### D-017 — Mission Control ganha `layout.tsx` (AppShell), corrigindo lacuna pré-existente da Sprint 1
+
+- **Contexto:** ao criar `app/program-management/layout.tsx` (padrão de toda rota real: `<AppShell>` com Sidebar), notou-se que `app/mission-control/` nunca teve o seu — desde a Sprint 1, Mission Control renderizava sem Sidebar/navegação, embora já estivesse em `NAV_ITEMS`.
+- **Decisão:** corrigir por igualdade de padrão (mesmo `layout.tsx` de uma linha usado por Dashboard/Projects/Actions/Decisions/Portfolio/Aprendizados), não uma refatoração — Mission Control passa a ter Sidebar como as demais rotas reais.
+- **Sprint:** Release 0.2, Capability 02 (correção incidental, não solicitada, mas mesma disciplina de consistência do Design System).
+
+### D-018 — Project implementado como classe DDD, com Saúde/Progresso encapsulados por método
+
+- **Contexto:** o Founder listou `health()` e `completionPercentage()` entre os comportamentos exigidos de Project, mesmo esses dados aparecendo também como "Indicadores" na estrutura mínima — uma aparente tensão entre campo de dado e método de comportamento.
+- **Decisão:** resolver a favor do encapsulamento explícito — `progressPercentage`/`health` são campos privados, expostos apenas via `completionPercentage()`/`health()`. Os demais campos (nome, código, sponsor etc.) permanecem `readonly` públicos, mesmo padrão de `Program` (Capability 02) — não vale a pena o boilerplate de getters para dados sem comportamento associado.
+- **Sprint:** Release 0.2, Capability 03.
+
+### D-019 — Terceiro "Project" no código: distinto do `ProjectSummary` (V1) e do `Project` real do backend
+
+- **Contexto:** já existiam dois conceitos "Project": o model real do backend (Épico 1, `src/database/models.py`, persistido, hoje só usado para membership) e `ProjectSummary` (V1, `lib/dashboard/types.ts`, dado real do BFF, chaveado por `project_name` livre, usado pelo Cockpit "Projetos"). A Capability 03 introduz um terceiro `Project` (domínio, vinculado a Program).
+- **Decisão:** documentar explicitamente a distinção dos três (nenhum compartilha ID) — mesmo padrão de D-005/D-012 — em vez de tentar unificá-los agora. A unificação real é o Épico 4, fora do escopo desta Capability.
+- **Sprint:** Release 0.2, Capability 03.
+
+### D-020 — Cadeia de consolidação passa a ser transitiva (Project → Program → Portfolio)
+
+- **Contexto:** até a Capability 02, Portfolio derivava de Program, mas Program ainda carregava valores próprios semeados (sem Projects reais para derivar). Introduzir Project expôs que a consolidação precisava encadear, não apenas existir em cada par isolado.
+- **Decisão:** no Dashboard, `consolidatePrograms()` roda primeiro (Program deriva de Project), e o resultado alimenta `consolidatePortfolios()` (Portfolio deriva do Program já consolidado) — nunca mais o valor semeado de um nível intermediário.
+- **Sprint:** Release 0.2, Capability 03.
+
+### D-021 — ADR-V2-009 usa o número 009, não 008, para não colidir com uma reserva pendente
+
+- **Contexto:** o próximo ID sequencial de ADR seria 008, mas esse número já foi mencionado em prosa (Architecture Evolution Proposal, Revisão 2) para uma proposta de extensão do Domain Map (Demand/Resource/Issue/Change Request) nunca formalmente autorizada.
+- **Decisão:** usar `ADR-V2-009` para a decisão desta Capability (frontend domain layer), evitando reivindicar um número já reservado em prosa para outra decisão pendente — mesma disciplina de transparência de `NORMALIZATION-PLAN.md` sobre a colisão existente em `ADR-V2-004`.
+- **Sprint:** Release 0.2, Capability 03.
+
+### D-022 — Founder recomenda uma Architecture Review (AR-1) antes da Capability 04
+
+- **Contexto:** após a Capability 03 (terceira entidade real do domínio), o Founder recomendou uma pausa de uma iteração para uma Architecture Review — não para refatorar, mas para validar a consistência do domínio antes de Demand/Risk/Decision/Knowledge.
+- **Decisão:** registrado como recomendação aceita para o próximo passo, condicionada a nova instrução do Founder para efetivamente iniciar a AR-1 (mesmo padrão de D-010/D-016: registrar a direção, não executá-la preventivamente).
+- **Sprint:** Release 0.2, Capability 03 (recomendação para o próximo passo).
+
+### D-023 — Regra de consolidação duplicada extraída para `consolidateFromChildren()`
+
+- **Contexto:** a Architecture Review AR-1 encontrou `consolidatePortfolios()` (program.ts) e `consolidatePrograms()` (project.ts) implementando o mesmo algoritmo duas vezes (filtrar filhos por pai, média de progresso, saúde por pior-caso), violando "nunca duplicar código" (CLAUDE.md).
+- **Decisão:** extrair `consolidateFromChildren()` (`shared.ts`), parametrizada por um `rebuild` callback — a única parte que legitimamente difere entre Portfolio (objeto simples) e Program (classe, via `Program.create()`). Comportamento idêntico, comprovado pelos mesmos testes já existentes permanecendo verdes sem alteração.
+- **Sprint:** Release 0.2, Architecture Review AR-1.
+
+### D-024 — Faixa de KPIs do Executive Overview corrigida para dados reais
+
+- **Contexto:** a AR-1 encontrou `COCKPIT_KPIS` (mock, Sprint 1) ainda em uso no Dashboard mesmo depois de Portfolio/Program/Project virarem domínio real — "Programas em Execução"/"Projetos em Andamento" mostravam 8/24 (mock) contra 4/7 reais; "Decisões Pendentes" (5) nem batia com o próprio mock de Decision Center (4 itens).
+- **Decisão:** substituir por um array computado a partir de `usePortfolios()`/`usePrograms()`/`useProjects()` (filtrados por `status === "Ativo"`) e `criticalDecisionsCount` (o mesmo valor já usado pelo link `/decisions` para o qual o KPI aponta). `COCKPIT_KPIS` removido de `cockpit-data.ts` (export sem nenhum consumidor restante).
+- **Sprint:** Release 0.2, Architecture Review AR-1.
+
+### D-025 — Mock morto (`PortfolioSituation`/`ProgramSituation`) removido
+
+- **Contexto:** a AR-1 encontrou `PortfolioSituation`/`PORTFOLIO_SITUATIONS` e `ProgramSituation`/`PROGRAM_SITUATIONS` em `cockpit-data.ts` sem nenhum consumidor — as Capabilities 01/02 já haviam migrado `PortfolioSituationGrid`/`ProgramSituationGrid` para as entidades reais, mas o mock antigo nunca foi apagado.
+- **Decisão:** remover os 2 tipos + 2 arrays (e `CockpitHealth`, que só existia para eles). Nenhum comportamento muda — eram exports mortos.
+- **Sprint:** Release 0.2, Architecture Review AR-1.
+
+### D-026 — AR-1 não gerou nenhuma nova decisão arquitetural
+
+- **Contexto:** a Architecture Review AR-1 pediu explicitamente para registrar uma ADR nova caso alguma decisão arquitetural relevante surgisse da revisão, ou declarar explicitamente que a arquitetura foi validada sem alterações, caso contrário.
+- **Decisão:** nenhuma ADR nova foi necessária. As 3 correções aplicadas (D-023/024/025) são ajustes de qualidade dentro dos princípios já decididos em ADR-V2-009 — nenhuma mudou um princípio, convenção DDD ou regra de evolução. A arquitetura das Capabilities 01-03 foi certificada como consistente pela AR-1 (ver `docs/architecture/ARCHITECTURE-BASELINE-RC2.md` e o AR-1 Executive Report).
+- **Sprint:** Release 0.2, Architecture Review AR-1.
+
+### D-027 — CI encontrou um regressão real de E2E que a suíte local não pegou (`e2e/shell.spec.ts`)
+
+- **Contexto:** RC-2 (Enterprise Release Certification) começou verificando o PR #44 e encontrou o check obrigatório "frontend" falhando no CI — `e2e/shell.spec.ts` esperava exatamente 6 itens de navegação, mas o Sprint 1 (Mission Control), a Capability 02 (Program Management) e a Capability 03 (Project Delivery) já haviam levado o total a 9. `web/components/shell/navigation.test.ts` (teste unitário) foi atualizado a cada entrega, mas a suíte E2E Playwright (`npx playwright test`) nunca foi executada localmente durante nenhuma das Capabilities — apenas `vitest run` (testes unitários/componente), que não cobre este arquivo.
+- **Decisão:** corrigido `e2e/shell.spec.ts` para 9 itens, com asserções para `/program-management` e `/project-delivery`. Suíte E2E completa executada localmente (`--project=lg/md/mobile`, 67-68 testes cada) antes de reenviar ao CI — nenhuma outra quebra encontrada.
+- **Processo, registrado para não se repetir:** a partir de agora, qualquer entrega que altere `NAV_ITEMS` (ou qualquer superfície coberta por `web/e2e/*.spec.ts`) deve rodar `npx playwright test` localmente, não apenas `vitest run`, antes de declarar "sem regressões".
+- **Sprint:** RC-2 Enterprise Release Certification.
+
+---
+
+## Convenção
+
+Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.

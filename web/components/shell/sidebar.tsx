@@ -27,7 +27,7 @@ export function Sidebar() {
             <Sparkles className="size-4" aria-hidden="true" />
           </div>
           <span className="hidden font-display text-sm font-semibold text-ink lg:inline">
-            AI PMO Copilot
+            STRATECH
           </span>
         </div>
 
