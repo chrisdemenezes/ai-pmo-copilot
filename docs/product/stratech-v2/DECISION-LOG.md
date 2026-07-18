@@ -82,6 +82,30 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Decisão:** adotar essa regra como o padrão de Definition of Done para todas as Capabilities a partir da Release 0.2, registrado aqui como a fonte formal (não é um ADR, é uma norma de processo leve).
 - **Sprint:** Release 0.2 (decisão para vigorar a partir da Capability 01, em diante).
 
+### D-014 — Program implementado como classe DDD; Portfolio permanece como estava
+
+- **Contexto:** a partir da Capability 02, o Founder instituiu uma Diretriz Arquitetural Permanente contra modelos anêmicos — cada entidade deve encapsular seu próprio comportamento.
+- **Decisão:** `Program` (`web/lib/domain/program.ts`) nasce como classe, com invariante de construção (`Program.create()` recusa um Program sem `portfolioId`) e comportamento próprio (`belongsToPortfolio()`, `isAtRisk()`, `isOverdue()`). `Portfolio` (Capability 01) permanece `interface` + array — a diretriz vale a partir desta Capability; retrofitá-la agora seria refatoração desnecessária, sem requisito que a exija (Domain Blueprint CB-002 §1).
+- **Sprint:** Release 0.2, Capability 02.
+
+### D-015 — Vocabulário de domínio compartilhado (`shared.ts`)
+
+- **Contexto:** `Program` precisava dos mesmos três vocabulários já existentes em `Portfolio` (saúde/status/prioridade) — declará-los de novo seria duplicar código (CLAUDE.md).
+- **Decisão:** criado `web/lib/domain/shared.ts` (`DomainHealth`/`DomainStatus`/`DomainPriority`/`worstHealth`), reaproveitado por `Portfolio` e `Program`. `worstHealth()` é a regra de consolidação (vermelho vence amarelo vence verde) usada por `consolidatePortfolios()` e reaproveitável quando Program também precisar consolidar a partir de Projects.
+- **Sprint:** Release 0.2, Capability 02.
+
+### D-016 — Recomendação de substituir "Release 0.x" por Épicos de Produto, a partir da Capability 03
+
+- **Contexto:** o Founder recomendou, a partir da Capability 03, organizar a comunicação externa (clientes/parceiros/investidores) por Épicos de Produto (ex.: Epic 1 — Strategic Portfolio Management) em vez de "Release 0.x", sem perder o controle técnico das Capabilities.
+- **Decisão:** registrado como direção aprovada para vigorar a partir da Capability 03 — não aplicado retroativamente às Capabilities 01/02 ou à numeração "Release 0.2" já em uso nesta entrega, mesmo padrão de D-010 (Capability numbering).
+- **Sprint:** Release 0.2 (decisão para vigorar a partir da Capability 03).
+
+### D-017 — Mission Control ganha `layout.tsx` (AppShell), corrigindo lacuna pré-existente da Sprint 1
+
+- **Contexto:** ao criar `app/program-management/layout.tsx` (padrão de toda rota real: `<AppShell>` com Sidebar), notou-se que `app/mission-control/` nunca teve o seu — desde a Sprint 1, Mission Control renderizava sem Sidebar/navegação, embora já estivesse em `NAV_ITEMS`.
+- **Decisão:** corrigir por igualdade de padrão (mesmo `layout.tsx` de uma linha usado por Dashboard/Projects/Actions/Decisions/Portfolio/Aprendizados), não uma refatoração — Mission Control passa a ter Sidebar como as demais rotas reais.
+- **Sprint:** Release 0.2, Capability 02 (correção incidental, não solicitada, mas mesma disciplina de consistência do Design System).
+
 ---
 
 ## Convenção

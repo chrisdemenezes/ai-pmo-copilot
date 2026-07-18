@@ -6,7 +6,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Header } from "@/components/shell/header";
 import { usePortfolioSummary } from "@/lib/hooks/use-portfolio-summary";
 import { usePortfolios } from "@/lib/hooks/use-portfolios";
+import { usePrograms } from "@/lib/hooks/use-programs";
 import { useLatestRisks } from "@/lib/hooks/use-latest-risks";
+import { consolidatePortfolios } from "@/lib/domain/program";
 import { PortfolioSummaryStrip } from "@/components/dashboard/portfolio-summary-strip";
 import { ProjectHealthGrid } from "@/components/dashboard/project-health-grid";
 import { HealthStatusDistribution } from "@/components/dashboard/health-status-distribution";
@@ -24,7 +26,6 @@ import { AIRecommendationsPanel } from "@/components/cockpit/ai-recommendations-
 import { computeExecutiveFocus } from "@/lib/dashboard/executive-focus";
 import {
   COCKPIT_KPIS,
-  PROGRAM_SITUATIONS,
   WORK_ITEM_BREAKDOWN,
   PENDING_DECISIONS,
   PRIORITY_ACTIONS,
@@ -35,6 +36,7 @@ import {
 export default function DashboardPage() {
   const { data, isPending, isError, error, refetch, isFetching } = usePortfolioSummary();
   const portfolios = usePortfolios();
+  const programs = usePrograms();
   const risks = useLatestRisks();
 
   if (isPending) {
@@ -53,6 +55,10 @@ export default function DashboardPage() {
 
   const projects = data ?? [];
   const executiveFocus = computeExecutiveFocus(projects);
+  // Capability 02: o bloco "Situação do Portfólio" nunca lê os
+  // indicadores semeados do Portfolio -- sempre a versão derivada dos
+  // Programs reais (Domain Blueprint CB-002 §2).
+  const consolidatedPortfolios = consolidatePortfolios(portfolios.data ?? [], programs.data ?? []);
   // Single Decision Source (TIP-009 §08): a mesma buildExecutiveDecisionQueue()
   // do /decisions, nunca uma contagem recalculada aqui. null enquanto o
   // sinal de Risco ainda não resolveu -- nunca afirma um número que pode
@@ -90,22 +96,28 @@ export default function DashboardPage() {
         <div>
           <h2 className="font-display text-lg font-semibold text-ink">Situação do Portfólio</h2>
           <p className="text-sm text-ink-muted">
-            Capability 01 (Release 0.2) — Portfólio já é uma entidade real do domínio.
+            Capability 01/02 (Release 0.2) — indicadores consolidados a partir dos Programs reais.
           </p>
         </div>
-        {portfolios.isPending ? (
+        {portfolios.isPending || programs.isPending ? (
           <Skeleton className="h-48" />
         ) : (
-          <PortfolioSituationGrid portfolios={portfolios.data ?? []} />
+          <PortfolioSituationGrid portfolios={consolidatedPortfolios} />
         )}
       </section>
 
       <section className="flex flex-col gap-3">
         <div>
           <h2 className="font-display text-lg font-semibold text-ink">Situação dos Programas</h2>
-          <p className="text-sm text-ink-muted">Demonstração — Programa ainda não é uma entidade real (Release 0.2).</p>
+          <p className="text-sm text-ink-muted">
+            Capability 02 (Release 0.2) — Programa já é uma entidade real do domínio.
+          </p>
         </div>
-        <ProgramSituationGrid programs={PROGRAM_SITUATIONS} />
+        {programs.isPending || portfolios.isPending ? (
+          <Skeleton className="h-48" />
+        ) : (
+          <ProgramSituationGrid programs={programs.data ?? []} portfolios={portfolios.data ?? []} />
+        )}
       </section>
 
       <section className="flex flex-col gap-3">

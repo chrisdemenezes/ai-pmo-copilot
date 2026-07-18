@@ -8,9 +8,11 @@
  *
  * First implementation of Portfolio → Program → Project → Demand → Risk →
  * Decision → Action → Knowledge (Diretriz Arquitetural Permanente,
- * Release 0.2). Only Portfolio exists as a real entity so far; Program is
- * not implemented yet, so `programCount`/`projectCount` here are
- * indicators owned by Portfolio itself, not a real foreign-key relation.
+ * Release 0.2). Since Capability 02, Program is a real entity
+ * (`./program.ts`) and `programCount`/`progressPercentage`/`health` below
+ * are seed defaults only — `consolidatePortfolios()` in `program.ts`
+ * derives the values actually shown in the Executive Cockpit from real
+ * Programs, per Domain Blueprint CB-002 §2.
  *
  * `listPortfolios()` is async and repository-shaped on purpose: no backend
  * schema/migration exists yet for Portfolio (Domain Blueprint CB-001,
@@ -19,9 +21,11 @@
  * real fetch later requires no change to any caller.
  */
 
-export type PortfolioHealth = "green" | "yellow" | "red";
-export type PortfolioStatus = "Planejado" | "Ativo" | "Encerrado";
-export type PortfolioPriority = "Alta" | "Média" | "Baixa";
+import type { DomainHealth, DomainStatus, DomainPriority } from "./shared";
+
+export type PortfolioHealth = DomainHealth;
+export type PortfolioStatus = DomainStatus;
+export type PortfolioPriority = DomainPriority;
 
 export interface Portfolio {
   // Identificação

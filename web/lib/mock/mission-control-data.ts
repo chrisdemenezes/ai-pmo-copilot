@@ -36,7 +36,7 @@ export interface ReleaseStatusEntry {
 
 export const RELEASE_STATUS: ReleaseStatusEntry[] = [
   { version: "0.1", name: "Enterprise Foundation", status: "In Progress", progress: 33 },
-  { version: "0.2", name: "Portfolio & Governance Foundation", status: "In Progress", progress: 10 },
+  { version: "0.2", name: "Portfolio & Governance Foundation", status: "In Progress", progress: 20 },
   { version: "0.3", name: "AI Foundation", status: "Not Started", progress: 0 },
   { version: "0.4", name: "Integration Hub", status: "Not Started", progress: 0 },
   { version: "0.5", name: "Event Orchestration", status: "Not Started", progress: 0 },
@@ -98,13 +98,14 @@ export interface RecentDecisionEntry {
 }
 
 export const RECENT_DECISIONS: RecentDecisionEntry[] = [
+  { id: "D-017", summary: "Mission Control ganha layout.tsx (AppShell), corrigindo lacuna de Sidebar da Sprint 1" },
+  { id: "D-016", summary: "Recomendação de substituir \"Release 0.x\" por Épicos de Produto, a partir da Capability 03" },
+  { id: "D-015", summary: "Vocabulário de domínio compartilhado (shared.ts) entre Portfolio e Program" },
+  { id: "D-014", summary: "Program implementado como classe DDD; Portfolio permanece como estava (sem refatoração desnecessária)" },
   { id: "D-013", summary: "Definição de Pronto por Capability: 4 dimensões (Domínio, Experiência, Engenharia, Governança)" },
   { id: "D-012", summary: "Entidade Portfolio (V2) é distinta de \"Portfolio Intelligence\" (V1)" },
   { id: "D-011", summary: "Portfolio real como domínio de frontend, ainda sem persistência em banco" },
   { id: "D-010", summary: "Numeração \"2.N\" substituída por Capabilities de produto" },
-  { id: "D-009", summary: "\"Riscos\" do inventário permanece distinto do Risk Intelligence de IA (reforço de D-005)" },
-  { id: "D-008", summary: "Executive Focus calculado a partir de dado real, não mock" },
-  { id: "D-007", summary: "Mission Control atrás da sessão, mas sem RBAC de Founder ainda" },
 ];
 
 export interface ProductPulseEntry {
@@ -112,12 +113,12 @@ export interface ProductPulseEntry {
   done: boolean;
 }
 
-/** Release 0.2, Capability 01 -- Product Pulse (topo do Mission Control). */
+/** Release 0.2, Capability 02 -- Product Pulse (topo do Mission Control). */
 export const PRODUCT_PULSE_TODAY: ProductPulseEntry[] = [
-  { label: "Portfolio implementado como entidade real de domínio (Capability 01)", done: true },
-  { label: "Executive Cockpit consumindo Portfolio real (Situação do Portfólio)", done: true },
-  { label: "Mission Control ganhou a seção Capability Progress", done: true },
-  { label: "405 testes de frontend executados com sucesso", done: true },
+  { label: "Program implementado como entidade real de domínio, ligado a Portfolio (Capability 02)", done: true },
+  { label: "Situação do Portfólio consolidada automaticamente a partir dos Programs reais", done: true },
+  { label: "Nova página Program Management publicada", done: true },
+  { label: "418 testes de frontend executados com sucesso", done: true },
 ];
 
 export const PRODUCT_DNA_STATEMENT =
@@ -140,8 +141,41 @@ export const CAPABILITY_PROGRESS: CapabilityProgressEntry[] = [
   {
     code: "Capability 01",
     name: "Portfolio Management",
-    progress: 55,
-    status: "In Progress",
-    nextMilestone: "Program Management",
+    progress: 100,
+    status: "Done",
+    nextMilestone: "Program Management (aprovada pelo Founder)",
   },
+  {
+    code: "Capability 02",
+    name: "Program Management",
+    progress: 60,
+    status: "In Progress",
+    nextMilestone: "Project Execution (vínculo Program → Project)",
+  },
+];
+
+export interface DomainEvolutionNode {
+  name: string;
+  status: "Done" | "In Progress" | "Not Started";
+  note?: string;
+}
+
+/**
+ * Diagrama textual da Diretriz Arquitetural Permanente (Release 0.2):
+ * Portfolio -> Program -> Project -> Demand -> Risk -> Decision -> Action
+ * -> Knowledge. Reflete o estado real do domínio, não uma aspiração.
+ */
+export const DOMAIN_EVOLUTION: DomainEvolutionNode[] = [
+  { name: "Portfolio", status: "Done" },
+  { name: "Program", status: "In Progress" },
+  {
+    name: "Project",
+    status: "Not Started",
+    note: "Já existe (Épico 1/RC-1), ainda não vinculado a Program",
+  },
+  { name: "Demand", status: "Not Started" },
+  { name: "Risk", status: "Not Started" },
+  { name: "Decision", status: "Not Started" },
+  { name: "Action", status: "Not Started" },
+  { name: "Knowledge", status: "Not Started" },
 ];

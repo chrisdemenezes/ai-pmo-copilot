@@ -22,8 +22,10 @@ import {
   PRODUCT_PULSE_TODAY,
   PRODUCT_DNA_STATEMENT,
   CAPABILITY_PROGRESS,
+  DOMAIN_EVOLUTION,
   type EpicStatus,
   type CapabilityProgressEntry,
+  type DomainEvolutionNode,
 } from "@/lib/mock/mission-control-data";
 
 /**
@@ -119,6 +121,32 @@ export default function MissionControlPage() {
             </Card>
           ))}
         </div>
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="font-display text-lg font-semibold text-ink">Evolução do Domínio</h2>
+        <p className="text-sm text-ink-muted">
+          Portfolio → Program → Project → Demand → Risk → Decision → Action → Knowledge — estado real, não aspiracional.
+        </p>
+        <Card>
+          <CardContent className="flex flex-wrap items-center gap-2 p-5">
+            {DOMAIN_EVOLUTION.map((node, index) => (
+              <div key={node.name} className="flex items-center gap-2">
+                <div className="flex flex-col items-center gap-1">
+                  <Badge variant={domainNodeVariant(node.status)}>{node.name}</Badge>
+                  {node.note ? (
+                    <span className="max-w-[10rem] text-center text-[10px] leading-tight text-ink-muted">
+                      {node.note}
+                    </span>
+                  ) : null}
+                </div>
+                {index < DOMAIN_EVOLUTION.length - 1 ? (
+                  <span className="text-ink-faint" aria-hidden="true">→</span>
+                ) : null}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
       </section>
 
       <section className="flex flex-col gap-3">
@@ -276,6 +304,12 @@ function epicStatusVariant(status: EpicStatus) {
 }
 
 function capabilityStatusVariant(status: CapabilityProgressEntry["status"]) {
+  if (status === "Done") return "ok" as const;
+  if (status === "In Progress") return "warn" as const;
+  return "neutral" as const;
+}
+
+function domainNodeVariant(status: DomainEvolutionNode["status"]) {
   if (status === "Done") return "ok" as const;
   if (status === "In Progress") return "warn" as const;
   return "neutral" as const;
