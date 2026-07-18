@@ -115,6 +115,8 @@ flowchart LR
 
 **Regra de não-antecipação:** nenhum estágio pula o anterior — não há Implementation sem Architecture aprovada, não há Merge sem Architecture Review do PR, não há Release declarada sem todos os Épicos daquela Release fechados (Seção 9, Definition of Done).
 
+> **Adoção do Product Engineering Framework (EO-021):** o fluxo acima descreve a Foundation Phase (Épicos 1-2). A partir de agora, todo novo trabalho segue o fluxo **Product-First** — Product Vision → Capability Blueprint → Founder Approval → Engineering Order → Technical Design → Implementation → Architecture Review → Merge —, com decisões funcionais tomadas e aprovadas antes da engenharia via Capability Blueprint (`docs/product/capability-blueprints/`). Fonte primária: `docs/governance/GOVERNANCE_MODEL.md`, Seção 2A. Nenhuma Release, Épico ou planejamento futuro deste documento foi alterado por esta nota — apenas o registro da adoção do novo framework.
+
 ---
 
 ## 3. Product Roadmap (Programas)

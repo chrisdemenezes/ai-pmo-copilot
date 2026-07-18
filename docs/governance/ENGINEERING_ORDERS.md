@@ -112,3 +112,24 @@ Registro cronológico e append-only de todas as Engineering Orders (EOs) e decis
 - **Data:** 2026-07-18.
 - **Status:** Executada — merge realizado (commit `ef760ee426f58eb3dad48f7d3eb3ed248308107d`). Exclusão da branch **não executada**: nenhuma ferramenta de exclusão de branch disponível nesta sessão e `git push --delete` rejeitado (HTTP 403) pelo proxy do repositório — requer ação do Founder (botão "Delete branch" no GitHub, ou concessão de escopo adicional).
 - **Artefatos relacionados:** PR #41, `docs/releases/RELEASE-0.1.md`, `docs/product/STRATECH_V2_MASTER_ROADMAP.md`, `docs/governance/ARCHITECTURE_REVIEWS.md` (AR-003).
+
+### EO-019 — Epic 2 Closure (PR administrativo)
+
+- **Objetivo:** autorizar a abertura de um Pull Request exclusivamente documental, na branch `governance/epic-2-closure`, consolidando a atualização de `RELEASE-0.1.md`, Master Roadmap e registros de governança refletindo o encerramento do Épico 2.
+- **Data:** 2026-07-18.
+- **Status:** Executada — PR #42 aberto.
+- **Artefatos relacionados:** PR #42.
+
+### EO-020 — Foundation Release Closure (revisada)
+
+- **Objetivo:** encerramento administrativo da "Foundation Release" — merge do PR #42, exclusão da branch `governance/epic-2-closure`, confirmação de ausência de PRs pendentes, Foundation Release Report. **Revisada em tempo real pelo Founder:** a versão original pedia declarar a Release 0.1 inteira como `COMPLETED`; identificada inconsistência com a documentação aprovada (Release 0.1 ainda contém os Épicos 3-6, não iniciados) e reportada via pergunta explícita antes de qualquer escrita de status. O Founder corrigiu: registrar apenas a **Foundation Phase** (Épicos 1+2) como concluída; Release 0.1 permanece `IN PROGRESS`.
+- **Data:** 2026-07-18.
+- **Status:** Executada — merge do PR #42 (commit `df477610aaee072d436697f2b8e2fc8db4b76c00`). Exclusão da branch `governance/epic-2-closure` **não executada** (mesma limitação de ferramenta/permissão do EO-MERGE-001). Foundation Release Report entregue em texto de resposta (não persistido em arquivo).
+- **Artefatos relacionados:** PR #42.
+
+### EO-021 — Product Engineering Framework
+
+- **Objetivo:** institucionalizar o processo Product-First (Product Vision → Capability Blueprint → Founder Approval → Engineering Order → Technical Design → Implementation → Architecture Review → Merge), incluindo o template oficial de Capability Blueprint e o mecanismo de Engineering Questions (EQ). Explicitamente não autoriza nenhuma implementação funcional, criação de Capability, ou início do Épico 3/PI-0.2.
+- **Data:** 2026-07-18.
+- **Status:** Executada.
+- **Artefatos relacionados:** `docs/product/capability-blueprints/CAPABILITY_BLUEPRINT_TEMPLATE.md`, `docs/governance/GOVERNANCE_MODEL.md` (Seção 2A, Seção 5), `docs/product/STRATECH_V2_MASTER_ROADMAP.md` (nota de adoção).
