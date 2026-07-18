@@ -21,16 +21,16 @@ Indicadores consolidados, calculados a partir das seções deste documento (meto
 | Indicador | Valor |
 |---|---|
 | **Release atual** | 0.1 — Enterprise Foundation (em andamento) |
-| **Épico atual** | Épico 2 — Identidade e autenticação individual (PR #41, aguardando Architecture Review; não realizar merge sem EO-MERGE) |
-| **Próximo épico** | Épico 3 — Organização e RBAC inicial (Not Started; depende do merge do Épico 2) |
-| **Progresso do Release 0.1** | ~32% — média simples dos 6 Épicos (Épico 1 = 100%, Épico 2 = 90%, Épicos 3-6 = 0%) |
-| **Progresso geral da STRATECH V2** | ~6% — estimativa provisória tratando as 5 Releases com peso igual (1/5 cada) e aplicando o progresso conhecido apenas à Release 0.1, já que Releases 0.2-0.5 ainda não têm Épicos desmembrados para medir. Metodologia a refinar assim que 0.2-0.5 forem desmembradas em Épicos. |
+| **Épico atual** | Nenhum em implementação — Épico 2 concluído (merge commit `ef760ee426f58eb3dad48f7d3eb3ed248308107d`, PR #41, EO-MERGE-001) |
+| **Próximo épico** | Épico 3 — Organização e RBAC inicial (Not Started) |
+| **Progresso do Release 0.1** | ~33% — média simples dos 6 Épicos (Épico 1 = 100%, Épico 2 = 100%, Épicos 3-6 = 0%) |
+| **Progresso geral da STRATECH V2** | ~7% — estimativa provisória tratando as 5 Releases com peso igual (1/5 cada) e aplicando o progresso conhecido apenas à Release 0.1, já que Releases 0.2-0.5 ainda não têm Épicos desmembrados para medir. Metodologia a refinar assim que 0.2-0.5 forem desmembradas em Épicos. |
 | **Indicador Global de Maturidade** | ~33% — média ponderada dos 10 pilares do Product Maturity Model (Seção 8); ver cálculo completo lá |
 | **Arquitetura** | Aderente ao Blueprint aprovado; 0 desvios de taxonomia registrados; **1 pendência aberta**: colisão de numeração ADR-V2-004 (Seção 10) |
 | **Capacidades de negócio** (Capability Matrix, Seção 7) | 3 de 17 completas (100%), 3 em andamento parcial (90%/33%/~15%), 11 não iniciadas — média simples ≈ 26% |
 | **Dívida técnica** (Technical Debt Register) | 6 itens abertos/planejados: TD-001/002/003 (arquiteturais, desde o Épico 1) + TD-004/005/006 (Baseline Defects, desde o Épico 2) |
 | **Baseline Defects** | 3 (TD-004/005/006) — falhas E2E comprovadamente pré-existentes, aceitas conscientemente, não bloqueiam PR/Release |
-| **Pull Requests** | 6 no total (#36-#41): 5 merged, **1 aberto** (#41, CI PASS WITH ACCEPTED BASELINE DEFECTS, sem merge) |
+| **Pull Requests** | 6 no total (#36-#41): **6 merged**, 0 aberto (#41 mergeado — AR-003 APPROVED WITH OBSERVATIONS, EO-MERGE-001) |
 | **Governança** | Modelo de 3 papéis em uso ativo desde o Épico 1 (LL-002); 100% dos PRs até aqui seguiram o fluxo EO→Architecture Review→PR→(aguardar)→merge |
 
 ---
@@ -127,7 +127,7 @@ Por pedido da EO-016A, os mesmos 8 domínios + 3 transversais são também agrup
 
 | Programa (= Domínio do Blueprint) | Objetivo | Dependências | Épicos/Releases relacionados | Status atual | Critério de conclusão |
 |---|---|---|---|---|---|
-| **Enterprise Foundation** (inclui Identity, Organization, Authorization/RBAC) | Organização, usuário, papel, permissão, sessão e auditoria como fundação estrutural multi-tenant | Nenhuma (fundação) | Épicos 1-3, 5 (Release 0.1) | **Em andamento** — Épico 1 fechado (PR #39/#40); Épico 2 em Architecture Review (PR #41); Épicos 3/5 não iniciados | Release 0.1 completa: schema, identidade, RBAC inicial (4 papéis) e auditoria mínima em produção |
+| **Enterprise Foundation** (inclui Identity, Organization, Authorization/RBAC) | Organização, usuário, papel, permissão, sessão e auditoria como fundação estrutural multi-tenant | Nenhuma (fundação) | Épicos 1-3, 5 (Release 0.1) | **Em andamento** — Épicos 1 e 2 fechados (PR #39/#40, PR #41); Épicos 3/5 não iniciados | Release 0.1 completa: schema, identidade, RBAC inicial (4 papéis) e auditoria mínima em produção |
 | **Integration Hub** | Conectores por organização, credenciais, sincronização, mapeamento de entidades | Enterprise Foundation (credenciais por org), Portfolio/Project (alvo de sync) | Release 0.4 | **Não iniciado** | 1 conector de referência funcional em produção, com monitoramento e tratamento de erro |
 | **Event & Orchestration** | Event Bus, taxonomia de eventos, regras/workflows simples, human-in-the-loop obrigatório | Todos os domínios anteriores (produtores de evento) | Release 0.5 | **Não iniciado** — Event Map é taxonomia de referência, nenhum evento roda em produção ainda | Event Bus operacional, workflows com aprovação humana obrigatória para ações críticas (ADR-V2-007), auditoria de orquestração |
 | **Transversal A — Security, Audit & Compliance** | Segurança, auditoria e compliance como camada transversal (não um domínio isolado) | Todos | Presente desde Épico 1 (segregação multi-tenant), reforçado no Épico 5 (auditoria) | **Em andamento** — segregação entre organizações validada (RELEASE-0.1.md); auditoria mínima ainda não implementada (Épico 5) | Auditoria completa de mutações + segregação multi-tenant comprovada por testes em todos os domínios |
@@ -227,7 +227,7 @@ Apenas os 6 Épicos do Release 0.1 estão formalmente definidos até este docume
 | Código | Nome | Descrição | Dependências | Status |
 |---|---|---|---|---|
 | **Épico 1** | Schema relacional e migração para Postgres/Alembic | `organizations`, `users`, `roles`, `permissions`, `role_permissions`, `user_roles`, `projects`, `user_project_memberships`; migração de `analysis_records` para referenciar `Project` real | Nenhuma | **Merged** — PR #39 (código), PR #40/GP-001 (encerramento formal: ADR-V2-004-schema-foundation-integrated.md, TD-001/002/003, RELEASE-0.1.md, LL-001/002) |
-| **Épico 2** | Identidade e autenticação individual | `AuthenticatedUser`/`OrganizationIdentity`/`SessionIdentity`/`RequestContext`; Argon2; `AuthService` com login escopado por organização+e-mail+senha (corrigido via EO-015); bootstrap transacional de Administrator e Demo User; migrations 0003 (`identity_type`) e 0004 (`organization_slug`) | Épico 1 | **Architecture Review** — PR #41 aberto, CI PASS WITH ACCEPTED BASELINE DEFECTS, aguardando revisão arquitetural independente. Não realizar merge sem EO-MERGE. |
+| **Épico 2** | Identidade e autenticação individual | `AuthenticatedUser`/`OrganizationIdentity`/`SessionIdentity`/`RequestContext`; Argon2; `AuthService` com login escopado por organização+e-mail+senha (corrigido via EO-015); bootstrap transacional de Administrator e Demo User; migrations 0003 (`identity_type`) e 0004 (`organization_slug`) | Épico 1 | **Merged** — PR #41, merge commit `ef760ee426f58eb3dad48f7d3eb3ed248308107d`. AR-003: APPROVED WITH OBSERVATIONS. Merge autorizado por EO-MERGE-001. |
 | **Épico 3** | Organização e RBAC inicial | Vínculo User↔Organization; motor de permissões sobre os 4 papéis; suíte de segregação cross-tenant em CI | Épico 2 (identidade deve existir antes de autorização) | **Not Started** |
 | **Épico 4** | Projeto como entidade real | `Project` com nome/descrição/criticidade/prioridade/status/datas/sponsor/gerente; vínculo User↔Project; ligação das análises de IA existentes (Status/Risco/Reunião) à entidade real em vez de `project_name` livre | Épico 3 (RBAC deve existir antes de expor Projeto multiusuário) | **Not Started** |
 | **Épico 5** | Auditoria e administração mínima | Log de auditoria para mutações de Org/User/Role/Project; telas administrativas mínimas sob novo item de navegação "Administração" | Épicos 1-4 (audita entidades que já devem existir) | **Not Started** |
@@ -241,13 +241,13 @@ O roadmap de releases **formalmente aprovado** hoje é `Release-Roadmap-0.1-to-0
 
 | Release | Objetivo | Depende de | Está fora de escopo | Status | Progresso |
 |---|---|---|---|---|---|
-| **0.1 — Enterprise Foundation** | Organização única por instalação, autenticação individual, RBAC de 4 papéis, Projeto como entidade persistente, auditoria básica, telas administrativas mínimas | Nenhuma (primeira release da V2) | Portfólio, Programa, convites além do básico, atores externos, SSO, qualquer novo AI Accelerator, Integration Hub, Orquestração | **Em andamento** — Épico 1 fechado, Épico 2 em Architecture Review, Épicos 3-6 não iniciados | **~32%** (Épico 1=100%, Épico 2=90%, Épicos 3-6=0%, média simples dos 6) |
+| **0.1 — Enterprise Foundation** | Organização única por instalação, autenticação individual, RBAC de 4 papéis, Projeto como entidade persistente, auditoria básica, telas administrativas mínimas | Nenhuma (primeira release da V2) | Portfólio, Programa, convites além do básico, atores externos, SSO, qualquer novo AI Accelerator, Integration Hub, Orquestração | **Em andamento** — Épicos 1 e 2 fechados, Épicos 3-6 não iniciados | **~33%** (Épico 1=100%, Épico 2=100%, Épicos 3-6=0%, média simples dos 6) |
 | **0.2 — Portfolio & Governance Foundation** | Portfólio, Programa, times, convites de usuário, stakeholders, sponsors, atores externos (cliente/fornecedor/consultor/auditor/parceiro), expansão de RBAC rumo ao conjunto de referência de 14 papéis (ou subconjunto necessário) | Release 0.1 | Novos AI Accelerators, Integration Hub, Orquestração | **Not Started** | **0%** |
 | **0.3 — AI Foundation** | Contrato de Accelerator (evidência/confiança/validação humana/auditoria); portar Project Health, Risk Intelligence e Meeting Intelligence do RC-1 para a entidade `Project` real | Release 0.1 (0.2 enriquece, não bloqueia) | Integration Hub, Orquestração, os 9 Accelerators restantes | **Not Started** | **0%** |
 | **0.4 — Integration Hub** | Arquitetura de conectores, credenciais por organização, mapeamento de entidades, sincronização, monitoramento, tratamento de erro; 1 conector de referência (candidatos: ClickUp, Teams, ou importação estruturada de MS Project — avaliação técnica pendente) | Release 0.1 (credenciais) e 0.2 (Projeto/Portfólio como alvo de sync) | — | **Not Started** | **0%** |
 | **0.5 — Event Orchestration** | Event Bus, taxonomia de eventos (Event Map), regras/workflows simples, human-in-the-loop obrigatório para ações críticas, auditoria/observabilidade de orquestração | Releases 0.1-0.4 | — | **Not Started** | **0%** |
 
-**Visão consolidada de progresso (peso igual por Release, 20% cada):** 0.1 → 32% × 20% = 6,4 pontos; 0.2-0.5 → 0 pontos cada. **Progresso agregado da STRATECH V2 ≈ 6,4%**, coerente com o indicador do Executive Dashboard (arredondado para ~6%). Esta é uma metodologia provisória — assume peso igual entre Releases por não haver ainda uma unidade comum (ex.: contagem de Épicos) para 0.2-0.5, que ainda não foram desmembradas.
+**Visão consolidada de progresso (peso igual por Release, 20% cada):** 0.1 → 33% × 20% = 6,6 pontos; 0.2-0.5 → 0 pontos cada. **Progresso agregado da STRATECH V2 ≈ 6,6%**, coerente com o indicador do Executive Dashboard (arredondado para ~7%). Esta é uma metodologia provisória — assume peso igual entre Releases por não haver ainda uma unidade comum (ex.: contagem de Épicos) para 0.2-0.5, que ainda não foram desmembradas.
 
 **Nota — proposta de mapeamento RC-N/GA (pendente de aprovação do Founder, não é decisão vigente):**
 
@@ -391,7 +391,7 @@ Média ponderada: `Σ(peso × nível atual) / 100`.
 | Executive Pre-Merge Architecture Review | PR #39 (Épico 1) | APPROVED WITH OBSERVATIONS (TD-001/002/003 conscientemente aceitos) |
 | AR-001 | TDS Épico 2, Rev. 1 | 10 correções solicitadas |
 | AR-002 | TDS Épico 2, Rev. 2 | Aprovada |
-| *(pendente)* | PR #41 (Épico 2) | Aguardando Architecture Review independente — status atual: READY FOR ARCHITECTURE REVIEW |
+| AR-003 | PR #41 (Épico 2, implementação final) | APPROVED WITH OBSERVATIONS — merge autorizado por EO-MERGE-001 |
 
 ### Pull Requests
 
@@ -402,7 +402,7 @@ Média ponderada: `Σ(peso × nível atual) / 100`.
 | #38 | STRATECH V1 Closure Proposal (correção de status) | Merged |
 | #39 | Épico 1 — Enterprise Foundation Schema | Merged (`4dcf7e886467e86c37524bd0fb46f70b70a7778c`) |
 | #40 | Governance Package GP-001 — Encerramento do Épico 1 | Merged (`ef5ba009c33bde543064457a3b3247ffb722a0ce`) |
-| #41 | Épico 2 — Identity Foundation (organization-scoped) | **Aberto**, CI PASS WITH ACCEPTED BASELINE DEFECTS, sem merge — aguardando Architecture Review + EO-MERGE |
+| #41 | Épico 2 — Identity Foundation (organization-scoped) | **Merged** (`ef760ee426f58eb3dad48f7d3eb3ed248308107d`) — AR-003 APPROVED WITH OBSERVATIONS, EO-MERGE-001 |
 
 ### Technical Debt Register
 
