@@ -36,7 +36,7 @@ Continuidade de `CAPABILITY-02-PROGRAM-MANAGEMENT.md` (aprovada pelo Founder ant
 ### Verificação
 
 - **Evidência:** `tsc --noEmit` limpo, `eslint .` limpo, `vitest run` — 436 testes verdes (18 novos em `project.test.ts`, 3 novos em `project-delivery/page.test.tsx`, ajuste em `navigation.test.ts`).
-- **Commit:** `(a registrar no push desta entrega)`.
+- **Commit:** `c91e854`.
 
 ---
 
