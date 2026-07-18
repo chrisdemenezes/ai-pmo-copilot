@@ -43,6 +43,14 @@ Registro vivo de débitos arquiteturais conhecidos. Cada item tem origem, status
 - **Descrição:** (1) o `Project` real do backend (`src/database/models.py`, Épico 1, persistido, hoje só usado para membership); (2) `ProjectSummary` (`web/lib/dashboard/types.ts`, dado real do V1/BFF, chaveado por `project_name` livre); (3) `Project` do domínio (`web/lib/domain/project.ts`, Capability 03, vinculado a Program). Nenhum compartilha ID. Risco real: um novo engenheiro pode importar o `Project` errado para uma nova feature sem perceber a diferença — mitigado hoje por documentação explícita (docstrings + Decision Log), não por um mecanismo que impeça o erro em tempo de compilação.
 - **Resolver antes de:** Épico 4 (unificação de `Project`) — candidato natural a também resolver este item.
 
+## TD-009 — Cobertura de testes do frontend não instrumentada
+
+- **Origem:** RC-2 Enterprise Release Certification, Etapa 5 (Qualidade).
+- **Classificação:** Baixo.
+- **Status:** Aberto.
+- **Descrição:** `web/` não tem `@vitest/coverage-v8` instalado — `vitest run --coverage` falha por dependência ausente. O backend (`src/`) já mede cobertura real (97%, via `pytest --cov`); o frontend não tem visibilidade equivalente. Consistente com o pilar "Observabilidade" do Product Maturity Model, hoje em 0%.
+- **Resolver antes de:** nenhum gatilho específico — melhoria de visibilidade, não um risco ativo. Candidato natural para quando a Phase 2 exigir métricas de qualidade mais rigorosas.
+
 ---
 
 ## Baseline Defects — falhas E2E pré-existentes, não introduzidas por Épicos
@@ -77,6 +85,24 @@ Categoria distinta de TD-001/002/003: não são débitos arquiteturais de uma de
 - **Teste afetado:** `web/e2e/executive-memory.spec.ts` › `shows a Mudou Executive Memory Insight right after Analisar Projeto changes the health status`
 - **Sintoma:** idêntico a TD-004/005, aplicado ao Executive Brief / Memory Insight.
 - **Resolver:** junto com TD-004 (mesma causa raiz).
+
+---
+
+## RC-2 Classification Matrix (Etapa 6, Enterprise Release Certification)
+
+Classificação por dimensão (Arquitetural/Código/Performance/UX/Segurança/Documentação), impacto, prioridade, probabilidade, esforço e se bloqueia a Phase 2 — Enterprise AI Platform.
+
+| TD | Dimensão | Impacto | Prioridade | Probabilidade | Esforço | Bloqueia Phase 2? |
+|---|---|---|---|---|---|---|
+| TD-001 | Arquitetural | Alto | Média | Baixa (só se um DELETE for exposto) | Baixo | NÃO |
+| TD-002 | Arquitetural | Alto | Média | Baixa (mesma condição de TD-001) | Médio (decisão de produto + implementação) | NÃO |
+| TD-003 | Código | Baixo | Baixa | Baixa | Baixo | NÃO |
+| TD-004/005/006 | Código | Médio (UX momentâneo, corrige em refetch) | Média | Média (intermitente, comprovado) | Médio (revisão de invalidação de queries) | NÃO |
+| TD-007 | Arquitetural + Segurança (prospectivo) | Alto (se esquecido no dia da persistência) | Alta (quando o backend for wireado) | Baixa hoje (nada persistido ainda) | Baixo (padrão já estabelecido no Épico 1) | NÃO hoje — mas resolver antes de qualquer persistência real de Portfolio/Program/Project |
+| TD-008 | Código + Documentação | Médio (risco de confusão para novo engenheiro) | Média | Média | Alto (unificação real é o Épico 4) | NÃO |
+| TD-009 | Documentação | Baixo | Baixa | N/A (lacuna de instrumentação, não um risco ativo) | Baixo (instalar `@vitest/coverage-v8`) | NÃO |
+
+**Nenhum item bloqueia o início da Phase 2.** TD-007 é o único com prioridade que sobe de "não bloqueante" para "resolver antes de" no momento em que qualquer entidade deste domínio for persistida em banco — condição ainda não disparada.
 
 ---
 
