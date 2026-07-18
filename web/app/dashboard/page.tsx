@@ -11,6 +11,8 @@ import { ProjectHealthGrid } from "@/components/dashboard/project-health-grid";
 import { HealthStatusDistribution } from "@/components/dashboard/health-status-distribution";
 import { RiskConcentrationRanking } from "@/components/dashboard/risk-concentration-ranking";
 import { buildExecutiveDecisionQueue, groupLatestRisksByProject } from "@/lib/decision-center/decision-queue";
+import { CockpitKpiStrip } from "@/components/cockpit/cockpit-kpi-strip";
+import { COCKPIT_KPIS } from "@/lib/mock/cockpit-data";
 
 export default function DashboardPage() {
   const { data, isPending, isError, error, refetch, isFetching } = usePortfolioSummary();
@@ -45,7 +47,7 @@ export default function DashboardPage() {
       <Header>
         <div>
           <p className="font-mono text-xs font-semibold uppercase tracking-wide text-accent">
-            Portfólio Executivo
+            STRATECH · Executive Cockpit
           </p>
           <h1 className="font-display text-2xl font-semibold">Dashboard Executivo</h1>
         </div>
@@ -53,6 +55,16 @@ export default function DashboardPage() {
           {isFetching ? "Atualizando…" : "Atualizar"}
         </Button>
       </Header>
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="font-display text-lg font-semibold text-ink">Visão Executiva</h2>
+          <p className="text-sm text-ink-muted">
+            Indicadores de Portfólio/Programa/Projeto — demonstração (Sprint 1, dados simulados).
+          </p>
+        </div>
+        <CockpitKpiStrip kpis={COCKPIT_KPIS} />
+      </section>
 
       {projects.length === 0 ? (
         <EmptyState />
