@@ -174,6 +174,12 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Observação registrada, não decidida unilateralmente:** o documento assume que a sequência Phase 2 (Foundation Architecture → AI Foundation → Knowledge Platform → Executive Copilot → Workflow Automation → Executive Intelligence) reorganiza o restante do roadmap de Releases (0.3-0.5) — sinalizado como suposição a confirmar, não uma reescrita do Master Roadmap.
 - **Sprint:** Phase 2, Foundation Architecture (missão de governança, sem implementação).
 
+### D-029 — Phase 2 Foundation Technical Design produzido, ainda sem ADR e sem implementação
+
+- **Contexto:** a Foundation Architecture proposal (D-028) foi aprovada conceitualmente pelo Architecture Review Board. A Executive Directive seguinte pediu um Technical Design de nível de implementação para as mesmas 5 áreas (API, Persistence, Organizational Scoping, RBAC, Event Architecture), com 15 elementos por área (Objetivo, Responsabilidades, Componentes, Interfaces/Protocols, Fluxo de execução, Dependências, Estrutura de diretórios, Contratos públicos/internos, Diagrama lógico, Sequência de chamadas, Estratégia de testes, Critérios de aceite, Impactos, Riscos, Plano de migração) — explicitamente sem código, sem novo ADR, sem alteração da Baseline, sem mudança funcional.
+- **Decisão:** produzido `docs/architecture/PHASE-2-FOUNDATION-TECHNICAL-DESIGN.md`, com Protocols nomeados (`PortfolioRepository`, `ProgramRepository`, `ProjectDeliveryRepository`, `PermissionChecker`, `EventEmitter`), estrutura de diretórios concreta e planos de teste/migração, fundamentados em código real já existente (`intelligence.py`, `identity_context.py`, `enterprise_repository.py`, `identity/interfaces.py`). O risco já nomeado na proposta (D-028) sobre `projects_delivery` virar um 4º conceito de "Project" caso o Épico 4 não seja decidido antes (TD-008) foi mantido e tornado explícito como gate obrigatório antes de qualquer migração de dados reais. Nenhum ADR foi criado — permanece a mesma regra de D-028 (ADR vem quando a implementação começar).
+- **Sprint:** Phase 2, Foundation Technical Design (missão de governança, sem implementação).
+
 ---
 
 ## Convenção

@@ -99,6 +99,7 @@ export interface RecentDecisionEntry {
 }
 
 export const RECENT_DECISIONS: RecentDecisionEntry[] = [
+  { id: "D-029", summary: "Phase 2 Foundation Technical Design produzido (5 áreas, 15 elementos cada) — ainda sem código, sem ADR, sem alteração de Baseline" },
   { id: "D-028", summary: "Phase 2 Foundation Architecture produzida como proposta, não como ADR aprovada" },
   { id: "D-027", summary: "CI encontrou uma regressão real de E2E que a suíte local não pegou (e2e/shell.spec.ts)" },
   { id: "D-026", summary: "AR-1 não gerou nenhuma nova decisão arquitetural — arquitetura certificada sem alterações de princípio" },
@@ -119,6 +120,7 @@ export const PRODUCT_PULSE_TODAY: ProductPulseEntry[] = [
   { label: "PR #44 mergeado em main — baseline oficial pós Capabilities 01-03 + AR-1 + RC-2", done: true },
   { label: "Phase 1 — Enterprise Platform Foundation encerrada", done: true },
   { label: "Phase 2 — Enterprise AI Platform iniciada (Foundation Architecture proposta, sem implementação)", done: true },
+  { label: "Phase 2 Foundation Technical Design produzido (API, Persistence, Org Scoping, RBAC, Events) — ainda sem implementação", done: true },
   { label: "Regressão real de E2E encontrada pelo CI e corrigida (e2e/shell.spec.ts)", done: true },
 ];
 
@@ -151,7 +153,7 @@ export const PROGRAM_PHASES: ProgramPhaseEntry[] = [
     code: "Phase 2",
     name: "Enterprise AI Platform",
     status: "In Progress",
-    detail: "Foundation Architecture proposal produzida (docs/architecture/PHASE-2-FOUNDATION-ARCHITECTURE.md), pendente de aprovação -- nenhuma implementação ainda",
+    detail: "Foundation Architecture aprovada conceitualmente; Technical Design produzido (docs/architecture/PHASE-2-FOUNDATION-TECHNICAL-DESIGN.md) -- nenhuma implementação ainda",
   },
 ];
 
