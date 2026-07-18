@@ -12,7 +12,9 @@ import { HealthStatusDistribution } from "@/components/dashboard/health-status-d
 import { RiskConcentrationRanking } from "@/components/dashboard/risk-concentration-ranking";
 import { buildExecutiveDecisionQueue, groupLatestRisksByProject } from "@/lib/decision-center/decision-queue";
 import { CockpitKpiStrip } from "@/components/cockpit/cockpit-kpi-strip";
-import { COCKPIT_KPIS } from "@/lib/mock/cockpit-data";
+import { PortfolioSituationGrid } from "@/components/cockpit/portfolio-situation-grid";
+import { ProgramSituationGrid } from "@/components/cockpit/program-situation-grid";
+import { COCKPIT_KPIS, PORTFOLIO_SITUATIONS, PROGRAM_SITUATIONS } from "@/lib/mock/cockpit-data";
 
 export default function DashboardPage() {
   const { data, isPending, isError, error, refetch, isFetching } = usePortfolioSummary();
@@ -64,6 +66,22 @@ export default function DashboardPage() {
           </p>
         </div>
         <CockpitKpiStrip kpis={COCKPIT_KPIS} />
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="font-display text-lg font-semibold text-ink">Situação do Portfólio</h2>
+          <p className="text-sm text-ink-muted">Demonstração — Portfólio ainda não é uma entidade real (Release 0.2).</p>
+        </div>
+        <PortfolioSituationGrid portfolios={PORTFOLIO_SITUATIONS} />
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="font-display text-lg font-semibold text-ink">Situação dos Programas</h2>
+          <p className="text-sm text-ink-muted">Demonstração — Programa ainda não é uma entidade real (Release 0.2).</p>
+        </div>
+        <ProgramSituationGrid programs={PROGRAM_SITUATIONS} />
       </section>
 
       {projects.length === 0 ? (

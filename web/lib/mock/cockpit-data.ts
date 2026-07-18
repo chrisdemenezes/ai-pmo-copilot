@@ -20,3 +20,77 @@ export const COCKPIT_KPIS: CockpitKPI[] = [
   { label: "Projetos em Andamento", value: "24" },
   { label: "Decisões Pendentes", value: "5", href: "/decisions" },
 ];
+
+export type CockpitHealth = "green" | "yellow" | "red";
+
+export interface PortfolioSituation {
+  name: string;
+  health: CockpitHealth;
+  progress: number;
+  programsCount: number;
+  projectsCount: number;
+  owner: string;
+}
+
+export const PORTFOLIO_SITUATIONS: PortfolioSituation[] = [
+  {
+    name: "Portfólio Corporativo",
+    health: "yellow",
+    progress: 58,
+    programsCount: 4,
+    projectsCount: 14,
+    owner: "Diretoria de Estratégia",
+  },
+  {
+    name: "Portfólio de Transformação Digital",
+    health: "green",
+    progress: 74,
+    programsCount: 3,
+    projectsCount: 8,
+    owner: "CIO",
+  },
+  {
+    name: "Portfólio de Expansão Regional",
+    health: "red",
+    progress: 31,
+    programsCount: 1,
+    projectsCount: 2,
+    owner: "VP de Operações",
+  },
+];
+
+export interface ProgramSituation {
+  name: string;
+  portfolio: string;
+  health: CockpitHealth;
+  progress: number;
+  projectsCount: number;
+  owner: string;
+}
+
+export const PROGRAM_SITUATIONS: ProgramSituation[] = [
+  {
+    name: "Modernização de Plataformas",
+    portfolio: "Portfólio de Transformação Digital",
+    health: "green",
+    progress: 80,
+    projectsCount: 3,
+    owner: "Gerente de Programa — Ana Ribeiro",
+  },
+  {
+    name: "Eficiência Operacional",
+    portfolio: "Portfólio Corporativo",
+    health: "yellow",
+    progress: 52,
+    projectsCount: 5,
+    owner: "Gerente de Programa — Bruno Castro",
+  },
+  {
+    name: "Entrada em Novos Mercados",
+    portfolio: "Portfólio de Expansão Regional",
+    health: "red",
+    progress: 28,
+    projectsCount: 2,
+    owner: "Gerente de Programa — Carla Mendes",
+  },
+];
