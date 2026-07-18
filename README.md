@@ -4,24 +4,28 @@
 
 An intelligent PMO assistant designed to automate project governance, reporting, meeting intelligence and decision support using Artificial Intelligence.
 
-**Status: STRATECH V1 RC-1 — Release Candidate. Feature Freeze: ACTIVE.** The V1 build is
-officially closed — see `docs/product/release-candidate/Release-Candidate-Declaration.html` and
-`docs/product/release-candidate/RC-1-Manifest.html` for the full gate history and official
-composition of this Release Candidate. Only defect fixes, security hardening, documentation, and
-observability changes are in scope during this phase — no new Capabilities, no architectural
-changes, no UX changes, no new integrations, no functional expansion. Any future functional
-proposal belongs exclusively in `docs/product/release-candidate/V2-Candidate-Backlog.html`, not in
-this branch. Baseline artifacts (Product Constitution, Architecture Gate, Visual Fidelity Gate,
-Release Readiness Review, RC Approval Review, runbooks, ADRs, RFCs) are locked under
-`docs/product/release-candidate/Baseline-Configuration.html` — see that document for the formal
-version-control rule governing any change to them.
+**Status: STRATECH V2 — Release 0.2 in progress (RC-2).** The V1 RC-1 Feature Freeze described
+below has ended: STRATECH V2's Release 0.1 (Enterprise Foundation — Organization/Identity schema,
+Épicos 1-2) is merged, and Release 0.2 (Portfolio & Governance Foundation) has completed its first
+three Capabilities — Portfolio Management, Program Management, and Project Delivery — as a DDD
+domain layer in `web/lib/domain/`, certified by Architecture Review AR-1
+(`docs/architecture/ARCHITECTURE-BASELINE-RC2.md`, `docs/product/governance/AR-1-EXECUTIVE-REPORT.md`).
+See `docs/product/STRATECH_V2_MASTER_ROADMAP.md` for current status across all Releases/Épicos/
+Capabilities, and `docs/architecture/DOMAIN-MODEL.md` for the domain reference. The backend (`src/`)
+is untouched by this V2 frontend domain work — no migration, no new provider/registry (see
+`docs/governance/GOVERNANCE_MODEL.md` for the full Product-First governance flow).
+
+The V1 RC-1 baseline artifacts below (Product Constitution, Architecture Gate, Visual Fidelity
+Gate, Release Readiness Review, RC Approval Review, runbooks, ADRs, RFCs, gate history in
+`docs/product/release-candidate/`) remain the historical record of the V1 closure and are kept for
+traceability — they describe the platform's state before STRATECH V2 began, not its current scope.
 
 The STRATECH Product Constitution (`docs/product/stratech-constitution/STRATECH-Product-Constitution.html`)
-is the platform's single conceptual reference. Earlier release notes (Release 0.2/0.3, the prior
+remains the V1 conceptual reference. Earlier release notes (Release 0.2/0.3, the prior
 RC-1 for Executive Decision Experience, `docs/releases/RDR-0.2.md`,
 `docs/releases/ADR-012-founder-decision-release-0.3.md`) predate the STRATECH V1 consolidation and
-are kept for historical traceability only — they no longer describe the platform's current scope
-or status.
+are kept for historical traceability only — they describe neither V1's final scope nor STRATECH
+V2's current status.
 
 ## Architectural Decision
 
@@ -29,7 +33,9 @@ The official application tree is `src/`.
 
 Legacy or parallel implementations must not be expanded. New code must be added only inside `src/` until the MVP baseline has passing CI evidence.
 
-## Current Scope (STRATECH V1 RC-1)
+## Current Scope
+
+### Backend (`src/`) — STRATECH V1 RC-1 baseline, unchanged by V2 so far
 
 - FastAPI application entrypoint in `src/main.py`
 - Intelligence router in `src/api/routes/intelligence.py`
@@ -37,8 +43,14 @@ Legacy or parallel implementations must not be expanded. New code must be added 
 - Single prompt registry
 - Production LLM provider using Anthropic via environment configuration (or `mock` for Demo Mode, no key required)
 - SQLAlchemy persistence repository (SQLite locally, Postgres in production)
-- 8 Capabilities on the frontend (`web/`) — see the Product Constitution for the full list
+- Enterprise Foundation schema (Organization/User/Role/Permission/Project, multi-tenant) — STRATECH V2 Épico 1-2
 - CI workflow running lint, tests, and E2E (`.github/workflows/ci.yml`)
+
+### Frontend (`web/`) — V1's 8 Capabilities + STRATECH V2 Release 0.2 additions
+
+- The original 8 Capabilities — see the Product Constitution for the full list
+- STRATECH V2 Executive Cockpit (Portfolio/Program situation, Program Execution, Executive Focus, Decision Center) and Mission Control (Founder governance panel)
+- Portfolio, Program, and Project as a real DDD domain layer (`web/lib/domain/`) — see `docs/architecture/DOMAIN-MODEL.md`
 
 ## Repository Structure
 
