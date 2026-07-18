@@ -130,6 +130,36 @@ export class Program {
       new Date(this.plannedEndDate) < referenceDate
     );
   }
+
+  /** Plain-object snapshot -- lets consolidatePrograms() (project.ts) rebuild a Program via create() with updated indicators, without re-listing every field by hand at each call site. */
+  toProps(): ProgramProps {
+    return {
+      id: this.id,
+      name: this.name,
+      code: this.code,
+      description: this.description,
+      portfolioId: this.portfolioId,
+      sponsor: this.sponsor,
+      programManager: this.programManager,
+      status: this.status,
+      health: this.health,
+      priority: this.priority,
+      objective: this.objective,
+      startDate: this.startDate,
+      plannedEndDate: this.plannedEndDate,
+      actualEndDate: this.actualEndDate,
+      progressPercentage: this.progressPercentage,
+      projectCount: this.projectCount,
+      linkedDemands: this.linkedDemands,
+      linkedRisks: this.linkedRisks,
+      linkedIssues: this.linkedIssues,
+      pendingDecisions: this.pendingDecisions,
+      pendingActions: this.pendingActions,
+      pmoOwner: this.pmoOwner,
+      lastUpdated: this.lastUpdated,
+      nextReview: this.nextReview,
+    };
+  }
 }
 
 const PROGRAMS: Program[] = [

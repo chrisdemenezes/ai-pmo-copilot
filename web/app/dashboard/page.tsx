@@ -7,8 +7,10 @@ import { Header } from "@/components/shell/header";
 import { usePortfolioSummary } from "@/lib/hooks/use-portfolio-summary";
 import { usePortfolios } from "@/lib/hooks/use-portfolios";
 import { usePrograms } from "@/lib/hooks/use-programs";
+import { useProjects } from "@/lib/hooks/use-projects";
 import { useLatestRisks } from "@/lib/hooks/use-latest-risks";
 import { consolidatePortfolios } from "@/lib/domain/program";
+import { consolidatePrograms } from "@/lib/domain/project";
 import { PortfolioSummaryStrip } from "@/components/dashboard/portfolio-summary-strip";
 import { ProjectHealthGrid } from "@/components/dashboard/project-health-grid";
 import { HealthStatusDistribution } from "@/components/dashboard/health-status-distribution";
@@ -17,6 +19,7 @@ import { buildExecutiveDecisionQueue, groupLatestRisksByProject } from "@/lib/de
 import { CockpitKpiStrip } from "@/components/cockpit/cockpit-kpi-strip";
 import { PortfolioSituationGrid } from "@/components/cockpit/portfolio-situation-grid";
 import { ProgramSituationGrid } from "@/components/cockpit/program-situation-grid";
+import { ProgramExecutionPanel } from "@/components/cockpit/program-execution-panel";
 import { WorkItemsOverview } from "@/components/cockpit/work-items-overview";
 import { ExecutiveFocusPanel } from "@/components/cockpit/executive-focus-panel";
 import { DecisionCenterPanel } from "@/components/cockpit/decision-center-panel";
@@ -37,6 +40,7 @@ export default function DashboardPage() {
   const { data, isPending, isError, error, refetch, isFetching } = usePortfolioSummary();
   const portfolios = usePortfolios();
   const programs = usePrograms();
+  const deliveryProjects = useProjects();
   const risks = useLatestRisks();
 
   if (isPending) {
@@ -55,10 +59,12 @@ export default function DashboardPage() {
 
   const projects = data ?? [];
   const executiveFocus = computeExecutiveFocus(projects);
-  // Capability 02: o bloco "Situação do Portfólio" nunca lê os
-  // indicadores semeados do Portfolio -- sempre a versão derivada dos
-  // Programs reais (Domain Blueprint CB-002 §2).
-  const consolidatedPortfolios = consolidatePortfolios(portfolios.data ?? [], programs.data ?? []);
+  // Capability 03: a cadeia de consolidação é transitiva -- Program deriva
+  // de seus Projects reais primeiro, e só então Portfolio deriva desses
+  // Programs já consolidados (Domain Blueprint CB-003 §2), nunca mais dos
+  // valores semeados de Program isolado (Capability 02).
+  const consolidatedPrograms = consolidatePrograms(programs.data ?? [], deliveryProjects.data ?? []);
+  const consolidatedPortfolios = consolidatePortfolios(portfolios.data ?? [], consolidatedPrograms);
   // Single Decision Source (TIP-009 §08): a mesma buildExecutiveDecisionQueue()
   // do /decisions, nunca uma contagem recalculada aqui. null enquanto o
   // sinal de Risco ainda não resolveu -- nunca afirma um número que pode
@@ -110,13 +116,27 @@ export default function DashboardPage() {
         <div>
           <h2 className="font-display text-lg font-semibold text-ink">Situação dos Programas</h2>
           <p className="text-sm text-ink-muted">
-            Capability 02 (Release 0.2) — Programa já é uma entidade real do domínio.
+            Capability 02/03 (Release 0.2) — indicadores consolidados a partir dos Projects reais.
           </p>
         </div>
-        {programs.isPending || portfolios.isPending ? (
+        {programs.isPending || portfolios.isPending || deliveryProjects.isPending ? (
           <Skeleton className="h-48" />
         ) : (
-          <ProgramSituationGrid programs={programs.data ?? []} portfolios={portfolios.data ?? []} />
+          <ProgramSituationGrid programs={consolidatedPrograms} portfolios={portfolios.data ?? []} />
+        )}
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="font-display text-lg font-semibold text-ink">Program Execution</h2>
+          <p className="text-sm text-ink-muted">
+            Capability 03 (Release 0.2) — Projects por Program, saúde consolidada e Top 5 que exigem atenção.
+          </p>
+        </div>
+        {programs.isPending || deliveryProjects.isPending ? (
+          <Skeleton className="h-48" />
+        ) : (
+          <ProgramExecutionPanel programs={consolidatedPrograms} projects={deliveryProjects.data ?? []} />
         )}
       </section>
 

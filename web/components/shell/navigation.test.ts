@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { NAV_ITEMS } from "./navigation";
 
 describe("NAV_ITEMS", () => {
-  it("contains exactly eight entries -- the only fully real modules today (Capability 02, Mission Control)", () => {
-    expect(NAV_ITEMS).toHaveLength(8);
+  it("contains exactly nine entries -- the only fully real modules today (Capability 03, Mission Control)", () => {
+    expect(NAV_ITEMS).toHaveLength(9);
   });
 
   it("points the first entry at the real Dashboard route", () => {
@@ -27,23 +27,28 @@ describe("NAV_ITEMS", () => {
     expect(NAV_ITEMS[3].label).toBe("Program Management");
   });
 
-  it("points the fifth entry at the real Ações route", () => {
-    expect(NAV_ITEMS[4].href).toBe("/actions");
-    expect(NAV_ITEMS[4].label).toBe("Ações");
+  it("points the fifth entry at the real Project Delivery route", () => {
+    expect(NAV_ITEMS[4].href).toBe("/project-delivery");
+    expect(NAV_ITEMS[4].label).toBe("Project Delivery");
   });
 
-  it("points the sixth entry at the real Decisões route", () => {
-    expect(NAV_ITEMS[5].href).toBe("/decisions");
-    expect(NAV_ITEMS[5].label).toBe("Decisões");
+  it("points the sixth entry at the real Ações route", () => {
+    expect(NAV_ITEMS[5].href).toBe("/actions");
+    expect(NAV_ITEMS[5].label).toBe("Ações");
   });
 
-  it("points the seventh entry at the real Aprendizados (Organizational Intelligence) route", () => {
-    expect(NAV_ITEMS[6].href).toBe("/aprendizados");
-    expect(NAV_ITEMS[6].label).toBe("Aprendizados");
+  it("points the seventh entry at the real Decisões route", () => {
+    expect(NAV_ITEMS[6].href).toBe("/decisions");
+    expect(NAV_ITEMS[6].label).toBe("Decisões");
   });
 
-  it("points the eighth entry at Mission Control", () => {
-    expect(NAV_ITEMS[7].href).toBe("/mission-control");
-    expect(NAV_ITEMS[7].label).toBe("Mission Control");
+  it("points the eighth entry at the real Aprendizados (Organizational Intelligence) route", () => {
+    expect(NAV_ITEMS[7].href).toBe("/aprendizados");
+    expect(NAV_ITEMS[7].label).toBe("Aprendizados");
+  });
+
+  it("points the ninth entry at Mission Control", () => {
+    expect(NAV_ITEMS[8].href).toBe("/mission-control");
+    expect(NAV_ITEMS[8].label).toBe("Mission Control");
   });
 });

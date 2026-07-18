@@ -106,6 +106,36 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Decisão:** corrigir por igualdade de padrão (mesmo `layout.tsx` de uma linha usado por Dashboard/Projects/Actions/Decisions/Portfolio/Aprendizados), não uma refatoração — Mission Control passa a ter Sidebar como as demais rotas reais.
 - **Sprint:** Release 0.2, Capability 02 (correção incidental, não solicitada, mas mesma disciplina de consistência do Design System).
 
+### D-018 — Project implementado como classe DDD, com Saúde/Progresso encapsulados por método
+
+- **Contexto:** o Founder listou `health()` e `completionPercentage()` entre os comportamentos exigidos de Project, mesmo esses dados aparecendo também como "Indicadores" na estrutura mínima — uma aparente tensão entre campo de dado e método de comportamento.
+- **Decisão:** resolver a favor do encapsulamento explícito — `progressPercentage`/`health` são campos privados, expostos apenas via `completionPercentage()`/`health()`. Os demais campos (nome, código, sponsor etc.) permanecem `readonly` públicos, mesmo padrão de `Program` (Capability 02) — não vale a pena o boilerplate de getters para dados sem comportamento associado.
+- **Sprint:** Release 0.2, Capability 03.
+
+### D-019 — Terceiro "Project" no código: distinto do `ProjectSummary` (V1) e do `Project` real do backend
+
+- **Contexto:** já existiam dois conceitos "Project": o model real do backend (Épico 1, `src/database/models.py`, persistido, hoje só usado para membership) e `ProjectSummary` (V1, `lib/dashboard/types.ts`, dado real do BFF, chaveado por `project_name` livre, usado pelo Cockpit "Projetos"). A Capability 03 introduz um terceiro `Project` (domínio, vinculado a Program).
+- **Decisão:** documentar explicitamente a distinção dos três (nenhum compartilha ID) — mesmo padrão de D-005/D-012 — em vez de tentar unificá-los agora. A unificação real é o Épico 4, fora do escopo desta Capability.
+- **Sprint:** Release 0.2, Capability 03.
+
+### D-020 — Cadeia de consolidação passa a ser transitiva (Project → Program → Portfolio)
+
+- **Contexto:** até a Capability 02, Portfolio derivava de Program, mas Program ainda carregava valores próprios semeados (sem Projects reais para derivar). Introduzir Project expôs que a consolidação precisava encadear, não apenas existir em cada par isolado.
+- **Decisão:** no Dashboard, `consolidatePrograms()` roda primeiro (Program deriva de Project), e o resultado alimenta `consolidatePortfolios()` (Portfolio deriva do Program já consolidado) — nunca mais o valor semeado de um nível intermediário.
+- **Sprint:** Release 0.2, Capability 03.
+
+### D-021 — ADR-V2-009 usa o número 009, não 008, para não colidir com uma reserva pendente
+
+- **Contexto:** o próximo ID sequencial de ADR seria 008, mas esse número já foi mencionado em prosa (Architecture Evolution Proposal, Revisão 2) para uma proposta de extensão do Domain Map (Demand/Resource/Issue/Change Request) nunca formalmente autorizada.
+- **Decisão:** usar `ADR-V2-009` para a decisão desta Capability (frontend domain layer), evitando reivindicar um número já reservado em prosa para outra decisão pendente — mesma disciplina de transparência de `NORMALIZATION-PLAN.md` sobre a colisão existente em `ADR-V2-004`.
+- **Sprint:** Release 0.2, Capability 03.
+
+### D-022 — Founder recomenda uma Architecture Review (AR-1) antes da Capability 04
+
+- **Contexto:** após a Capability 03 (terceira entidade real do domínio), o Founder recomendou uma pausa de uma iteração para uma Architecture Review — não para refatorar, mas para validar a consistência do domínio antes de Demand/Risk/Decision/Knowledge.
+- **Decisão:** registrado como recomendação aceita para o próximo passo, condicionada a nova instrução do Founder para efetivamente iniciar a AR-1 (mesmo padrão de D-010/D-016: registrar a direção, não executá-la preventivamente).
+- **Sprint:** Release 0.2, Capability 03 (recomendação para o próximo passo).
+
 ---
 
 ## Convenção

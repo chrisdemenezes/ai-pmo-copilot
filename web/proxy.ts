@@ -17,6 +17,8 @@ export const config = {
     "/projects/:path*",
     "/program-management",
     "/program-management/:path*",
+    "/project-delivery",
+    "/project-delivery/:path*",
     "/actions",
     "/actions/:path*",
     "/decisions",
