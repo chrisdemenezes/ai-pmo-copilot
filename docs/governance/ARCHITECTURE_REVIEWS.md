@@ -47,11 +47,11 @@ Registro cronológico e write-once de todas as Architecture Reviews independente
 
 ---
 
-### *(pendente)* — PR #41 (Épico 2, implementação final)
+### AR-003 — PR #41 (Épico 2, implementação final)
 
-- **Identificador:** a atribuir quando a revisão ocorrer (ex.: AR-003).
-- **Escopo:** revisão do PR #41 como um todo — inclui a implementação completa do Épico 2 **e** a correção de escopo organizacional pós-AR-002, que ainda não foi objeto de nenhuma Architecture Review independente.
-- **Conclusão:** não realizada.
-- **Decisão:** não emitida — PR #41 está em estado **READY FOR ARCHITECTURE REVIEW**.
-- **Observações:** esta é a primeira revisão independente que efetivamente cobrirá o contrato de login escopado por organização — uma lacuna relevante a fechar antes de qualquer merge.
-- **Data:** —
+- **Identificador:** AR-003
+- **Escopo:** revisão do PR #41 como um todo — inclui a implementação completa do Épico 2 **e** a correção de escopo organizacional pós-AR-002, primeira Architecture Review independente a cobrir o contrato de login escopado por organização.
+- **Conclusão:** aprovado com observações registradas (aceitas pelo Architecture Board, não impeditivas para integração).
+- **Decisão:** **APPROVED WITH OBSERVATIONS**.
+- **Observações:** autorizou a Engineering Order EO-MERGE-001 e a conclusão do Épico 2.
+- **Data:** 2026-07-18. Merge executado — commit `ef760ee426f58eb3dad48f7d3eb3ed248308107d`.
