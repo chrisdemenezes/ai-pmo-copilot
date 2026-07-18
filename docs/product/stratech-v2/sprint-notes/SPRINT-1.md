@@ -28,13 +28,29 @@ STRATECH V2. Artefato vivo — atualizado a cada entrega, não ao final da Sprin
 ### Entrega 2.3 — Demandas, Riscos, Issues, Mudanças
 
 - **Entregue:** `WorkItemsOverview` — 4 cards (Demandas/Riscos/Issues/Mudanças) com contagem total + aberto/em andamento/concluído + badge de críticos. Dado mock em `cockpit-data.ts` (`WORK_ITEM_BREAKDOWN`).
-- **Commit:** `(ver commit desta entrega)`.
+- **Commit:** `811aeaf`.
 - **Evidência:** screenshot do dashboard completo.
 - **Limitações:** nenhuma das 4 categorias é uma entidade real; candidatas a ADR de extensão do Domain Map (ver Architecture Evolution Proposal, Seção 8).
 
 ### Mission Control (painel do Founder)
 
 - **Entregue:** nova rota `/mission-control`, protegida pela sessão (proxy.ts) — mas **sem RBAC real ainda** (Épico 3 não iniciado), então hoje qualquer usuário autenticado acessa, não só o Founder. Painel mostra: status dos 6 Épicos da Release 0.1, progresso das 5 Releases (0.1-0.5), últimos 5 PRs, resumo de governança (débito técnico, Baseline Defects, ADRs + colisão pendente, Lessons Learned), checklist de entregas da própria Sprint 1, e as últimas entradas do Decision Log — todos com dados **reais** (não mock), lidos manualmente dos artefatos de governança reais no momento da construção (sem wiring de API ainda).
-- **Commit:** `(ver commit desta entrega)`.
+- **Commit:** `811aeaf`.
 - **Evidência:** screenshot da rota completa.
 - **Limitações:** dado estático (não busca ao vivo dos arquivos `docs/governance/*.md` ou da API do GitHub); acesso não restrito ao Founder de fato.
+
+### Sprint 1.4 — Product Review: Executive Decision Center
+
+- **Contexto:** Product Review aprovou a Entrega 2.3 e redirecionou o objetivo — o Executive Cockpit deixa de apenas informar e passa a orientar a decisão executiva.
+- **Entregue:**
+  - **Executive Focus** — painel de destaque ("onde devo concentrar minha atenção hoje?"), calculado a partir de dado **real** (`computeExecutiveFocus`, reaproveita `rankByRisk` já existente) — não é mock; hoje aponta corretamente o Multilift (maior concentração de riscos real do portfólio).
+  - **Decision Center** — decisões pendentes (mock): aprovar mudança de escopo, aprovar orçamento, validar encerramento de projeto, aprovar nova demanda.
+  - **Actions Center** — tabela de ações prioritárias (Prioridade/Ação/Responsável/Prazo, mock).
+  - **Recent Activity** — timeline Hoje/Ontem (mock).
+  - **AI Recommendations** — painel de recomendações da IA (mock, representa a camada de inteligência futura — Release 0.3+).
+  - **Executive Overview** renomeado de "Visão Executiva" (Product Language).
+  - **Mission Control** ganhou **Product Pulse** (progresso da Release 0.1 + checklist "hoje a STRATECH evoluiu") e **Product DNA** (card permanente com a missão do produto).
+- **Commit:** `(a registrar no push desta entrega)`.
+- **Evidência:** screenshot completo do Dashboard (todas as 6 seções visíveis sem navegar) + screenshot do Mission Control com Product Pulse/DNA. `tsc`/`eslint`/405 testes verdes (incluindo `executive-focus.test.ts`, novo — única peça desta entrega com lógica real de decisão, testada).
+- **Limitações:** Decision Center/Actions Center/Recent Activity/AI Recommendations continuam mock, conforme autorizado; nenhum botão "Revisar"/"Aprovar" executa ação real ainda.
+- **Próximo passo:** Founder recomendou migrar de numeração "2.N" para Capabilities de produto (Capability 01 — Executive Decision, 02 — Portfolio Intelligence, 03 — Governance, 04 — AI Copilot, 05 — Knowledge Intelligence) a partir da próxima Sprint.

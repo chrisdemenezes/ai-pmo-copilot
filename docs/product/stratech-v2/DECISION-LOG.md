@@ -46,6 +46,24 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Decisão:** adicionar a rota ao gate de sessão existente (`proxy.ts`) — exige login, mas não distingue papel. Limitação documentada explicitamente na página, no código e neste log, não ocultada.
 - **Sprint:** 1, Mission Control.
 
+### D-008 — Executive Focus calculado a partir de dado real, não mock
+
+- **Contexto:** Executive Focus precisa responder "onde devo concentrar atenção hoje?" de forma confiável para um executivo real.
+- **Decisão:** reaproveitar `rankByRisk()` (já usado pelo Risk Concentration Ranking real) em vez de criar um novo cálculo ou usar dado simulado — o painel mais visualmente proeminente do Cockpit é o único, além do Mission Control, que não é mock.
+- **Sprint:** 1.4, Entrega 2.4.
+
+### D-009 — "Riscos" do inventário permanece distinto do Risk Intelligence de IA (reforço de D-005)
+
+- **Contexto:** Actions Center/AI Recommendations citam "Multilift" e riscos, criando risco de confundir com o Risk Concentration real.
+- **Decisão:** manter a separação de conceitos já registrada em D-005; nenhum texto novo combina os dois modelos de dado.
+- **Sprint:** 1.4, Entrega 2.4.
+
+### D-010 — Numeração "2.N" será substituída por Capabilities de produto
+
+- **Contexto:** o Founder recomendou abandonar a sequência "2.4/2.5" e passar a organizar o trabalho por Capability de negócio (Capability 01 — Executive Decision, 02 — Portfolio Intelligence, 03 — Governance, 04 — AI Copilot, 05 — Knowledge Intelligence).
+- **Decisão:** registrado como direção aprovada para a próxima Sprint — não aplicado retroativamente a esta Sprint 1 (que mantém "Dia N"/"2.N"/"Sprint 1.4" como já documentado, por não reescrever histórico).
+- **Sprint:** 1.4 (decisão para vigorar a partir da Sprint seguinte).
+
 ---
 
 ## Convenção

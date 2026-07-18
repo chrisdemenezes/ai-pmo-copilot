@@ -15,11 +15,21 @@ import { CockpitKpiStrip } from "@/components/cockpit/cockpit-kpi-strip";
 import { PortfolioSituationGrid } from "@/components/cockpit/portfolio-situation-grid";
 import { ProgramSituationGrid } from "@/components/cockpit/program-situation-grid";
 import { WorkItemsOverview } from "@/components/cockpit/work-items-overview";
+import { ExecutiveFocusPanel } from "@/components/cockpit/executive-focus-panel";
+import { DecisionCenterPanel } from "@/components/cockpit/decision-center-panel";
+import { ActionsCenterTable } from "@/components/cockpit/actions-center-table";
+import { RecentActivityTimeline } from "@/components/cockpit/recent-activity-timeline";
+import { AIRecommendationsPanel } from "@/components/cockpit/ai-recommendations-panel";
+import { computeExecutiveFocus } from "@/lib/dashboard/executive-focus";
 import {
   COCKPIT_KPIS,
   PORTFOLIO_SITUATIONS,
   PROGRAM_SITUATIONS,
   WORK_ITEM_BREAKDOWN,
+  PENDING_DECISIONS,
+  PRIORITY_ACTIONS,
+  RECENT_ACTIVITY,
+  AI_RECOMMENDATIONS,
 } from "@/lib/mock/cockpit-data";
 
 export default function DashboardPage() {
@@ -41,6 +51,7 @@ export default function DashboardPage() {
   }
 
   const projects = data ?? [];
+  const executiveFocus = computeExecutiveFocus(projects);
   // Single Decision Source (TIP-009 §08): a mesma buildExecutiveDecisionQueue()
   // do /decisions, nunca uma contagem recalculada aqui. null enquanto o
   // sinal de Risco ainda não resolveu -- nunca afirma um número que pode
@@ -66,7 +77,7 @@ export default function DashboardPage() {
 
       <section className="flex flex-col gap-3">
         <div>
-          <h2 className="font-display text-lg font-semibold text-ink">Visão Executiva</h2>
+          <h2 className="font-display text-lg font-semibold text-ink">Executive Overview</h2>
           <p className="text-sm text-ink-muted">
             Indicadores de Portfólio/Programa/Projeto — demonstração (Sprint 1, dados simulados).
           </p>
@@ -98,6 +109,53 @@ export default function DashboardPage() {
           <p className="text-sm text-ink-muted">Demonstração — inventário formal de portfólio, ainda não implementado.</p>
         </div>
         <WorkItemsOverview items={WORK_ITEM_BREAKDOWN} />
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="font-display text-lg font-semibold text-ink">Executive Focus</h2>
+          <p className="text-sm text-ink-muted">Onde devo concentrar minha atenção hoje?</p>
+        </div>
+        <ExecutiveFocusPanel focus={executiveFocus} />
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="font-display text-lg font-semibold text-ink">Decision Center</h2>
+          <p className="text-sm text-ink-muted">
+            Quais decisões dependem de mim? — demonstração (Sprint 1, dados simulados).
+          </p>
+        </div>
+        <DecisionCenterPanel decisions={PENDING_DECISIONS} />
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="font-display text-lg font-semibold text-ink">Actions Center</h2>
+          <p className="text-sm text-ink-muted">
+            O que devo fazer em seguida? — demonstração (Sprint 1, dados simulados).
+          </p>
+        </div>
+        <ActionsCenterTable actions={PRIORITY_ACTIONS} />
+      </section>
+
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="flex flex-col gap-3">
+          <div>
+            <h2 className="font-display text-lg font-semibold text-ink">Recent Activity</h2>
+            <p className="text-sm text-ink-muted">O que mudou desde meu último acesso?</p>
+          </div>
+          <RecentActivityTimeline events={RECENT_ACTIVITY} />
+        </div>
+        <div className="flex flex-col gap-3">
+          <div>
+            <h2 className="font-display text-lg font-semibold text-ink">AI Recommendations</h2>
+            <p className="text-sm text-ink-muted">
+              Camada de inteligência futura — demonstração (Sprint 1, dados simulados).
+            </p>
+          </div>
+          <AIRecommendationsPanel recommendations={AI_RECOMMENDATIONS} />
+        </div>
       </section>
 
       {projects.length === 0 ? (

@@ -150,3 +150,96 @@ export const WORK_ITEM_BREAKDOWN: WorkItemBreakdown[] = [
     critical: 1,
   },
 ];
+
+export interface PendingDecision {
+  title: string;
+  context: string;
+  requestedBy: string;
+  daysPending: number;
+}
+
+/** Entrega 2.4 -- Decision Center (dados simulados). */
+export const PENDING_DECISIONS: PendingDecision[] = [
+  {
+    title: "Aprovar mudança de escopo",
+    context: "Mudança M-017 — Programa Eficiência Operacional",
+    requestedBy: "Bruno Castro",
+    daysPending: 3,
+  },
+  {
+    title: "Aprovar orçamento adicional",
+    context: "Portfólio de Expansão Regional",
+    requestedBy: "Carla Mendes",
+    daysPending: 5,
+  },
+  {
+    title: "Validar encerramento de projeto",
+    context: "Projeto Aurora",
+    requestedBy: "Ana Ribeiro",
+    daysPending: 1,
+  },
+  {
+    title: "Aprovar nova demanda",
+    context: "Expansão para novo mercado — LATAM",
+    requestedBy: "Diretoria de Estratégia",
+    daysPending: 2,
+  },
+];
+
+export type ActionPriority = "Alta" | "Média" | "Baixa";
+
+export interface PriorityAction {
+  priority: ActionPriority;
+  action: string;
+  owner: string;
+  due: string;
+}
+
+/** Entrega 2.4 -- Actions Center (dados simulados). */
+export const PRIORITY_ACTIONS: PriorityAction[] = [
+  { priority: "Alta", action: "Revisar cronograma do Projeto Multilift", owner: "PMO", due: "Hoje" },
+  { priority: "Alta", action: "Aprovar Mudança M-017", owner: "Diretor", due: "Amanhã" },
+  {
+    priority: "Média",
+    action: "Atualizar plano de mitigação — Portfólio Corporativo",
+    owner: "Gerente de Programa",
+    due: "Esta semana",
+  },
+  {
+    priority: "Baixa",
+    action: "Consolidar lições aprendidas — Programa Modernização",
+    owner: "PMO",
+    due: "Próxima semana",
+  },
+];
+
+export interface ActivityEvent {
+  day: "Hoje" | "Ontem";
+  description: string;
+}
+
+/** Entrega 2.4 -- Recent Activity (dados simulados). */
+export const RECENT_ACTIVITY: ActivityEvent[] = [
+  { day: "Hoje", description: "Projeto Aurora atualizado." },
+  { day: "Ontem", description: "Mudança M-017 criada." },
+  { day: "Ontem", description: "Programa Transformação Digital aprovado." },
+];
+
+export type AIRecommendationCategory = "Risco" | "Mudança" | "Cronograma" | "Issue";
+
+export interface AIRecommendation {
+  text: string;
+  category: AIRecommendationCategory;
+}
+
+/**
+ * Entrega 2.4 -- AI Recommendations (dados simulados). Representa a
+ * camada de inteligência futura da STRATECH (Release 0.3+) -- nenhum
+ * agente real gera estas recomendações ainda.
+ */
+export const AI_RECOMMENDATIONS: AIRecommendation[] = [
+  { text: "Revisar o Projeto Multilift.", category: "Risco" },
+  { text: "Antecipar aprovação da Mudança M-017.", category: "Mudança" },
+  { text: "Reavaliar cronograma do Programa Expansão.", category: "Cronograma" },
+  { text: "Priorizar a Issue #32.", category: "Issue" },
+];

@@ -83,9 +83,9 @@ export const SPRINT_1_ENTREGAS: SprintEntregaEntry[] = [
   { id: "2.1", label: "Executive Cockpit — estrutura e KPIs", status: "Concluído" },
   { id: "2.2", label: "Situação do Portfólio / Programas", status: "Concluído" },
   { id: "2.3", label: "Demandas, Riscos, Issues, Mudanças", status: "Concluído" },
-  { id: "Mission Control", label: "Painel do Founder", status: "Em andamento" },
-  { id: "2.4", label: "Decisões, Ações, Timeline, Atividades", status: "Pendente" },
-  { id: "2.5", label: "Painel de IA + Refinamento + Release", status: "Pendente" },
+  { id: "Mission Control", label: "Painel do Founder", status: "Concluído" },
+  { id: "2.4", label: "Executive Focus, Decision Center, Actions Center, Recent Activity, AI Recommendations", status: "Concluído" },
+  { id: "2.5", label: "Refinamento + Release Notes", status: "Pendente" },
 ];
 
 export interface RecentDecisionEntry {
@@ -94,8 +94,27 @@ export interface RecentDecisionEntry {
 }
 
 export const RECENT_DECISIONS: RecentDecisionEntry[] = [
+  { id: "D-007", summary: "Mission Control atrás da sessão, mas sem RBAC de Founder ainda" },
+  { id: "D-006", summary: "Mission Control usa dado real estático, não mock" },
+  { id: "D-005", summary: "\"Riscos\" do inventário de portfólio é distinto do Risk Intelligence de IA" },
   { id: "D-004", summary: "Situação do Portfólio/Programa como grids novos, não retrofit do grid real de Projetos" },
   { id: "D-003", summary: "Dado mock do Executive Cockpit centralizado em um único arquivo" },
   { id: "D-002", summary: "Novos primitivos de Design System seguem o padrão V1, não um novo" },
   { id: "D-001", summary: "Marca visível renomeada para \"STRATECH\"" },
 ];
+
+export interface ProductPulseEntry {
+  label: string;
+  done: boolean;
+}
+
+/** Product Review Sprint 1.4 -- Product Pulse (topo do Mission Control). */
+export const PRODUCT_PULSE_TODAY: ProductPulseEntry[] = [
+  { label: "Work Items (Demandas/Riscos/Issues/Mudanças) implementados", done: true },
+  { label: "Mission Control publicado", done: true },
+  { label: "Dashboard Executivo evoluído para Centro de Decisão Executiva", done: true },
+  { label: "405 testes de frontend executados com sucesso", done: true },
+];
+
+export const PRODUCT_DNA_STATEMENT =
+  "Transformar documentos, processos, indicadores e conhecimento corporativo em inteligência para tomada de decisão.";

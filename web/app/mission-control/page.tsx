@@ -1,3 +1,5 @@
+import { Check } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -17,6 +19,8 @@ import {
   GOVERNANCE_SUMMARY,
   SPRINT_1_ENTREGAS,
   RECENT_DECISIONS,
+  PRODUCT_PULSE_TODAY,
+  PRODUCT_DNA_STATEMENT,
   type EpicStatus,
 } from "@/lib/mock/mission-control-data";
 
@@ -41,6 +45,48 @@ export default function MissionControlPage() {
         </div>
         <Badge variant="outline">Acesso não restrito ainda — RBAC no Épico 3</Badge>
       </Header>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="font-display text-lg font-semibold text-ink">Product Pulse</h2>
+        <Card>
+          <CardContent className="flex flex-col gap-4 p-5">
+            <div>
+              <div className="flex items-baseline justify-between">
+                <p className="font-display font-semibold text-ink">Release 0.1</p>
+                <span className="font-mono text-sm tabular-nums text-ink-muted">
+                  {RELEASE_STATUS[0].progress}% concluída
+                </span>
+              </div>
+              <Progress value={RELEASE_STATUS[0].progress} className="mt-2" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                Hoje a STRATECH evoluiu
+              </p>
+              <ul className="mt-2 flex flex-col gap-1.5">
+                {PRODUCT_PULSE_TODAY.map((entry) => (
+                  <li key={entry.label} className="flex items-start gap-2 text-sm text-ink">
+                    <Check className="mt-0.5 size-4 shrink-0 text-ok" aria-hidden="true" />
+                    {entry.label}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="font-display text-lg font-semibold text-ink">Product DNA</h2>
+        <Card className="border-accent bg-accent-soft">
+          <CardContent className="p-5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-accent-ink">
+              Nossa missão
+            </p>
+            <p className="mt-1 font-display text-lg text-ink">{PRODUCT_DNA_STATEMENT}</p>
+          </CardContent>
+        </Card>
+      </section>
 
       <section className="flex flex-col gap-3">
         <h2 className="font-display text-lg font-semibold text-ink">Sprint 1 — Entregas</h2>
