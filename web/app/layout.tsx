@@ -4,9 +4,9 @@ import { Providers } from "./providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AI PMO Copilot",
+  title: "STRATECH",
   description:
-    "Assistente de IA para governança de projetos, análise de reuniões, riscos e status.",
+    "Plataforma Enterprise de Gestão Estratégica de Projetos, Portfólio, PMO e Governança.",
 };
 
 export default function RootLayout({
