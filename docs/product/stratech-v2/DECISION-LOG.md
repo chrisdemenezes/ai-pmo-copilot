@@ -167,6 +167,13 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Processo, registrado para não se repetir:** a partir de agora, qualquer entrega que altere `NAV_ITEMS` (ou qualquer superfície coberta por `web/e2e/*.spec.ts`) deve rodar `npx playwright test` localmente, não apenas `vitest run`, antes de declarar "sem regressões".
 - **Sprint:** RC-2 Enterprise Release Certification.
 
+### D-028 — Phase 2 Foundation Architecture produzida como proposta, não como ADR aprovada
+
+- **Contexto:** a Executive Directive de início da Phase 2 — Enterprise AI Platform pediu uma missão "Phase 2 Foundation Architecture" (API Strategy, Persistence Strategy, Organizational Scoping, RBAC Architecture, Event Architecture), explicitamente documentação/governança apenas, sem implementação.
+- **Decisão:** produzido `docs/architecture/PHASE-2-FOUNDATION-ARCHITECTURE.md` como **proposta**, não como ADR já aceita — cada uma das 5 áreas reaproveita um componente já existente no código (`get_request_context`, o padrão Épico 1 de multi-tenant, o Event Map, o padrão de router de `intelligence.py`), sem inventar mecanismo novo. Nenhum ADR formal foi criado ainda — per o próprio documento (§7), ADRs virão quando a proposta for aprovada e a Technical Design existir, mesmo padrão já usado neste projeto (Blueprint → Aprovação → EO → TDS → Implementação → ADR quando necessário).
+- **Observação registrada, não decidida unilateralmente:** o documento assume que a sequência Phase 2 (Foundation Architecture → AI Foundation → Knowledge Platform → Executive Copilot → Workflow Automation → Executive Intelligence) reorganiza o restante do roadmap de Releases (0.3-0.5) — sinalizado como suposição a confirmar, não uma reescrita do Master Roadmap.
+- **Sprint:** Phase 2, Foundation Architecture (missão de governança, sem implementação).
+
 ---
 
 ## Convenção

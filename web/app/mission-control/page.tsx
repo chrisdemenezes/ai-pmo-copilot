@@ -24,10 +24,12 @@ import {
   CAPABILITY_PROGRESS,
   DOMAIN_EVOLUTION,
   ARCHITECTURE_REVIEWS,
+  PROGRAM_PHASES,
   type EpicStatus,
   type CapabilityProgressEntry,
   type DomainEvolutionNode,
   type ArchitectureReviewEntry,
+  type ProgramPhaseEntry,
 } from "@/lib/mock/mission-control-data";
 
 /**
@@ -80,6 +82,27 @@ export default function MissionControlPage() {
             </div>
           </CardContent>
         </Card>
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="font-display text-lg font-semibold text-ink">Program Phases</h2>
+        <p className="text-sm text-ink-muted">
+          Phase 1/Phase 2 — nível acima de Release e Capability, per Executive Directive (RC-2 Enterprise Certification).
+        </p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {PROGRAM_PHASES.map((phase) => (
+            <Card key={phase.code}>
+              <CardHeader>
+                <CardTitle>{phase.code}</CardTitle>
+                <CardDescription>{phase.name}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Badge variant={programPhaseVariant(phase.status)}>{phase.status}</Badge>
+                <p className="mt-2 text-xs text-ink-muted">{phase.detail}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </section>
 
       <section className="flex flex-col gap-3">
@@ -344,4 +367,10 @@ function architectureReviewVariant(status: ArchitectureReviewEntry["status"]) {
   if (status === "Approved") return "ok" as const;
   if (status === "Approved with Observations") return "warn" as const;
   return "danger" as const;
+}
+
+function programPhaseVariant(status: ProgramPhaseEntry["status"]) {
+  if (status === "Done") return "ok" as const;
+  if (status === "In Progress") return "warn" as const;
+  return "neutral" as const;
 }
