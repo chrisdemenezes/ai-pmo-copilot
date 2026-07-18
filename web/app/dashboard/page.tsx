@@ -14,7 +14,13 @@ import { buildExecutiveDecisionQueue, groupLatestRisksByProject } from "@/lib/de
 import { CockpitKpiStrip } from "@/components/cockpit/cockpit-kpi-strip";
 import { PortfolioSituationGrid } from "@/components/cockpit/portfolio-situation-grid";
 import { ProgramSituationGrid } from "@/components/cockpit/program-situation-grid";
-import { COCKPIT_KPIS, PORTFOLIO_SITUATIONS, PROGRAM_SITUATIONS } from "@/lib/mock/cockpit-data";
+import { WorkItemsOverview } from "@/components/cockpit/work-items-overview";
+import {
+  COCKPIT_KPIS,
+  PORTFOLIO_SITUATIONS,
+  PROGRAM_SITUATIONS,
+  WORK_ITEM_BREAKDOWN,
+} from "@/lib/mock/cockpit-data";
 
 export default function DashboardPage() {
   const { data, isPending, isError, error, refetch, isFetching } = usePortfolioSummary();
@@ -82,6 +88,16 @@ export default function DashboardPage() {
           <p className="text-sm text-ink-muted">Demonstração — Programa ainda não é uma entidade real (Release 0.2).</p>
         </div>
         <ProgramSituationGrid programs={PROGRAM_SITUATIONS} />
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="font-display text-lg font-semibold text-ink">
+            Demandas, Riscos, Issues e Mudanças
+          </h2>
+          <p className="text-sm text-ink-muted">Demonstração — inventário formal de portfólio, ainda não implementado.</p>
+        </div>
+        <WorkItemsOverview items={WORK_ITEM_BREAKDOWN} />
       </section>
 
       {projects.length === 0 ? (

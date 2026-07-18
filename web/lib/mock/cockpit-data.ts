@@ -94,3 +94,59 @@ export const PROGRAM_SITUATIONS: ProgramSituation[] = [
     owner: "Gerente de Programa — Carla Mendes",
   },
 ];
+
+export interface WorkItemBreakdown {
+  category: "Demandas" | "Riscos" | "Issues" | "Mudanças";
+  description: string;
+  total: number;
+  open: number;
+  inProgress: number;
+  resolved: number;
+  critical: number;
+}
+
+/**
+ * Entrega 2.3 -- nenhuma destas 4 categorias tem entidade real hoje.
+ * "Riscos" aqui é deliberadamente distinto do Risk Intelligence real (V1,
+ * RiskConcentrationRanking) -- este é o inventário de gestão de risco de
+ * portfólio (Demandas/Issues/Mudanças/Riscos como itens de trabalho
+ * formais), não a análise de IA sobre transcrições/reuniões.
+ */
+export const WORK_ITEM_BREAKDOWN: WorkItemBreakdown[] = [
+  {
+    category: "Demandas",
+    description: "Solicitações em triagem, ainda não aprovadas como projeto",
+    total: 12,
+    open: 7,
+    inProgress: 3,
+    resolved: 2,
+    critical: 2,
+  },
+  {
+    category: "Riscos",
+    description: "Riscos formais de portfólio/programa, com plano de mitigação",
+    total: 19,
+    open: 9,
+    inProgress: 6,
+    resolved: 4,
+    critical: 3,
+  },
+  {
+    category: "Issues",
+    description: "Problemas já realizados, exigindo ação corretiva",
+    total: 8,
+    open: 5,
+    inProgress: 2,
+    resolved: 1,
+    critical: 1,
+  },
+  {
+    category: "Mudanças",
+    description: "Solicitações formais de mudança de escopo, prazo ou custo",
+    total: 6,
+    open: 2,
+    inProgress: 3,
+    resolved: 1,
+    critical: 1,
+  },
+];

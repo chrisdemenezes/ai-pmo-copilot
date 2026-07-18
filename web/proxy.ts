@@ -23,6 +23,8 @@ export const config = {
     "/portfolio/:path*",
     "/aprendizados",
     "/aprendizados/:path*",
+    "/mission-control",
+    "/mission-control/:path*",
     "/api/bff/:path*",
   ],
 };

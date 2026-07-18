@@ -1,4 +1,4 @@
-import { ClipboardList, Folder, Gavel, LayoutDashboard, Lightbulb, ListOrdered } from "lucide-react";
+import { ClipboardList, Folder, Gavel, LayoutDashboard, Lightbulb, ListOrdered, Radar } from "lucide-react";
 
 import type { NavItem } from "./types";
 
@@ -27,4 +27,9 @@ export const NAV_ITEMS: NavItem[] = [
   // consultada esporadicamente (Architecture Review §1, pergunta 4),
   // diferente do ritual diário das Capabilities anteriores.
   { label: "Aprendizados", href: "/aprendizados", icon: Lightbulb },
+  // Mission Control (Sprint 1, Diretriz Complementar) -- painel do Founder.
+  // Acesso hoje é apenas "autenticado" (proxy.ts), não "Founder" de fato --
+  // RBAC funcional (Épico 3) ainda não existe. Limitação documentada, não
+  // ocultada.
+  { label: "Mission Control", href: "/mission-control", icon: Radar },
 ];
