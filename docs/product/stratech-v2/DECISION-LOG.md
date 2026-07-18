@@ -160,6 +160,13 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Decisão:** nenhuma ADR nova foi necessária. As 3 correções aplicadas (D-023/024/025) são ajustes de qualidade dentro dos princípios já decididos em ADR-V2-009 — nenhuma mudou um princípio, convenção DDD ou regra de evolução. A arquitetura das Capabilities 01-03 foi certificada como consistente pela AR-1 (ver `docs/architecture/ARCHITECTURE-BASELINE-RC2.md` e o AR-1 Executive Report).
 - **Sprint:** Release 0.2, Architecture Review AR-1.
 
+### D-027 — CI encontrou um regressão real de E2E que a suíte local não pegou (`e2e/shell.spec.ts`)
+
+- **Contexto:** RC-2 (Enterprise Release Certification) começou verificando o PR #44 e encontrou o check obrigatório "frontend" falhando no CI — `e2e/shell.spec.ts` esperava exatamente 6 itens de navegação, mas o Sprint 1 (Mission Control), a Capability 02 (Program Management) e a Capability 03 (Project Delivery) já haviam levado o total a 9. `web/components/shell/navigation.test.ts` (teste unitário) foi atualizado a cada entrega, mas a suíte E2E Playwright (`npx playwright test`) nunca foi executada localmente durante nenhuma das Capabilities — apenas `vitest run` (testes unitários/componente), que não cobre este arquivo.
+- **Decisão:** corrigido `e2e/shell.spec.ts` para 9 itens, com asserções para `/program-management` e `/project-delivery`. Suíte E2E completa executada localmente (`--project=lg/md/mobile`, 67-68 testes cada) antes de reenviar ao CI — nenhuma outra quebra encontrada.
+- **Processo, registrado para não se repetir:** a partir de agora, qualquer entrega que altere `NAV_ITEMS` (ou qualquer superfície coberta por `web/e2e/*.spec.ts`) deve rodar `npx playwright test` localmente, não apenas `vitest run`, antes de declarar "sem regressões".
+- **Sprint:** RC-2 Enterprise Release Certification.
+
 ---
 
 ## Convenção

@@ -35,7 +35,7 @@ test("redirects the root route to /dashboard when authenticated", async ({ page 
   await expect(page).toHaveURL(/\/dashboard/);
 });
 
-test("renders exactly six nav items, only Dashboard active on /dashboard", async ({ page }) => {
+test("renders exactly nine nav items, only Dashboard active on /dashboard", async ({ page }) => {
   await login(page);
 
   const visibleNav = (await page.viewportSize())!.width < MOBILE_BREAKPOINT
@@ -43,7 +43,7 @@ test("renders exactly six nav items, only Dashboard active on /dashboard", async
     : page.getByTestId("sidebar-nav");
 
   const links = visibleNav.getByRole("link");
-  await expect(links).toHaveCount(6);
+  await expect(links).toHaveCount(9);
   await expect(links.first()).toHaveAttribute("aria-current", "page");
   await expect(links.first()).toHaveAttribute("href", "/dashboard");
   await expect(links.nth(1)).not.toHaveAttribute("aria-current", "page");
@@ -51,11 +51,17 @@ test("renders exactly six nav items, only Dashboard active on /dashboard", async
   await expect(links.nth(2)).not.toHaveAttribute("aria-current", "page");
   await expect(links.nth(2)).toHaveAttribute("href", "/projects");
   await expect(links.nth(3)).not.toHaveAttribute("aria-current", "page");
-  await expect(links.nth(3)).toHaveAttribute("href", "/actions");
+  await expect(links.nth(3)).toHaveAttribute("href", "/program-management");
   await expect(links.nth(4)).not.toHaveAttribute("aria-current", "page");
-  await expect(links.nth(4)).toHaveAttribute("href", "/decisions");
+  await expect(links.nth(4)).toHaveAttribute("href", "/project-delivery");
   await expect(links.nth(5)).not.toHaveAttribute("aria-current", "page");
-  await expect(links.nth(5)).toHaveAttribute("href", "/aprendizados");
+  await expect(links.nth(5)).toHaveAttribute("href", "/actions");
+  await expect(links.nth(6)).not.toHaveAttribute("aria-current", "page");
+  await expect(links.nth(6)).toHaveAttribute("href", "/decisions");
+  await expect(links.nth(7)).not.toHaveAttribute("aria-current", "page");
+  await expect(links.nth(7)).toHaveAttribute("href", "/aprendizados");
+  await expect(links.nth(8)).not.toHaveAttribute("aria-current", "page");
+  await expect(links.nth(8)).toHaveAttribute("href", "/mission-control");
 });
 
 test("shows the sidebar shape appropriate to the current breakpoint", async ({ page }) => {
