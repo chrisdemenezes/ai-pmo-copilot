@@ -38,3 +38,10 @@ Portfólio, Programa, atores externos, SSO, qualquer Acelerador de IA novo, Inte
 ## Governança aplicada durante esta release
 
 Branch protection na `main` (PR obrigatório, checks `validate`+`frontend` obrigatórios, branch atualizada obrigatória, force push bloqueado, Merge Commit único método permitido), `.github/CODEOWNERS`, revisão arquitetural independente antes de cada merge estrutural. Ver `docs/governance/LESSONS_LEARNED.md` para o registro do incidente de configuração de ruleset encontrado e corrigido durante este épico.
+
+## Ver também (EO-018 — governança institucionalizada)
+
+- `docs/governance/ENGINEERING_ORDERS.md` — registro cronológico das Engineering Orders desta release.
+- `docs/governance/ARCHITECTURE_REVIEWS.md` — registro das Architecture Reviews (Épico 1 e Épico 2).
+- `docs/governance/GOVERNANCE_MODEL.md` — modelo de papéis e fluxo de estágios.
+- `docs/architecture/technical-design-specs/TDS-EPIC-02.md` — especificação técnica consolidada do Épico 2.
