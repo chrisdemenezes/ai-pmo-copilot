@@ -36,7 +36,7 @@ export interface ReleaseStatusEntry {
 
 export const RELEASE_STATUS: ReleaseStatusEntry[] = [
   { version: "0.1", name: "Enterprise Foundation", status: "In Progress", progress: 33 },
-  { version: "0.2", name: "Portfolio & Governance Foundation", status: "Not Started", progress: 0 },
+  { version: "0.2", name: "Portfolio & Governance Foundation", status: "In Progress", progress: 10 },
   { version: "0.3", name: "AI Foundation", status: "Not Started", progress: 0 },
   { version: "0.4", name: "Integration Hub", status: "Not Started", progress: 0 },
   { version: "0.5", name: "Event Orchestration", status: "Not Started", progress: 0 },
@@ -85,7 +85,11 @@ export const SPRINT_1_ENTREGAS: SprintEntregaEntry[] = [
   { id: "2.3", label: "Demandas, Riscos, Issues, Mudanças", status: "Concluído" },
   { id: "Mission Control", label: "Painel do Founder", status: "Concluído" },
   { id: "2.4", label: "Executive Focus, Decision Center, Actions Center, Recent Activity, AI Recommendations", status: "Concluído" },
-  { id: "2.5", label: "Refinamento + Release Notes", status: "Pendente" },
+  {
+    id: "2.5",
+    label: "Refinamento + Release Notes (não realizado — Sprint 1 encerrada e aprovada em 1.4)",
+    status: "Pendente",
+  },
 ];
 
 export interface RecentDecisionEntry {
@@ -94,13 +98,13 @@ export interface RecentDecisionEntry {
 }
 
 export const RECENT_DECISIONS: RecentDecisionEntry[] = [
+  { id: "D-013", summary: "Definição de Pronto por Capability: 4 dimensões (Domínio, Experiência, Engenharia, Governança)" },
+  { id: "D-012", summary: "Entidade Portfolio (V2) é distinta de \"Portfolio Intelligence\" (V1)" },
+  { id: "D-011", summary: "Portfolio real como domínio de frontend, ainda sem persistência em banco" },
+  { id: "D-010", summary: "Numeração \"2.N\" substituída por Capabilities de produto" },
+  { id: "D-009", summary: "\"Riscos\" do inventário permanece distinto do Risk Intelligence de IA (reforço de D-005)" },
+  { id: "D-008", summary: "Executive Focus calculado a partir de dado real, não mock" },
   { id: "D-007", summary: "Mission Control atrás da sessão, mas sem RBAC de Founder ainda" },
-  { id: "D-006", summary: "Mission Control usa dado real estático, não mock" },
-  { id: "D-005", summary: "\"Riscos\" do inventário de portfólio é distinto do Risk Intelligence de IA" },
-  { id: "D-004", summary: "Situação do Portfólio/Programa como grids novos, não retrofit do grid real de Projetos" },
-  { id: "D-003", summary: "Dado mock do Executive Cockpit centralizado em um único arquivo" },
-  { id: "D-002", summary: "Novos primitivos de Design System seguem o padrão V1, não um novo" },
-  { id: "D-001", summary: "Marca visível renomeada para \"STRATECH\"" },
 ];
 
 export interface ProductPulseEntry {
@@ -108,13 +112,36 @@ export interface ProductPulseEntry {
   done: boolean;
 }
 
-/** Product Review Sprint 1.4 -- Product Pulse (topo do Mission Control). */
+/** Release 0.2, Capability 01 -- Product Pulse (topo do Mission Control). */
 export const PRODUCT_PULSE_TODAY: ProductPulseEntry[] = [
-  { label: "Work Items (Demandas/Riscos/Issues/Mudanças) implementados", done: true },
-  { label: "Mission Control publicado", done: true },
-  { label: "Dashboard Executivo evoluído para Centro de Decisão Executiva", done: true },
+  { label: "Portfolio implementado como entidade real de domínio (Capability 01)", done: true },
+  { label: "Executive Cockpit consumindo Portfolio real (Situação do Portfólio)", done: true },
+  { label: "Mission Control ganhou a seção Capability Progress", done: true },
   { label: "405 testes de frontend executados com sucesso", done: true },
 ];
 
 export const PRODUCT_DNA_STATEMENT =
   "Transformar documentos, processos, indicadores e conhecimento corporativo em inteligência para tomada de decisão.";
+
+export interface CapabilityProgressEntry {
+  code: string;
+  name: string;
+  progress: number;
+  status: "Not Started" | "In Progress" | "Done";
+  nextMilestone: string;
+}
+
+/**
+ * Release 0.2 -- Capability Progress (substitui a numeração "2.N" a
+ * partir desta Release, Decision Log D-010). Portfolio é a primeira
+ * Capability com entidade real de domínio (lib/domain/portfolio.ts).
+ */
+export const CAPABILITY_PROGRESS: CapabilityProgressEntry[] = [
+  {
+    code: "Capability 01",
+    name: "Portfolio Management",
+    progress: 55,
+    status: "In Progress",
+    nextMilestone: "Program Management",
+  },
+];

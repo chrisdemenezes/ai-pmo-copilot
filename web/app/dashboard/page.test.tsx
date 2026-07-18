@@ -3,20 +3,36 @@ import { render, screen } from "@testing-library/react";
 
 import DashboardPage from "./page";
 import { usePortfolioSummary } from "@/lib/hooks/use-portfolio-summary";
+import { usePortfolios } from "@/lib/hooks/use-portfolios";
 import { useLatestRisks } from "@/lib/hooks/use-latest-risks";
 
 vi.mock("@/lib/hooks/use-portfolio-summary", () => ({
   usePortfolioSummary: vi.fn(),
+}));
+vi.mock("@/lib/hooks/use-portfolios", () => ({
+  usePortfolios: vi.fn(),
 }));
 vi.mock("@/lib/hooks/use-latest-risks", () => ({
   useLatestRisks: vi.fn(),
 }));
 
 const mockedHook = vi.mocked(usePortfolioSummary);
+const mockedPortfolios = vi.mocked(usePortfolios);
 const mockedRisks = vi.mocked(useLatestRisks);
 // Default: Risco já resolvido, sem dado -- a maioria dos testes só se
 // importa com o sinal de Status já existente antes do TIP-009.
 mockedRisks.mockReturnValue({
+  isPending: false,
+  isError: false,
+  data: [],
+  error: null,
+  refetch: vi.fn(),
+  isFetching: false,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any);
+// Default: Capability 01 Portfolio já resolvido, sem dado -- os testes
+// existentes de Projeto/Risco não precisam de um Portfolio específico.
+mockedPortfolios.mockReturnValue({
   isPending: false,
   isError: false,
   data: [],

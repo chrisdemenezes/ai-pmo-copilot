@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Header } from "@/components/shell/header";
 import { usePortfolioSummary } from "@/lib/hooks/use-portfolio-summary";
+import { usePortfolios } from "@/lib/hooks/use-portfolios";
 import { useLatestRisks } from "@/lib/hooks/use-latest-risks";
 import { PortfolioSummaryStrip } from "@/components/dashboard/portfolio-summary-strip";
 import { ProjectHealthGrid } from "@/components/dashboard/project-health-grid";
@@ -23,7 +24,6 @@ import { AIRecommendationsPanel } from "@/components/cockpit/ai-recommendations-
 import { computeExecutiveFocus } from "@/lib/dashboard/executive-focus";
 import {
   COCKPIT_KPIS,
-  PORTFOLIO_SITUATIONS,
   PROGRAM_SITUATIONS,
   WORK_ITEM_BREAKDOWN,
   PENDING_DECISIONS,
@@ -34,6 +34,7 @@ import {
 
 export default function DashboardPage() {
   const { data, isPending, isError, error, refetch, isFetching } = usePortfolioSummary();
+  const portfolios = usePortfolios();
   const risks = useLatestRisks();
 
   if (isPending) {
@@ -88,9 +89,15 @@ export default function DashboardPage() {
       <section className="flex flex-col gap-3">
         <div>
           <h2 className="font-display text-lg font-semibold text-ink">Situação do Portfólio</h2>
-          <p className="text-sm text-ink-muted">Demonstração — Portfólio ainda não é uma entidade real (Release 0.2).</p>
+          <p className="text-sm text-ink-muted">
+            Capability 01 (Release 0.2) — Portfólio já é uma entidade real do domínio.
+          </p>
         </div>
-        <PortfolioSituationGrid portfolios={PORTFOLIO_SITUATIONS} />
+        {portfolios.isPending ? (
+          <Skeleton className="h-48" />
+        ) : (
+          <PortfolioSituationGrid portfolios={portfolios.data ?? []} />
+        )}
       </section>
 
       <section className="flex flex-col gap-3">

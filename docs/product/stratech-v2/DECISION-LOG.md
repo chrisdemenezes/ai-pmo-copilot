@@ -64,6 +64,24 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Decisão:** registrado como direção aprovada para a próxima Sprint — não aplicado retroativamente a esta Sprint 1 (que mantém "Dia N"/"2.N"/"Sprint 1.4" como já documentado, por não reescrever histórico).
 - **Sprint:** 1.4 (decisão para vigorar a partir da Sprint seguinte).
 
+### D-011 — Portfolio real, mas ainda sem persistência em banco
+
+- **Contexto:** Capability 01 pede Portfolio como "entidade real de domínio", mas o Founder também instrui manter o backend mockado nesta fase e preservar a arquitetura RC-1 — sem migração/model/provider novo (CLAUDE.md).
+- **Decisão:** implementar `web/lib/domain/portfolio.ts` como a primeira camada de domínio explícita do frontend — uma interface `Portfolio` completa (Identificação/Gestão/Indicadores/Governança) e um acessor assíncrono `listPortfolios()` com a mesma forma de um repositório real, resolvendo hoje a partir de dado semeado em memória. Nenhuma tabela/migração criada em `src/database`. Quando a Release 0.2 wireener um endpoint real, apenas o corpo de `listPortfolios()` muda — nenhum consumidor (`usePortfolios()`, `PortfolioSituationGrid`, Dashboard) é afetado.
+- **Sprint:** Release 0.2, Capability 01.
+
+### D-012 — Entidade Portfolio (V2) é distinta de "Portfolio Intelligence" (V1)
+
+- **Contexto:** `lib/portfolio-intelligence/portfolio-view.ts` já existe e é uma feature real do V1 (priorização executiva por projeto, via `buildExecutivePortfolioView`) — nome próximo ao da nova entidade `Portfolio` da Capability 01.
+- **Decisão:** manter os dois conceitos explicitamente separados, mesmo padrão de D-005/D-009 — a entidade `Portfolio` (`lib/domain/portfolio.ts`) representa um agrupamento estratégico real; "Portfolio Intelligence" continua sendo a visão de priorização por projeto do V1. Nenhum novo código combina os dois.
+- **Sprint:** Release 0.2, Capability 01.
+
+### D-013 — Definição de Pronto por Capability: 4 dimensões (Domínio, Experiência, Engenharia, Governança)
+
+- **Contexto:** o Founder recomendou uma "regra de ouro" — toda Capability só é considerada concluída quando a entidade existe corretamente (Domínio), está integrada ao Executive Cockpit com boa experiência (Experiência), arquitetura/testes permanecem íntegros (Engenharia) e os artefatos vivos foram atualizados (Governança).
+- **Decisão:** adotar essa regra como o padrão de Definition of Done para todas as Capabilities a partir da Release 0.2, registrado aqui como a fonte formal (não é um ADR, é uma norma de processo leve).
+- **Sprint:** Release 0.2 (decisão para vigorar a partir da Capability 01, em diante).
+
 ---
 
 ## Convenção

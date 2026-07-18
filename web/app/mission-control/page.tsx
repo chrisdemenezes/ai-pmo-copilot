@@ -21,7 +21,9 @@ import {
   RECENT_DECISIONS,
   PRODUCT_PULSE_TODAY,
   PRODUCT_DNA_STATEMENT,
+  CAPABILITY_PROGRESS,
   type EpicStatus,
+  type CapabilityProgressEntry,
 } from "@/lib/mock/mission-control-data";
 
 /**
@@ -86,6 +88,37 @@ export default function MissionControlPage() {
             <p className="mt-1 font-display text-lg text-ink">{PRODUCT_DNA_STATEMENT}</p>
           </CardContent>
         </Card>
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="font-display text-lg font-semibold text-ink">Capability Progress</h2>
+        <p className="text-sm text-ink-muted">
+          Release 0.2 — evolução orientada por capacidades de negócio, não mais por Sprint/entrega.
+        </p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {CAPABILITY_PROGRESS.map((capability) => (
+            <Card key={capability.code}>
+              <CardHeader>
+                <CardTitle>{capability.code}</CardTitle>
+                <CardDescription>{capability.name}</CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-3">
+                <div className="flex items-center gap-2">
+                  <Progress value={capability.progress} />
+                  <span className="font-mono text-xs tabular-nums text-ink-muted">
+                    {capability.progress}%
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <Badge variant={capabilityStatusVariant(capability.status)}>
+                    {capability.status}
+                  </Badge>
+                  <span className="text-ink-muted">Próximo marco: {capability.nextMilestone}</span>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </section>
 
       <section className="flex flex-col gap-3">
@@ -238,6 +271,12 @@ export default function MissionControlPage() {
 
 function epicStatusVariant(status: EpicStatus) {
   if (status === "Merged") return "ok" as const;
+  if (status === "In Progress") return "warn" as const;
+  return "neutral" as const;
+}
+
+function capabilityStatusVariant(status: CapabilityProgressEntry["status"]) {
+  if (status === "Done") return "ok" as const;
   if (status === "In Progress") return "warn" as const;
   return "neutral" as const;
 }

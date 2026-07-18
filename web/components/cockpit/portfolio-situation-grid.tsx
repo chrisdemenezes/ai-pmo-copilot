@@ -9,17 +9,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { PortfolioSituation } from "@/lib/mock/cockpit-data";
+import type { Portfolio } from "@/lib/domain/portfolio";
 
 /**
- * Entrega 2.2 -- Situação do Portfólio (Sprint 1, dados simulados).
- * Portfolio não é uma entidade real ainda (Release 0.2) -- este componente
- * já assume a forma final esperada para quando o dado real existir.
+ * Entrega 2.2 (Sprint 1) -- Situação do Portfólio. Desde a Capability 01
+ * (Release 0.2), consome a entidade real Portfolio (lib/domain/portfolio.ts)
+ * em vez do mock PortfolioSituation -- primeira substituição progressiva
+ * de dado simulado por dado real do Executive Cockpit.
  */
 export function PortfolioSituationGrid({
   portfolios,
 }: {
-  portfolios: PortfolioSituation[];
+  portfolios: Portfolio[];
 }) {
   return (
     <>
@@ -40,7 +41,7 @@ export function PortfolioSituationGrid({
           </TableHeader>
           <TableBody>
             {portfolios.map((portfolio) => (
-              <TableRow key={portfolio.name}>
+              <TableRow key={portfolio.id}>
                 <TableCell className="font-display font-semibold">{portfolio.name}</TableCell>
                 <TableCell>
                   <Badge variant={healthStatusVariant(portfolio.health)}>
@@ -49,15 +50,15 @@ export function PortfolioSituationGrid({
                 </TableCell>
                 <TableCell className="w-40">
                   <div className="flex items-center gap-2">
-                    <Progress value={portfolio.progress} className="w-24" />
+                    <Progress value={portfolio.progressPercentage} className="w-24" />
                     <span className="font-mono text-xs tabular-nums text-ink-muted">
-                      {portfolio.progress}%
+                      {portfolio.progressPercentage}%
                     </span>
                   </div>
                 </TableCell>
-                <TableCell className="font-mono tabular-nums">{portfolio.programsCount}</TableCell>
-                <TableCell className="font-mono tabular-nums">{portfolio.projectsCount}</TableCell>
-                <TableCell className="text-ink-muted">{portfolio.owner}</TableCell>
+                <TableCell className="font-mono tabular-nums">{portfolio.programCount}</TableCell>
+                <TableCell className="font-mono tabular-nums">{portfolio.projectCount}</TableCell>
+                <TableCell className="text-ink-muted">{portfolio.executiveOwner}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -66,7 +67,7 @@ export function PortfolioSituationGrid({
 
       <div data-testid="portfolio-situation-cards" className="flex flex-col gap-3 md:hidden">
         {portfolios.map((portfolio) => (
-          <Card key={portfolio.name}>
+          <Card key={portfolio.id}>
             <CardContent className="flex flex-col gap-3 p-4">
               <div className="flex items-start justify-between gap-2">
                 <span className="font-display font-semibold">{portfolio.name}</span>
@@ -74,18 +75,18 @@ export function PortfolioSituationGrid({
                   {healthStatusLabel(portfolio.health)}
                 </Badge>
               </div>
-              <Progress value={portfolio.progress} />
+              <Progress value={portfolio.progressPercentage} />
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <p className="text-xs text-ink-muted">Programas</p>
-                  <p className="font-mono tabular-nums">{portfolio.programsCount}</p>
+                  <p className="font-mono tabular-nums">{portfolio.programCount}</p>
                 </div>
                 <div>
                   <p className="text-xs text-ink-muted">Projetos</p>
-                  <p className="font-mono tabular-nums">{portfolio.projectsCount}</p>
+                  <p className="font-mono tabular-nums">{portfolio.projectCount}</p>
                 </div>
               </div>
-              <p className="text-xs text-ink-muted">{portfolio.owner}</p>
+              <p className="text-xs text-ink-muted">{portfolio.executiveOwner}</p>
             </CardContent>
           </Card>
         ))}

@@ -54,3 +54,8 @@ STRATECH V2. Artefato vivo — atualizado a cada entrega, não ao final da Sprin
 - **Evidência:** screenshot completo do Dashboard (todas as 6 seções visíveis sem navegar) + screenshot do Mission Control com Product Pulse/DNA. `tsc`/`eslint`/405 testes verdes (incluindo `executive-focus.test.ts`, novo — única peça desta entrega com lógica real de decisão, testada).
 - **Limitações:** Decision Center/Actions Center/Recent Activity/AI Recommendations continuam mock, conforme autorizado; nenhum botão "Revisar"/"Aprovar" executa ação real ainda.
 - **Próximo passo:** Founder recomendou migrar de numeração "2.N" para Capabilities de produto (Capability 01 — Executive Decision, 02 — Portfolio Intelligence, 03 — Governance, 04 — AI Copilot, 05 — Knowledge Intelligence) a partir da próxima Sprint.
+
+### Encerramento da Sprint 1
+
+- **Status:** Sprint 1 oficialmente encerrada e aprovada pelo Founder. A Entrega 2.5 (Refinamento + Release Notes) não foi realizada — a Sprint foi aprovada e encerrada na Sprint 1.4, antes de chegar a essa etapa (ver `mission-control-data.ts`, `SPRINT_1_ENTREGAS`).
+- **A partir daqui:** a evolução da STRATECH deixa de ser orientada por componentes visuais/Sprint e passa a ser orientada por Capabilities de negócio (Release 0.2). Continuidade em `docs/product/stratech-v2/sprint-notes/CAPABILITY-01-PORTFOLIO-MANAGEMENT.md`.
