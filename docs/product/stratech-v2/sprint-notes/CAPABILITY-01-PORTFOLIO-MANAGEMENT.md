@@ -30,7 +30,7 @@ Este é o primeiro artefato de acompanhamento organizado por Capability de negó
 ### Verificação
 
 - **Evidência:** `tsc --noEmit` limpo, `eslint .` limpo, `vitest run` — 405 testes verdes (nenhum teste novo dedicado: `listPortfolios()`/dados semeados não têm lógica condicional própria, consistente com a disciplina de testes já registrada em D-004).
-- **Commit:** `(a registrar no push desta entrega)`.
+- **Commit:** `709b355`.
 
 ---
 
