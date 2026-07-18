@@ -29,8 +29,44 @@ Registro vivo de débitos arquiteturais conhecidos. Cada item tem origem, status
 
 ---
 
+## Baseline Defects — falhas E2E pré-existentes, não introduzidas por Épicos
+
+Categoria distinta de TD-001/002/003: não são débitos arquiteturais de uma decisão de design, mas defeitos de comportamento já presentes no baseline antes do Épico que os documenta, comprovados por reprodução contra esse baseline. Registrados aqui para que nunca sejam confundidos com uma regressão introduzida por um Épico subsequente, e para que não sejam silenciosamente esquecidos por não bloquearem o Regression Gate.
+
+### TD-004 — Race de invalidação do React Query após "Analisar Projeto" (Avaliação de Riscos)
+
+- **Categoria:** Baseline Defect
+- **Origem confirmada:** pré-existente ao Épico 2 (Identity Foundation) e ao PR #39 (Épico 1). Não introduzida pela correção de escopo organizacional (EO-015).
+- **Status:** Aberto
+- **Teste afetado:** `web/e2e/workspace.spec.ts` › `Avaliação de Riscos (TIP-006)` › `runs a full risk analysis via the Avaliação de Riscos tab and reflects it in the Workspace and the Dashboard`
+- **Sintoma:** após submeter uma nova Avaliação de Riscos, o Intelligence Timeline registra o novo evento (a mutação teve sucesso no backend/mock), mas o painel "Riscos" não é atualizado com o novo resultado — continua mostrando o risco anterior. Mesmo mecanismo documentado inline em `executive-memory.spec.ts:54-60`: se o fetch inicial de uma query ainda está em voo no instante em que a mutação invalida o cache, o React Query não dispara um novo fetch (já há um em voo) e a invalidação é "engolida" pela resolução do fetch obsoleto.
+- **Evidência de reprodução no baseline:** `git stash push -u` (removendo as 36 alterações do Épico 2/EO-015 da árvore de trabalho) → `npx playwright test e2e/workspace.spec.ts -g "runs a full risk analysis via the Avaliação de Riscos tab" --project=md` → falha idêntica (mesmo locator, mesma mensagem, mesma linha relativa) contra o código anterior a esta correção → `git stash pop` restaura o trabalho do Épico 2 sem perda. Falha reproduzida de forma determinística em múltiplas execuções (3/3), antes e depois do stash.
+- **Resolver antes de:** qualquer trabalho que dependa da confiabilidade dessa suíte E2E específica para novas features de Riscos; candidato natural ao Épico de Risk Intelligence ou a uma revisão dedicada dos hooks `use-workspace-latest`/invalidação de queries.
+
+### TD-005 — Mesmo race, painel de Comunicação (O que mudou na última reunião?)
+
+- **Categoria:** Baseline Defect
+- **Origem confirmada:** pré-existente ao Épico 2. Mesmo mecanismo de TD-004, painel diferente.
+- **Status:** Aberto
+- **Teste afetado:** `web/e2e/workspace.spec.ts` › `O que mudou na última reunião? (TIP-007)` › `runs a full meeting analysis via the 3rd tab and reflects it in the Workspace and the Dashboard`
+- **Sintoma:** idêntico a TD-004, aplicado ao painel "Comunicação" após uma análise de reunião.
+- **Evidência:** falha intermitente na mesma suíte completa (5/202 e 7/202 falhas em duas execuções completas), sempre restrita a este teste e aos de TD-004/TD-006 — nunca a testes fora desse padrão de "reflete mutação sem reload".
+- **Resolver:** junto com TD-004 (mesma causa raiz).
+
+### TD-006 — Mesmo race, Executive Memory Insight "Mudou"
+
+- **Categoria:** Baseline Defect
+- **Origem confirmada:** pré-existente — já documentado inline no próprio teste (`executive-memory.spec.ts:54-60`) desde o Incremento 1 de Executive Memory, muito antes do Épico 2.
+- **Status:** Aberto
+- **Teste afetado:** `web/e2e/executive-memory.spec.ts` › `shows a Mudou Executive Memory Insight right after Analisar Projeto changes the health status`
+- **Sintoma:** idêntico a TD-004/005, aplicado ao Executive Brief / Memory Insight.
+- **Resolver:** junto com TD-004 (mesma causa raiz).
+
+---
+
 ## Convenção de uso deste registro
 
 - Novo débito identificado por qualquer revisão (arquitetural, de segurança, de código) ganha um ID sequencial `TD-NNN` aqui, com origem (PR/commit), status (`Aberto` / `Planejado` / `Resolvido`) e o gatilho explícito de resolução.
 - Nenhum item é resolvido silenciosamente: a resolução de um TD é um commit/PR próprio que referencia o ID e atualiza o status para `Resolvido`, com a data e o PR de resolução.
 - Este documento não substitui ADRs — um TD pode motivar um ADR futuro quando sua resolução envolver decisão arquitetural (como é o caso de TD-002).
+- **Categoria "Baseline Defect"** (TD-004+): usada quando um Épico encontra uma falha de teste E2E/CI que uma reprodução contra o baseline anterior (antes das mudanças do próprio Épico) comprova já existir. Registrar aqui em vez de bloquear o Regression Gate do Épico — a evidência de reprodução (comando, resultado, commit de referência) fica descrita no próprio item, para que a falha nunca seja confundida com uma regressão introduzida por trabalho subsequente nem seja silenciosamente esquecida.
