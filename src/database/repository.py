@@ -11,6 +11,7 @@ from src.database.base import Base
 # not run alembic (the SQLite/demo path).
 from src.database import models  # noqa: F401
 from src.database.enterprise_repository import EnterpriseRepository
+from src.database.domain_repository import DomainRepository
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +42,7 @@ class AnalysisRepository:
         Base.metadata.create_all(self.engine)
         self.SessionLocal = sessionmaker(bind=self.engine, autoflush=False, autocommit=False)
         self.enterprise = EnterpriseRepository(self.SessionLocal)
+        self.domain = DomainRepository(self.SessionLocal)
 
     def save_analysis(self, kind: str, payload: dict, project_name: str | None = None) -> int:
         with self.SessionLocal() as session:

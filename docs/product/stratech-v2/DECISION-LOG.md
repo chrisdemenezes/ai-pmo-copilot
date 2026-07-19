@@ -194,6 +194,14 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Nenhum documento já aprovado foi modificado** (Product Constitution, Foundation Architecture, Foundation Technical Design, Enterprise Master Execution Program, Decision Logs anteriores, Technical Debt Register, Mission Control, Product Pulse) — apenas esta entrada foi acrescentada, per a convenção append-only já em uso.
 - **Sprint:** STRATECH Architecture Closure (Fase Final) — missão de governança, sem implementação.
 
+### D-032 — Wave 2 Sprint 1: persistência do Enterprise Domain implementada; sequenciamento ajustado (Wave 1 antes de Wave 2)
+
+- **Contexto:** a Executive Directive "STRATECH Product Development Program" pediu início imediato da Wave 2 (Enterprise Platform) como prioridade absoluta. Verificação técnica mostrou que a Wave 1 (Enterprise Foundation) tinha Technical Design completo mas 0% implementado — e o próprio Foundation Technical Design (§6) já sequenciava Persistence → Organizational Scoping → RBAC → API → Event, ordem que a Wave 2 (Enterprise Domain, RBAC) depende de respeitar tecnicamente, não uma preferência.
+- **Decisão:** implementada a Persistence Foundation (Wave 1) simultaneamente como o primeiro passo real da Wave 2 (Enterprise Domain), não como um adiamento — `Portfolio`/`Program` como tabelas novas, `Project` estendido (não uma tabela `projects_delivery` separada, per `DOMAIN-BLUEPRINT-PROJECT.md` Opção A). Migração `0005_domain_persistence` + `DomainRepository` (`src/database/domain_repository.py`), 16 novos testes, 179 testes totais passando, 98% de cobertura, `ruff` limpo. TD-007 resolvido; TD-008 avança para Fase 1 de 3.
+- **Não incluído nesta Sprint, registrado para a próxima:** API/rotas (Foundation Technical Design §1), RBAC enforcement (`DOMAIN-BLUEPRINT-RBAC.md`), migração do frontend (`web/lib/domain/*.ts`) para consumir a API real em vez do array semeado.
+- **Nenhum Blueprint, Domain Model aprovado ou documento de arquitetura foi alterado** — a única mudança de plano foi de sequenciamento de Sprint (Wave 1 antes de Wave 2), tecnicamente forçada pela própria dependência já documentada, não uma nova decisão arquitetural.
+- **Sprint:** Wave 2, Sprint 1 — Enterprise Domain persistence.
+
 ---
 
 ## Convenção

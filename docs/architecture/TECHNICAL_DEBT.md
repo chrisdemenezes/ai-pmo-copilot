@@ -33,18 +33,18 @@ Registro vivo de débitos arquiteturais conhecidos. Cada item tem origem, status
 
 - **Origem:** Architecture Review AR-1 (Release 0.2), auditando as Capabilities 01-03.
 - **Classificação:** Médio.
-- **Status:** Aberto (aceito conscientemente — decisão explícita do Founder, ver ADR-V2-009).
-- **Descrição:** `web/lib/domain/{portfolio,program,project}.ts` existem apenas como domínio de frontend, sem tabela/model/migração em `src/database`. Quando forem persistidos, precisarão de `organization_id` desde a primeira migração, seguindo exatamente o padrão já estabelecido pela Enterprise Foundation (Épico 1) — hoje não há esse campo porque não há persistência, então não há risco de vazamento cross-tenant ainda (nada é gravado). O risco é apenas prospectivo: nasce no dia em que a Release 0.2 wireener um backend real para essas 3 entidades.
-- **Resolver antes de:** qualquer migração de banco que persista Portfolio/Program/Project.
-- **Plano de resolução:** `docs/architecture/PHASE-2-FOUNDATION-ARCHITECTURE.md` §2-3 (proposta, aprovada conceitualmente) detalhado agora em `docs/architecture/PHASE-2-FOUNDATION-TECHNICAL-DESIGN.md` §2-3 (Persistence Strategy + Organizational Scoping) — Technical Design produzido, implementação ainda não iniciada.
+- **Status:** **Resolvido** (Wave 2, Sprint 1 — 2026-07-19).
+- **Descrição:** `web/lib/domain/{portfolio,program,project}.ts` existiam apenas como domínio de frontend, sem tabela/model/migração em `src/database`.
+- **Resolução:** migração `0005_domain_persistence` cria `portfolios`/`programs` (org-escopadas desde a primeira migração, per o plano original) e estende `projects` com os campos de domínio — `CrossTenantViolationError` aplicado em toda escrita (`src/database/domain_repository.py`), 16 testes de segregação/migração passando. **Pendente, não coberto por esta resolução:** o frontend (`web/lib/domain/*.ts`) ainda lê dos arrays semeados em memória, não desta persistência — a troca é a próxima Sprint (API + RBAC), rastreada como trabalho de Sprint, não mais como TD.
 
 ## TD-008 — Três conceitos "Project" coexistem no código, sem unificação
 
 - **Origem:** Capability 03 (Decision Log D-019), confirmado na Architecture Review AR-1.
 - **Classificação:** Médio.
-- **Status:** Aberto (aceito conscientemente até o Épico 4).
-- **Descrição:** (1) o `Project` real do backend (`src/database/models.py`, Épico 1, persistido, hoje só usado para membership); (2) `ProjectSummary` (`web/lib/dashboard/types.ts`, dado real do V1/BFF, chaveado por `project_name` livre); (3) `Project` do domínio (`web/lib/domain/project.ts`, Capability 03, vinculado a Program). Nenhum compartilha ID. Risco real: um novo engenheiro pode importar o `Project` errado para uma nova feature sem perceber a diferença — mitigado hoje por documentação explícita (docstrings + Decision Log), não por um mecanismo que impeça o erro em tempo de compilação.
-- **Resolver antes de:** Épico 4 (unificação de `Project`) — candidato natural a também resolver este item.
+- **Status:** Em progresso (Fase 1 de 3 concluída, Wave 2 Sprint 1 — 2026-07-19).
+- **Descrição:** (1) o `Project` real do backend (`src/database/models.py`, Épico 1, persistido, hoje só usado para membership); (2) `ProjectSummary` (`web/lib/dashboard/types.ts`, dado real do V1/BFF, chaveado por `project_name` livre); (3) `Project` do domínio (`web/lib/domain/project.ts`, Capability 03, vinculado a Program). Nenhum compartilha ID.
+- **Progresso:** per `DOMAIN-BLUEPRINT-PROJECT.md` (Opção A, faseada) — **Fase 1 concluída**: os campos de domínio (`program_id`, `code`, indicadores) agora vivem na mesma tabela `projects` do Épico 1, não em uma `projects_delivery` separada; `DomainRepository.attach_project_to_program()` já permite vincular um Project legado a um Program. **Fase 2 (próxima Sprint recomendada)**: migrar o domínio de frontend (`web/lib/domain/project.ts`) para ler desta tabela via API real, em vez do array semeado. **Fase 3 (Wave 3/AI Foundation)**: reconciliar `analysis_records.project_name` com `project_id`, aposentando `ProjectSummary`.
+- **Resolver antes de:** Fase 3 depende da Wave 3 (AI Foundation) começar.
 - **Plano de resolução:** `docs/architecture/PHASE-2-FOUNDATION-ARCHITECTURE.md` §2 recomenda que Épico 4 e a persistência de `projects_delivery` sejam uma única Engineering Order. `docs/architecture/PHASE-2-FOUNDATION-TECHNICAL-DESIGN.md` §2.9/§2.16 tornam esse risco explícito: `projects_delivery` é desenhado como tabela deliberadamente temporária, com gate obrigatório de decisão do Épico 4 antes de qualquer migração de dados reais — Technical Design produzido, implementação ainda não iniciada.
 
 ## TD-009 — Cobertura de testes do frontend não instrumentada

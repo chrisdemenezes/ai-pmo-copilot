@@ -99,6 +99,8 @@ export interface RecentDecisionEntry {
 }
 
 export const RECENT_DECISIONS: RecentDecisionEntry[] = [
+  { id: "D-032", summary: "Wave 2 Sprint 1: persistência real de Portfolio/Program/Project implementada (Project unificado, sem tabela projects_delivery); TD-007 resolvido" },
+  { id: "D-031", summary: "5 Blueprints de fechamento produzidos; Architecture Freeze declarado como parcial (Wave 6 fora, pendente decisão de negócio)" },
   { id: "D-030", summary: "Épicos e Capabilities deixam de ser linhas paralelas de evolução — Waves do Enterprise Master Execution Program passam a ser o único eixo" },
   { id: "D-029", summary: "Phase 2 Foundation Technical Design produzido (5 áreas, 15 elementos cada) — ainda sem código, sem ADR, sem alteração de Baseline" },
   { id: "D-028", summary: "Phase 2 Foundation Architecture produzida como proposta, não como ADR aprovada" },
@@ -123,6 +125,8 @@ export const PRODUCT_PULSE_TODAY: ProductPulseEntry[] = [
   { label: "Phase 2 — Enterprise AI Platform iniciada (Foundation Architecture proposta, sem implementação)", done: true },
   { label: "Phase 2 Foundation Technical Design produzido (API, Persistence, Org Scoping, RBAC, Events) — ainda sem implementação", done: true },
   { label: "Enterprise Master Execution Program publicado — Épicos e Capabilities unificados em Waves, dualidade encerrada", done: true },
+  { label: "5 Domain Blueprints de fechamento + Architecture Freeze parcial declarado", done: true },
+  { label: "Wave 2 Sprint 1: Portfolio/Program/Project persistidos (migração 0005), Project unificado sem tabela projects_delivery — TD-007 resolvido", done: true },
   { label: "Regressão real de E2E encontrada pelo CI e corrigida (e2e/shell.spec.ts)", done: true },
 ];
 
@@ -148,13 +152,13 @@ export const ENTERPRISE_PROGRAM_WAVES: WaveEntry[] = [
     code: "Wave 1",
     name: "Enterprise Foundation",
     status: "In Progress",
-    detail: "Schema + Identity 100% (Épicos 1-2). Persistence/Org Scoping/RBAC seam/API/Event Foundation: Technical Design produzido, 0% implementado.",
+    detail: "Schema + Identity 100% (Épicos 1-2). Persistence (Portfolio/Program/Project) implementada Sprint 1 (migração 0005) -- org scoping aplicado desde a primeira migração. RBAC seam/API/Event Foundation: Technical Design produzido, ainda não implementado.",
   },
   {
     code: "Wave 2",
     name: "Enterprise Platform",
     status: "In Progress",
-    detail: "RBAC (Épico 3) e Domain unificado (Épico 4) com Technical Design, 0% implementado. Enterprise Administration com conflito de escopo aberto (Decision Proposal, ver documento §9). Portfolio/Program/Project (Capabilities 01-03): ~75%, sem persistência.",
+    detail: "Enterprise Domain: Portfolio/Program/Project persistidos e Project unificado (Sprint 1) -- frontend ainda lê do array semeado, API real é a próxima Sprint. RBAC (Épico 3): Blueprint pronto, implementação não iniciada. Enterprise Administration: conflito de escopo com recomendação em 3 níveis (Decision Proposal, aguardando ratificação do Founder).",
   },
   {
     code: "Wave 3",
@@ -285,7 +289,7 @@ export const DOMAIN_EVOLUTION: DomainEvolutionNode[] = [
   {
     name: "Project",
     status: "In Progress",
-    note: "Domínio de frontend vinculado a Program; o Project real do backend (Épico 1) segue não vinculado — unificação é o Épico 4",
+    note: "Domínio de frontend ainda lê do array semeado; backend já unificado (mesma tabela projects, sem projects_delivery, Sprint 1 da Wave 2) — troca do frontend para a API real é a próxima Sprint",
   },
   { name: "Demand", status: "Not Started" },
   { name: "Risk", status: "Not Started" },
