@@ -187,6 +187,13 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Missão encerrada sem autorizar implementação ponta a ponta** (regra explícita da própria missão): pendências residuais listadas no documento (§13) e no Executive Report desta missão.
 - **Sprint:** Enterprise Master Execution Program (missão de governança, sem implementação).
 
+### D-031 — 5 Blueprints de fechamento produzidos; Architecture Freeze declarado como parcial, não total
+
+- **Contexto:** a missão "STRATECH Architecture Closure (Fase Final)" pediu 5 Blueprints (Wave 3 Enterprise Intelligence, Enterprise Administration, RBAC, Project Domain Closure, Business Model) e, ao final, a declaração de um "STRATECH Architecture Freeze" caso nenhuma lacuna arquitetural restasse.
+- **Decisão:** os 5 Blueprints foram produzidos (`docs/architecture/DOMAIN-BLUEPRINT-WAVE-3-ENTERPRISE-INTELLIGENCE.md`, `DOMAIN-BLUEPRINT-ENTERPRISE-ADMINISTRATION.md`, `DOMAIN-BLUEPRINT-RBAC.md`, `DOMAIN-BLUEPRINT-PROJECT.md`, `BUSINESS-MODEL-BLUEPRINT.md`), cada um com recomendação técnica fundamentada, sem preencher nenhuma lacuna com suposição. Como a verificação final (`docs/architecture/ARCHITECTURE-FREEZE.md`) encontrou respostas afirmativas em 4 das 5 perguntas de fechamento, **o Freeze foi declarado como parcial**, não como um estado binário único: Wave 1 e partes da Wave 2 (RBAC, Administration Nível 1) congeladas; Administration Níveis 2/3 e a unificação de Project aguardando ratificação do Founder (Decision Proposals, não aplicadas); Wave 3 com Blueprint mas exigindo Architecture Review antes de Technical Design; Wave 6 explicitamente fora do Freeze, por depender de uma decisão de modelo de negócio que nenhum documento aprovado jamais definiu — `BUSINESS-MODEL-BLUEPRINT.md` recusou-se deliberadamente a inventar essa estratégia.
+- **Nenhum documento já aprovado foi modificado** (Product Constitution, Foundation Architecture, Foundation Technical Design, Enterprise Master Execution Program, Decision Logs anteriores, Technical Debt Register, Mission Control, Product Pulse) — apenas esta entrada foi acrescentada, per a convenção append-only já em uso.
+- **Sprint:** STRATECH Architecture Closure (Fase Final) — missão de governança, sem implementação.
+
 ---
 
 ## Convenção
