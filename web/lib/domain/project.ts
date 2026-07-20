@@ -158,172 +158,66 @@ export class Project {
   }
 }
 
-const PROJECTS: Project[] = [
-  Project.create({
-    id: "PJ-001",
-    name: "Multilift",
-    code: "PJ-001",
-    description: "Modernização da linha de elevadores industriais.",
-    programId: "PG-001",
-    sponsor: "Diretoria de Estratégia",
-    projectManager: "Fernanda Lima",
-    objective: "Reduzir tempo de parada não planejada em 30%.",
-    startDate: "2025-09-01",
-    plannedEndDate: "2026-06-01",
-    actualEndDate: null,
-    progressPercentage: 30,
-    health: "red",
-    status: "Ativo",
-    priority: "Alta",
-    lastUpdated: "2026-07-15",
-    nextReview: "2026-07-20",
-    owner: { name: "Bruno Castro", role: "Product Owner" },
-    milestones: [
-      { name: "Diagnóstico concluído", dueDate: "2025-11-01", status: "Concluído" },
-      { name: "Piloto em planta 1", dueDate: "2026-07-01", status: "Atrasado" },
-    ],
-    team: { size: 8, leadName: "Fernanda Lima" },
-  }),
-  Project.create({
-    id: "PJ-002",
-    name: "Automação de Faturamento",
-    code: "PJ-002",
-    description: "Automação do ciclo de faturamento corporativo.",
-    programId: "PG-001",
-    sponsor: "Diretoria de Estratégia",
-    projectManager: "Rafael Nunes",
-    objective: "Eliminar retrabalho manual no faturamento mensal.",
-    startDate: "2026-01-15",
-    plannedEndDate: "2026-09-01",
-    actualEndDate: null,
-    progressPercentage: 55,
-    health: "yellow",
-    status: "Ativo",
-    priority: "Média",
-    lastUpdated: "2026-07-12",
-    nextReview: "2026-07-26",
-    owner: { name: "Bruno Castro", role: "Product Owner" },
-    milestones: [{ name: "MVP em produção", dueDate: "2026-08-01", status: "Pendente" }],
-    team: { size: 5, leadName: "Rafael Nunes" },
-  }),
-  Project.create({
-    id: "PJ-003",
-    name: "Revisão de Controles Internos",
-    code: "PJ-003",
-    description: "Padronização de controles internos entre unidades.",
-    programId: "PG-002",
-    sponsor: "Diretoria de Estratégia",
-    projectManager: "Diego Souza",
-    objective: "Unificar o checklist de controles até o fim da Release 0.2.",
-    startDate: "2026-02-15",
-    plannedEndDate: "2026-10-01",
-    actualEndDate: null,
-    progressPercentage: 70,
-    health: "green",
-    status: "Ativo",
-    priority: "Média",
-    lastUpdated: "2026-07-10",
-    nextReview: "2026-08-02",
-    owner: { name: "Diego Souza", role: "Product Owner" },
-    milestones: [{ name: "Checklist unificado publicado", dueDate: "2026-09-01", status: "Pendente" }],
-    team: { size: 4, leadName: "Diego Souza" },
-  }),
-  Project.create({
-    id: "PJ-004",
-    name: "Implantação SAP S/4HANA",
-    code: "PJ-004",
-    description: "Migração da plataforma ERP legada para SAP S/4HANA.",
-    programId: "PG-003",
-    sponsor: "CIO",
-    projectManager: "Ana Ribeiro",
-    objective: "Migrar os módulos financeiro e de suprimentos.",
-    startDate: "2025-08-01",
-    plannedEndDate: "2026-08-01",
-    actualEndDate: null,
-    progressPercentage: 62,
-    health: "yellow",
-    status: "Ativo",
-    priority: "Alta",
-    lastUpdated: "2026-07-13",
-    nextReview: "2026-07-27",
-    owner: { name: "Ana Ribeiro", role: "Product Owner" },
-    milestones: [
-      { name: "Go-live financeiro", dueDate: "2026-06-01", status: "Atrasado" },
-      { name: "Go-live suprimentos", dueDate: "2026-08-01", status: "Pendente" },
-    ],
-    team: { size: 10, leadName: "Ana Ribeiro" },
-  }),
-  Project.create({
-    id: "PJ-005",
-    name: "Migração de Data Center",
-    code: "PJ-005",
-    description: "Migração da infraestrutura on-premise para a nuvem.",
-    programId: "PG-003",
-    sponsor: "CIO",
-    projectManager: "Ana Ribeiro",
-    objective: "Descomissionar o data center físico até o fim da Release 0.2.",
-    startDate: "2025-07-01",
-    plannedEndDate: "2026-07-01",
-    actualEndDate: null,
-    progressPercentage: 88,
-    health: "green",
-    status: "Ativo",
-    priority: "Alta",
-    lastUpdated: "2026-07-14",
-    nextReview: "2026-07-24",
-    owner: { name: "Ana Ribeiro", role: "Product Owner" },
-    milestones: [{ name: "Corte final de tráfego", dueDate: "2026-07-15", status: "Pendente" }],
-    team: { size: 6, leadName: "Ana Ribeiro" },
-  }),
-  Project.create({
-    id: "PJ-006",
-    name: "Aurora",
-    code: "PJ-006",
-    description: "Estruturação da operação comercial no novo mercado.",
-    programId: "PG-004",
-    sponsor: "VP de Operações",
-    projectManager: "Carla Mendes",
-    objective: "Abrir a primeira unidade comercial no mercado-alvo.",
-    startDate: "2026-02-01",
-    plannedEndDate: "2026-10-01",
-    actualEndDate: null,
-    progressPercentage: 74,
-    health: "green",
-    status: "Ativo",
-    priority: "Alta",
-    lastUpdated: "2026-07-11",
-    nextReview: "2026-07-25",
-    owner: { name: "Carla Mendes", role: "Product Owner" },
-    milestones: [{ name: "Unidade inaugurada", dueDate: "2026-09-01", status: "Pendente" }],
-    team: { size: 7, leadName: "Carla Mendes" },
-  }),
-  Project.create({
-    id: "PJ-007",
-    name: "Abertura Operação LATAM",
-    code: "PJ-007",
-    description: "Estruturação regulatória e operacional para entrada na LATAM.",
-    programId: "PG-004",
-    sponsor: "VP de Operações",
-    projectManager: "Carla Mendes",
-    objective: "Obter licenças operacionais nos 2 países-alvo.",
-    startDate: "2026-03-01",
-    plannedEndDate: "2026-11-01",
-    actualEndDate: null,
-    progressPercentage: 22,
-    health: "red",
-    status: "Ativo",
-    priority: "Alta",
-    lastUpdated: "2026-07-14",
-    nextReview: "2026-07-21",
-    owner: { name: "Carla Mendes", role: "Product Owner" },
-    milestones: [{ name: "Licenças protocoladas", dueDate: "2026-06-01", status: "Atrasado" }],
-    team: { size: 4, leadName: "Carla Mendes" },
-  }),
-];
+/** Wire shape of GET /api/projects-delivery (ProjectDeliveryResponse, snake_case). */
+interface ProjectApiRow {
+  id: number;
+  program_id: number;
+  name: string;
+  code: string | null;
+  description: string | null;
+  objective: string | null;
+  sponsor: string | null;
+  project_manager: string | null;
+  status: string | null;
+  health: string | null;
+  priority: string | null;
+  start_date: string | null;
+  planned_end_date: string | null;
+  actual_end_date: string | null;
+  progress_percentage: number | null;
+  last_updated: string | null;
+  next_review: string | null;
+  owner: Owner | null;
+  milestones: Milestone[] | null;
+  team: Team | null;
+}
 
-/** Repository-shaped accessor, same convention as listPortfolios()/listPrograms(). */
+function toProject(row: ProjectApiRow): Project {
+  // Project.create() keeps enforcing the programId invariant on API data
+  // too -- the API only serves domain-linked Projects (program_id IS NOT
+  // NULL), so a missing programId here means a real contract break.
+  return Project.create({
+    id: String(row.id),
+    name: row.name,
+    code: row.code ?? "",
+    description: row.description ?? "",
+    programId: String(row.program_id),
+    sponsor: row.sponsor ?? "",
+    projectManager: row.project_manager ?? "",
+    objective: row.objective ?? "",
+    startDate: row.start_date ?? "",
+    plannedEndDate: row.planned_end_date ?? "",
+    actualEndDate: row.actual_end_date,
+    progressPercentage: row.progress_percentage ?? 0,
+    health: (row.health ?? "green") as DomainHealth,
+    status: (row.status ?? "Ativo") as DomainStatus,
+    priority: (row.priority ?? "Média") as DomainPriority,
+    lastUpdated: row.last_updated ?? "",
+    nextReview: row.next_review ?? "",
+    owner: row.owner ?? { name: "", role: "" },
+    milestones: row.milestones ?? [],
+    team: row.team ?? { size: 0, leadName: "" },
+  });
+}
+
+/** Repository-shaped accessor — real BFF call since Wave 2 Sprint 5, same convention as listPortfolios()/listPrograms(). */
 export async function listProjects(): Promise<Project[]> {
-  return PROJECTS;
+  const response = await fetch("/api/bff/project-delivery");
+  if (!response.ok) {
+    throw new Error(`Falha ao carregar projetos (${response.status})`);
+  }
+  const rows = (await response.json()) as ProjectApiRow[];
+  return rows.map(toProject);
 }
 
 /**

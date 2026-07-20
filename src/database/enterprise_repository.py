@@ -127,8 +127,17 @@ class EnterpriseRepository:
                 "`alembic upgrade head`)",
                 role_name,
             )
-        session.add(UserRole(user_id=user_id, role_id=role.id))
-        logger.info("Assigned role=%s to user_id=%s", role_name, user_id)
+        # Idempotent since Wave 2 Sprint 5: bootstrap now re-ensures roles on
+        # every boot (demo user), so a second call must be a no-op, never a
+        # duplicate-PK error on user_roles.
+        already_has = (
+            session.query(UserRole)
+            .filter(UserRole.user_id == user_id, UserRole.role_id == role.id)
+            .one_or_none()
+        )
+        if already_has is None:
+            session.add(UserRole(user_id=user_id, role_id=role.id))
+            logger.info("Assigned role=%s to user_id=%s", role_name, user_id)
 
     def create_user(self, organization_id: int, email: str, display_name: str) -> int:
         with self._session_factory() as session:

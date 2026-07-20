@@ -137,10 +137,16 @@ class AuthService:
             org = self._repo.get_or_create_organization(session, DEMO_ORGANIZATION_NAME)
             existing = self._repo.get_user_by_email(session, org.id, DEMO_USER_EMAIL)
             if existing is not None:
-                logger.info("Demo user bootstrap skipped -- already exists")
+                # Wave 2 Sprint 5: the demo user predates RBAC enforcement
+                # and was created without any role -- re-ensure `viewer` on
+                # every boot (idempotent) so existing installs don't 403 on
+                # the Enterprise Domain API after upgrading.
+                self._repo.assign_role_in_session(session, existing.id, "viewer")
+                session.commit()
+                logger.info("Demo user bootstrap skipped -- already exists (viewer role ensured)")
                 return
 
-            self._repo.create_user_in_session(
+            user = self._repo.create_user_in_session(
                 session,
                 organization_id=org.id,
                 email=DEMO_USER_EMAIL,
@@ -148,6 +154,9 @@ class AuthService:
                 password_hash=self._credentials.hash(password),
                 identity_type="demo",
             )
+            # Read-only by design -- Demo Mode demonstrates, never mutates
+            # (matches the `viewer` seed role's own description).
+            self._repo.assign_role_in_session(session, user.id, "viewer")
             session.commit()
             logger.info("Demo user bootstrapped organization_id=%s", org.id)
 

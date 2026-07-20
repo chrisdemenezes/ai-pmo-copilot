@@ -303,6 +303,25 @@ class TestBootstrapDemoUser:
             is None
         )
 
+    def test_demo_user_gets_the_viewer_role_even_when_pre_existing(self, repo, auth_service):
+        """Wave 2 Sprint 5: without a role the demo user would 403 on every
+        RBAC-protected Enterprise Domain route -- the role is (re-)ensured
+        on every boot, including for demo users created before RBAC, and
+        never duplicated."""
+        from src.database.models import Role, UserRole
+
+        auth_service.bootstrap_demo_user("demo-password")
+        auth_service.bootstrap_demo_user("demo-password")  # second boot, idempotent
+
+        with repo.SessionLocal() as session:
+            demo = session.query(User).filter(User.email == DEMO_USER_EMAIL).one()
+            role_ids = [
+                user_role.role_id
+                for user_role in session.query(UserRole).filter(UserRole.user_id == demo.id)
+            ]
+            assert len(role_ids) == 1
+            assert session.get(Role, role_ids[0]).name == "viewer"
+
 
 class TestLogout:
     def test_logout_acknowledges_without_raising(self, auth_service):

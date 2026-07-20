@@ -81,9 +81,19 @@ def test_0002_migrates_legacy_records_deterministically(tmp_path):
         ).scalar()
         assert orphans == 0
 
-        # Deterministic grouping: exactly the 4 expected projects.
+        # Deterministic grouping: exactly the 4 expected projects came from
+        # the legacy data migration. Since migration 0008 (domain seed),
+        # `projects` also carries seed rows with no legacy origin -- the
+        # 0002 invariant is now asserted over legacy-derived rows only
+        # (legacy_project_name set, or the fallback project).
         names = {
-            row[0] for row in conn.execute(text("SELECT name FROM projects")).fetchall()
+            row[0]
+            for row in conn.execute(
+                text(
+                    "SELECT name FROM projects "
+                    "WHERE legacy_project_name IS NOT NULL OR name = '(sem projeto)'"
+                )
+            ).fetchall()
         }
         assert names == EXPECTED_PROJECT_NAMES
 
@@ -126,9 +136,25 @@ def test_0002_migrates_legacy_records_deterministically(tmp_path):
         }
         assert len(fallback_ids) == 1
 
-        # Every project belongs to the seeded default organization.
-        org_count = conn.execute(text("SELECT COUNT(*) FROM organizations")).scalar()
-        assert org_count == 1
+        # Legacy projects all belong to the seeded default organization.
+        # (Since migration 0008, "Demo Organization" also exists by design
+        # -- the assertion is about where the LEGACY rows landed, not the
+        # total organization count.)
+        org_names = {
+            row[0] for row in conn.execute(text("SELECT name FROM organizations")).fetchall()
+        }
+        assert org_names == {"Organização Principal", "Demo Organization"}
+        legacy_org_names = {
+            row[0]
+            for row in conn.execute(
+                text(
+                    "SELECT DISTINCT o.name FROM projects p "
+                    "JOIN organizations o ON o.id = p.organization_id "
+                    "WHERE p.legacy_project_name IS NOT NULL OR p.name = '(sem projeto)'"
+                )
+            ).fetchall()
+        }
+        assert legacy_org_names == {"Organização Principal"}
         seeded_roles = {
             row[0] for row in conn.execute(text("SELECT name FROM roles")).fetchall()
         }

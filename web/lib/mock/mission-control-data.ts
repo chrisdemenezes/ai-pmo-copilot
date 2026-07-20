@@ -99,6 +99,7 @@ export interface RecentDecisionEntry {
 }
 
 export const RECENT_DECISIONS: RecentDecisionEntry[] = [
+  { id: "D-036", summary: "Wave 2 Sprint 5: frontend migrado para a API real — arrays semeados deletados, seed movido para o banco (migração 0008), demo user com papel viewer" },
   { id: "D-035", summary: "Wave 2 Sprint 4: Enterprise Administration implementado (Nível 1+2) — auditoria retroativa nas mutações de Portfolio/Program/Project; Sessões não implementado (não existe session store)" },
   { id: "D-034", summary: "Wave 2 Sprint 3: RBAC fine-grained enforcement aplicado às 9 rotas — permissões seedadas via migração 0006, checagem via SqlPermissionChecker" },
   { id: "D-033", summary: "Wave 2 Sprint 2: Enterprise API Layer entregue (Portfolio/Program/Project), autenticação + escopo por organização prontos, RBAC fino na próxima Sprint" },
@@ -133,6 +134,7 @@ export const PRODUCT_PULSE_TODAY: ProductPulseEntry[] = [
   { label: "Wave 2 Sprint 2: Enterprise API Layer (9 rotas, OpenAPI/Swagger, org scoping via get_request_context) — RBAC fino na próxima Sprint", done: true },
   { label: "Wave 2 Sprint 3: RBAC fine-grained enforcement aplicado (migração 0006, permission catalog, SqlPermissionChecker) — as 9 rotas exigem permissão real", done: true },
   { label: "Wave 2 Sprint 4: Enterprise Administration (Organizações/Usuários/Papéis/Auditoria/Logs/Segurança) — 8 novos endpoints, auditoria retroativa nas mutações do Domain", done: true },
+  { label: "Wave 2 Sprint 5: frontend migrado para a API real — fim do mock de domínio; Portfolio/Program/Project agora fluem banco → API → BFF → página", done: true },
   { label: "Regressão real de E2E encontrada pelo CI e corrigida (e2e/shell.spec.ts)", done: true },
 ];
 
@@ -164,7 +166,7 @@ export const ENTERPRISE_PROGRAM_WAVES: WaveEntry[] = [
     code: "Wave 2",
     name: "Enterprise Platform",
     status: "In Progress",
-    detail: "Enterprise Domain: Portfolio/Program/Project persistidos, unificados (Sprint 1), expostos via API real (Sprint 2) e protegidos por RBAC fino (Sprint 3) -- frontend ainda lê do array semeado, migração em andamento (Sprint 5). Enterprise Administration (Sprint 4): Nível 1+2 implementados (Org/Usuários/Papéis/Auditoria/Logs/Segurança); Sessões não implementado (TD-010, sem session store).",
+    detail: "Enterprise Domain completo de ponta a ponta: persistido e unificado (Sprint 1), API real (Sprint 2), RBAC fino (Sprint 3), Administration Nível 1+2 (Sprint 4) e frontend consumindo a API real (Sprint 5 -- mock de domínio eliminado). Pendências da Wave: Sessões (TD-010, sem session store) e Convites/Stakeholders (escopo Master Roadmap §3.2, não iniciado).",
   },
   {
     code: "Wave 3",
@@ -294,8 +296,8 @@ export const DOMAIN_EVOLUTION: DomainEvolutionNode[] = [
   { name: "Program", status: "Done" },
   {
     name: "Project",
-    status: "In Progress",
-    note: "Domínio de frontend ainda lê do array semeado; backend já unificado (mesma tabela projects, sem projects_delivery, Sprint 1 da Wave 2) — troca do frontend para a API real é a próxima Sprint",
+    status: "Done",
+    note: "Cadeia completa banco → API → BFF → página (Sprint 5); resta a Fase 3 do TD-008 (reconciliar analysis_records → project_id), programada para a Wave 3",
   },
   { name: "Demand", status: "Not Started" },
   { name: "Risk", status: "Not Started" },

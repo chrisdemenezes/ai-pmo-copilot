@@ -162,116 +162,74 @@ export class Program {
   }
 }
 
-const PROGRAMS: Program[] = [
-  Program.create({
-    id: "PG-001",
-    name: "Eficiência Operacional",
-    code: "PG-001",
-    description: "Redução de custo operacional e simplificação de processos internos.",
-    portfolioId: "PF-001",
-    sponsor: "Diretoria de Estratégia",
-    programManager: "Bruno Castro",
-    status: "Ativo",
-    health: "yellow",
-    priority: "Alta",
-    objective: "Reduzir custo operacional em 12% mantendo nível de serviço.",
-    startDate: "2025-08-01",
-    plannedEndDate: "2026-10-01",
-    actualEndDate: null,
-    progressPercentage: 52,
-    projectCount: 5,
-    linkedDemands: 3,
-    linkedRisks: 4,
-    linkedIssues: 2,
-    pendingDecisions: 1,
-    pendingActions: 2,
-    pmoOwner: "PMO Corporativo",
-    lastUpdated: "2026-07-11",
-    nextReview: "2026-07-28",
-  }),
-  Program.create({
-    id: "PG-002",
-    name: "Governança e Compliance Corporativa",
-    code: "PG-002",
-    description: "Padronização de controles de governança entre unidades de negócio.",
-    portfolioId: "PF-001",
-    sponsor: "Diretoria de Estratégia",
-    programManager: "Diego Souza",
-    status: "Ativo",
-    health: "yellow",
-    priority: "Média",
-    objective: "Unificar o modelo de controles internos até o fim da Release 0.2.",
-    startDate: "2026-02-01",
-    plannedEndDate: "2026-12-15",
-    actualEndDate: null,
-    progressPercentage: 45,
-    projectCount: 2,
-    linkedDemands: 1,
-    linkedRisks: 2,
-    linkedIssues: 0,
-    pendingDecisions: 1,
-    pendingActions: 1,
-    pmoOwner: "PMO Corporativo",
-    lastUpdated: "2026-07-09",
-    nextReview: "2026-08-05",
-  }),
-  Program.create({
-    id: "PG-003",
-    name: "Modernização de Plataformas",
-    code: "PG-003",
-    description: "Modernização das plataformas tecnológicas centrais.",
-    portfolioId: "PF-002",
-    sponsor: "CIO",
-    programManager: "Ana Ribeiro",
-    status: "Ativo",
-    health: "green",
-    priority: "Alta",
-    objective: "Migrar as 3 plataformas legadas mais críticas para a nova arquitetura.",
-    startDate: "2025-07-01",
-    plannedEndDate: "2026-09-01",
-    actualEndDate: null,
-    progressPercentage: 80,
-    projectCount: 3,
-    linkedDemands: 2,
-    linkedRisks: 2,
-    linkedIssues: 1,
-    pendingDecisions: 0,
-    pendingActions: 1,
-    pmoOwner: "PMO de Tecnologia",
-    lastUpdated: "2026-07-13",
-    nextReview: "2026-07-27",
-  }),
-  Program.create({
-    id: "PG-004",
-    name: "Entrada em Novos Mercados",
-    code: "PG-004",
-    description: "Estruturação operacional para entrada em 2 novos mercados regionais.",
-    portfolioId: "PF-003",
-    sponsor: "VP de Operações",
-    programManager: "Carla Mendes",
-    status: "Ativo",
-    health: "red",
-    priority: "Alta",
-    objective: "Estabelecer operação local nos 2 mercados-alvo até o fim da Release 0.2.",
-    startDate: "2026-02-01",
-    plannedEndDate: "2026-11-01",
-    actualEndDate: null,
-    progressPercentage: 28,
-    projectCount: 2,
-    linkedDemands: 2,
-    linkedRisks: 5,
-    linkedIssues: 1,
-    pendingDecisions: 1,
-    pendingActions: 1,
-    pmoOwner: "PMO Regional",
-    lastUpdated: "2026-07-14",
-    nextReview: "2026-07-21",
-  }),
-];
+/** Wire shape of GET /api/programs (ProgramResponse, snake_case). */
+interface ProgramApiRow {
+  id: number;
+  portfolio_id: number;
+  name: string;
+  code: string;
+  description: string | null;
+  sponsor: string | null;
+  program_manager: string | null;
+  status: string;
+  health: string;
+  priority: string;
+  objective: string | null;
+  start_date: string | null;
+  planned_end_date: string | null;
+  actual_end_date: string | null;
+  progress_percentage: number;
+  project_count: number;
+  linked_demands: number;
+  linked_risks: number;
+  linked_issues: number;
+  pending_decisions: number;
+  pending_actions: number;
+  pmo_owner: string | null;
+  last_updated: string | null;
+  next_review: string | null;
+}
 
-/** Repository-shaped accessor, same convention as listPortfolios(). */
+function toProgram(row: ProgramApiRow): Program {
+  // Program.create() keeps enforcing the portfolioId invariant on API data
+  // too -- a backend row without a portfolio (impossible by schema, the FK
+  // is NOT NULL) would fail loudly here instead of rendering broken.
+  return Program.create({
+    id: String(row.id),
+    name: row.name,
+    code: row.code,
+    description: row.description ?? "",
+    portfolioId: String(row.portfolio_id),
+    sponsor: row.sponsor ?? "",
+    programManager: row.program_manager ?? "",
+    status: row.status as DomainStatus,
+    health: row.health as DomainHealth,
+    priority: row.priority as DomainPriority,
+    objective: row.objective ?? "",
+    startDate: row.start_date ?? "",
+    plannedEndDate: row.planned_end_date ?? "",
+    actualEndDate: row.actual_end_date,
+    progressPercentage: row.progress_percentage,
+    projectCount: row.project_count,
+    linkedDemands: row.linked_demands,
+    linkedRisks: row.linked_risks,
+    linkedIssues: row.linked_issues,
+    pendingDecisions: row.pending_decisions,
+    pendingActions: row.pending_actions,
+    pmoOwner: row.pmo_owner ?? "",
+    lastUpdated: row.last_updated ?? "",
+    nextReview: row.next_review ?? "",
+  });
+}
+
+/** Repository-shaped accessor — real BFF call since Wave 2 Sprint 5, same convention as listPortfolios(). */
 export async function listPrograms(): Promise<Program[]> {
-  return PROGRAMS;
+  const response = await fetch("/api/bff/program");
+  if (!response.ok) {
+    throw new Error(`Falha ao carregar programas (${response.status})`);
+  }
+  const rows = (await response.json()) as ProgramApiRow[];
+  return rows.map(toProgram);
 }
 
 /**

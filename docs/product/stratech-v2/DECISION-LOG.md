@@ -227,6 +227,14 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Nenhum conflito arquitetural novo** — a correção de premissa acima não é uma Decision Proposal, é um fato técnico verificado.
 - **Sprint:** Wave 2, Sprint 4 — Enterprise Administration.
 
+### D-036 — Wave 2 Sprint 5: frontend migrado para a API real; seed muda de casa (frontend → banco); demo user ganha papel viewer
+
+- **Contexto:** o Founder aprovou a migração do frontend para a Enterprise Domain API. Pré-condição descoberta na análise: as tabelas do backend estavam vazias — trocar o frontend sem semear o banco apagaria visualmente todas as páginas; e o demo user não tinha papel algum, então o Demo Mode receberia 403 em toda a API protegida por RBAC.
+- **Decisão:** (1) migração `0008_domain_seed` move os dados semeados do frontend para o banco, nas duas organizações por desenho, executando a unificação Fase 2 (`DOMAIN-BLUEPRINT-PROJECT.md`) para nomes colidentes com Projects legados ("Multilift"/"Aurora" — atualizados in-place, nunca duplicados); (2) `bootstrap_demo_user` passa a garantir o papel `viewer` a cada boot (inclusive para instalações existentes), com `assign_role_in_session` tornado idempotente; (3) 3 BFF routes novos sobre um helper compartilhado resolvem os headers institucionais server-side a partir do cookie de sessão; (4) os corpos de `listPortfolios()`/`listPrograms()`/`listProjects()` viram `fetch()` real e os arrays semeados são deletados — nenhum hook/página/componente tocado, exatamente o seam prometido em D-011.
+- **Verificação:** 245 testes backend + 436 unitários frontend + suíte E2E completa nos 3 projetos (203 testes) — disciplina D-027 cumprida; mock backend do Playwright estendido com os 3 endpoints reais.
+- **TD-008 avança para a Fase 2 executada nos nomes do seed** (unificação in-place); Fase 3 (reconciliar `analysis_records.project_name` → `project_id` e aposentar `ProjectSummary`) permanece para a Wave 3.
+- **Sprint:** Wave 2, Sprint 5 — Frontend migration to real Enterprise Domain API.
+
 ---
 
 ## Convenção

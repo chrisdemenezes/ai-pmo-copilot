@@ -101,7 +101,11 @@ def test_0005_downgrade_is_lossless_and_full_round_trip_works(tmp_path):
     env = os.environ.copy()
     env["DATABASE_URL"] = database_url
 
-    _alembic(env, "upgrade", "head")
+    # Pinned to 0005 (this test's subject) since migration 0008 (domain
+    # seed) exists: going all the way to head would mix 0008's data
+    # seeding/removal into an assertion about 0005's schema losslessness
+    # (0008 has its own dedicated tests).
+    _alembic(env, "upgrade", "0005")
     engine = create_engine(database_url)
 
     with engine.connect() as conn:
