@@ -202,6 +202,14 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Nenhum Blueprint, Domain Model aprovado ou documento de arquitetura foi alterado** — a única mudança de plano foi de sequenciamento de Sprint (Wave 1 antes de Wave 2), tecnicamente forçada pela própria dependência já documentada, não uma nova decisão arquitetural.
 - **Sprint:** Wave 2, Sprint 1 — Enterprise Domain persistence.
 
+### D-033 — Wave 2 Sprint 2: Enterprise API Layer entregue sem RBAC fino (por desenho, per diretriz do Founder)
+
+- **Contexto:** Sprint 2 aprovada com escopo explícito: API completa para Portfolio/Program/Project, protegida por uma estrutura de autenticação "preparada para receber RBAC" (não o enforcement fino em si), documentada em OpenAPI/Swagger, 100% dos testes passando, sem alterar o frontend.
+- **Decisão:** implementadas 9 rotas (`GET`/`GET by id`/`POST` para as 3 entidades) sobre `verify_api_key` + `enforce_rate_limit` + `get_request_context` — primeiro uso real de `get_request_context` desde o Épico 2. Escopo por organização resolvido do header institucional, nunca de um parâmetro de query (nenhuma organização pode escolher ver os dados de outra só trocando um id). 404, nunca 403, para qualquer id de outra organização (padrão consistente entre Portfolio/Program/Project). `DomainService` novo (`src/services/domain_service.py`) mantém essa regra em um único lugar. 33 testes novos, 201 totais passando, 98% de cobertura, `ruff` limpo, `/docs` e `/openapi.json` funcionais.
+- **Não incluído, registrado para a próxima Sprint:** `require_permission(...)` (RBAC fino, `DOMAIN-BLUEPRINT-RBAC.md`) e a migração do frontend para consumir esta API.
+- **Nenhum conflito arquitetural real encontrado** — nenhuma Decision Proposal necessária nesta Sprint.
+- **Sprint:** Wave 2, Sprint 2 — Enterprise API Layer.
+
 ---
 
 ## Convenção

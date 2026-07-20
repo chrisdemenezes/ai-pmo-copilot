@@ -57,6 +57,18 @@ class DomainRepository:
             )
             return portfolios
 
+    def get_portfolio(self, portfolio_id: int, organization_id: int) -> Portfolio | None:
+        """Scoped by organization_id in the query itself, not checked after
+        the fact -- a cross-organization id never distinguishes "not found"
+        from "not yours" in the response (same 404 either way, no existence
+        leak)."""
+        with self._session_factory() as session:
+            return (
+                session.query(Portfolio)
+                .filter(Portfolio.id == portfolio_id, Portfolio.organization_id == organization_id)
+                .one_or_none()
+            )
+
     # -- Programs --------------------------------------------------------
 
     def create_program(self, portfolio_id: int, name: str, code: str, **fields) -> int:
@@ -98,6 +110,17 @@ class DomainRepository:
                 "Listed %d programs organization_id=%s", len(programs), organization_id
             )
             return programs
+
+    def get_program(self, program_id: int, organization_id: int) -> Program | None:
+        """Scoped transitively through Portfolio, same 404-not-403 discipline
+        as get_portfolio()."""
+        with self._session_factory() as session:
+            return (
+                session.query(Program)
+                .join(Portfolio, Program.portfolio_id == Portfolio.id)
+                .filter(Program.id == program_id, Portfolio.organization_id == organization_id)
+                .one_or_none()
+            )
 
     # -- Projects (domain fields on the Épico-1 `projects` table) --------
 
@@ -178,3 +201,35 @@ class DomainRepository:
             )
             logger.info("Listed %d projects program_id=%s", len(projects), program_id)
             return projects
+
+    def list_projects_by_organization(self, organization_id: int) -> list[Project]:
+        """Only domain-linked Projects (program_id IS NOT NULL) -- a plain
+        Épico-1 Project with no Program yet is not part of the Enterprise
+        Domain API surface until it goes through
+        `attach_project_to_program()` (TD-008, Fase 2)."""
+        with self._session_factory() as session:
+            projects = (
+                session.query(Project)
+                .filter(
+                    Project.organization_id == organization_id,
+                    Project.program_id.isnot(None),
+                )
+                .order_by(Project.name)
+                .all()
+            )
+            logger.info(
+                "Listed %d domain projects organization_id=%s", len(projects), organization_id
+            )
+            return projects
+
+    def get_project(self, project_id: int, organization_id: int) -> Project | None:
+        with self._session_factory() as session:
+            return (
+                session.query(Project)
+                .filter(
+                    Project.id == project_id,
+                    Project.organization_id == organization_id,
+                    Project.program_id.isnot(None),
+                )
+                .one_or_none()
+            )
