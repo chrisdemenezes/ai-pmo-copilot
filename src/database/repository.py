@@ -12,6 +12,7 @@ from src.database.base import Base
 from src.database import models  # noqa: F401
 from src.database.enterprise_repository import EnterpriseRepository
 from src.database.domain_repository import DomainRepository
+from src.database.administration_repository import AdministrationRepository
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +44,7 @@ class AnalysisRepository:
         self.SessionLocal = sessionmaker(bind=self.engine, autoflush=False, autocommit=False)
         self.enterprise = EnterpriseRepository(self.SessionLocal)
         self.domain = DomainRepository(self.SessionLocal)
+        self.administration = AdministrationRepository(self.SessionLocal)
 
     def save_analysis(self, kind: str, payload: dict, project_name: str | None = None) -> int:
         with self.SessionLocal() as session:

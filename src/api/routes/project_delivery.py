@@ -168,7 +168,11 @@ def create_project_delivery(
         request.program_id,
     )
     project = service.create_project(
-        context.organization.organization_id, request.program_id, request.name, **fields
+        context.organization.organization_id,
+        request.program_id,
+        request.name,
+        actor_user_id=context.user.user_id,
+        **fields,
     )
     if project is None:
         raise HTTPException(status_code=404, detail="Program not found")

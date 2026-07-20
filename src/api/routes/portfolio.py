@@ -135,5 +135,9 @@ def create_portfolio(
         request.code,
     )
     return service.create_portfolio(
-        context.organization.organization_id, request.name, request.code, **fields
+        context.organization.organization_id,
+        request.name,
+        request.code,
+        actor_user_id=context.user.user_id,
+        **fields,
     )

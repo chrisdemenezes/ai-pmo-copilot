@@ -99,6 +99,7 @@ export interface RecentDecisionEntry {
 }
 
 export const RECENT_DECISIONS: RecentDecisionEntry[] = [
+  { id: "D-035", summary: "Wave 2 Sprint 4: Enterprise Administration implementado (Nível 1+2) — auditoria retroativa nas mutações de Portfolio/Program/Project; Sessões não implementado (não existe session store)" },
   { id: "D-034", summary: "Wave 2 Sprint 3: RBAC fine-grained enforcement aplicado às 9 rotas — permissões seedadas via migração 0006, checagem via SqlPermissionChecker" },
   { id: "D-033", summary: "Wave 2 Sprint 2: Enterprise API Layer entregue (Portfolio/Program/Project), autenticação + escopo por organização prontos, RBAC fino na próxima Sprint" },
   { id: "D-032", summary: "Wave 2 Sprint 1: persistência real de Portfolio/Program/Project implementada (Project unificado, sem tabela projects_delivery); TD-007 resolvido" },
@@ -131,6 +132,7 @@ export const PRODUCT_PULSE_TODAY: ProductPulseEntry[] = [
   { label: "Wave 2 Sprint 1: Portfolio/Program/Project persistidos (migração 0005), Project unificado sem tabela projects_delivery — TD-007 resolvido", done: true },
   { label: "Wave 2 Sprint 2: Enterprise API Layer (9 rotas, OpenAPI/Swagger, org scoping via get_request_context) — RBAC fino na próxima Sprint", done: true },
   { label: "Wave 2 Sprint 3: RBAC fine-grained enforcement aplicado (migração 0006, permission catalog, SqlPermissionChecker) — as 9 rotas exigem permissão real", done: true },
+  { label: "Wave 2 Sprint 4: Enterprise Administration (Organizações/Usuários/Papéis/Auditoria/Logs/Segurança) — 8 novos endpoints, auditoria retroativa nas mutações do Domain", done: true },
   { label: "Regressão real de E2E encontrada pelo CI e corrigida (e2e/shell.spec.ts)", done: true },
 ];
 
@@ -162,7 +164,7 @@ export const ENTERPRISE_PROGRAM_WAVES: WaveEntry[] = [
     code: "Wave 2",
     name: "Enterprise Platform",
     status: "In Progress",
-    detail: "Enterprise Domain: Portfolio/Program/Project persistidos, unificados (Sprint 1), expostos via API real (Sprint 2) e protegidos por RBAC fino (Sprint 3) -- frontend ainda lê do array semeado, migração é a próxima Sprint elegível. Enterprise Administration: conflito de escopo com recomendação em 3 níveis (Decision Proposal, aguardando ratificação do Founder).",
+    detail: "Enterprise Domain: Portfolio/Program/Project persistidos, unificados (Sprint 1), expostos via API real (Sprint 2) e protegidos por RBAC fino (Sprint 3) -- frontend ainda lê do array semeado, migração em andamento (Sprint 5). Enterprise Administration (Sprint 4): Nível 1+2 implementados (Org/Usuários/Papéis/Auditoria/Logs/Segurança); Sessões não implementado (TD-010, sem session store).",
   },
   {
     code: "Wave 3",

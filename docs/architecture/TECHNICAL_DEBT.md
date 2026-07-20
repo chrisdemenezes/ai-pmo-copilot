@@ -55,6 +55,15 @@ Registro vivo de débitos arquiteturais conhecidos. Cada item tem origem, status
 - **Descrição:** `web/` não tem `@vitest/coverage-v8` instalado — `vitest run --coverage` falha por dependência ausente. O backend (`src/`) já mede cobertura real (97%, via `pytest --cov`); o frontend não tem visibilidade equivalente. Consistente com o pilar "Observabilidade" do Product Maturity Model, hoje em 0%.
 - **Resolver antes de:** nenhum gatilho específico — melhoria de visibilidade, não um risco ativo. Candidato natural para quando a Phase 2 exigir métricas de qualidade mais rigorosas.
 
+## TD-010 — Nenhum armazenamento server-side de sessão (revogação real não é possível)
+
+- **Origem:** Wave 2, Sprint 4 (Enterprise Administration) — encontrada ao tentar implementar "Sessões" per `DOMAIN-BLUEPRINT-ENTERPRISE-ADMINISTRATION.md` §2.
+- **Classificação:** Médio (segurança/observabilidade prospectiva).
+- **Status:** Aberto (aceito conscientemente — não implementado nesta Sprint).
+- **Descrição:** a sessão da STRATECH é um cookie HMAC-assinado, sem estado no servidor (`src/services/identity/auth_service.py`, `logout()`: "No server-side session store exists yet"). Isso significa que não há como listar sessões ativas de um usuário nem revogar uma sessão individual antes de sua expiração natural (12h) — um logout hoje é apenas o cliente descartando o cookie, o token continua criptograficamente válido até expirar. O Blueprint de Administration assumiu incorretamente que isso já existia ("painel é só leitura+revogação sobre o que já existe").
+- **Resolver antes de:** qualquer requisito de segurança que exija revogação imediata de sessão (ex.: usuário removido/desativado deveria perder acesso instantaneamente, não em até 12h).
+- **Plano de resolução:** exigiria um componente de session store novo (ex.: tabela `sessions` com `revoked_at`, checada a cada request) — decisão de arquitetura própria, fora do escopo de "extensão de baixo risco" que o Blueprint assumiu; não avaliado em detalhe nesta Sprint.
+
 ---
 
 ## Baseline Defects — falhas E2E pré-existentes, não introduzidas por Épicos

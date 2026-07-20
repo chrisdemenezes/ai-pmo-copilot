@@ -120,6 +120,7 @@ def create_program(
         request.portfolio_id,
         request.name,
         request.code,
+        actor_user_id=context.user.user_id,
         **fields,
     )
     if program is None:

@@ -218,3 +218,26 @@ class UserProjectMembership(Base):
     user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
     project_id = Column(Integer, ForeignKey("projects.id"), primary_key=True)
     role_in_project = Column(String(50), nullable=False, default="member")
+
+
+class AuditLog(Base):
+    """Enterprise Administration, Wave 2 (Épico 5, Nível 1 -- auditoria de
+    mutações). Doubles as the "Logs" surface (Nível 2,
+    `DOMAIN-BLUEPRINT-ENTERPRISE-ADMINISTRATION.md`) -- one structured
+    store, not a separate logging system alongside it."""
+
+    __tablename__ = "audit_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    organization_id = Column(
+        Integer, ForeignKey("organizations.id"), nullable=False, index=True
+    )
+    actor_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    # e.g. "organization.renamed", "user.created", "role.assigned",
+    # "portfolio.created" -- resource.verb, mirrors the RBAC permission
+    # vocabulary (DOMAIN-BLUEPRINT-RBAC.md §2) without being the same field.
+    action = Column(String(100), nullable=False)
+    entity_type = Column(String(50), nullable=False)
+    entity_id = Column(Integer, nullable=True)
+    details = Column(JSON, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False, index=True)

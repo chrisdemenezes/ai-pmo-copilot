@@ -218,6 +218,15 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Nenhum conflito arquitetural real** — correção de premissa técnica, não uma Decision Proposal.
 - **Sprint:** Wave 2, Sprint 3 — RBAC fine-grained enforcement.
 
+### D-035 — Wave 2 Sprint 4: Enterprise Administration (Nível 1+2) implementado; premissa de "Sessões" corrigida
+
+- **Contexto:** o Founder ratificou o Nível 1 (já era o Épico 5 aprovado) e o Nível 2 (extensão de baixo risco) de `DOMAIN-BLUEPRINT-ENTERPRISE-ADMINISTRATION.md`, autorizando a implementação.
+- **Decisão:** migração `0007` (tabela `audit_logs` + permissões `administration.read`/`administration.write`), `AdministrationRepository`/`AdministrationService`/`src/api/routes/administration.py` (8 endpoints). Auditoria aplicada retroativamente às mutações já existentes de Portfolio/Program/Project (Sprint 1-3), não apenas às novas rotas de Administration. "Logs" reaproveita a mesma tabela de "Auditoria" — nenhum sistema de logging duplicado. "Segurança" ficou com um endpoint mínimo, somente leitura.
+- **Correção de premissa, não uma mudança de Blueprint:** `DOMAIN-BLUEPRINT-ENTERPRISE-ADMINISTRATION.md` §2 assumiu que "Sessões" seria uma extensão de baixo risco ("painel é só leitura+revogação sobre o que já existe"). A implementação confirmou que isso é falso — não existe armazenamento server-side de sessões (a sessão é um cookie HMAC stateless, `auth_service.py` já documentava "No server-side session store exists yet"). Um painel de Sessões real exigiria um componente de arquitetura novo, fora do escopo de extensão de baixo risco. **Não implementado.** O Blueprint não foi editado (regra da missão anterior contra alterar Blueprints) — a correção fica registrada aqui, mesmo padrão de D-034.
+- **Bug encontrado e corrigido durante a implementação:** `AdministrationRepository.assign_role()` retornava um objeto SQLAlchemy expirado após `commit()` sem `session.refresh()`, causando `DetachedInstanceError` ao serializar a resposta da API — corrigido antes do commit, coberto por teste.
+- **Nenhum conflito arquitetural novo** — a correção de premissa acima não é uma Decision Proposal, é um fato técnico verificado.
+- **Sprint:** Wave 2, Sprint 4 — Enterprise Administration.
+
 ---
 
 ## Convenção

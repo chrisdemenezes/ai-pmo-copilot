@@ -8,6 +8,11 @@ caller's organization. Returning `None` here (never raising) lets every
 route in `src/api/routes/portfolio.py`/`program.py`/`project_delivery.py`
 map "not found" and "not yours" to the same 404, so no route ever leaks
 whether an id merely doesn't exist or belongs to someone else.
+
+Sprint 4 (Enterprise Administration): every `create_*` records an audit
+entry via `AdministrationRepository.record_audit` -- Épico 5's "Auditoria
+de mutações" applied retroactively to this Bounded Context's writes, not
+just to the new Administration endpoints themselves.
 """
 import logging
 
@@ -29,9 +34,14 @@ class DomainService:
     def get_portfolio(self, portfolio_id: int, organization_id: int) -> Portfolio | None:
         return self._repository.domain.get_portfolio(portfolio_id, organization_id)
 
-    def create_portfolio(self, organization_id: int, name: str, code: str, **fields) -> Portfolio:
+    def create_portfolio(
+        self, organization_id: int, name: str, code: str, actor_user_id: int, **fields
+    ) -> Portfolio:
         portfolio_id = self._repository.domain.create_portfolio(
             organization_id, name, code, **fields
+        )
+        self._repository.administration.record_audit(
+            organization_id, actor_user_id, "portfolio.created", "portfolio", portfolio_id
         )
         return self._repository.domain.get_portfolio(portfolio_id, organization_id)
 
@@ -53,7 +63,13 @@ class DomainService:
         return self._repository.domain.get_program(program_id, organization_id)
 
     def create_program(
-        self, organization_id: int, portfolio_id: int, name: str, code: str, **fields
+        self,
+        organization_id: int,
+        portfolio_id: int,
+        name: str,
+        code: str,
+        actor_user_id: int,
+        **fields,
     ) -> Program | None:
         """None means the portfolio doesn't exist or isn't this
         organization's -- the route maps that to 404, never creating a
@@ -61,6 +77,9 @@ class DomainService:
         if self.get_portfolio(portfolio_id, organization_id) is None:
             return None
         program_id = self._repository.domain.create_program(portfolio_id, name, code, **fields)
+        self._repository.administration.record_audit(
+            organization_id, actor_user_id, "program.created", "program", program_id
+        )
         return self._repository.domain.get_program(program_id, organization_id)
 
     # -- Projects (domain fields on the Épico-1 `projects` table) --------
@@ -78,7 +97,7 @@ class DomainService:
         return self._repository.domain.get_project(project_id, organization_id)
 
     def create_project(
-        self, organization_id: int, program_id: int, name: str, **fields
+        self, organization_id: int, program_id: int, name: str, actor_user_id: int, **fields
     ) -> Project | None:
         """None means the program doesn't exist or isn't this
         organization's -- same not-found-not-yours discipline as
@@ -87,5 +106,8 @@ class DomainService:
             return None
         project_id = self._repository.domain.create_project_with_domain(
             organization_id, program_id, name, **fields
+        )
+        self._repository.administration.record_audit(
+            organization_id, actor_user_id, "project_delivery.created", "project", project_id
         )
         return self._repository.domain.get_project(project_id, organization_id)
