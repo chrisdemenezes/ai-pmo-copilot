@@ -8,13 +8,11 @@ by `context.organization.organization_id`, never by a client-supplied
 organization id, so one organization can never address another's rows by
 guessing an id.
 
-RBAC note (Foundation Technical Design §4, `DOMAIN-BLUEPRINT-RBAC.md`):
-this Sprint's scope is authentication + organization scoping only --
-"estrutura preparada para receber RBAC". Fine-grained permission checks
-(`require_permission("portfolio.read")` etc.) are the next Sprint's work;
-they slot in as one more `Depends(...)` per route, after
-`get_request_context`, without changing any route's signature or
-response shape.
+RBAC (Wave 2, Sprint 3; `DOMAIN-BLUEPRINT-RBAC.md`): every route below now
+carries `Depends(require_permission("portfolio.read"|"portfolio.write"))`,
+inserted after `get_request_context`, exactly the seam
+`PHASE-2-FOUNDATION-TECHNICAL-DESIGN.md` §4.5 described -- no route
+signature or response shape changed to add it.
 """
 import logging
 
@@ -22,6 +20,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from datetime import date
 
+from src.api.authorization import require_permission
 from src.api.identity_context import get_request_context
 from src.api.rate_limiter import enforce_rate_limit
 from src.api.security import verify_api_key
@@ -94,6 +93,7 @@ class PortfolioCreateRequest(BaseModel):
 def list_portfolios(
     context: RequestContext = Depends(get_request_context),
     service: DomainService = Depends(build_domain_service),
+    _permission: None = Depends(require_permission("portfolio.read")),
 ):
     """Lists every Portfolio belonging to the caller's organization."""
     logger.info("Listing portfolios organization_id=%s", context.organization.organization_id)
@@ -105,6 +105,7 @@ def get_portfolio(
     portfolio_id: int,
     context: RequestContext = Depends(get_request_context),
     service: DomainService = Depends(build_domain_service),
+    _permission: None = Depends(require_permission("portfolio.read")),
 ):
     portfolio = service.get_portfolio(portfolio_id, context.organization.organization_id)
     if portfolio is None:
@@ -122,6 +123,7 @@ def create_portfolio(
     request: PortfolioCreateRequest,
     context: RequestContext = Depends(get_request_context),
     service: DomainService = Depends(build_domain_service),
+    _permission: None = Depends(require_permission("portfolio.write")),
 ):
     # exclude_none: leaving a field out of the request lets the model's own
     # column default (e.g. status="Ativo") apply -- passing None explicitly

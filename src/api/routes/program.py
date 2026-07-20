@@ -12,6 +12,7 @@ from datetime import date
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from src.api.authorization import require_permission
 from src.api.identity_context import get_request_context
 from src.api.rate_limiter import enforce_rate_limit
 from src.api.routes.portfolio import build_domain_service
@@ -77,6 +78,7 @@ def list_programs(
     portfolio_id: int | None = None,
     context: RequestContext = Depends(get_request_context),
     service: DomainService = Depends(build_domain_service),
+    _permission: None = Depends(require_permission("program.read")),
 ):
     """Lists Programs for the caller's organization -- optionally filtered
     to a single Portfolio via `portfolio_id`."""
@@ -91,6 +93,7 @@ def get_program(
     program_id: int,
     context: RequestContext = Depends(get_request_context),
     service: DomainService = Depends(build_domain_service),
+    _permission: None = Depends(require_permission("program.read")),
 ):
     program = service.get_program(program_id, context.organization.organization_id)
     if program is None:
@@ -103,6 +106,7 @@ def create_program(
     request: ProgramCreateRequest,
     context: RequestContext = Depends(get_request_context),
     service: DomainService = Depends(build_domain_service),
+    _permission: None = Depends(require_permission("program.write")),
 ):
     fields = request.model_dump(exclude_none=True, exclude={"portfolio_id", "name", "code"})
     logger.info(

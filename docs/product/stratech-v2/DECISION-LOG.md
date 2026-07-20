@@ -210,6 +210,14 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Nenhum conflito arquitetural real encontrado** — nenhuma Decision Proposal necessária nesta Sprint.
 - **Sprint:** Wave 2, Sprint 2 — Enterprise API Layer.
 
+### D-034 — Wave 2 Sprint 3: RBAC fine-grained enforcement aplicado; premissa de schema do RBAC Blueprint corrigida
+
+- **Contexto:** Sprint 3, identificada automaticamente como a próxima Sprint elegível per o Enterprise Master Execution Program (Wave 2, Epic Enterprise Identity, adiada explicitamente pela Sprint 2). Objetivo: aplicar `require_permission(...)` às 9 rotas da Enterprise Domain API, per `DOMAIN-BLUEPRINT-RBAC.md`.
+- **Decisão:** migração `0006_rbac_permission_catalog` semeia 6 permissões (`portfolio`/`program`/`project_delivery` × `read`/`write`) e as atribui aos 4 papéis já existentes desde o Épico 1. `src/services/authorization/` (`PermissionChecker` Protocol + `SqlPermissionChecker`) e `src/api/authorization.py` (`require_permission`) implementados per o desenho já existente (`PHASE-2-FOUNDATION-TECHNICAL-DESIGN.md` §4). Todas as 9 rotas ganham o `Depends(...)` adicional. 18 testes novos/reescritos, 211 totais, 98% de cobertura.
+- **Correção de premissa (não uma mudança de Blueprint):** `DOMAIN-BLUEPRINT-RBAC.md` §1 recomendava estender `user_roles` com `organization_id`, presumindo que um usuário pudesse pertencer a mais de uma organização. Na implementação, confirmou-se que isso não é verdade no schema atual — `users.organization_id` é uma FK única e obrigatória desde o Épico 1, então um usuário nunca tem papéis em mais de uma organização hoje. A extensão de schema não foi aplicada; o Blueprint em si não foi editado (per a regra desta missão de não alterar Blueprints) — a correção fica registrada aqui.
+- **Nenhum conflito arquitetural real** — correção de premissa técnica, não uma Decision Proposal.
+- **Sprint:** Wave 2, Sprint 3 — RBAC fine-grained enforcement.
+
 ---
 
 ## Convenção

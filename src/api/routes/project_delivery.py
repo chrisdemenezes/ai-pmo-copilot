@@ -17,6 +17,7 @@ from datetime import date
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from src.api.authorization import require_permission
 from src.api.identity_context import get_request_context
 from src.api.rate_limiter import enforce_rate_limit
 from src.api.routes.portfolio import build_domain_service
@@ -113,6 +114,7 @@ def list_projects_delivery(
     program_id: int | None = None,
     context: RequestContext = Depends(get_request_context),
     service: DomainService = Depends(build_domain_service),
+    _permission: None = Depends(require_permission("project_delivery.read")),
 ):
     """Lists domain Projects (program_id set) for the caller's organization
     -- optionally filtered to a single Program via `program_id`. A plain
@@ -133,6 +135,7 @@ def get_project_delivery(
     project_id: int,
     context: RequestContext = Depends(get_request_context),
     service: DomainService = Depends(build_domain_service),
+    _permission: None = Depends(require_permission("project_delivery.read")),
 ):
     project = service.get_project(project_id, context.organization.organization_id)
     if project is None:
@@ -150,6 +153,7 @@ def create_project_delivery(
     request: ProjectDeliveryCreateRequest,
     context: RequestContext = Depends(get_request_context),
     service: DomainService = Depends(build_domain_service),
+    _permission: None = Depends(require_permission("project_delivery.write")),
 ):
     fields = request.model_dump(exclude_none=True, exclude={"program_id", "name"})
     if "owner" in fields:
