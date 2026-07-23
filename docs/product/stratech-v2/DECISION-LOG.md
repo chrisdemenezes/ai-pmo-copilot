@@ -276,6 +276,15 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Nenhum Blueprint, Domain Model ou ADR aprovado foi alterado.**
 - **Sprint:** Wave 3, Epic W3-1.
 
+### D-041 — Wave 3, Epic W3-2 avaliado e adiado: AI Platform Foundation não tem consumidor real hoje
+
+- **Contexto:** AR-2 havia liberado o Epic W3-2 (AI Platform Foundation) para início imediato, seguindo o sequenciamento já recomendado pelo `DOMAIN-BLUEPRINT-WAVE-3-ENTERPRISE-INTELLIGENCE.md` §1 (Provider Strategy → Model Registry → Model Routing → Cost/Token → Observability → Evaluation Framework).
+- **Decisão:** o Domain Blueprint deste Epic (`DOMAIN-BLUEPRINT-AI-PLATFORM-FOUNDATION.md`) auditou cada sub-área contra a pergunta "existe um consumidor real hoje?", não apenas "é seguro construir?". Resultado: **nenhuma das 7 sub-áreas tem um caso de uso concreto hoje** — os 3 Accelerators reais sempre usam o mesmo `LLMProvider` (nenhuma seleção por caso de uso é pedida); nenhum prompt jamais precisou de versionamento; nenhum problema de custo/token foi relatado (apesar de um gap real e concreto: `ProductionLLMProvider.generate()` descarta o `message.usage`/tokens que a API da Anthropic já devolve). Construir Model Registry, Model Routing, Prompt Versioning ou instrumentação de custo sem nenhum consumidor real seria exatamente a arquitetura especulativa que este projeto evita em toda a sua história (CLAUDE.md: "não fazer mais do que o necessário", "não projetar para requisitos hipotéticos futuros").
+- **Nenhum código foi produzido por este Epic.** Epic W3-2 marcado como **adiado, não cancelado** — gatilhos explícitos de reabertura documentados (Epic W3-3 ou um Advisor futuro precisar de um modelo diferente; um problema real de custo/latência surgir; o Founder pedir visibilidade de custo de IA explicitamente).
+- **A Wave 3 avança para o Epic W3-3 (Risk Advisor)**, que tem um entregável concreto e nomeado, em vez de permanecer bloqueada por um Epic sem trabalho real a fazer.
+- **Nenhum Blueprint, Domain Model ou ADR aprovado foi alterado.** Nenhuma decisão de que a STRATECH nunca terá múltiplos providers — apenas que não há hoje nenhum caso de uso que justifique construir isso agora.
+- **Sprint:** Wave 3, Epic W3-2 (Architecture/Blueprint apenas, sem implementação).
+
 ---
 
 ## Convenção
