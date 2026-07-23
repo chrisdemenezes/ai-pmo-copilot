@@ -296,6 +296,14 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Nenhum Blueprint, Domain Model ou ADR aprovado foi alterado.**
 - **Missão:** Repository Audit Wave 3 (pré-requisito Founder para main update + Epic W3-3).
 
+### D-043 — Epic W3-3: Enterprise Domain Blueprint do Risk Advisor concluído; Implementação bloqueada até C-1/C-2 serem decididos
+
+- **Contexto:** o Founder autorizou o início do Epic W3-3 (Risk Advisor) condicionado à conclusão da auditoria + atualização da `main`, exigindo um Enterprise Domain Blueprint (não apenas Technical Design) cobrindo propósito executivo, atores, modelo de domínio, fluxo decisório, integração LLM, explainability, nível de confiança, RBAC, organization scope, auditoria, interface conversacional, critérios de aceite, riscos, dependências e não-escopo.
+- **Decisão:** `DOMAIN-BLUEPRINT-RISK-ADVISOR.md` produzido cobrindo todos os pontos exigidos. Desenho: nenhuma entidade de domínio nova (reaproveita `Project` e `AnalysisRecord` já existentes), nenhuma extensão de `LLMProvider`/`PromptRegistry` necessária, somente leitura (nunca dispara nova análise), explainability obrigatória (cita `source_analysis_id`), auditoria de toda pergunta feita. Confirma o guarda-corpo da AR-2: nenhum framework de orquestração multi-agente, vector store, RAG ou memória de longo prazo é introduzido — exatamente os itens explicitamente fora de escopo pelo Founder.
+- **Implementação bloqueada, não decidida silenciosamente:** o Blueprint identifica que o Risk Advisor herdaria diretamente as 2 lacunas críticas de segurança do Repository Audit (C-1: `intelligence.py` sem RBAC; C-2: `AnalysisRecord` sem `organization_id`) se implementado antes delas serem resolvidas — construir uma interface conversacional sobre uma rota sem controle de acesso agravaria o problema. Nenhum código produzido. Aguardando: (1) decisão do Founder sobre C-1/C-2 (Decision Proposal, `ENTERPRISE-MASTER-EXECUTION-PROGRAM.md` §16), (2) conclusão do merge da `main` (PR #45).
+- **Nenhum Blueprint, Domain Model ou ADR aprovado foi alterado.**
+- **Missão:** Wave 3, Epic W3-3 (Blueprint apenas, Implementação pendente).
+
 ---
 
 ## Convenção

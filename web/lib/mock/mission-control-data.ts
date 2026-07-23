@@ -113,6 +113,7 @@ export interface RecentDecisionEntry {
 }
 
 export const RECENT_DECISIONS: RecentDecisionEntry[] = [
+  { id: "D-043", summary: "Wave 3, Epic W3-3: Enterprise Domain Blueprint do Risk Advisor concluído (somente leitura, reaproveita Project/AnalysisRecord, sem framework de orquestração) — Implementação bloqueada até o Founder decidir C-1/C-2 e a main ser consolidada (PR #45)" },
   { id: "D-042", summary: "Repository Audit Wave 3: Go with Conditions — 2 achados críticos de segurança pré-existentes (intelligence.py sem RBAC; AnalysisRecord sem organization_id) registrados como Decision Proposal; Epic W3-3 não avança para Implementação até o Founder decidir" },
   { id: "D-041", summary: "Wave 3, Epic W3-2 avaliado e adiado: AI Platform Foundation não tem consumidor real hoje (nenhum caso de uso de multi-provider, versionamento de prompt ou custo/token) — nenhum código produzido, Wave avança para W3-3" },
   { id: "D-040", summary: "Wave 3, Epic W3-1 concluído: Project Identity Unification (TD-008 Fase 3a) — ProjectSummaryService agrupa por project_id, corrige bug de duplicidade por variação de espaço; Fase 3b (aposentar ProjectSummary) documentada, não implementada" },
@@ -198,7 +199,7 @@ export const ENTERPRISE_PROGRAM_WAVES: WaveEntry[] = [
     code: "Wave 3",
     name: "Enterprise Intelligence",
     status: "In Progress",
-    detail: "Architecture Review AR-2 concluída (D-039). Epic W3-1 (Project Identity Unification, TD-008 Fase 3a) concluído (D-040). Epic W3-2 (AI Platform Foundation) avaliado e adiado -- sem consumidor real hoje (D-041). Próximo: W3-3 Risk Advisor (liberado condicionalmente, guarda-corpo contra framework de orquestração). Knowledge Platform e os demais 7 Enterprise Agents bloqueados -- Decision Proposal ao Founder (Master Execution Program §15).",
+    detail: "AR-2 (D-039), Epic W3-1 concluído (D-040), Epic W3-2 adiado (D-041), Repository Audit Go with Conditions (D-042), Epic W3-3 Blueprint concluído mas Implementação bloqueada (D-043) aguardando decisão do Founder sobre 2 achados críticos de segurança pré-existentes (Master Execution Program §16) e a consolidação da main (PR #45). Knowledge Platform e os demais 7 Enterprise Agents bloqueados -- Decision Proposal ao Founder (§15).",
   },
   {
     code: "Wave 4",
