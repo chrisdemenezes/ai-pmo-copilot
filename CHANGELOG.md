@@ -333,3 +333,17 @@ The retrospective Wave Completion Review (D-048) audited Wave 1 against `PHASE-2
 - **341 backend tests** (335 existing + 6 new), `ruff check src tests` clean. No HTTP contract change.
 
 **Decision Log:** D-049.
+
+## Wave Completion Review retrospective, item 2 (2026-07-23): TD-004/005/006 fixed (React Query invalidation race)
+
+The Riscos panel, Comunicação panel, and Executive Memory's "Mudou" insight all read the mutated data through `useWorkspaceLatestByKind`/`useRecentAnalysesByKind`. When "Analisar Projeto"'s mutation invalidated those queries while their first-mount fetch was still in flight, React Query reused the in-flight promise instead of starting a new fetch -- the invalidation was silently discarded once that stale promise resolved.
+
+**Fixed**
+- `useSubmitRiskReview`, `useSubmitMeetingIntelligence`, `useSubmitProjectStatus` now call `queryClient.cancelQueries(...)` on the relevant `workspace-latest`/`workspace-recent` keys before `invalidateQueries` in their `onSuccess` -- cancelling the in-flight fetch resets it to idle so the invalidation always starts a genuinely new one.
+
+**Verification**
+- Controlled A/B on the same running dev server (no restart between runs): baseline code fails 8/8 on a repeated isolated run of the TD-006 test; with the fix, 8/8 passes. TD-004+TD-005 together: 20/20 passing (`--repeat-each=5`).
+- Full E2E suite, all 3 breakpoints: 81/81 (lg), 81/81 (md), 82/82 (mobile), 341 backend tests unchanged, `ruff`/`tsc`/`eslint`/468 frontend tests clean.
+- A stale Next.js dev-server build cache (`.next`) was found to cause broad, unrelated full-suite flakiness under this session's sustained hot-reload load -- confirmed independent of this fix (`rm -rf web/.next` eliminated it); noted in `TECHNICAL_DEBT.md` so it isn't mistaken for a regression later.
+
+**Decision Log:** D-050.

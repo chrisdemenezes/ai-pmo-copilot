@@ -22,13 +22,18 @@ async function submitMeetingIntelligence(
  * Same template as useSubmitProjectStatus / useSubmitRiskReview (FS-005 §3,
  * FS-006 §3): the same 4 invalidations, "meeting" as the latest-by-kind --
  * never the other 2 kinds' latest queries.
+ *
+ * TD-005: same in-flight-fetch race as TD-004 (useSubmitRiskReview) --
+ * `cancelQueries` on "workspace-latest" first so an in-flight first fetch
+ * for the Comunicação panel doesn't swallow this invalidation.
  */
 export function useSubmitMeetingIntelligence(projectName: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (projectContext: string) => submitMeetingIntelligence(projectName, projectContext),
-    onSuccess: () => {
+    onSuccess: async () => {
+      await queryClient.cancelQueries({ queryKey: ["workspace-latest", projectName, "meeting"] });
       queryClient.invalidateQueries({ queryKey: ["workspace-summary", projectName] });
       queryClient.invalidateQueries({ queryKey: ["workspace-latest", projectName, "meeting"] });
       queryClient.invalidateQueries({ queryKey: ["workspace-timeline", projectName] });

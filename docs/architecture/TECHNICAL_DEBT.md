@@ -74,30 +74,34 @@ Categoria distinta de TD-001/002/003: não são débitos arquiteturais de uma de
 
 - **Categoria:** Baseline Defect
 - **Origem confirmada:** pré-existente ao Épico 2 (Identity Foundation) e ao PR #39 (Épico 1). Não introduzida pela correção de escopo organizacional (EO-015).
-- **Status:** Aberto
+- **Status:** **Resolvido** (Wave Completion Review retrospectivo, item 2 — ver D-050).
 - **Teste afetado:** `web/e2e/workspace.spec.ts` › `Avaliação de Riscos (TIP-006)` › `runs a full risk analysis via the Avaliação de Riscos tab and reflects it in the Workspace and the Dashboard`
 - **Sintoma:** após submeter uma nova Avaliação de Riscos, o Intelligence Timeline registra o novo evento (a mutação teve sucesso no backend/mock), mas o painel "Riscos" não é atualizado com o novo resultado — continua mostrando o risco anterior. Mesmo mecanismo documentado inline em `executive-memory.spec.ts:54-60`: se o fetch inicial de uma query ainda está em voo no instante em que a mutação invalida o cache, o React Query não dispara um novo fetch (já há um em voo) e a invalidação é "engolida" pela resolução do fetch obsoleto.
 - **Evidência de reprodução no baseline:** `git stash push -u` (removendo as 36 alterações do Épico 2/EO-015 da árvore de trabalho) → `npx playwright test e2e/workspace.spec.ts -g "runs a full risk analysis via the Avaliação de Riscos tab" --project=md` → falha idêntica (mesmo locator, mesma mensagem, mesma linha relativa) contra o código anterior a esta correção → `git stash pop` restaura o trabalho do Épico 2 sem perda. Falha reproduzida de forma determinística em múltiplas execuções (3/3), antes e depois do stash.
-- **Resolver antes de:** qualquer trabalho que dependa da confiabilidade dessa suíte E2E específica para novas features de Riscos; candidato natural ao Épico de Risk Intelligence ou a uma revisão dedicada dos hooks `use-workspace-latest`/invalidação de queries.
+- **Correção aplicada:** `useSubmitRiskReview` (`use-submit-risk-review.ts`) agora chama `queryClient.cancelQueries(...)` em `workspace-latest`/`workspace-recent` **antes** de `invalidateQueries` no `onSuccess` da mutação — força o fetch de volta a `idle` para que a invalidação sempre dispare um fetch genuinamente novo, mesmo quando o primeiro fetch da montagem ainda está em voo.
+- **Verificação:** comparação controlada A/B no mesmo servidor (sem reiniciar): código-base falha 8/8 em execuções repetidas do teste isolado; com a correção, 20/20 (`--repeat-each=5`, TIP-006+TIP-007 juntos) e passes limpos nos 3 breakpoints (lg/md/mobile) da suíte completa.
 
 ### TD-005 — Mesmo race, painel de Comunicação (O que mudou na última reunião?)
 
 - **Categoria:** Baseline Defect
 - **Origem confirmada:** pré-existente ao Épico 2. Mesmo mecanismo de TD-004, painel diferente.
-- **Status:** Aberto
+- **Status:** **Resolvido** (Wave Completion Review retrospectivo, item 2 — ver D-050).
 - **Teste afetado:** `web/e2e/workspace.spec.ts` › `O que mudou na última reunião? (TIP-007)` › `runs a full meeting analysis via the 3rd tab and reflects it in the Workspace and the Dashboard`
 - **Sintoma:** idêntico a TD-004, aplicado ao painel "Comunicação" após uma análise de reunião.
 - **Evidência:** falha intermitente na mesma suíte completa (5/202 e 7/202 falhas em duas execuções completas), sempre restrita a este teste e aos de TD-004/TD-006 — nunca a testes fora desse padrão de "reflete mutação sem reload".
-- **Resolver:** junto com TD-004 (mesma causa raiz).
+- **Correção aplicada:** `useSubmitMeetingIntelligence` (`use-submit-meeting-intelligence.ts`) ganha o mesmo `cancelQueries` antes de `invalidateQueries` em `workspace-latest` (esta análise nunca teve `workspace-recent`, então só a 1 chave).
+- **Verificação:** mesma comparação A/B; passes limpos nos 3 breakpoints da suíte completa (81/81, 81/81, 82/82 -- lg/md/mobile).
+- **Nota de infraestrutura de teste (não é o TD em si):** durante a verificação, `npx playwright test --repeat-each=N` neste mesmo teste mostrou falhas mesmo contra o código-base sem a correção, com um sintoma diferente (o próprio "Análise concluída" nunca aparece, não a invalidação silenciosa) -- isolado como um artefato do cache de build `.next` do servidor de desenvolvimento degradando sob uso muito intenso e prolongado de hot-reload dentro da mesma sessão (não reproduz após `rm -rf web/.next`); não é uma falha de produção nem está relacionado à correção de TD-004/005/006.
 
 ### TD-006 — Mesmo race, Executive Memory Insight "Mudou"
 
 - **Categoria:** Baseline Defect
 - **Origem confirmada:** pré-existente — já documentado inline no próprio teste (`executive-memory.spec.ts:54-60`) desde o Incremento 1 de Executive Memory, muito antes do Épico 2.
-- **Status:** Aberto
+- **Status:** **Resolvido** (Wave Completion Review retrospectivo, item 2 — ver D-050).
 - **Teste afetado:** `web/e2e/executive-memory.spec.ts` › `shows a Mudou Executive Memory Insight right after Analisar Projeto changes the health status`
 - **Sintoma:** idêntico a TD-004/005, aplicado ao Executive Brief / Memory Insight.
-- **Resolver:** junto com TD-004 (mesma causa raiz).
+- **Correção aplicada:** `useSubmitProjectStatus` (`use-submit-project-status.ts`) ganha o mesmo `cancelQueries` antes de `invalidateQueries`, em `workspace-latest` e `workspace-recent`.
+- **Verificação:** comparação A/B controlada, mesmo servidor, sem reiniciar entre execuções -- código-base falha 8/8 em `--repeat-each=8`; com a correção, 8/8 aprovado. Prova direta de que a correção elimina a corrida (não apenas reduz sua frequência).
 
 ---
 

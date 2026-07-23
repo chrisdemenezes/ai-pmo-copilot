@@ -106,4 +106,5 @@ Este documento não implementa nada por si — é o levantamento exigido por D-0
 | Ordem | Item | Status |
 |---|---|---|
 | 1 | Event Foundation (Wave 1) | ✅ Concluído — D-049. Wave 1 fechada. |
-| 2-13, — | Demais itens + Policies/Claims | Pendentes, na ordem da Seção 6. |
+| 2 | TD-004/005/006 (race de invalidação) | ✅ Concluído — D-050. |
+| 3-13, — | Demais itens + Policies/Claims | Pendentes, na ordem da Seção 6. |
