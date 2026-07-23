@@ -113,6 +113,7 @@ export interface RecentDecisionEntry {
 }
 
 export const RECENT_DECISIONS: RecentDecisionEntry[] = [
+  { id: "D-047", summary: "Wave 3, Epic W3-2 redefinido e implementado: Digital PMO Intelligence Foundation -- infraestrutura compartilhada (Context/Recommendation/Explanation/Prompt/Audit/Observability Engines) que todo Enterprise Analyst reutiliza; Risk Advisor migrado como prova de reuso, contrato HTTP inalterado -- 335 testes backend validados" },
   { id: "D-046", summary: "Wave 3, Epic W3-3 implementado: Risk Advisor -- primeiro Enterprise Agent conversacional (somente leitura, reaproveita intelligence.read, sem entidade/migração/provider novos) -- 314 testes backend, 468 frontend, E2E ponta-a-ponta validados" },
   { id: "D-045", summary: "Security Hardening Gate concluído: C-1 (RBAC + organization scope nas 8 rotas de intelligence.py) e C-2 (organization_id em AnalysisRecord, migração 0010 com backfill seguro) fechados -- 305 testes backend, 452 frontend, E2E completo (3 projetos) validados. Risk Advisor liberado para retomar a Implementação" },
   { id: "D-044", summary: "Baseline oficial consolidada: PR #45 mergeado na main (hash d8ff04d), todos os checks essenciais revalidados (backend, frontend, PostgreSQL, migrations upgrade/downgrade/re-upgrade); bug de CI real corrigido (validate nunca provisionava Postgres). Risk Advisor ainda não iniciado -- próximo: Security Hardening Gate" },
@@ -147,6 +148,7 @@ export interface ProductPulseEntry {
 
 /** Release 0.2, Capability 03 -- Product Pulse (topo do Mission Control). */
 export const PRODUCT_PULSE_TODAY: ProductPulseEntry[] = [
+  { label: "Wave 3, Epic W3-2 redefinido e implementado: Digital PMO Intelligence Foundation -- infraestrutura de IA compartilhada; Risk Advisor migrado, contrato HTTP inalterado", done: true },
   { label: "Wave 3, Epic W3-3: Risk Advisor implementado -- primeiro Enterprise Agent conversacional, somente leitura, sem entidade/migração/provider novos", done: true },
   { label: "Security Hardening Gate concluído: C-1 (RBAC nas 8 rotas de intelligence.py) e C-2 (organization_id em AnalysisRecord, migração 0010) fechados -- Risk Advisor liberado para retomar a Implementação", done: true },
   { label: "Baseline oficial consolidada: PR #45 mergeado na main (d8ff04d), todos os checks essenciais revalidados; Security Hardening Gate (C-1/C-2) autorizado em seguida", done: true },
@@ -205,7 +207,7 @@ export const ENTERPRISE_PROGRAM_WAVES: WaveEntry[] = [
     code: "Wave 3",
     name: "Enterprise Intelligence",
     status: "In Progress",
-    detail: "Baseline oficial consolidada na main (D-044, hash d8ff04d). AR-2 (D-039), Epic W3-1 concluído (D-040), Epic W3-2 adiado (D-041), Repository Audit Go with Conditions (D-042), Epic W3-3 Blueprint concluído (D-043). Security Hardening Gate (C-1/C-2) concluído (D-045). Epic W3-3 (Risk Advisor) implementado (D-046).",
+    detail: "Baseline oficial consolidada na main (D-044, hash d8ff04d). AR-2 (D-039), Epic W3-1 concluído (D-040), Epic W3-2 adiado (D-041) e depois redefinido/implementado como Digital PMO Intelligence Foundation (D-047), Repository Audit Go with Conditions (D-042), Epic W3-3 Blueprint concluído (D-043). Security Hardening Gate (C-1/C-2) concluído (D-045). Epic W3-3 (Risk Advisor) implementado (D-046) e migrado para a Foundation (D-047).",
   },
   {
     code: "Wave 4",

@@ -27,6 +27,11 @@ from src.llm.providers.base import LLMProvider
 from src.llm.providers.factory import get_provider
 from src.prompts.registry import PromptRegistry
 from src.database.repository import AnalysisRepository
+from src.services.ai_foundation.audit_integration import AIFoundationAudit
+from src.services.ai_foundation.context_engine import AIContextEngine
+from src.services.ai_foundation.explanation_engine import ExplanationEngine
+from src.services.ai_foundation.recommendation_engine import RecommendationEngine
+from src.services.ai_foundation.types import SessionContext
 from src.services.identity.models import RequestContext
 from src.services.project_summary_service import ProjectSummaryService
 
@@ -351,56 +356,61 @@ def ask_risk_advisor(
     prompts: PromptRegistry = Depends(build_prompt_registry),
     provider: LLMProvider = Depends(build_provider),
     repository: AnalysisRepository = Depends(build_repository),
-    service: ProjectSummaryService = Depends(build_project_summary_service),
     # Read-only: reuses the same permission protecting GET /risks/latest,
     # its own data source (Technical Design §2 -- no dedicated permission,
     # this agent never creates/edits/triggers an analysis).
     _permission: None = Depends(require_permission("intelligence.read")),
 ):
-    organization_id = context.organization.organization_id
+    session = SessionContext(
+        organization_id=context.organization.organization_id,
+        user_id=context.user.user_id,
+        session_id=context.session.session_id,
+        project_name=request.project_name,
+    )
     logger.info(
         "Risk Advisor question organization_id=%s project_name=%s",
-        organization_id,
-        request.project_name,
+        session.organization_id,
+        session.project_name,
     )
-    risks = service.list_latest_risks(
-        organization_id=organization_id, project_name=request.project_name
-    )
+
+    context_engine = AIContextEngine(repository)
+    evidence = context_engine.gather(session.organization_id, session.project_name, kind="risk")
 
     # Every question is audited, regardless of outcome -- never the model's
     # answer itself (Domain Blueprint §12).
-    repository.administration.record_audit(
-        organization_id,
-        context.user.user_id,
-        "risk_advisor.question_asked",
-        "project",
-        None,
-        {"project_name": request.project_name, "question": request.question},
-    )
+    AIFoundationAudit.record_question(repository, session, "risk_advisor", request.question)
 
-    if not risks:
+    if not evidence:
         # No LLM call for a project with nothing to synthesize -- avoids
         # cost and a hallucinated answer over non-existent data.
-        return RiskAdvisorResponse(
-            answer="Nenhum risco identificado ainda para este projeto.",
-            cited_analyses=[],
+        recommendation = RecommendationEngine.no_evidence(
+            "Nenhum risco identificado ainda para este projeto."
         )
+        explanation = ExplanationEngine.explain(recommendation)
+        return _risk_advisor_response(explanation)
 
     agent = RiskAdvisorAgent(model_client=provider, prompt_registry=prompts)
-    result = agent.advise(question=request.question, risks=risks)
+    result = agent.advise(session=session, question=request.question, evidence=evidence)
     model_output = result["model_output"]
 
     if not model_output.get("structured") or not isinstance(model_output.get("answer"), str):
         raise HTTPException(status_code=502, detail="Risk Advisor returned an invalid response")
 
-    risks_by_id = {risk["source_analysis_id"]: risk for risk in risks}
-    cited_analyses = [
-        CitedAnalysis(
-            source_analysis_id=risk_id,
-            source_created_at=risks_by_id[risk_id]["source_created_at"],
-        )
-        for risk_id in model_output.get("cited_analysis_ids") or []
-        if risk_id in risks_by_id
-    ]
+    recommendation = RecommendationEngine.build(
+        model_output["answer"], model_output.get("cited_analysis_ids") or [], evidence
+    )
+    explanation = ExplanationEngine.explain(recommendation)
+    return _risk_advisor_response(explanation)
 
-    return RiskAdvisorResponse(answer=model_output["answer"], cited_analyses=cited_analyses)
+
+def _risk_advisor_response(explanation) -> RiskAdvisorResponse:
+    return RiskAdvisorResponse(
+        answer=explanation.recommendation.answer,
+        cited_analyses=[
+            CitedAnalysis(
+                source_analysis_id=item.source_analysis_id,
+                source_created_at=item.source_created_at,
+            )
+            for item in explanation.recommendation.cited_evidence
+        ],
+    )
