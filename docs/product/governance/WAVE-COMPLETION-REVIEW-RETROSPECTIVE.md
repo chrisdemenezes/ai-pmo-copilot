@@ -100,3 +100,10 @@ Três auditorias independentes e exaustivas (uma por Wave), cada uma comparando:
 ## 7. Execução
 
 Este documento não implementa nada por si — é o levantamento exigido por D-048. A implementação de cada item segue, item a item, o fluxo institucional completo (Domain Blueprint quando necessário → Architecture Review → Technical Design → Implementação → Testes unitários/integração/E2E → Executive Report), começando pelo item 1 (Event Foundation) nesta mesma sessão, em ordem, sem pular etapas. Mission Control/Decision Log/CHANGELOG são atualizados a cada item concluído.
+
+**Status de execução (atualizado a cada item fechado):**
+
+| Ordem | Item | Status |
+|---|---|---|
+| 1 | Event Foundation (Wave 1) | ✅ Concluído — D-049. Wave 1 fechada. |
+| 2-13, — | Demais itens + Policies/Claims | Pendentes, na ordem da Seção 6. |

@@ -23,6 +23,7 @@ from src.database.repository import AnalysisRepository
 from src.main import app
 from src.services.authorization.checker import SqlPermissionChecker
 from src.services.domain_service import DomainService
+from src.services.events.noop_emitter import NoOpEventEmitter
 
 from tests.db import temp_database_url
 
@@ -55,7 +56,9 @@ def client():
         _alembic(env, "upgrade", "head")  # seeds roles + the migration 0006 permission catalog
 
         repo = AnalysisRepository(database_url=database_url)
-        app.dependency_overrides[portfolio_routes.build_domain_service] = lambda: DomainService(repo)
+        app.dependency_overrides[portfolio_routes.build_domain_service] = (
+            lambda: DomainService(repo, NoOpEventEmitter())
+        )
         app.dependency_overrides[authorization_module.build_permission_checker] = (
             lambda: SqlPermissionChecker(repo.SessionLocal)
         )

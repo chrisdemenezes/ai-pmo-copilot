@@ -11,8 +11,15 @@ via `@lru_cache`.
 from functools import lru_cache
 
 from src.database.repository import AnalysisRepository
+from src.services.events.interfaces import EventEmitter
+from src.services.events.noop_emitter import NoOpEventEmitter
 
 
 @lru_cache
 def build_repository() -> AnalysisRepository:
     return AnalysisRepository()
+
+
+@lru_cache
+def build_event_emitter() -> EventEmitter:
+    return NoOpEventEmitter()

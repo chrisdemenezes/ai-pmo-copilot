@@ -315,3 +315,21 @@ The Founder issued a superseding decision revoking every prior decision that all
 **No Wave is declared complete by this entry.** This entry records the policy change itself; the retrospective audit and the implementation of whatever gaps it finds are tracked in subsequent Decision Log entries as each is resolved.
 
 **Decision Log:** D-048.
+
+## Wave Completion Review retrospective, item 1 (2026-07-23): Event Foundation implemented
+
+The retrospective Wave Completion Review (D-048) audited Wave 1 against `PHASE-2-FOUNDATION-TECHNICAL-DESIGN.md` §5 and found the Event Foundation 0% implemented despite being fully specified since the Technical Design Sprint. Sequenced as item 1 of the closure plan (`WAVE-COMPLETION-REVIEW-RETROSPECTIVE.md` §6) -- no pending design decision, only implementation of already-approved scope.
+
+**Added**
+- `src/services/events/` -- `EventEmitter` (Protocol: `emit(event_name, payload, organization_id) -> None`), `NoOpEventEmitter` (logs only, no other effect -- "the seam exists, the bus doesn't yet"). Wired via `src/api/dependencies.py::build_event_emitter`.
+- `DomainService.__init__` now requires an `emitter: EventEmitter` (no default). Its 3 mutating methods emit the 5 events already named in the Technical Design after the repository write and audit record both succeed: `portfolio.created`; `program.created` + `program.linked_to_portfolio`; `project_delivery.created` + `project_delivery.linked_to_program`.
+- Design note: since `create_program`/`create_project` always create an entity already linked to its parent atomically (no separate re-parenting API is exposed), the `.created` event and its matching `.linked_to_*` event are emitted together from the same creation call rather than inventing a new "link" operation.
+
+**No item from the Founder's permanent prohibition list was introduced.** No Event Bus, Workflow Engine, or real consumer was built -- `NoOpEventEmitter` is deliberately log-only, exactly as the Technical Design describes for this phase.
+
+**Tests**
+- `tests/test_domain_service.py` (5 new, using a `RecordingEventEmitter` fake) + `tests/test_events_noop_emitter.py` (1 new).
+- 4 existing API test files updated for `DomainService`'s new constructor signature.
+- **341 backend tests** (335 existing + 6 new), `ruff check src tests` clean. No HTTP contract change.
+
+**Decision Log:** D-049.

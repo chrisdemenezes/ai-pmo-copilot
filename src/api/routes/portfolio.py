@@ -26,8 +26,9 @@ from src.api.rate_limiter import enforce_rate_limit
 from src.api.security import verify_api_key
 from src.database.repository import AnalysisRepository
 from src.services.domain_service import DomainService
+from src.services.events.interfaces import EventEmitter
 from src.services.identity.models import RequestContext
-from src.api.dependencies import build_repository
+from src.api.dependencies import build_event_emitter, build_repository
 
 logger = logging.getLogger(__name__)
 
@@ -36,8 +37,9 @@ router = APIRouter(dependencies=[Depends(verify_api_key), Depends(enforce_rate_l
 
 def build_domain_service(
     repository: AnalysisRepository = Depends(build_repository),
+    emitter: EventEmitter = Depends(build_event_emitter),
 ) -> DomainService:
-    return DomainService(repository=repository)
+    return DomainService(repository=repository, emitter=emitter)
 
 
 class PortfolioResponse(BaseModel):

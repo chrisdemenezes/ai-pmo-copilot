@@ -13,18 +13,29 @@ Sprint 4 (Enterprise Administration): every `create_*` records an audit
 entry via `AdministrationRepository.record_audit` -- Épico 5's "Auditoria
 de mutações" applied retroactively to this Bounded Context's writes, not
 just to the new Administration endpoints themselves.
+
+Wave 1 (Event Foundation, closed retrospectively per D-048): every
+`create_*` also emits an event via `EventEmitter`, immediately after the
+write succeeds -- the seam `PHASE-2-FOUNDATION-TECHNICAL-DESIGN.md` §5
+described, so promoting `NoOpEventEmitter` to a real emitter later changes
+zero call sites here. `create_program`/`create_project` always create
+already linked to their parent (there is no separate re-parenting route),
+so each emits both its `.created` event and the corresponding
+`.linked_to_*` event from the same Event Map (§5.9).
 """
 import logging
 
 from src.database.models import Portfolio, Program, Project
 from src.database.repository import AnalysisRepository
+from src.services.events.interfaces import EventEmitter
 
 logger = logging.getLogger(__name__)
 
 
 class DomainService:
-    def __init__(self, repository: AnalysisRepository) -> None:
+    def __init__(self, repository: AnalysisRepository, emitter: EventEmitter) -> None:
         self._repository = repository
+        self._emitter = emitter
 
     # -- Portfolios ----------------------------------------------------
 
@@ -43,6 +54,7 @@ class DomainService:
         self._repository.administration.record_audit(
             organization_id, actor_user_id, "portfolio.created", "portfolio", portfolio_id
         )
+        self._emitter.emit("portfolio.created", {"portfolio_id": portfolio_id}, organization_id)
         return self._repository.domain.get_portfolio(portfolio_id, organization_id)
 
     # -- Programs --------------------------------------------------------
@@ -80,6 +92,9 @@ class DomainService:
         self._repository.administration.record_audit(
             organization_id, actor_user_id, "program.created", "program", program_id
         )
+        payload = {"program_id": program_id, "portfolio_id": portfolio_id}
+        self._emitter.emit("program.created", payload, organization_id)
+        self._emitter.emit("program.linked_to_portfolio", payload, organization_id)
         return self._repository.domain.get_program(program_id, organization_id)
 
     # -- Projects (domain fields on the Épico-1 `projects` table) --------
@@ -110,4 +125,7 @@ class DomainService:
         self._repository.administration.record_audit(
             organization_id, actor_user_id, "project_delivery.created", "project", project_id
         )
+        payload = {"project_id": project_id, "program_id": program_id}
+        self._emitter.emit("project_delivery.created", payload, organization_id)
+        self._emitter.emit("project_delivery.linked_to_program", payload, organization_id)
         return self._repository.domain.get_project(project_id, organization_id)

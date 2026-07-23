@@ -545,9 +545,10 @@ class TestAuditLog:
 
         from src.api.routes import portfolio as portfolio_routes
         from src.services.domain_service import DomainService
+        from src.services.events.noop_emitter import NoOpEventEmitter
 
         app.dependency_overrides[portfolio_routes.build_domain_service] = (
-            lambda: DomainService(repo)
+            lambda: DomainService(repo, NoOpEventEmitter())
         )
         try:
             create_response = test_client.post(

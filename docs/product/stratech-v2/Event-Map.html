@@ -30,6 +30,11 @@
       <tr><td><code>user.invited</code></td><td>Enterprise Foundation</td><td>Notification, Audit</td><td>Não (baixo risco)</td></tr>
       <tr><td><code>role.granted</code></td><td>Enterprise Foundation</td><td>Audit</td><td>Não (já é a própria ação humana)</td></tr>
       <tr><td><code>project.created</code></td><td>Portfolio/Program/Project</td><td>Executive Intelligence, Audit</td><td>Não</td></tr>
+      <tr><td><code>portfolio.created</code></td><td>Enterprise Domain (DomainService)</td><td>(nenhum ainda -- só logado, NoOpEventEmitter)</td><td>Não</td></tr>
+      <tr><td><code>program.created</code></td><td>Enterprise Domain (DomainService)</td><td>(nenhum ainda -- só logado, NoOpEventEmitter)</td><td>Não</td></tr>
+      <tr><td><code>program.linked_to_portfolio</code></td><td>Enterprise Domain (DomainService)</td><td>(nenhum ainda -- só logado, NoOpEventEmitter)</td><td>Não</td></tr>
+      <tr><td><code>project_delivery.created</code></td><td>Enterprise Domain (DomainService)</td><td>(nenhum ainda -- só logado, NoOpEventEmitter)</td><td>Não</td></tr>
+      <tr><td><code>project_delivery.linked_to_program</code></td><td>Enterprise Domain (DomainService)</td><td>(nenhum ainda -- só logado, NoOpEventEmitter)</td><td>Não</td></tr>
       <tr><td><code>risk.raised</code></td><td>Portfolio/Program/Project, AI Intelligence</td><td>Executive Intelligence, Orchestration</td><td>Sim, se gerar ação em sistema externo</td></tr>
       <tr><td><code>decision.pending</code></td><td>Portfolio/Program/Project</td><td>Executive Intelligence, Notification</td><td>Sim (decisão é sempre humana)</td></tr>
       <tr><td><code>sync.completed</code> / <code>sync.failed</code></td><td>Integration Hub</td><td>Portfolio/Program/Project, Document, Process</td><td>Não (falha apenas registrada e notificada)</td></tr>
@@ -40,10 +45,13 @@
       <tr><td><code>action.approved</code> / <code>action.rejected</code></td><td>Orchestration (humano)</td><td>Sistema externo (via Integration Hub), Audit</td><td>É a própria validação humana</td></tr>
     </tbody>
   </table></div>
-  <p>Nenhum evento desta tabela existe ainda em código -- é a taxonomia de referência para o Release 0.5
-    (Event Orchestration). Releases 0.1-0.4 produzem os eventos de fundação (<code>user.*</code>,
-    <code>project.*</code>, <code>sync.*</code>) sem ainda ter um Event Bus/Workflow Engine consumindo-os
-    ativamente.</p>
+  <p>A maior parte desta tabela ainda é taxonomia de referência para o Release 0.5 (Event Orchestration):
+    sem Event Bus/Workflow Engine, a maioria dos eventos listados não é produzida em código. A exceção é o
+    Event Foundation (Wave 1, fechado retroativamente por D-048/D-049): as 5 linhas <code>portfolio.*</code>/
+    <code>program.*</code>/<code>project_delivery.*</code> já são emitidas em produção pelo <code>DomainService</code>
+    a cada mutação -- hoje via <code>NoOpEventEmitter</code> (apenas log estruturado, nenhum consumidor real
+    ainda), exatamente como o Technical Design de fundação previu: o seam existe, o barramento ainda não.
+    Promover para um emitter real não muda nenhum call site.</p>
 
   <footer><span>Stratech — STRATECH V2</span><span>Event Map</span><span>2026-07-16</span></footer>
 </main>

@@ -113,6 +113,8 @@ export interface RecentDecisionEntry {
 }
 
 export const RECENT_DECISIONS: RecentDecisionEntry[] = [
+  { id: "D-049", summary: "Wave Completion Review retrospectivo, item 1: Event Foundation (Wave 1) implementado -- EventEmitter Protocol + NoOpEventEmitter, DomainService emite 5 eventos de domínio já especificados na Technical Design; Wave 1 fechada -- 341 testes backend validados" },
+  { id: "D-048", summary: "Superseding Decision: nova Wave Completion Policy oficial e permanente -- revoga todas as decisões anteriores que permitiam adiar Epics/Enterprise Analysts/Capabilities previstos; capacidade já planejada deixa de ser especulativa; Wave Completion Review retrospectivo (Waves 1-3) aberto" },
   { id: "D-047", summary: "Wave 3, Epic W3-2 redefinido e implementado: Digital PMO Intelligence Foundation -- infraestrutura compartilhada (Context/Recommendation/Explanation/Prompt/Audit/Observability Engines) que todo Enterprise Analyst reutiliza; Risk Advisor migrado como prova de reuso, contrato HTTP inalterado -- 335 testes backend validados" },
   { id: "D-046", summary: "Wave 3, Epic W3-3 implementado: Risk Advisor -- primeiro Enterprise Agent conversacional (somente leitura, reaproveita intelligence.read, sem entidade/migração/provider novos) -- 314 testes backend, 468 frontend, E2E ponta-a-ponta validados" },
   { id: "D-045", summary: "Security Hardening Gate concluído: C-1 (RBAC + organization scope nas 8 rotas de intelligence.py) e C-2 (organization_id em AnalysisRecord, migração 0010 com backfill seguro) fechados -- 305 testes backend, 452 frontend, E2E completo (3 projetos) validados. Risk Advisor liberado para retomar a Implementação" },
@@ -148,6 +150,8 @@ export interface ProductPulseEntry {
 
 /** Release 0.2, Capability 03 -- Product Pulse (topo do Mission Control). */
 export const PRODUCT_PULSE_TODAY: ProductPulseEntry[] = [
+  { label: "Wave Completion Review retrospectivo, item 1: Event Foundation (Wave 1) implementado -- EventEmitter Protocol + NoOpEventEmitter, 5 eventos de domínio emitidos por DomainService; Wave 1 fechada", done: true },
+  { label: "Superseding Decision: nova Wave Completion Policy oficial e permanente -- revoga adiamento de Epics/Enterprise Analysts previstos; Wave Completion Review retrospectivo (Waves 1-3) aberto", done: true },
   { label: "Wave 3, Epic W3-2 redefinido e implementado: Digital PMO Intelligence Foundation -- infraestrutura de IA compartilhada; Risk Advisor migrado, contrato HTTP inalterado", done: true },
   { label: "Wave 3, Epic W3-3: Risk Advisor implementado -- primeiro Enterprise Agent conversacional, somente leitura, sem entidade/migração/provider novos", done: true },
   { label: "Security Hardening Gate concluído: C-1 (RBAC nas 8 rotas de intelligence.py) e C-2 (organization_id em AnalysisRecord, migração 0010) fechados -- Risk Advisor liberado para retomar a Implementação", done: true },
@@ -194,14 +198,14 @@ export const ENTERPRISE_PROGRAM_WAVES: WaveEntry[] = [
   {
     code: "Wave 1",
     name: "Enterprise Foundation",
-    status: "In Progress",
-    detail: "Schema + Identity 100% (Épicos 1-2). Persistence (Sprint 1), API Foundation (Sprint 2) e RBAC seam (Sprint 3, migração 0006 + SqlPermissionChecker) implementados. Event Foundation: Technical Design produzido, ainda não implementado.",
+    status: "Done",
+    detail: "Schema + Identity 100% (Épicos 1-2). Persistence (Sprint 1), API Foundation (Sprint 2), RBAC seam (Sprint 3, migração 0006 + SqlPermissionChecker) e Event Foundation (D-049 -- EventEmitter Protocol + NoOpEventEmitter, 5 eventos emitidos por DomainService) implementados. Fechada pelo Wave Completion Review retrospectivo (D-048/D-049).",
   },
   {
     code: "Wave 2",
     name: "Enterprise Platform",
-    status: "Done",
-    detail: "100% concluída para os 3 Épicos (Identity, Administration, Domain): Enterprise Domain completo de ponta a ponta (Sprints 1-2-5), RBAC fino (Sprint 3), Administration completo com User Management (Sprint 4 Nível 1+2 + Capability User Management -- D-038). Sessões/Convites/Workspaces/API Keys/Tenant Settings permanecem fora, por decisão explícita do Founder (Decision Proposal §9, não bloqueiam o fechamento). Ver USER-MANAGEMENT-EXECUTIVE-REPORT.md.",
+    status: "In Progress",
+    detail: "Enterprise Domain completo de ponta a ponta (Sprints 1-2-5), RBAC fino (Sprint 3), Administration completo com User Management (Sprint 4 Nível 1+2 + Capability User Management -- D-038). Per a Wave Completion Policy superseding (D-048), a exclusão anterior de Sessões/Convites/Workspaces (entidade)/API Keys/Tenant Settings como \"Decision Proposal que não bloqueia o fechamento\" foi revogada -- todos passam a ser escopo obrigatório. Wave reaberta para In Progress até o Wave Completion Review retrospectivo fechar cada item (ver WAVE-COMPLETION-REVIEW-RETROSPECTIVE.md §6).",
   },
   {
     code: "Wave 3",
