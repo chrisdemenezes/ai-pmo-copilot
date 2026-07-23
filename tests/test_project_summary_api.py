@@ -21,6 +21,7 @@ class FakeService:
 def test_get_project_summary_returns_service_result():
     fake_summary = {
         "project_name": "Multilift",
+        "project_id": 7,
         "total_analyses": 3,
         "open_risks": 2,
         "pending_action_items": 1,
@@ -132,6 +133,7 @@ def test_get_portfolio_summary_returns_service_result():
     fake_portfolio = [
         {
             "project_name": "Medlog",
+            "project_id": 3,
             "total_analyses": 1,
             "open_risks": 0,
             "pending_action_items": 2,
@@ -139,6 +141,7 @@ def test_get_portfolio_summary_returns_service_result():
         },
         {
             "project_name": "Multilift",
+            "project_id": 7,
             "total_analyses": 2,
             "open_risks": 1,
             "pending_action_items": 0,

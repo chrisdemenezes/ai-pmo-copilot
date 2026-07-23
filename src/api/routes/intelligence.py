@@ -63,6 +63,7 @@ class AnalysisDetail(AnalysisSummary):
 
 class ProjectSummaryResponse(BaseModel):
     project_name: str
+    project_id: int | None = None
     total_analyses: int
     open_risks: int
     pending_action_items: int

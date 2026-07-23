@@ -30,6 +30,8 @@ def test_summarize_counts_risks_and_action_items_from_structured_payloads(reposi
 
     summary = ProjectSummaryService(repository).summarize("Multilift")
 
+    project_id = summary.pop("project_id")
+    assert isinstance(project_id, int)
     assert summary == {
         "project_name": "Multilift",
         "total_analyses": 2,
@@ -93,6 +95,7 @@ def test_summarize_returns_zeros_for_project_with_no_analyses(repository):
 
     assert summary == {
         "project_name": "Unknown",
+        "project_id": None,
         "total_analyses": 0,
         "open_risks": 0,
         "pending_action_items": 0,
@@ -137,6 +140,33 @@ def test_summarize_portfolio_excludes_analyses_without_a_project_name(repository
     portfolio = ProjectSummaryService(repository).summarize_portfolio()
 
     assert [entry["project_name"] for entry in portfolio] == ["Multilift"]
+
+
+def test_summarize_portfolio_groups_whitespace_variant_names_under_one_project(repository):
+    # get_or_create_project_for_name() strips whitespace before resolving the
+    # Project, so "Multilift" and "Multilift " (trailing space) already share
+    # the same project_id at write time. summarize_portfolio() must group by
+    # that project_id, not the raw string, or these appear as 2 entries
+    # instead of 1 (TD-008 Fase 3 bug, fixed by Epic W3-1 Fase 3a).
+    repository.save_analysis(
+        kind="risk",
+        project_name="Multilift",
+        payload={"model_output": {"structured": True, "risks": [{"description": "a"}]}},
+    )
+    repository.save_analysis(
+        kind="meeting",
+        project_name="Multilift ",
+        payload={"model_output": {"structured": True, "action_items": [{"description": "x"}]}},
+    )
+
+    portfolio = ProjectSummaryService(repository).summarize_portfolio()
+
+    assert len(portfolio) == 1
+    entry = portfolio[0]
+    assert entry["total_analyses"] == 2
+    assert entry["open_risks"] == 1
+    assert entry["pending_action_items"] == 1
+    assert entry["project_id"] is not None
 
 
 def test_summarize_portfolio_returns_empty_list_when_no_analyses_exist(repository):

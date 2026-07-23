@@ -13,24 +13,32 @@ class ProjectSummaryService:
     def summarize(self, project_name: str) -> dict:
         # Relies on the repository's list_analyses ordering records newest-first.
         records = self._repository.list_analyses(project_name=project_name, limit=None)
-        return self._aggregate(project_name, records)
+        project_id = records[0].project_id if records else None
+        return self._aggregate(project_name, project_id, records)
 
     def summarize_portfolio(self) -> list[dict]:
         # One fetch of everything, grouped in memory, instead of one query per
         # project — MVP data volume doesn't justify N+1 queries here.
         records = self._repository.list_analyses(limit=None)
 
-        by_project: dict[str, list[AnalysisRecord]] = defaultdict(list)
+        # Grouped by project_id (not the raw project_name string): two
+        # analyses saved under names that differ only by incidental
+        # whitespace resolve to the same Project (save_analysis already
+        # links project_id via get_or_create_project_for_name, which
+        # normalizes whitespace) and must appear as one portfolio entry,
+        # not two (TD-008 Fase 3).
+        by_project: dict[int, list[AnalysisRecord]] = defaultdict(list)
         for record in records:
-            if record.project_name is not None:
+            if record.project_name is not None and record.project_id is not None:
                 # Partitioning a stream that's already newest-first preserves
                 # that order within each project's bucket.
-                by_project[record.project_name].append(record)
+                by_project[record.project_id].append(record)
 
         summaries = [
-            self._aggregate(project_name, project_records)
-            for project_name, project_records in sorted(by_project.items())
+            self._aggregate(project_records[0].project_name, project_id, project_records)
+            for project_id, project_records in by_project.items()
         ]
+        summaries.sort(key=lambda summary: summary["project_name"])
         logger.info("Summarized portfolio: %d projects", len(summaries))
         return summaries
 
@@ -130,7 +138,7 @@ class ProjectSummaryService:
         return items
 
     @staticmethod
-    def _aggregate(project_name: str, records: list[AnalysisRecord]) -> dict:
+    def _aggregate(project_name: str, project_id: int | None, records: list[AnalysisRecord]) -> dict:
         open_risks = 0
         pending_action_items = 0
         latest_health_status: str | None = None
@@ -149,6 +157,7 @@ class ProjectSummaryService:
 
         summary = {
             "project_name": project_name,
+            "project_id": project_id,
             "total_analyses": len(records),
             "open_risks": open_risks,
             "pending_action_items": pending_action_items,

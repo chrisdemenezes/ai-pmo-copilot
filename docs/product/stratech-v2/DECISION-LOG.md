@@ -267,6 +267,15 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Nenhum Blueprint, Domain Model ou ADR aprovado foi alterado.** Nenhuma implementação ainda — esta é a Architecture Review que precede o primeiro Domain Blueprint de Epic da Wave 3.
 - **Missão:** Wave 3, Architecture Review (AR-2) — abertura da Wave.
 
+### D-040 — Wave 3, Epic W3-1 concluído: Project Identity Unification (TD-008, Fase 3a)
+
+- **Contexto:** AR-2 liberou o Epic W3-1 (Project Identity Unification) para início imediato, como o primeiro Epic da Wave 3, por já ser um item de dívida técnica conhecido (TD-008) com gatilho de resolução ("a Wave 3 começar") já cumprido.
+- **Decisão:** `ProjectSummaryService.summarize_portfolio()` passa a agrupar por `project_id` (já populado em toda escrita desde o Épico 1) em vez de `project_name` bruto — corrige um bug real: análises salvas com nomes que diferem só por espaço em branco resolvem ao mesmo `project_id` (`get_or_create_project_for_name` normaliza), mas apareciam como 2 entradas separadas no portfólio agregado antes desta correção. `ProjectSummaryResponse`/`ProjectSummary` ganham `project_id` como campo aditivo (opcional no frontend, para não exigir nenhuma atualização de fixture de teste existente). Nenhuma rota, parâmetro de URL ou contrato existente foi alterado.
+- **Escopo deliberadamente faseado (Fase 3a apenas):** migrar toda a superfície de Dashboard/Portfólio/Decision Center/Executive Focus/Workspace de `project_name` para `project_id` como chave primária de fato, aposentando `ProjectSummary` por completo (Fase 3b), permanece documentado e **não implementado** — o levantamento feito no Domain Blueprint deste Epic (`DOMAIN-BLUEPRINT-PROJECT-IDENTITY-UNIFICATION.md`) mostrou que essa Fase sozinha teria um raio de impacto maior que o resto da Wave 3 inteira. Não decidido silenciosamente: registrado como trabalho futuro explícito, candidato a um Epic dedicado dentro da própria Wave 3.
+- **Verificação:** 282 testes backend (281 pré-existentes + 1 novo cobrindo o bug corrigido); `ruff`/`tsc`/`eslint` limpos; 437 testes frontend inalterados (campo opcional); spot-check E2E (`dashboard.spec.ts`+`portfolio.spec.ts`, `lg`) 20/20 passando — justificado por esta mudança não tocar nenhum comportamento de frontend nem o mock E2E.
+- **Nenhum Blueprint, Domain Model ou ADR aprovado foi alterado.**
+- **Sprint:** Wave 3, Epic W3-1.
+
 ---
 
 ## Convenção

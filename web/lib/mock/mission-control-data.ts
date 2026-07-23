@@ -99,6 +99,7 @@ export interface RecentDecisionEntry {
 }
 
 export const RECENT_DECISIONS: RecentDecisionEntry[] = [
+  { id: "D-040", summary: "Wave 3, Epic W3-1 concluído: Project Identity Unification (TD-008 Fase 3a) — ProjectSummaryService agrupa por project_id, corrige bug de duplicidade por variação de espaço; Fase 3b (aposentar ProjectSummary) documentada, não implementada" },
   { id: "D-039", summary: "Wave 3 aberta: Architecture Review AR-2 concluída, Epic Ledger definido (W3-1 Project Identity Unification, W3-2 AI Platform Foundation, W3-3 Risk Advisor PoC); Knowledge Platform e demais Enterprise Agents bloqueados por Decision Proposal ao Founder" },
   { id: "D-038", summary: "Wave 2 encerrada: Capability User Management implementada (migração 0009, RBAC, auditoria, Backend→BFF→Frontend) — Épico Enterprise Administration completo para o escopo mínimo aprovado" },
   { id: "D-037", summary: "RC-2: PostgreSQL torna-se o banco oficial (dev + produção); suíte de testes migrada de SQLite para bancos Postgres efêmeros por teste — nenhuma mudança de domínio/arquitetura" },
@@ -126,6 +127,7 @@ export interface ProductPulseEntry {
 
 /** Release 0.2, Capability 03 -- Product Pulse (topo do Mission Control). */
 export const PRODUCT_PULSE_TODAY: ProductPulseEntry[] = [
+  { label: "Wave 3, Epic W3-1 concluído: Project Identity Unification (TD-008 Fase 3a) — bug de agrupamento de portfólio corrigido, project_id aditivo na API/frontend", done: true },
   { label: "Wave 3 aberta: Architecture Review AR-2 concluída, Epic Ledger definido — W3-1/W3-2/W3-3 liberados, Knowledge Platform e demais Enterprise Agents bloqueados aguardando decisão do Founder", done: true },
   { label: "Wave 2 encerrada: Capability User Management implementada (migração 0009, RBAC, auditoria, Backend→BFF→Frontend) — Épico Enterprise Administration completo, Wave 2 declarada 100% concluída", done: true },
   { label: "RC-2 Enterprise Certification concluída e publicada", done: true },
@@ -178,7 +180,7 @@ export const ENTERPRISE_PROGRAM_WAVES: WaveEntry[] = [
     code: "Wave 3",
     name: "Enterprise Intelligence",
     status: "In Progress",
-    detail: "Architecture Review AR-2 concluída (Decision Log D-039) -- Epic Ledger: W3-1 Project Identity Unification (TD-008 Fase 3) e W3-2 AI Platform Foundation liberados para início imediato; W3-3 Risk Advisor liberado condicionalmente (guarda-corpo contra framework de orquestração). Knowledge Platform e os demais 7 Enterprise Agents bloqueados -- Decision Proposal ao Founder (Master Execution Program §15).",
+    detail: "Architecture Review AR-2 concluída (D-039). Epic W3-1 (Project Identity Unification, TD-008 Fase 3a) concluído (D-040). Próximo: W3-2 AI Platform Foundation. W3-3 Risk Advisor liberado condicionalmente (guarda-corpo contra framework de orquestração). Knowledge Platform e os demais 7 Enterprise Agents bloqueados -- Decision Proposal ao Founder (Master Execution Program §15).",
   },
   {
     code: "Wave 4",
