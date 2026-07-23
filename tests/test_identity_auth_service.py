@@ -11,21 +11,23 @@ from src.services.identity.auth_service import (
     AuthService,
 )
 from src.services.identity.password_hashing import Argon2PasswordHasher
+from tests.db import temp_database_url
 
 
 @pytest.fixture()
-def repo(tmp_path):
+def repo():
     """AnalysisRepository's create_all() provisions schema only -- the
     roles seeded by migration 0002 (organization_admin, pmo,
     project_manager, viewer) are inserted here to mirror a real
     alembic-migrated database, since AuthService.bootstrap_administrator
     depends on organization_admin already existing."""
-    instance = AnalysisRepository(database_url=f"sqlite:///{tmp_path / 'auth_service.db'}")
-    with instance.SessionLocal() as session:
-        for name in ("organization_admin", "pmo", "project_manager", "viewer"):
-            session.add(Role(name=name))
-        session.commit()
-    return instance
+    with temp_database_url("auth_service") as database_url:
+        instance = AnalysisRepository(database_url=database_url)
+        with instance.SessionLocal() as session:
+            for name in ("organization_admin", "pmo", "project_manager", "viewer"):
+                session.add(Role(name=name))
+            session.commit()
+        yield instance
 
 
 @pytest.fixture()
@@ -54,6 +56,34 @@ class TestAuthenticate:
             auth_service.authenticate(DEFAULT_ORGANIZATION_SLUG, "admin@example.com", "wrong")
             is None
         )
+
+    def test_inactive_user_cannot_authenticate(self, repo, auth_service):
+        """User Management (Wave 2): an inactivated user must not log in,
+        even with the correct password -- same uniform-failure treatment
+        as every other authentication failure (EO-015)."""
+        auth_service.bootstrap_administrator("admin@example.com", "correct-password")
+        with repo.SessionLocal() as session:
+            user = session.query(User).filter(User.email == "admin@example.com").one()
+            user.is_active = False
+            session.commit()
+
+        assert (
+            auth_service.authenticate(
+                DEFAULT_ORGANIZATION_SLUG, "admin@example.com", "correct-password"
+            )
+            is None
+        )
+
+    def test_login_normalizes_email_case(self, auth_service):
+        """A user cadastrado com e-mail normalizado (lowercase) autentica
+        independentemente da caixa digitada no login."""
+        auth_service.bootstrap_administrator("admin@example.com", "correct-password")
+
+        result = auth_service.authenticate(
+            DEFAULT_ORGANIZATION_SLUG, "Admin@Example.com", "correct-password"
+        )
+
+        assert result is not None
 
     def test_unknown_email_returns_none(self, auth_service):
         assert (
@@ -302,6 +332,25 @@ class TestBootstrapDemoUser:
             auth_service.authenticate(DEMO_ORGANIZATION_SLUG, DEMO_USER_EMAIL, "second-password")
             is None
         )
+
+    def test_demo_user_gets_the_viewer_role_even_when_pre_existing(self, repo, auth_service):
+        """Wave 2 Sprint 5: without a role the demo user would 403 on every
+        RBAC-protected Enterprise Domain route -- the role is (re-)ensured
+        on every boot, including for demo users created before RBAC, and
+        never duplicated."""
+        from src.database.models import Role, UserRole
+
+        auth_service.bootstrap_demo_user("demo-password")
+        auth_service.bootstrap_demo_user("demo-password")  # second boot, idempotent
+
+        with repo.SessionLocal() as session:
+            demo = session.query(User).filter(User.email == DEMO_USER_EMAIL).one()
+            role_ids = [
+                user_role.role_id
+                for user_role in session.query(UserRole).filter(UserRole.user_id == demo.id)
+            ]
+            assert len(role_ids) == 1
+            assert session.get(Role, role_ids[0]).name == "viewer"
 
 
 class TestLogout:

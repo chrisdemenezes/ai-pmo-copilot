@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from src.api.routes import auth
@@ -11,20 +12,22 @@ from src.services.identity.auth_service import (
     AuthService,
 )
 from src.services.identity.password_hashing import Argon2PasswordHasher
+from tests.db import temp_database_url
 
 
-def _build_auth_service(tmp_path):
-    repo = AnalysisRepository(database_url=f"sqlite:///{tmp_path / 'auth_api.db'}")
-    with repo.SessionLocal() as session:
-        for name in ("organization_admin", "pmo", "project_manager", "viewer"):
-            session.add(Role(name=name))
-        session.commit()
-    return AuthService(repo.SessionLocal, Argon2PasswordHasher())
+@pytest.fixture()
+def service():
+    with temp_database_url("auth_api") as database_url:
+        repo = AnalysisRepository(database_url=database_url)
+        with repo.SessionLocal() as session:
+            for name in ("organization_admin", "pmo", "project_manager", "viewer"):
+                session.add(Role(name=name))
+            session.commit()
+        yield AuthService(repo.SessionLocal, Argon2PasswordHasher())
 
 
-def test_login_succeeds_with_correct_credentials(tmp_path, monkeypatch):
+def test_login_succeeds_with_correct_credentials(service, monkeypatch):
     monkeypatch.setenv("API_KEY", "server-to-server-key")
-    service = _build_auth_service(tmp_path)
     service.bootstrap_administrator("admin@example.com", "correct-password")
     app.dependency_overrides[auth.build_auth_service] = lambda: service
     client = TestClient(app)
@@ -46,9 +49,8 @@ def test_login_succeeds_with_correct_credentials(tmp_path, monkeypatch):
     app.dependency_overrides.pop(auth.build_auth_service, None)
 
 
-def test_login_returns_401_for_wrong_password(tmp_path, monkeypatch):
+def test_login_returns_401_for_wrong_password(service, monkeypatch):
     monkeypatch.setenv("API_KEY", "server-to-server-key")
-    service = _build_auth_service(tmp_path)
     service.bootstrap_administrator("admin@example.com", "correct-password")
     app.dependency_overrides[auth.build_auth_service] = lambda: service
     client = TestClient(app)
@@ -67,9 +69,8 @@ def test_login_returns_401_for_wrong_password(tmp_path, monkeypatch):
     app.dependency_overrides.pop(auth.build_auth_service, None)
 
 
-def test_login_returns_401_for_unknown_email_with_same_message(tmp_path, monkeypatch):
+def test_login_returns_401_for_unknown_email_with_same_message(service, monkeypatch):
     monkeypatch.setenv("API_KEY", "server-to-server-key")
-    service = _build_auth_service(tmp_path)
     service.bootstrap_administrator("admin@example.com", "correct-password")
     app.dependency_overrides[auth.build_auth_service] = lambda: service
     client = TestClient(app)
@@ -116,13 +117,12 @@ def test_login_returns_401_for_unknown_email_with_same_message(tmp_path, monkeyp
     app.dependency_overrides.pop(auth.build_auth_service, None)
 
 
-def test_login_requires_the_server_to_server_api_key(tmp_path, monkeypatch):
+def test_login_requires_the_server_to_server_api_key(service, monkeypatch):
     # conftest.py bypasses verify_api_key by default for every other test in
     # this file (server-to-server auth isn't what's under test there); this
     # one specifically proves the real dependency is still enforced.
     monkeypatch.setenv("API_KEY", "server-to-server-key")
     app.dependency_overrides.pop(verify_api_key, None)
-    service = _build_auth_service(tmp_path)
     service.bootstrap_administrator("admin@example.com", "correct-password")
     app.dependency_overrides[auth.build_auth_service] = lambda: service
     client = TestClient(app)
@@ -140,9 +140,8 @@ def test_login_requires_the_server_to_server_api_key(tmp_path, monkeypatch):
     app.dependency_overrides.pop(auth.build_auth_service, None)
 
 
-def test_logout_acknowledges(tmp_path, monkeypatch):
+def test_logout_acknowledges(service, monkeypatch):
     monkeypatch.setenv("API_KEY", "server-to-server-key")
-    service = _build_auth_service(tmp_path)
     app.dependency_overrides[auth.build_auth_service] = lambda: service
     client = TestClient(app)
 
@@ -157,9 +156,8 @@ def test_logout_acknowledges(tmp_path, monkeypatch):
     app.dependency_overrides.pop(auth.build_auth_service, None)
 
 
-def test_two_distinct_users_authenticate_independently_via_api(tmp_path, monkeypatch):
+def test_two_distinct_users_authenticate_independently_via_api(service, monkeypatch):
     monkeypatch.setenv("API_KEY", "server-to-server-key")
-    service = _build_auth_service(tmp_path)
     service.bootstrap_administrator("admin@example.com", "admin-password")
     service.bootstrap_demo_user("demo-password")
     app.dependency_overrides[auth.build_auth_service] = lambda: service
@@ -194,13 +192,12 @@ def test_two_distinct_users_authenticate_independently_via_api(tmp_path, monkeyp
 
 
 def test_login_scoped_to_wrong_organization_fails_even_with_correct_credentials(
-    tmp_path, monkeypatch
+    service, monkeypatch
 ):
     """EO-015 requirement 2+3 at the API boundary: the Demo user's real
     credentials must never authenticate against the default organization's
     slug, and vice-versa."""
     monkeypatch.setenv("API_KEY", "server-to-server-key")
-    service = _build_auth_service(tmp_path)
     service.bootstrap_administrator("admin@example.com", "admin-password")
     service.bootstrap_demo_user("demo-password")
     app.dependency_overrides[auth.build_auth_service] = lambda: service

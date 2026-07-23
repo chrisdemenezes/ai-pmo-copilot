@@ -5,6 +5,11 @@ services:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql://aipmo:aipmo@database:5432/aipmo
+      DB_POOL_SIZE: ${DB_POOL_SIZE:-5}
+      DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-10}
+      DB_POOL_TIMEOUT_SECONDS: ${DB_POOL_TIMEOUT_SECONDS:-30}
+      DB_POOL_RECYCLE_SECONDS: ${DB_POOL_RECYCLE_SECONDS:-1800}
+      DB_POOL_PRE_PING: ${DB_POOL_PRE_PING:-true}
       LLM_PROVIDER: ${LLM_PROVIDER:-mock}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       API_KEY: ${API_KEY:-}
@@ -12,7 +17,8 @@ services:
       RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-60}
       RATE_LIMIT_WINDOW_SECONDS: ${RATE_LIMIT_WINDOW_SECONDS:-60}
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     command: sh -c "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8000"
 
   database:
@@ -25,6 +31,11 @@ services:
       - "5432:5432"
     volumes:
       - aipmo_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aipmo -d aipmo"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
 volumes:
   aipmo_postgres_data:

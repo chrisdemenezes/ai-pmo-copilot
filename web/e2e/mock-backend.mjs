@@ -62,6 +62,226 @@ const SAMPLE = [
   },
 ];
 
+// Enterprise Domain fixtures (Wave 2 Sprint 5) -- mirror of the rows
+// migration 0008 seeds into the real database (the Capability 01-03 seed
+// data), in the real API's snake_case shape (PortfolioResponse/
+// ProgramResponse/ProjectDeliveryResponse).
+const DOMAIN_PORTFOLIOS = [
+  {
+    id: 1, organization_id: 1, name: "Portfólio Corporativo", code: "PF-001",
+    description: "Iniciativas estratégicas corporativas de maior visibilidade executiva.",
+    category: "Corporativo", executive_owner: "Diretoria de Estratégia",
+    strategic_objective: "Sustentar o crescimento consolidado do grupo nos próximos 3 anos.",
+    status: "Ativo", health: "yellow", priority: "Alta",
+    start_date: "2025-02-01", planned_end_date: "2027-02-01", actual_end_date: null,
+    progress_percentage: 58, program_count: 4, project_count: 14,
+    linked_demands: 6, linked_risks: 9, linked_issues: 4, pending_decisions: 2,
+    sponsor: "Diretoria de Estratégia", pmo_owner: "PMO Corporativo",
+    last_updated: "2026-07-10", next_review: "2026-08-01",
+  },
+  {
+    id: 2, organization_id: 1, name: "Portfólio de Transformação Digital", code: "PF-002",
+    description: "Modernização de plataformas e processos digitais.",
+    category: "Transformação Digital", executive_owner: "CIO",
+    strategic_objective: "Modernizar a base tecnológica e reduzir débito técnico crítico.",
+    status: "Ativo", health: "green", priority: "Alta",
+    start_date: "2025-06-01", planned_end_date: "2026-12-01", actual_end_date: null,
+    progress_percentage: 74, program_count: 3, project_count: 8,
+    linked_demands: 3, linked_risks: 4, linked_issues: 2, pending_decisions: 1,
+    sponsor: "CIO", pmo_owner: "PMO de Tecnologia",
+    last_updated: "2026-07-12", next_review: "2026-07-25",
+  },
+  {
+    id: 3, organization_id: 1, name: "Portfólio de Expansão Regional", code: "PF-003",
+    description: "Entrada em novos mercados regionais.",
+    category: "Expansão", executive_owner: "VP de Operações",
+    strategic_objective: "Estabelecer presença operacional em 2 novos mercados até o fim da Release 0.2.",
+    status: "Ativo", health: "red", priority: "Alta",
+    start_date: "2026-01-15", planned_end_date: "2026-11-30", actual_end_date: null,
+    progress_percentage: 31, program_count: 1, project_count: 2,
+    linked_demands: 2, linked_risks: 5, linked_issues: 1, pending_decisions: 1,
+    sponsor: "VP de Operações", pmo_owner: "PMO Regional",
+    last_updated: "2026-07-15", next_review: "2026-07-22",
+  },
+];
+
+const DOMAIN_PROGRAMS = [
+  {
+    id: 1, portfolio_id: 1, name: "Eficiência Operacional", code: "PG-001",
+    description: "Redução de custo operacional e simplificação de processos internos.",
+    sponsor: "Diretoria de Estratégia", program_manager: "Bruno Castro",
+    status: "Ativo", health: "yellow", priority: "Alta",
+    objective: "Reduzir custo operacional em 12% mantendo nível de serviço.",
+    start_date: "2025-08-01", planned_end_date: "2026-10-01", actual_end_date: null,
+    progress_percentage: 52, project_count: 5,
+    linked_demands: 3, linked_risks: 4, linked_issues: 2, pending_decisions: 1, pending_actions: 2,
+    pmo_owner: "PMO Corporativo", last_updated: "2026-07-11", next_review: "2026-07-28",
+  },
+  {
+    id: 2, portfolio_id: 1, name: "Governança e Compliance Corporativa", code: "PG-002",
+    description: "Padronização de controles de governança entre unidades de negócio.",
+    sponsor: "Diretoria de Estratégia", program_manager: "Diego Souza",
+    status: "Ativo", health: "yellow", priority: "Média",
+    objective: "Unificar o modelo de controles internos até o fim da Release 0.2.",
+    start_date: "2026-02-01", planned_end_date: "2026-12-15", actual_end_date: null,
+    progress_percentage: 45, project_count: 2,
+    linked_demands: 1, linked_risks: 2, linked_issues: 0, pending_decisions: 1, pending_actions: 1,
+    pmo_owner: "PMO Corporativo", last_updated: "2026-07-09", next_review: "2026-08-05",
+  },
+  {
+    id: 3, portfolio_id: 2, name: "Modernização de Plataformas", code: "PG-003",
+    description: "Modernização das plataformas tecnológicas centrais.",
+    sponsor: "CIO", program_manager: "Ana Ribeiro",
+    status: "Ativo", health: "green", priority: "Alta",
+    objective: "Migrar as 3 plataformas legadas mais críticas para a nova arquitetura.",
+    start_date: "2025-07-01", planned_end_date: "2026-09-01", actual_end_date: null,
+    progress_percentage: 80, project_count: 3,
+    linked_demands: 2, linked_risks: 2, linked_issues: 1, pending_decisions: 0, pending_actions: 1,
+    pmo_owner: "PMO de Tecnologia", last_updated: "2026-07-13", next_review: "2026-07-27",
+  },
+  {
+    id: 4, portfolio_id: 3, name: "Entrada em Novos Mercados", code: "PG-004",
+    description: "Estruturação operacional para entrada em 2 novos mercados regionais.",
+    sponsor: "VP de Operações", program_manager: "Carla Mendes",
+    status: "Ativo", health: "red", priority: "Alta",
+    objective: "Estabelecer operação local nos 2 mercados-alvo até o fim da Release 0.2.",
+    start_date: "2026-02-01", planned_end_date: "2026-11-01", actual_end_date: null,
+    progress_percentage: 28, project_count: 2,
+    linked_demands: 2, linked_risks: 5, linked_issues: 1, pending_decisions: 1, pending_actions: 1,
+    pmo_owner: "PMO Regional", last_updated: "2026-07-14", next_review: "2026-07-21",
+  },
+];
+
+const DOMAIN_PROJECTS = [
+  {
+    id: 1, organization_id: 1, program_id: 1, name: "Multilift", code: "PJ-001",
+    description: "Modernização da linha de elevadores industriais.",
+    objective: "Reduzir tempo de parada não planejada em 30%.",
+    sponsor: "Diretoria de Estratégia", project_manager: "Fernanda Lima",
+    status: "Ativo", health: "red", priority: "Alta",
+    start_date: "2025-09-01", planned_end_date: "2026-06-01", actual_end_date: null,
+    progress_percentage: 30, last_updated: "2026-07-15", next_review: "2026-07-20",
+    owner: { name: "Bruno Castro", role: "Product Owner" },
+    milestones: [
+      { name: "Diagnóstico concluído", dueDate: "2025-11-01", status: "Concluído" },
+      { name: "Piloto em planta 1", dueDate: "2026-07-01", status: "Atrasado" },
+    ],
+    team: { size: 8, leadName: "Fernanda Lima" },
+  },
+  {
+    id: 2, organization_id: 1, program_id: 1, name: "Automação de Faturamento", code: "PJ-002",
+    description: "Automação do ciclo de faturamento corporativo.",
+    objective: "Eliminar retrabalho manual no faturamento mensal.",
+    sponsor: "Diretoria de Estratégia", project_manager: "Rafael Nunes",
+    status: "Ativo", health: "yellow", priority: "Média",
+    start_date: "2026-01-15", planned_end_date: "2026-09-01", actual_end_date: null,
+    progress_percentage: 55, last_updated: "2026-07-12", next_review: "2026-07-26",
+    owner: { name: "Bruno Castro", role: "Product Owner" },
+    milestones: [{ name: "MVP em produção", dueDate: "2026-08-01", status: "Pendente" }],
+    team: { size: 5, leadName: "Rafael Nunes" },
+  },
+  {
+    id: 3, organization_id: 1, program_id: 2, name: "Revisão de Controles Internos", code: "PJ-003",
+    description: "Padronização de controles internos entre unidades.",
+    objective: "Unificar o checklist de controles até o fim da Release 0.2.",
+    sponsor: "Diretoria de Estratégia", project_manager: "Diego Souza",
+    status: "Ativo", health: "green", priority: "Média",
+    start_date: "2026-02-15", planned_end_date: "2026-10-01", actual_end_date: null,
+    progress_percentage: 70, last_updated: "2026-07-10", next_review: "2026-08-02",
+    owner: { name: "Diego Souza", role: "Product Owner" },
+    milestones: [{ name: "Checklist unificado publicado", dueDate: "2026-09-01", status: "Pendente" }],
+    team: { size: 4, leadName: "Diego Souza" },
+  },
+  {
+    id: 4, organization_id: 1, program_id: 3, name: "Implantação SAP S/4HANA", code: "PJ-004",
+    description: "Migração da plataforma ERP legada para SAP S/4HANA.",
+    objective: "Migrar os módulos financeiro e de suprimentos.",
+    sponsor: "CIO", project_manager: "Ana Ribeiro",
+    status: "Ativo", health: "yellow", priority: "Alta",
+    start_date: "2025-08-01", planned_end_date: "2026-08-01", actual_end_date: null,
+    progress_percentage: 62, last_updated: "2026-07-13", next_review: "2026-07-27",
+    owner: { name: "Ana Ribeiro", role: "Product Owner" },
+    milestones: [
+      { name: "Go-live financeiro", dueDate: "2026-06-01", status: "Atrasado" },
+      { name: "Go-live suprimentos", dueDate: "2026-08-01", status: "Pendente" },
+    ],
+    team: { size: 10, leadName: "Ana Ribeiro" },
+  },
+  {
+    id: 5, organization_id: 1, program_id: 3, name: "Migração de Data Center", code: "PJ-005",
+    description: "Migração da infraestrutura on-premise para a nuvem.",
+    objective: "Descomissionar o data center físico até o fim da Release 0.2.",
+    sponsor: "CIO", project_manager: "Ana Ribeiro",
+    status: "Ativo", health: "green", priority: "Alta",
+    start_date: "2025-07-01", planned_end_date: "2026-07-01", actual_end_date: null,
+    progress_percentage: 88, last_updated: "2026-07-14", next_review: "2026-07-24",
+    owner: { name: "Ana Ribeiro", role: "Product Owner" },
+    milestones: [{ name: "Corte final de tráfego", dueDate: "2026-07-15", status: "Pendente" }],
+    team: { size: 6, leadName: "Ana Ribeiro" },
+  },
+  {
+    id: 6, organization_id: 1, program_id: 4, name: "Aurora", code: "PJ-006",
+    description: "Estruturação da operação comercial no novo mercado.",
+    objective: "Abrir a primeira unidade comercial no mercado-alvo.",
+    sponsor: "VP de Operações", project_manager: "Carla Mendes",
+    status: "Ativo", health: "green", priority: "Alta",
+    start_date: "2026-02-01", planned_end_date: "2026-10-01", actual_end_date: null,
+    progress_percentage: 74, last_updated: "2026-07-11", next_review: "2026-07-25",
+    owner: { name: "Carla Mendes", role: "Product Owner" },
+    milestones: [{ name: "Unidade inaugurada", dueDate: "2026-09-01", status: "Pendente" }],
+    team: { size: 7, leadName: "Carla Mendes" },
+  },
+  {
+    id: 7, organization_id: 1, program_id: 4, name: "Abertura Operação LATAM", code: "PJ-007",
+    description: "Estruturação regulatória e operacional para entrada na LATAM.",
+    objective: "Obter licenças operacionais nos 2 países-alvo.",
+    sponsor: "VP de Operações", project_manager: "Carla Mendes",
+    status: "Ativo", health: "red", priority: "Alta",
+    start_date: "2026-03-01", planned_end_date: "2026-11-01", actual_end_date: null,
+    progress_percentage: 22, last_updated: "2026-07-14", next_review: "2026-07-21",
+    owner: { name: "Carla Mendes", role: "Product Owner" },
+    milestones: [{ name: "Licenças protocoladas", dueDate: "2026-06-01", status: "Atrasado" }],
+    team: { size: 4, leadName: "Carla Mendes" },
+  },
+];
+
+// The E2E login (POST /api/auth/login below) always resolves to user_id 1
+// -- used to exercise the self-deactivation guard for User Management.
+const E2E_ACTOR_USER_ID = 1;
+
+// User Management (Enterprise Administration Capability) fixtures --
+// mutable (create/edit/status/roles all write here), reset via
+// resetFixtures() like SAMPLE/ANALYSES.
+const PRISTINE_ADMIN_USERS = [
+  { id: 1, email: "ana.admin@example.com", display_name: "Ana Souza", identity_type: "standard", is_active: true },
+  { id: 2, email: "bruno.pmo@example.com", display_name: "Bruno Castro", identity_type: "standard", is_active: true },
+  { id: 3, email: "carla.viewer@example.com", display_name: "Carla Mendes", identity_type: "standard", is_active: false },
+];
+const PRISTINE_ADMIN_USER_ROLES = {
+  1: ["organization_admin"],
+  2: ["pmo"],
+  3: ["viewer"],
+};
+const ADMIN_ROLES = [
+  { id: 1, name: "organization_admin", description: "Administra a organização" },
+  { id: 2, name: "pmo", description: "Visão e governança" },
+  { id: 3, name: "project_manager", description: "Execução de Program/Project" },
+  { id: 4, name: "viewer", description: "Somente leitura" },
+];
+
+const ADMIN_USERS = [];
+const ADMIN_USER_ROLES = {};
+let nextAdminUserId = 1000;
+
+function resetAdminFixtures() {
+  ADMIN_USERS.length = 0;
+  ADMIN_USERS.push(...JSON.parse(JSON.stringify(PRISTINE_ADMIN_USERS)));
+  for (const key of Object.keys(ADMIN_USER_ROLES)) delete ADMIN_USER_ROLES[key];
+  Object.assign(ADMIN_USER_ROLES, JSON.parse(JSON.stringify(PRISTINE_ADMIN_USER_ROLES)));
+  nextAdminUserId = 1000;
+}
+resetAdminFixtures();
+
 const WORKSPACE_SUMMARY = {
   Aurora: {
     project_name: "Aurora",
@@ -271,6 +491,8 @@ function resetFixtures() {
   nextAnalysisId = PRISTINE_NEXT_ANALYSIS_ID;
 
   Object.assign(workspaceScenario, JSON.parse(JSON.stringify(PRISTINE_WORKSPACE_SCENARIO)));
+
+  resetAdminFixtures();
 }
 
 function send(res, status, body) {
@@ -363,6 +585,168 @@ const server = http.createServer((req, res) => {
     if (scenario === "timeout") return;
     if (scenario === "unavailable") return send(res, 500, { detail: "internal error" });
     return send(res, 200, scenario === "empty" ? [] : SAMPLE);
+  }
+
+  // Enterprise Domain API (Wave 2 Sprint 5) -- same rows migration 0008
+  // seeds into the real database, in the real API's snake_case wire shape,
+  // so the frontend's list*() fetch path is exercised end to end.
+  if (url.pathname === "/api/portfolios") {
+    return send(res, 200, DOMAIN_PORTFOLIOS);
+  }
+  if (url.pathname === "/api/programs") {
+    return send(res, 200, DOMAIN_PROGRAMS);
+  }
+  if (url.pathname === "/api/projects-delivery") {
+    return send(res, 200, DOMAIN_PROJECTS);
+  }
+
+  // User Management (Enterprise Administration Capability) -- mirrors
+  // src/api/routes/administration.py's User Management routes.
+  if (url.pathname === "/api/admin/user-roles-index") {
+    const index = {};
+    for (const [userId, roleNames] of Object.entries(ADMIN_USER_ROLES)) {
+      index[userId] = roleNames;
+    }
+    return send(res, 200, index);
+  }
+
+  if (url.pathname === "/api/admin/roles") {
+    return send(res, 200, ADMIN_ROLES);
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/admin/users") {
+    return send(res, 200, ADMIN_USERS);
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/admin/users") {
+    let raw = "";
+    req.on("data", (chunk) => (raw += chunk));
+    req.on("end", () => {
+      const { email, display_name: displayName, role_name: roleName } = JSON.parse(raw);
+      const normalizedEmail = email.trim().toLowerCase();
+      if (ADMIN_USERS.some((u) => u.email === normalizedEmail)) {
+        return send(res, 409, { detail: `Email '${email}' already exists in this organization` });
+      }
+      if (!ADMIN_ROLES.some((r) => r.name === roleName)) {
+        return send(res, 400, { detail: `Role '${roleName}' does not exist` });
+      }
+      const user = {
+        id: nextAdminUserId++,
+        email: normalizedEmail,
+        display_name: displayName,
+        identity_type: "standard",
+        is_active: true,
+      };
+      ADMIN_USERS.push(user);
+      ADMIN_USER_ROLES[user.id] = [roleName];
+      return send(res, 201, user);
+    });
+    return;
+  }
+
+  const userRolesMatch = url.pathname.match(/^\/api\/admin\/users\/(\d+)\/roles$/);
+  if (userRolesMatch) {
+    const userId = Number(userRolesMatch[1]);
+    const user = ADMIN_USERS.find((u) => u.id === userId);
+    if (!user) return send(res, 404, { detail: "User not found" });
+
+    if (req.method === "GET") {
+      const names = ADMIN_USER_ROLES[userId] ?? [];
+      return send(res, 200, ADMIN_ROLES.filter((r) => names.includes(r.name)));
+    }
+    if (req.method === "POST") {
+      let raw = "";
+      req.on("data", (chunk) => (raw += chunk));
+      req.on("end", () => {
+        const { role_name: roleName } = JSON.parse(raw);
+        if (!ADMIN_ROLES.some((r) => r.name === roleName)) {
+          return send(res, 400, { detail: `Role '${roleName}' does not exist` });
+        }
+        const names = ADMIN_USER_ROLES[userId] ?? (ADMIN_USER_ROLES[userId] = []);
+        if (!names.includes(roleName)) names.push(roleName);
+        return send(res, 200, user);
+      });
+      return;
+    }
+  }
+
+  const removeRoleMatch = url.pathname.match(/^\/api\/admin\/users\/(\d+)\/roles\/([^/]+)$/);
+  if (removeRoleMatch && req.method === "DELETE") {
+    const userId = Number(removeRoleMatch[1]);
+    const roleName = decodeURIComponent(removeRoleMatch[2]);
+    const user = ADMIN_USERS.find((u) => u.id === userId);
+    if (!user) return send(res, 404, { detail: "User not found" });
+    if (!ADMIN_ROLES.some((r) => r.name === roleName)) {
+      return send(res, 400, { detail: `Role '${roleName}' does not exist` });
+    }
+    const names = ADMIN_USER_ROLES[userId] ?? [];
+    const activeAdminCount = ADMIN_USERS.filter(
+      (u) => u.is_active && (ADMIN_USER_ROLES[u.id] ?? []).includes("organization_admin"),
+    ).length;
+    if (roleName === "organization_admin" && user.is_active && activeAdminCount <= 1) {
+      return send(res, 409, { detail: "Cannot remove the last active administrator's role" });
+    }
+    ADMIN_USER_ROLES[userId] = names.filter((name) => name !== roleName);
+    return send(res, 200, user);
+  }
+
+  const userStatusMatch = url.pathname.match(/^\/api\/admin\/users\/(\d+)\/status$/);
+  if (userStatusMatch && req.method === "PATCH") {
+    const userId = Number(userStatusMatch[1]);
+    const user = ADMIN_USERS.find((u) => u.id === userId);
+    if (!user) return send(res, 404, { detail: "User not found" });
+    let raw = "";
+    req.on("data", (chunk) => (raw += chunk));
+    req.on("end", () => {
+      const { is_active: isActive } = JSON.parse(raw);
+      if (!isActive && userId === E2E_ACTOR_USER_ID) {
+        return send(res, 400, { detail: "An administrator cannot deactivate their own account" });
+      }
+      if (!isActive && user.is_active) {
+        const names = ADMIN_USER_ROLES[userId] ?? [];
+        const activeAdminCount = ADMIN_USERS.filter(
+          (u) => u.is_active && (ADMIN_USER_ROLES[u.id] ?? []).includes("organization_admin"),
+        ).length;
+        if (names.includes("organization_admin") && activeAdminCount <= 1) {
+          return send(res, 409, {
+            detail: "Cannot deactivate the last active administrator of this organization",
+          });
+        }
+      }
+      user.is_active = isActive;
+      return send(res, 200, user);
+    });
+    return;
+  }
+
+  const userMatch = url.pathname.match(/^\/api\/admin\/users\/(\d+)$/);
+  if (userMatch) {
+    const userId = Number(userMatch[1]);
+    const user = ADMIN_USERS.find((u) => u.id === userId);
+    if (!user) return send(res, 404, { detail: "User not found" });
+
+    if (req.method === "GET") {
+      return send(res, 200, user);
+    }
+    if (req.method === "PATCH") {
+      let raw = "";
+      req.on("data", (chunk) => (raw += chunk));
+      req.on("end", () => {
+        const { email, display_name: displayName } = JSON.parse(raw);
+        if (email !== undefined) {
+          const normalizedEmail = email.trim().toLowerCase();
+          if (ADMIN_USERS.some((u) => u.id !== userId && u.email === normalizedEmail)) {
+            return send(res, 409, {
+              detail: `Email '${email}' already exists in this organization`,
+            });
+          }
+          user.email = normalizedEmail;
+        }
+        if (displayName !== undefined) user.display_name = displayName;
+        return send(res, 200, user);
+      });
+      return;
+    }
   }
 
   // project_name is a query param here, not a path segment -- matches the

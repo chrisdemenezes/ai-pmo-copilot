@@ -11,6 +11,13 @@ DEMO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(dirname "$DEMO_DIR")"
 ENV_FILE="$DEMO_DIR/.env"
 
+# Prefer the project venv (uvicorn, alembic) regardless of whether the
+# caller already activated it -- covers both direct invocation and
+# `make dev`, which calls this script in its own subshell.
+if [ -d "$ROOT_DIR/.venv/bin" ]; then
+  PATH="$ROOT_DIR/.venv/bin:$PATH"
+fi
+
 if [ ! -f "$ENV_FILE" ]; then
   echo "demo/.env not found -- creating one from demo/.env.example with a generated SESSION_SECRET."
   cp "$DEMO_DIR/.env.example" "$ENV_FILE"
@@ -37,7 +44,21 @@ FRONTEND_PORT="${FRONTEND_PORT:-3000}"
 LOG_DIR="$DEMO_DIR/logs"
 mkdir -p "$LOG_DIR"
 
-echo "Starting backend on :$BACKEND_PORT (SQLite, no Docker) ..."
+case "${DATABASE_URL:-}" in
+  postgresql://*|postgres://*) DB_LABEL="PostgreSQL" ;;
+  ""|sqlite://*) DB_LABEL="SQLite, no Docker" ;;
+  *) DB_LABEL="DATABASE_URL=${DATABASE_URL}" ;;
+esac
+
+# Migrations run here unconditionally so this script alone is a complete
+# bring-up regardless of entry point (direct call or `make dev`, which also
+# runs this as its last step) -- alembic upgrade head is idempotent, and
+# this is also where the Enterprise Domain seed (migrations 0002 + 0008:
+# Organizations, Roles, Portfolios, Programs, Projects) is applied.
+echo "Applying database migrations ($DB_LABEL) ..."
+(cd "$ROOT_DIR" && DATABASE_URL="${DATABASE_URL:-}" python3 -m alembic upgrade head)
+
+echo "Starting backend on :$BACKEND_PORT ($DB_LABEL) ..."
 (
   cd "$ROOT_DIR"
   API_KEY="$API_KEY" LLM_PROVIDER="$LLM_PROVIDER" ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}" \
@@ -83,7 +104,11 @@ Demo environment ready.
   Dashboard: http://localhost:$FRONTEND_PORT/dashboard
   Backend:   http://localhost:$BACKEND_PORT/health
 
-Next step: python3 demo/seed_demo_data.py   (populates the fictitious SAP portfolio)
+Enterprise Domain data (Organizations, Roles, Portfolios, Programs, Projects)
+is already seeded by the migrations (0002 + 0008) that ran on startup.
+
+Optional: python3 demo/seed_demo_data.py adds a fictitious SAP portfolio
+via the AI analysis endpoints -- a separate, additive demo capability.
 
 Logs:  $LOG_DIR/backend.log, $LOG_DIR/frontend.log
 Stop:  demo/stop-demo.sh

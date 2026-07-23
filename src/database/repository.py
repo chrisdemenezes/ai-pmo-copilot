@@ -1,16 +1,18 @@
 import logging
-import os
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, JSON, create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, JSON
 
 from src.database.base import Base
+from src.database.engine import build_engine, resolve_database_url
 # Imported for its side effect: registers the Enterprise Foundation tables on
 # Base.metadata so create_all provisions the full schema on installs that do
 # not run alembic (the SQLite/demo path).
 from src.database import models  # noqa: F401
 from src.database.enterprise_repository import EnterpriseRepository
+from src.database.domain_repository import DomainRepository
+from src.database.administration_repository import AdministrationRepository
+from sqlalchemy.orm import sessionmaker
 
 logger = logging.getLogger(__name__)
 
@@ -32,15 +34,13 @@ class AnalysisRecord(Base):
 
 class AnalysisRepository:
     def __init__(self, database_url: str | None = None):
-        self.database_url = database_url or os.getenv(
-            "DATABASE_URL",
-            "sqlite:///./ai_pmo_copilot.db",
-        )
-        connect_args = {"check_same_thread": False} if self.database_url.startswith("sqlite") else {}
-        self.engine = create_engine(self.database_url, connect_args=connect_args)
+        self.database_url = resolve_database_url(database_url)
+        self.engine = build_engine(self.database_url)
         Base.metadata.create_all(self.engine)
         self.SessionLocal = sessionmaker(bind=self.engine, autoflush=False, autocommit=False)
         self.enterprise = EnterpriseRepository(self.SessionLocal)
+        self.domain = DomainRepository(self.SessionLocal)
+        self.administration = AdministrationRepository(self.SessionLocal, self.enterprise)
 
     def save_analysis(self, kind: str, payload: dict, project_name: str | None = None) -> int:
         with self.SessionLocal() as session:

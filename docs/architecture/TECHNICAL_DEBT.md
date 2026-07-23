@@ -2,6 +2,8 @@
 
 Registro vivo de débitos arquiteturais conhecidos. Cada item tem origem, status e o gatilho que exige sua resolução — nenhum item aqui é corrigido automaticamente por esta entrada; a correção é um trabalho futuro separado, autorizado individualmente quando seu gatilho ocorrer.
 
+**Referência cruzada por Wave:** `docs/product/ENTERPRISE-MASTER-EXECUTION-PROGRAM.md` §11 mapeia cada item abaixo a uma Wave do Enterprise Master Execution Program, sem duplicar ou alterar o conteúdo original deste registro.
+
 ---
 
 ## TD-001 — SQLite Foreign Keys não aplicadas pelo motor
@@ -31,17 +33,19 @@ Registro vivo de débitos arquiteturais conhecidos. Cada item tem origem, status
 
 - **Origem:** Architecture Review AR-1 (Release 0.2), auditando as Capabilities 01-03.
 - **Classificação:** Médio.
-- **Status:** Aberto (aceito conscientemente — decisão explícita do Founder, ver ADR-V2-009).
-- **Descrição:** `web/lib/domain/{portfolio,program,project}.ts` existem apenas como domínio de frontend, sem tabela/model/migração em `src/database`. Quando forem persistidos, precisarão de `organization_id` desde a primeira migração, seguindo exatamente o padrão já estabelecido pela Enterprise Foundation (Épico 1) — hoje não há esse campo porque não há persistência, então não há risco de vazamento cross-tenant ainda (nada é gravado). O risco é apenas prospectivo: nasce no dia em que a Release 0.2 wireener um backend real para essas 3 entidades.
-- **Resolver antes de:** qualquer migração de banco que persista Portfolio/Program/Project.
+- **Status:** **Resolvido** (Wave 2, Sprint 1 — 2026-07-19).
+- **Descrição:** `web/lib/domain/{portfolio,program,project}.ts` existiam apenas como domínio de frontend, sem tabela/model/migração em `src/database`.
+- **Resolução:** migração `0005_domain_persistence` cria `portfolios`/`programs` (org-escopadas desde a primeira migração, per o plano original) e estende `projects` com os campos de domínio — `CrossTenantViolationError` aplicado em toda escrita (`src/database/domain_repository.py`), 16 testes de segregação/migração passando. **Pendente, não coberto por esta resolução:** o frontend (`web/lib/domain/*.ts`) ainda lê dos arrays semeados em memória, não desta persistência — a troca é a próxima Sprint (API + RBAC), rastreada como trabalho de Sprint, não mais como TD.
 
 ## TD-008 — Três conceitos "Project" coexistem no código, sem unificação
 
 - **Origem:** Capability 03 (Decision Log D-019), confirmado na Architecture Review AR-1.
 - **Classificação:** Médio.
-- **Status:** Aberto (aceito conscientemente até o Épico 4).
-- **Descrição:** (1) o `Project` real do backend (`src/database/models.py`, Épico 1, persistido, hoje só usado para membership); (2) `ProjectSummary` (`web/lib/dashboard/types.ts`, dado real do V1/BFF, chaveado por `project_name` livre); (3) `Project` do domínio (`web/lib/domain/project.ts`, Capability 03, vinculado a Program). Nenhum compartilha ID. Risco real: um novo engenheiro pode importar o `Project` errado para uma nova feature sem perceber a diferença — mitigado hoje por documentação explícita (docstrings + Decision Log), não por um mecanismo que impeça o erro em tempo de compilação.
-- **Resolver antes de:** Épico 4 (unificação de `Project`) — candidato natural a também resolver este item.
+- **Status:** Em progresso (Fase 3a de 3 concluída, Wave 3 Epic W3-1 — 2026-07-23).
+- **Descrição:** (1) o `Project` real do backend (`src/database/models.py`, Épico 1, persistido, hoje só usado para membership); (2) `ProjectSummary` (`web/lib/dashboard/types.ts`, dado real do V1/BFF, chaveado por `project_name` livre); (3) `Project` do domínio (`web/lib/domain/project.ts`, Capability 03, vinculado a Program). Nenhum compartilha ID.
+- **Progresso:** per `DOMAIN-BLUEPRINT-PROJECT.md` (Opção A, faseada) — **Fase 1 concluída** (Sprint 1): os campos de domínio vivem na mesma tabela `projects` do Épico 1, não em uma `projects_delivery` separada. **Fase 2 concluída** (Sprint 5): o frontend lê da API real (arrays semeados deletados), e a migração `0008_domain_seed` executou a unificação in-place para os Projects legados com nome colidente ("Multilift"/"Aurora" — atualizados, nunca duplicados). **Fase 3a concluída** (Wave 3, Epic W3-1 — `DOMAIN-BLUEPRINT-PROJECT-IDENTITY-UNIFICATION.md`): `ProjectSummaryService.summarize_portfolio()` agrupa por `project_id` em vez do `project_name` bruto (corrige um bug real: nomes que diferem só por espaço em branco resolviam ao mesmo `project_id` mas apareciam como 2 entradas de portfólio); `ProjectSummaryResponse`/`ProjectSummary` ganham `project_id` aditivo. **Fase 3b (não iniciada, escopo grande):** migrar rotas/BFF/todo o consumo de frontend (Dashboard, Portfólio, Decision Center, Executive Focus, Workspace) de `project_name` para `project_id` como chave primária de fato, aposentando `ProjectSummary` por completo — raio de impacto abrange praticamente toda a experiência executiva; candidata a um Epic dedicado futuro da Wave 3.
+- **Resolver antes de:** Fase 3b não tem gatilho definido ainda — candidata a um Epic futuro da Wave 3, não urgente (nenhum bug ativo pendente após a Fase 3a).
+- **Plano de resolução:** `docs/architecture/PHASE-2-FOUNDATION-ARCHITECTURE.md` §2 recomendava que Épico 4 e a persistência de `projects_delivery` fossem uma única Engineering Order — **premissa corrigida na AR-2** (`AR-2-WAVE-3-ARCHITECTURE-REVIEW.md` §2): `projects_delivery` nunca chegou a existir como tabela separada (Fase 1 já unificou os campos na própria `projects`), então esse gate específico não se aplica mais.
 
 ## TD-009 — Cobertura de testes do frontend não instrumentada
 
@@ -50,6 +54,15 @@ Registro vivo de débitos arquiteturais conhecidos. Cada item tem origem, status
 - **Status:** Aberto.
 - **Descrição:** `web/` não tem `@vitest/coverage-v8` instalado — `vitest run --coverage` falha por dependência ausente. O backend (`src/`) já mede cobertura real (97%, via `pytest --cov`); o frontend não tem visibilidade equivalente. Consistente com o pilar "Observabilidade" do Product Maturity Model, hoje em 0%.
 - **Resolver antes de:** nenhum gatilho específico — melhoria de visibilidade, não um risco ativo. Candidato natural para quando a Phase 2 exigir métricas de qualidade mais rigorosas.
+
+## TD-010 — Nenhum armazenamento server-side de sessão (revogação real não é possível)
+
+- **Origem:** Wave 2, Sprint 4 (Enterprise Administration) — encontrada ao tentar implementar "Sessões" per `DOMAIN-BLUEPRINT-ENTERPRISE-ADMINISTRATION.md` §2.
+- **Classificação:** Médio (segurança/observabilidade prospectiva).
+- **Status:** Aberto (aceito conscientemente — não implementado nesta Sprint).
+- **Descrição:** a sessão da STRATECH é um cookie HMAC-assinado, sem estado no servidor (`src/services/identity/auth_service.py`, `logout()`: "No server-side session store exists yet"). Isso significa que não há como listar sessões ativas de um usuário nem revogar uma sessão individual antes de sua expiração natural (12h) — um logout hoje é apenas o cliente descartando o cookie, o token continua criptograficamente válido até expirar. O Blueprint de Administration assumiu incorretamente que isso já existia ("painel é só leitura+revogação sobre o que já existe").
+- **Resolver antes de:** qualquer requisito de segurança que exija revogação imediata de sessão (ex.: usuário removido/desativado deveria perder acesso instantaneamente, não em até 12h).
+- **Plano de resolução:** exigiria um componente de session store novo (ex.: tabela `sessions` com `revoked_at`, checada a cada request) — decisão de arquitetura própria, fora do escopo de "extensão de baixo risco" que o Blueprint assumiu; não avaliado em detalhe nesta Sprint.
 
 ---
 

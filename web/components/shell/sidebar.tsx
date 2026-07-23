@@ -69,12 +69,12 @@ export function Sidebar() {
               href={item.href}
               aria-current={isActive ? "page" : undefined}
               className={cn(
-                "flex flex-1 flex-col items-center gap-1 py-2 text-xs font-medium",
+                "flex min-w-0 flex-1 flex-col items-center gap-1 py-2 text-xs font-medium",
                 isActive ? "text-accent-ink" : "text-ink-muted",
               )}
             >
-              <Icon className="size-5" aria-hidden="true" />
-              {item.label}
+              <Icon className="size-5 shrink-0" aria-hidden="true" />
+              <span className="w-full truncate text-center">{item.label}</span>
             </Link>
           );
         })}

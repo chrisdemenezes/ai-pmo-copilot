@@ -24,10 +24,14 @@ import {
   CAPABILITY_PROGRESS,
   DOMAIN_EVOLUTION,
   ARCHITECTURE_REVIEWS,
+  PROGRAM_PHASES,
+  ENTERPRISE_PROGRAM_WAVES,
   type EpicStatus,
   type CapabilityProgressEntry,
   type DomainEvolutionNode,
   type ArchitectureReviewEntry,
+  type ProgramPhaseEntry,
+  type WaveEntry,
 } from "@/lib/mock/mission-control-data";
 
 /**
@@ -83,6 +87,50 @@ export default function MissionControlPage() {
       </section>
 
       <section className="flex flex-col gap-3">
+        <h2 className="font-display text-lg font-semibold text-ink">Enterprise Program — Waves</h2>
+        <p className="text-sm text-ink-muted">
+          Eixo único de planejamento a partir do Enterprise Master Execution Program — Épicos e Capabilities deixam
+          de ser linhas paralelas de evolução (Decision Log D-030).
+        </p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {ENTERPRISE_PROGRAM_WAVES.map((wave) => (
+            <Card key={wave.code}>
+              <CardHeader>
+                <CardTitle>{wave.code}</CardTitle>
+                <CardDescription>{wave.name}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Badge variant={waveVariant(wave.status)}>{wave.status}</Badge>
+                <p className="mt-2 text-xs text-ink-muted">{wave.detail}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="font-display text-lg font-semibold text-ink">Program Phases (histórico)</h2>
+        <p className="text-sm text-ink-muted">
+          Phase 1/Phase 2 — nível acima de Release e Capability, per Executive Directive (RC-2 Enterprise Certification).
+          Substituído por Waves (acima) como eixo ativo; mantido como registro.
+        </p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {PROGRAM_PHASES.map((phase) => (
+            <Card key={phase.code}>
+              <CardHeader>
+                <CardTitle>{phase.code}</CardTitle>
+                <CardDescription>{phase.name}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Badge variant={programPhaseVariant(phase.status)}>{phase.status}</Badge>
+                <p className="mt-2 text-xs text-ink-muted">{phase.detail}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      <section className="flex flex-col gap-3">
         <h2 className="font-display text-lg font-semibold text-ink">Product DNA</h2>
         <Card className="border-accent bg-accent-soft">
           <CardContent className="p-5">
@@ -95,9 +143,10 @@ export default function MissionControlPage() {
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-display text-lg font-semibold text-ink">Capability Progress</h2>
+        <h2 className="font-display text-lg font-semibold text-ink">Capability Progress (histórico)</h2>
         <p className="text-sm text-ink-muted">
-          Release 0.2 — evolução orientada por capacidades de negócio, não mais por Sprint/entrega.
+          Release 0.2 — evolução orientada por capacidades de negócio, não mais por Sprint/entrega. Reclassificado
+          como item da Wave 2 (Enterprise Platform); mantido como registro.
         </p>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {CAPABILITY_PROGRESS.map((capability) => (
@@ -344,4 +393,16 @@ function architectureReviewVariant(status: ArchitectureReviewEntry["status"]) {
   if (status === "Approved") return "ok" as const;
   if (status === "Approved with Observations") return "warn" as const;
   return "danger" as const;
+}
+
+function programPhaseVariant(status: ProgramPhaseEntry["status"]) {
+  if (status === "Done") return "ok" as const;
+  if (status === "In Progress") return "warn" as const;
+  return "neutral" as const;
+}
+
+function waveVariant(status: WaveEntry["status"]) {
+  if (status === "Done") return "ok" as const;
+  if (status === "In Progress") return "warn" as const;
+  return "neutral" as const;
 }

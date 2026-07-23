@@ -12,6 +12,7 @@ from sqlalchemy.orm import sessionmaker
 
 from src.database.enterprise_repository import EnterpriseRepository
 from src.database.project_identity import DEFAULT_ORGANIZATION_NAME, organization_slug
+from src.services.identity.email_normalization import normalize_email
 from src.services.identity.interfaces import CredentialVerifier
 from src.services.identity.models import AuthenticatedUser, OrganizationIdentity
 
@@ -63,11 +64,18 @@ class AuthService:
                 logger.info("Login failed: organization not found slug=%s", organization_slug)
                 return None
 
-            user = self._repo.get_user_by_email(session, org.id, email)
+            user = self._repo.get_user_by_email(session, org.id, normalize_email(email))
             if user is None or user.password_hash is None:
                 logger.info(
                     "Login failed: user not found organization_id=%s email=%s", org.id, email
                 )
+                return None
+
+            if not user.is_active:
+                # Same uniform-failure treatment as every other cause here
+                # (EO-015): an inactive account must not be distinguishable
+                # from a wrong password to the caller.
+                logger.info("Login failed: user inactive user_id=%s", user.id)
                 return None
 
             if not self._credentials.verify(password, user.password_hash):
@@ -137,10 +145,16 @@ class AuthService:
             org = self._repo.get_or_create_organization(session, DEMO_ORGANIZATION_NAME)
             existing = self._repo.get_user_by_email(session, org.id, DEMO_USER_EMAIL)
             if existing is not None:
-                logger.info("Demo user bootstrap skipped -- already exists")
+                # Wave 2 Sprint 5: the demo user predates RBAC enforcement
+                # and was created without any role -- re-ensure `viewer` on
+                # every boot (idempotent) so existing installs don't 403 on
+                # the Enterprise Domain API after upgrading.
+                self._repo.assign_role_in_session(session, existing.id, "viewer")
+                session.commit()
+                logger.info("Demo user bootstrap skipped -- already exists (viewer role ensured)")
                 return
 
-            self._repo.create_user_in_session(
+            user = self._repo.create_user_in_session(
                 session,
                 organization_id=org.id,
                 email=DEMO_USER_EMAIL,
@@ -148,6 +162,9 @@ class AuthService:
                 password_hash=self._credentials.hash(password),
                 identity_type="demo",
             )
+            # Read-only by design -- Demo Mode demonstrates, never mutates
+            # (matches the `viewer` seed role's own description).
+            self._repo.assign_role_in_session(session, user.id, "viewer")
             session.commit()
             logger.info("Demo user bootstrapped organization_id=%s", org.id)
 

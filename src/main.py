@@ -6,9 +6,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from src.api.request_context import RequestIDMiddleware, configure_logging
+from src.api.routes.administration import router as administration_router
 from src.api.routes.auth import build_auth_service
 from src.api.routes.auth import router as auth_router
 from src.api.routes.intelligence import router as intelligence_router
+from src.api.routes.portfolio import router as portfolio_router
+from src.api.routes.program import router as program_router
+from src.api.routes.project_delivery import router as project_delivery_router
 from src.llm.providers.base import ProviderConfigError, ProviderUnavailableError
 from src.services.identity.auth_service import bootstrap_identities
 
@@ -29,7 +33,21 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="AI PMO Copilot API", version="0.1.0", lifespan=lifespan)
+app = FastAPI(
+    title="AI PMO Copilot API",
+    version="0.3.0",
+    description=(
+        "STRATECH V2 -- Wave 2 (Enterprise Platform): Enterprise Domain "
+        "API (Portfolio/Program/Project Delivery) with RBAC fine-grained "
+        "enforcement, plus Enterprise Administration (Organizations, "
+        "Users, Roles, Audit Log). All routes are org-scoped via the "
+        "X-Stratech-* institutional headers and require both a valid "
+        "X-API-Key and the relevant permission. See "
+        "docs/architecture/DOMAIN-BLUEPRINT-RBAC.md and "
+        "DOMAIN-BLUEPRINT-ENTERPRISE-ADMINISTRATION.md."
+    ),
+    lifespan=lifespan,
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -41,6 +59,10 @@ app.add_middleware(RequestIDMiddleware)
 
 app.include_router(intelligence_router, prefix="/api", tags=["intelligence"])
 app.include_router(auth_router, prefix="/api", tags=["identity"])
+app.include_router(portfolio_router, prefix="/api", tags=["portfolio"])
+app.include_router(program_router, prefix="/api", tags=["program"])
+app.include_router(project_delivery_router, prefix="/api", tags=["project-delivery"])
+app.include_router(administration_router, prefix="/api", tags=["administration"])
 
 
 @app.exception_handler(ProviderConfigError)
