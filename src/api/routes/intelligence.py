@@ -16,6 +16,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from src.agents.meeting_intelligence.agent import MeetingIntelligenceAgent
 from src.agents.project_status.agent import ProjectStatusAgent
+from src.agents.risk_advisor.agent import RiskAdvisorAgent
 from src.agents.risk_review.agent import RiskReviewAgent
 from src.api.authorization import require_permission
 from src.api.dependencies import build_repository
@@ -104,6 +105,23 @@ class LatestRiskItemResponse(BaseModel):
     escalation_recommendation: str | None
     source_analysis_id: int
     source_created_at: datetime
+
+
+class RiskAdvisorRequest(BaseModel):
+    project_name: str
+    question: str = Field(..., min_length=3, max_length=2000)
+
+    _validate_question = field_validator("question")(_ensure_has_content)
+
+
+class CitedAnalysis(BaseModel):
+    source_analysis_id: int
+    source_created_at: datetime
+
+
+class RiskAdvisorResponse(BaseModel):
+    answer: str
+    cited_analyses: list[CitedAnalysis]
 
 
 def build_prompt_registry() -> PromptRegistry:
@@ -324,3 +342,65 @@ def get_portfolio_summary(
 ):
     logger.info("Summarizing portfolio")
     return service.summarize_portfolio(organization_id=context.organization.organization_id)
+
+
+@router.post("/risk-advisor/ask", response_model=RiskAdvisorResponse)
+def ask_risk_advisor(
+    request: RiskAdvisorRequest,
+    context: RequestContext = Depends(get_request_context),
+    prompts: PromptRegistry = Depends(build_prompt_registry),
+    provider: LLMProvider = Depends(build_provider),
+    repository: AnalysisRepository = Depends(build_repository),
+    service: ProjectSummaryService = Depends(build_project_summary_service),
+    # Read-only: reuses the same permission protecting GET /risks/latest,
+    # its own data source (Technical Design §2 -- no dedicated permission,
+    # this agent never creates/edits/triggers an analysis).
+    _permission: None = Depends(require_permission("intelligence.read")),
+):
+    organization_id = context.organization.organization_id
+    logger.info(
+        "Risk Advisor question organization_id=%s project_name=%s",
+        organization_id,
+        request.project_name,
+    )
+    risks = service.list_latest_risks(
+        organization_id=organization_id, project_name=request.project_name
+    )
+
+    # Every question is audited, regardless of outcome -- never the model's
+    # answer itself (Domain Blueprint §12).
+    repository.administration.record_audit(
+        organization_id,
+        context.user.user_id,
+        "risk_advisor.question_asked",
+        "project",
+        None,
+        {"project_name": request.project_name, "question": request.question},
+    )
+
+    if not risks:
+        # No LLM call for a project with nothing to synthesize -- avoids
+        # cost and a hallucinated answer over non-existent data.
+        return RiskAdvisorResponse(
+            answer="Nenhum risco identificado ainda para este projeto.",
+            cited_analyses=[],
+        )
+
+    agent = RiskAdvisorAgent(model_client=provider, prompt_registry=prompts)
+    result = agent.advise(question=request.question, risks=risks)
+    model_output = result["model_output"]
+
+    if not model_output.get("structured") or not isinstance(model_output.get("answer"), str):
+        raise HTTPException(status_code=502, detail="Risk Advisor returned an invalid response")
+
+    risks_by_id = {risk["source_analysis_id"]: risk for risk in risks}
+    cited_analyses = [
+        CitedAnalysis(
+            source_analysis_id=risk_id,
+            source_created_at=risks_by_id[risk_id]["source_created_at"],
+        )
+        for risk_id in model_output.get("cited_analysis_ids") or []
+        if risk_id in risks_by_id
+    ]
+
+    return RiskAdvisorResponse(answer=model_output["answer"], cited_analyses=cited_analyses)

@@ -168,3 +168,14 @@ export interface AnalyzeMeetingIntelligenceResponse {
   project_name: string | null;
   model_output: MeetingModelOutput | UnstructuredModelOutput;
 }
+
+/** Mirrors RiskAdvisorResponse (src/api/routes/intelligence.py, Epic W3-3). */
+export interface RiskAdvisorCitedAnalysis {
+  source_analysis_id: number;
+  source_created_at: string;
+}
+
+export interface RiskAdvisorAnswer {
+  answer: string;
+  cited_analyses: RiskAdvisorCitedAnalysis[];
+}

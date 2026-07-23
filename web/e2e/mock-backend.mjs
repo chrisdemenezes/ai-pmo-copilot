@@ -993,6 +993,41 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Epic W3-3 -- Risk Advisor: read-only synthesis over the latest risk
+  // analysis already stored for the project, mirroring
+  // src/api/routes/intelligence.py's POST /api/risk-advisor/ask. No new
+  // analysis is created here -- ANALYSES is only ever read.
+  if (req.method === "POST" && url.pathname === "/api/risk-advisor/ask") {
+    let raw = "";
+    req.on("data", (chunk) => (raw += chunk));
+    req.on("end", () => {
+      const { project_name: projectName, question } = JSON.parse(raw);
+      if (!question || question.trim().length < 3) {
+        return send(res, 422, { detail: "question inválida" });
+      }
+
+      const latestRisk = ANALYSES.filter(
+        (a) => a.kind === "risk" && a.project_name === projectName,
+      ).sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+
+      if (!latestRisk) {
+        return send(res, 200, {
+          answer: "Nenhum risco identificado ainda para este projeto.",
+          cited_analyses: [],
+        });
+      }
+
+      const firstRisk = latestRisk.payload.model_output.risks[0];
+      return send(res, 200, {
+        answer: `O risco mais crítico identificado é: ${firstRisk.description}.`,
+        cited_analyses: [
+          { source_analysis_id: latestRisk.id, source_created_at: latestRisk.created_at },
+        ],
+      });
+    });
+    return;
+  }
+
   // TIP-007 -- Meeting Intelligence (Comunicação / FS-006). The only one of
   // the 3 analyze routes whose body uses "transcript", not "project_context"
   // -- matches web/app/api/bff/.../analyze/meeting/route.ts, which is the

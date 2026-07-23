@@ -337,6 +337,15 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Próximo passo autorizado:** retomar o Epic W3-3 (Risk Advisor PoC) com o Blueprint já aprovado (`DOMAIN-BLUEPRINT-RISK-ADVISOR.md`), per o fluxo oficial da Wave 3 — a dependência que bloqueava sua Implementação (D-043) está resolvida.
 - **Missão:** Security Hardening Gate (C-1 + C-2).
 
+### D-046 — Wave 3, Epic W3-3 implementado: Risk Advisor (PoC do primeiro Enterprise Agent conversacional)
+
+- **Contexto:** o Blueprint do Risk Advisor (D-043) tinha a Implementação explicitamente bloqueada por 2 dependências, ambas resolvidas nesta janela: o Security Hardening Gate fechou C-1/C-2 (D-045) e a `main` já estava consolidada (D-044). Per a sequência do próprio Gate, a Wave 3 retomou o Epic W3-3 imediatamente após o Executive Report do Gate, sem nova autorização.
+- **Decisão:** `TECHNICAL-DESIGN-RISK-ADVISOR.md` produzido, confirmando nenhum impacto arquitetural fora do escopo do Blueprint — implementação seguiu direto. Novo agente `src/agents/risk_advisor/` (mesmo padrão dos 3 Accelerators existentes), método `advise()` (nunca `analyze()` — este agente nunca cria uma nova análise, só sintetiza sobre riscos já identificados). Nova rota `POST /api/risk-advisor/ask` em `intelligence.py`, protegida por `intelligence.read` (a mesma permissão que já protege `GET /risks/latest`, sua fonte de dados — nenhuma permissão nova criada, mesmo raciocínio de "não construir antecipando um requisito hipotético" do D-041). Pergunta sem nenhum risco identificado para o projeto responde de forma canônica sem chamar o LLM (evita custo e alucinação). Cada pergunta é auditada (`risk_advisor.question_asked`), nunca a resposta do modelo. BFF (`.../risk-advisor/route.ts`) e uma nova seção "Risk Advisor" na Workspace (campo de pergunta + resposta com citação da análise de origem, sem histórico de conversa persistido).
+- **Nenhuma entidade de domínio nova, nenhuma migração, nenhuma extensão de `LLMProvider`/`PromptRegistry`** — confirma o guarda-corpo da AR-2 e do próprio Blueprint (nenhum framework de orquestração multi-agente, vector store, RAG ou memória de longo prazo).
+- **Verificação:** 314 testes backend (305 pré-existentes + 9 novos: 3 de unidade do agente + 6 da API, cobrindo RBAC, isolamento organizacional e auditoria sem a resposta do LLM), 468 testes frontend (452 pré-existentes + 16 novos), `ruff`/`tsc`/`eslint` limpos, novo teste E2E ponta-a-ponta (backend mock → BFF → hook → componente) passando nos 3 breakpoints; spot-check completo da suíte Workspace (60/63, as 3 falhas já confirmadas pré-existentes e não relacionadas nas verificações do Security Hardening Gate).
+- **Nenhum Blueprint, Domain Model ou ADR aprovado foi alterado.**
+- **Missão:** Wave 3, Epic W3-3 (Risk Advisor) — implementação concluída.
+
 ---
 
 ## Convenção

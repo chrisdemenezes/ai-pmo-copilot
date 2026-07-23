@@ -7,6 +7,7 @@ same convention as `test_portfolio_api.py` -- real Postgres, real migration
 request. `verify_api_key`/`enforce_rate_limit` stay bypassed by the autouse
 conftest fixture; RBAC and organization scope are exercised for real.
 """
+import json
 import os
 import subprocess
 import sys
@@ -54,6 +55,8 @@ class FakePromptRegistry:
             return "Project: $project_name\nInput: $project_context"
         if agent_name == "project_status":
             return "Project: $project_name\nInput: $project_context"
+        if agent_name == "risk_advisor":
+            return "Question: $question\nRisks: $risks_json"
         raise AssertionError(f"Unexpected agent: {agent_name}")
 
 
@@ -440,6 +443,158 @@ def test_list_analyses_requires_api_key(client, monkeypatch):
     response = test_client.get("/api/analyses", headers=_headers(org_id, user_id))
 
     assert response.status_code == 401
+
+
+class TestRiskAdvisor:
+    def test_returns_a_canned_answer_without_calling_the_llm_when_no_risks_exist(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = _actor(repo, org_id, "organization_admin")
+
+        class ExplodingProvider:
+            def generate(self, prompt):
+                raise AssertionError("LLM must not be called when there is nothing to synthesize")
+
+        app.dependency_overrides[intelligence.build_provider] = lambda: ExplodingProvider()
+
+        response = test_client.post(
+            "/api/risk-advisor/ask",
+            headers=_headers(org_id, user_id),
+            json={"project_name": "Multilift", "question": "Qual o risco mais crítico?"},
+        )
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["answer"] == "Nenhum risco identificado ainda para este projeto."
+        assert body["cited_analyses"] == []
+
+    def test_answers_from_the_latest_risk_analysis_with_citations(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = _actor(repo, org_id, "organization_admin")
+        analysis_id = repo.save_analysis(
+            kind="risk",
+            payload={
+                "model_output": {
+                    "structured": True,
+                    "risks": [
+                        {
+                            "description": "Atraso no fornecedor de middleware",
+                            "probability": "high",
+                            "impact": "high",
+                            "mitigation": "Escalar ao patrocinador",
+                        }
+                    ],
+                    "escalation_recommendation": "Escalar ao comitê executivo",
+                }
+            },
+            organization_id=org_id,
+            project_name="Multilift",
+        )
+
+        class AdvisorProvider:
+            def generate(self, prompt):
+                return json.dumps(
+                    {
+                        "answer": "O risco mais crítico é o atraso no fornecedor de middleware.",
+                        "cited_analysis_ids": [analysis_id],
+                    }
+                )
+
+        app.dependency_overrides[intelligence.build_provider] = lambda: AdvisorProvider()
+
+        response = test_client.post(
+            "/api/risk-advisor/ask",
+            headers=_headers(org_id, user_id),
+            json={"project_name": "Multilift", "question": "Qual o risco mais crítico?"},
+        )
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["answer"] == "O risco mais crítico é o atraso no fornecedor de middleware."
+        assert body["cited_analyses"] == [
+            {"source_analysis_id": analysis_id, "source_created_at": response.json()["cited_analyses"][0]["source_created_at"]}
+        ]
+
+    def test_user_with_no_role_is_denied(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = repo.enterprise.create_user(org_id, "norole@example.com", "No Role")
+
+        response = test_client.post(
+            "/api/risk-advisor/ask",
+            headers=_headers(org_id, user_id),
+            json={"project_name": "Multilift", "question": "Qual o risco mais crítico?"},
+        )
+
+        assert response.status_code == 403
+        assert response.json()["detail"] == "missing permission: intelligence.read"
+
+    def test_viewer_can_ask(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        viewer_id = _actor(repo, org_id, "viewer")
+
+        response = test_client.post(
+            "/api/risk-advisor/ask",
+            headers=_headers(org_id, viewer_id),
+            json={"project_name": "Multilift", "question": "Qual o risco mais crítico?"},
+        )
+
+        assert response.status_code == 200
+
+    def test_never_sees_risks_from_another_organization(self, client):
+        test_client, repo = client
+        org_a = repo.enterprise.create_organization("Org A")
+        org_b = repo.enterprise.create_organization("Org B")
+        user_a = _actor(repo, org_a, "organization_admin")
+        repo.save_analysis(
+            kind="risk",
+            payload={
+                "model_output": {
+                    "structured": True,
+                    "risks": [{"description": "Risco de Org B", "probability": "high", "impact": "high", "mitigation": "x"}],
+                    "escalation_recommendation": None,
+                }
+            },
+            organization_id=org_b,
+            project_name="Multilift",
+        )
+
+        class ExplodingProvider:
+            def generate(self, prompt):
+                raise AssertionError("must not synthesize over another organization's risks")
+
+        app.dependency_overrides[intelligence.build_provider] = lambda: ExplodingProvider()
+
+        response = test_client.post(
+            "/api/risk-advisor/ask",
+            headers=_headers(org_a, user_a),
+            json={"project_name": "Multilift", "question": "Qual o risco mais crítico?"},
+        )
+
+        assert response.status_code == 200
+        assert response.json()["answer"] == "Nenhum risco identificado ainda para este projeto."
+
+    def test_records_an_audit_entry_without_the_llm_answer(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = _actor(repo, org_id, "organization_admin")
+
+        response = test_client.post(
+            "/api/risk-advisor/ask",
+            headers=_headers(org_id, user_id),
+            json={"project_name": "Multilift", "question": "Qual o risco mais crítico?"},
+        )
+        assert response.status_code == 200
+
+        entries = repo.administration.list_audit_log(org_id)
+        matching = [e for e in entries if e.action == "risk_advisor.question_asked"]
+        assert len(matching) == 1
+        assert matching[0].actor_user_id == user_id
+        assert matching[0].organization_id == org_id
+        assert matching[0].details["question"] == "Qual o risco mais crítico?"
+        assert "answer" not in matching[0].details
 
 
 class TestAuditTrail:
