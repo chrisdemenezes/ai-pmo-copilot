@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { institutionalHeaders, readSessionIdentity } from "@/lib/bff/domain-proxy";
 import type { AnalysisDetail, WorkspaceErrorBody } from "@/lib/workspace/types";
 
 const BACKEND_TIMEOUT_MS = 8_000;
@@ -14,7 +15,7 @@ function errorResponse(body: WorkspaceErrorBody, status: number) {
 // the route path purely so the URL stays workspace-scoped and consistent
 // with the other 2 BFF routes.
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ projectName: string; analysisId: string }> },
 ) {
   const backendUrl = process.env.BACKEND_URL;
@@ -27,6 +28,13 @@ export async function GET(
     );
   }
 
+  // Security Hardening Gate (C-1/C-2): the backend now requires RBAC +
+  // organization scope on this route.
+  const identity = readSessionIdentity(request);
+  if (identity === null) {
+    return errorResponse({ error: "unauthorized", detail: "Sessão inválida ou expirada." }, 401);
+  }
+
   const { analysisId } = await params;
 
   const controller = new AbortController();
@@ -36,7 +44,7 @@ export async function GET(
     const backendResponse = await fetch(
       `${backendUrl}/api/analyses/${encodeURIComponent(analysisId)}`,
       {
-        headers: { "X-API-Key": apiKey },
+        headers: { "X-API-Key": apiKey, ...institutionalHeaders(identity) },
         signal: controller.signal,
         cache: "no-store",
       },

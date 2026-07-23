@@ -1,6 +1,15 @@
+"""Intelligence API -- meeting/risk/status analysis + read endpoints.
+
+RBAC + organization scope (Security Hardening Gate, C-1/C-2; Repository
+Audit Wave 3): every route below carries `Depends(require_permission(
+"intelligence.read"|"intelligence.write"))`, inserted after
+`get_request_context`, the same seam every other Enterprise Domain route
+module uses (`portfolio.py`, `program.py`, `project_delivery.py`,
+`administration.py`). Every read/write is scoped by
+`context.organization.organization_id`, never a client-supplied value.
+"""
 import logging
 from datetime import datetime
-from functools import lru_cache
 
 from pydantic import BaseModel, Field, field_validator
 from fastapi import APIRouter, Depends, HTTPException
@@ -8,12 +17,16 @@ from fastapi import APIRouter, Depends, HTTPException
 from src.agents.meeting_intelligence.agent import MeetingIntelligenceAgent
 from src.agents.project_status.agent import ProjectStatusAgent
 from src.agents.risk_review.agent import RiskReviewAgent
+from src.api.authorization import require_permission
+from src.api.dependencies import build_repository
+from src.api.identity_context import get_request_context
 from src.api.rate_limiter import enforce_rate_limit
 from src.api.security import verify_api_key
 from src.llm.providers.base import LLMProvider
 from src.llm.providers.factory import get_provider
 from src.prompts.registry import PromptRegistry
 from src.database.repository import AnalysisRepository
+from src.services.identity.models import RequestContext
 from src.services.project_summary_service import ProjectSummaryService
 
 logger = logging.getLogger(__name__)
@@ -101,11 +114,6 @@ def build_provider() -> LLMProvider:
     return get_provider()
 
 
-@lru_cache
-def build_repository() -> AnalysisRepository:
-    return AnalysisRepository()
-
-
 def build_project_summary_service(
     repository: AnalysisRepository = Depends(build_repository),
 ) -> ProjectSummaryService:
@@ -115,42 +123,98 @@ def build_project_summary_service(
 @router.post("/meetings/analyze")
 def analyze_meeting(
     request: MeetingAnalysisRequest,
+    context: RequestContext = Depends(get_request_context),
     prompts: PromptRegistry = Depends(build_prompt_registry),
     provider: LLMProvider = Depends(build_provider),
     repository: AnalysisRepository = Depends(build_repository),
+    _permission: None = Depends(require_permission("intelligence.write")),
 ):
-    logger.info("Analyzing meeting for project_name=%s", request.project_name)
+    organization_id = context.organization.organization_id
+    logger.info(
+        "Analyzing meeting organization_id=%s project_name=%s", organization_id, request.project_name
+    )
     agent = MeetingIntelligenceAgent(model_client=provider, prompt_registry=prompts)
     result = agent.analyze(transcript=request.transcript, project_name=request.project_name)
-    repository.save_analysis(kind="meeting", payload=result, project_name=request.project_name)
+    analysis_id = repository.save_analysis(
+        kind="meeting",
+        payload=result,
+        organization_id=organization_id,
+        project_name=request.project_name,
+    )
+    repository.administration.record_audit(
+        organization_id,
+        context.user.user_id,
+        "analysis.meeting_created",
+        "analysis",
+        analysis_id,
+        {"project_name": request.project_name},
+    )
     return result
 
 
 @router.post("/risks/analyze")
 def analyze_risk(
     request: RiskAnalysisRequest,
+    context: RequestContext = Depends(get_request_context),
     prompts: PromptRegistry = Depends(build_prompt_registry),
     provider: LLMProvider = Depends(build_provider),
     repository: AnalysisRepository = Depends(build_repository),
+    _permission: None = Depends(require_permission("intelligence.write")),
 ):
-    logger.info("Analyzing risk for project_name=%s", request.project_name)
+    organization_id = context.organization.organization_id
+    logger.info(
+        "Analyzing risk organization_id=%s project_name=%s", organization_id, request.project_name
+    )
     agent = RiskReviewAgent(model_client=provider, prompt_registry=prompts)
     result = agent.analyze(project_context=request.project_context, project_name=request.project_name)
-    repository.save_analysis(kind="risk", payload=result, project_name=request.project_name)
+    analysis_id = repository.save_analysis(
+        kind="risk",
+        payload=result,
+        organization_id=organization_id,
+        project_name=request.project_name,
+    )
+    repository.administration.record_audit(
+        organization_id,
+        context.user.user_id,
+        "analysis.risk_created",
+        "analysis",
+        analysis_id,
+        {"project_name": request.project_name},
+    )
     return result
 
 
 @router.post("/projects/analyze")
 def analyze_project_status(
     request: ProjectStatusRequest,
+    context: RequestContext = Depends(get_request_context),
     prompts: PromptRegistry = Depends(build_prompt_registry),
     provider: LLMProvider = Depends(build_provider),
     repository: AnalysisRepository = Depends(build_repository),
+    _permission: None = Depends(require_permission("intelligence.write")),
 ):
-    logger.info("Analyzing project status for project_name=%s", request.project_name)
+    organization_id = context.organization.organization_id
+    logger.info(
+        "Analyzing project status organization_id=%s project_name=%s",
+        organization_id,
+        request.project_name,
+    )
     agent = ProjectStatusAgent(model_client=provider, prompt_registry=prompts)
     result = agent.analyze(project_context=request.project_context, project_name=request.project_name)
-    repository.save_analysis(kind="status", payload=result, project_name=request.project_name)
+    analysis_id = repository.save_analysis(
+        kind="status",
+        payload=result,
+        organization_id=organization_id,
+        project_name=request.project_name,
+    )
+    repository.administration.record_audit(
+        organization_id,
+        context.user.user_id,
+        "analysis.status_created",
+        "analysis",
+        analysis_id,
+        {"project_name": request.project_name},
+    )
     return result
 
 
@@ -162,10 +226,14 @@ def list_analyses(
     created_to: datetime | None = None,
     limit: int = 20,
     offset: int = 0,
+    context: RequestContext = Depends(get_request_context),
     repository: AnalysisRepository = Depends(build_repository),
+    _permission: None = Depends(require_permission("intelligence.read")),
 ):
+    organization_id = context.organization.organization_id
     logger.info(
-        "Listing analyses project_name=%s kind=%s created_from=%s created_to=%s limit=%d offset=%d",
+        "Listing analyses organization_id=%s project_name=%s kind=%s created_from=%s created_to=%s limit=%d offset=%d",
+        organization_id,
         project_name,
         kind,
         created_from,
@@ -174,6 +242,7 @@ def list_analyses(
         offset,
     )
     return repository.list_analyses(
+        organization_id=organization_id,
         project_name=project_name,
         kind=kind,
         created_from=created_from,
@@ -186,10 +255,12 @@ def list_analyses(
 @router.get("/analyses/{analysis_id}", response_model=AnalysisDetail)
 def get_analysis(
     analysis_id: int,
+    context: RequestContext = Depends(get_request_context),
     repository: AnalysisRepository = Depends(build_repository),
+    _permission: None = Depends(require_permission("intelligence.read")),
 ):
     logger.info("Fetching analysis id=%s", analysis_id)
-    record = repository.get_analysis(analysis_id)
+    record = repository.get_analysis(analysis_id, context.organization.organization_id)
     if record is None:
         raise HTTPException(status_code=404, detail="Analysis not found")
     return record
@@ -198,31 +269,41 @@ def get_analysis(
 @router.get("/action-items", response_model=list[ActionItemResponse])
 def list_action_items(
     project_name: str | None = None,
+    context: RequestContext = Depends(get_request_context),
     service: ProjectSummaryService = Depends(build_project_summary_service),
+    _permission: None = Depends(require_permission("intelligence.read")),
 ):
     # project_name is optional: present = Workspace view, absent = portfolio
     # view (FS-007 §2.2) -- same query-parameter design as GET /analyses.
     logger.info("Listing action items project_name=%s", project_name)
-    return service.list_action_items(project_name=project_name)
+    return service.list_action_items(
+        organization_id=context.organization.organization_id, project_name=project_name
+    )
 
 
 @router.get("/risks/latest", response_model=list[LatestRiskItemResponse])
 def list_latest_risks(
     project_name: str | None = None,
+    context: RequestContext = Depends(get_request_context),
     service: ProjectSummaryService = Depends(build_project_summary_service),
+    _permission: None = Depends(require_permission("intelligence.read")),
 ):
     # Same query-parameter design as GET /action-items: project_name
     # present = Workspace scope, absent = portfolio scope. Decision
     # Center's single new backend investment (FS-008 §3.1) -- reused by
     # any future Capability needing the latest risk analysis per project.
     logger.info("Listing latest risks project_name=%s", project_name)
-    return service.list_latest_risks(project_name=project_name)
+    return service.list_latest_risks(
+        organization_id=context.organization.organization_id, project_name=project_name
+    )
 
 
 @router.get("/projects/summary", response_model=ProjectSummaryResponse)
 def get_project_summary(
     project_name: str,
+    context: RequestContext = Depends(get_request_context),
     service: ProjectSummaryService = Depends(build_project_summary_service),
+    _permission: None = Depends(require_permission("intelligence.read")),
 ):
     # project_name is a query parameter, not a path segment -- Starlette's
     # default path converter cannot capture a literal "/" in a {name}
@@ -230,12 +311,16 @@ def get_project_summary(
     # client-side encoding can work around it). Query parameters don't have
     # this restriction, matching the already-working GET /analyses design.
     logger.info("Summarizing project_name=%s", project_name)
-    return service.summarize(project_name=project_name)
+    return service.summarize(
+        organization_id=context.organization.organization_id, project_name=project_name
+    )
 
 
 @router.get("/portfolio/summary", response_model=list[ProjectSummaryResponse])
 def get_portfolio_summary(
+    context: RequestContext = Depends(get_request_context),
     service: ProjectSummaryService = Depends(build_project_summary_service),
+    _permission: None = Depends(require_permission("intelligence.read")),
 ):
     logger.info("Summarizing portfolio")
-    return service.summarize_portfolio()
+    return service.summarize_portfolio(organization_id=context.organization.organization_id)

@@ -1,18 +1,40 @@
 from fastapi.testclient import TestClient
 
+from src.api import authorization as authorization_module
 from src.api.routes import intelligence
 from src.api.security import verify_api_key
 from src.main import app
+
+ORG_ID = 1
+HEADERS = {
+    "X-Stratech-User-Id": "1",
+    "X-Stratech-Organization-Id": str(ORG_ID),
+    "X-Stratech-Session-Id": "session-1",
+}
+
+
+class AlwaysAllowChecker:
+    def has_permission(self, user_id, permission):
+        return True
 
 
 class FakeService:
     def __init__(self, items: list[dict]) -> None:
         self._items = items
+        self.received_organization_id = "sentinel-not-called"
         self.received_project_name = "sentinel-not-called"
 
-    def list_action_items(self, project_name: str | None = None) -> list[dict]:
+    def list_action_items(self, organization_id: int, project_name: str | None = None) -> list[dict]:
+        self.received_organization_id = organization_id
         self.received_project_name = project_name
         return self._items
+
+
+def _install(fake_service):
+    app.dependency_overrides[intelligence.build_project_summary_service] = lambda: fake_service
+    app.dependency_overrides[authorization_module.build_permission_checker] = (
+        lambda: AlwaysAllowChecker()
+    )
 
 
 SAMPLE_ITEMS = [
@@ -37,15 +59,16 @@ SAMPLE_ITEMS = [
 
 def test_list_action_items_without_filter_returns_the_portfolio_view():
     fake_service = FakeService(SAMPLE_ITEMS)
-    app.dependency_overrides[intelligence.build_project_summary_service] = lambda: fake_service
+    _install(fake_service)
 
     client = TestClient(app)
-    response = client.get("/api/action-items")
+    response = client.get("/api/action-items", headers=HEADERS)
 
     assert response.status_code == 200
     body = response.json()
     assert [item["description"] for item in body] == ["Atualizar cronograma", "Cobrar fornecedor"]
     assert body[0]["source_analysis_id"] == 7
+    assert fake_service.received_organization_id == ORG_ID
     assert fake_service.received_project_name is None
 
     app.dependency_overrides.clear()
@@ -53,10 +76,12 @@ def test_list_action_items_without_filter_returns_the_portfolio_view():
 
 def test_list_action_items_passes_project_name_through_to_the_service():
     fake_service = FakeService([SAMPLE_ITEMS[0]])
-    app.dependency_overrides[intelligence.build_project_summary_service] = lambda: fake_service
+    _install(fake_service)
 
     client = TestClient(app)
-    response = client.get("/api/action-items", params={"project_name": "Multilift"})
+    response = client.get(
+        "/api/action-items", headers=HEADERS, params={"project_name": "Multilift"}
+    )
 
     assert response.status_code == 200
     assert fake_service.received_project_name == "Multilift"
@@ -66,13 +91,15 @@ def test_list_action_items_passes_project_name_through_to_the_service():
 
 def test_list_action_items_handles_a_project_name_containing_a_slash():
     fake_service = FakeService([])
-    app.dependency_overrides[intelligence.build_project_summary_service] = lambda: fake_service
+    _install(fake_service)
 
     client = TestClient(app)
     # Built by hand to exercise the exact wire format a browser produces --
     # %20 for space, %2F for slash -- same hazard already covered for
     # GET /api/projects/summary.
-    response = client.get("/api/action-items?project_name=Implantacao%20SAP%20S%2F4HANA")
+    response = client.get(
+        "/api/action-items?project_name=Implantacao%20SAP%20S%2F4HANA", headers=HEADERS
+    )
 
     assert response.status_code == 200
     assert fake_service.received_project_name == "Implantacao SAP S/4HANA"
@@ -82,10 +109,10 @@ def test_list_action_items_handles_a_project_name_containing_a_slash():
 
 def test_list_action_items_returns_empty_list_when_there_are_no_items():
     fake_service = FakeService([])
-    app.dependency_overrides[intelligence.build_project_summary_service] = lambda: fake_service
+    _install(fake_service)
 
     client = TestClient(app)
-    response = client.get("/api/action-items")
+    response = client.get("/api/action-items", headers=HEADERS)
 
     assert response.status_code == 200
     assert response.json() == []
@@ -100,7 +127,7 @@ def test_list_action_items_requires_api_key(monkeypatch):
     app.dependency_overrides.pop(verify_api_key, None)
     client = TestClient(app)
 
-    response = client.get("/api/action-items")
+    response = client.get("/api/action-items", headers=HEADERS)
 
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid or missing API key"

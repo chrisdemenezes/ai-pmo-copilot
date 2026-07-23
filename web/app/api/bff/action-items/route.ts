@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { institutionalHeaders, readSessionIdentity } from "@/lib/bff/domain-proxy";
 import type { ActionItemView, WorkspaceErrorBody } from "@/lib/workspace/types";
 
 const BACKEND_TIMEOUT_MS = 8_000;
@@ -24,6 +25,13 @@ export async function GET(request: Request) {
     );
   }
 
+  // Security Hardening Gate (C-1/C-2): the backend now requires RBAC +
+  // organization scope on this route.
+  const identity = readSessionIdentity(request);
+  if (identity === null) {
+    return errorResponse({ error: "unauthorized", detail: "Sessão inválida ou expirada." }, 401);
+  }
+
   // project_name travels as a query parameter, never a path segment --
   // same reasoning as the workspace summary BFF route: Starlette's path
   // converter can't capture a literal "/" in a project name, query
@@ -39,7 +47,7 @@ export async function GET(request: Request) {
 
   try {
     const backendResponse = await fetch(backendUrlObj, {
-      headers: { "X-API-Key": apiKey },
+      headers: { "X-API-Key": apiKey, ...institutionalHeaders(identity) },
       signal: controller.signal,
       cache: "no-store",
     });

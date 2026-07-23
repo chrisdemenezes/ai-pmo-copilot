@@ -10,8 +10,8 @@ import logging
 
 from fastapi import Depends, HTTPException
 
+from src.api.dependencies import build_repository
 from src.api.identity_context import get_request_context
-from src.api.routes.intelligence import build_repository
 from src.database.repository import AnalysisRepository
 from src.services.authorization.checker import SqlPermissionChecker
 from src.services.authorization.interfaces import PermissionChecker

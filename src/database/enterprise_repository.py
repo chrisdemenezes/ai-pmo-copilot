@@ -197,32 +197,38 @@ class EnterpriseRepository:
             return projects
 
     def get_or_create_project_for_name(
-        self, session: Session, raw_project_name: str | None
+        self, session: Session, organization_id: int, raw_project_name: str | None
     ) -> Project:
-        """Resolve a legacy free-text name to a real Project (deterministic).
+        """Resolve a legacy free-text name to a real Project (deterministic),
+        scoped to the caller's real organization (Security Hardening Gate,
+        C-2) -- previously always resolved to the hardcoded default
+        organization regardless of who called it, which meant every
+        organization's analyses silently shared one Project namespace.
 
         Same rule as the 0002 migration: strip surrounding whitespace, no
         case folding, no similarity merging; empty/None maps to the fallback
         project. Runs inside the caller's session/transaction.
         """
-        org = self.get_or_create_default_organization(session)
         key = normalize_project_name(raw_project_name)
         name = key if key is not None else FALLBACK_PROJECT_NAME
         project = (
             session.query(Project)
-            .filter(Project.organization_id == org.id, Project.name == name)
+            .filter(Project.organization_id == organization_id, Project.name == name)
             .one_or_none()
         )
         if project is None:
             project = Project(
-                organization_id=org.id,
+                organization_id=organization_id,
                 name=name,
                 legacy_project_name=key,
             )
             session.add(project)
             session.flush()
             logger.info(
-                "Created project id=%s from legacy name=%r", project.id, raw_project_name
+                "Created project id=%s organization_id=%s from legacy name=%r",
+                project.id,
+                organization_id,
+                raw_project_name,
             )
         return project
 

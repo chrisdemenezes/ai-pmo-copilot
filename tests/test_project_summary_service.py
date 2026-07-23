@@ -11,9 +11,15 @@ def repository():
         yield AnalysisRepository(database_url=database_url)
 
 
-def test_summarize_counts_risks_and_action_items_from_structured_payloads(repository):
+@pytest.fixture()
+def org_id(repository):
+    return repository.enterprise.create_organization("Organização Única")
+
+
+def test_summarize_counts_risks_and_action_items_from_structured_payloads(repository, org_id):
     repository.save_analysis(
         kind="risk",
+        organization_id=org_id,
         project_name="Multilift",
         payload={
             "model_output": {
@@ -24,11 +30,12 @@ def test_summarize_counts_risks_and_action_items_from_structured_payloads(reposi
     )
     repository.save_analysis(
         kind="meeting",
+        organization_id=org_id,
         project_name="Multilift",
         payload={"model_output": {"structured": True, "action_items": [{"description": "x"}]}},
     )
 
-    summary = ProjectSummaryService(repository).summarize("Multilift")
+    summary = ProjectSummaryService(repository).summarize(org_id, "Multilift")
 
     project_id = summary.pop("project_id")
     assert isinstance(project_id, int)
@@ -41,57 +48,62 @@ def test_summarize_counts_risks_and_action_items_from_structured_payloads(reposi
     }
 
 
-def test_summarize_uses_latest_status_analysis(repository):
+def test_summarize_uses_latest_status_analysis(repository, org_id):
     repository.save_analysis(
         kind="status",
+        organization_id=org_id,
         project_name="Multilift",
         payload={"model_output": {"structured": True, "health_status": "red"}},
     )
     repository.save_analysis(
         kind="status",
+        organization_id=org_id,
         project_name="Multilift",
         payload={"model_output": {"structured": True, "health_status": "green"}},
     )
 
-    summary = ProjectSummaryService(repository).summarize("Multilift")
+    summary = ProjectSummaryService(repository).summarize(org_id, "Multilift")
 
     assert summary["latest_health_status"] == "green"
 
 
-def test_summarize_ignores_fallback_unstructured_payloads(repository):
+def test_summarize_ignores_fallback_unstructured_payloads(repository, org_id):
     repository.save_analysis(
         kind="risk",
+        organization_id=org_id,
         project_name="Multilift",
         payload={"model_output": {"structured": False, "raw_output": "not json"}},
     )
 
-    summary = ProjectSummaryService(repository).summarize("Multilift")
+    summary = ProjectSummaryService(repository).summarize(org_id, "Multilift")
 
     assert summary["open_risks"] == 0
     assert summary["total_analyses"] == 1
 
 
-def test_summarize_only_counts_analyses_for_the_requested_project(repository):
+def test_summarize_only_counts_analyses_for_the_requested_project(repository, org_id):
     repository.save_analysis(
         kind="risk",
+        organization_id=org_id,
         project_name="Multilift",
         payload={"model_output": {"structured": True, "risks": [{"description": "a"}]}},
     )
     repository.save_analysis(
         kind="risk",
+        organization_id=org_id,
         project_name="Medlog",
         payload={"model_output": {"structured": True, "risks": [{"description": "b"}]}},
     )
 
-    summary = ProjectSummaryService(repository).summarize("Multilift")
+    summary = ProjectSummaryService(repository).summarize(org_id, "Multilift")
 
     assert summary["total_analyses"] == 1
     assert summary["open_risks"] == 1
 
 
-def test_summarize_returns_zeros_for_project_with_no_analyses(repository):
+def test_summarize_returns_zeros_for_project_with_no_analyses(repository, org_id):
 
-    summary = ProjectSummaryService(repository).summarize("Unknown")
+    summary = ProjectSummaryService(repository).summarize(org_id, "Unknown")
 
     assert summary == {
         "project_name": "Unknown",
@@ -103,19 +115,36 @@ def test_summarize_returns_zeros_for_project_with_no_analyses(repository):
     }
 
 
-def test_summarize_portfolio_groups_by_project_and_sorts_by_name(repository):
+def test_summarize_never_counts_another_organizations_analyses(repository, org_id):
+    other_org_id = repository.enterprise.create_organization("Outra Organização")
     repository.save_analysis(
         kind="risk",
+        organization_id=other_org_id,
+        project_name="Multilift",
+        payload={"model_output": {"structured": True, "risks": [{"description": "a"}]}},
+    )
+
+    summary = ProjectSummaryService(repository).summarize(org_id, "Multilift")
+
+    assert summary["total_analyses"] == 0
+    assert summary["project_id"] is None
+
+
+def test_summarize_portfolio_groups_by_project_and_sorts_by_name(repository, org_id):
+    repository.save_analysis(
+        kind="risk",
+        organization_id=org_id,
         project_name="Multilift",
         payload={"model_output": {"structured": True, "risks": [{"description": "a"}]}},
     )
     repository.save_analysis(
         kind="meeting",
+        organization_id=org_id,
         project_name="Medlog",
         payload={"model_output": {"structured": True, "action_items": [{"description": "x"}]}},
     )
 
-    portfolio = ProjectSummaryService(repository).summarize_portfolio()
+    portfolio = ProjectSummaryService(repository).summarize_portfolio(org_id)
 
     assert [entry["project_name"] for entry in portfolio] == ["Medlog", "Multilift"]
     medlog, multilift = portfolio
@@ -125,24 +154,26 @@ def test_summarize_portfolio_groups_by_project_and_sorts_by_name(repository):
     assert multilift["pending_action_items"] == 0
 
 
-def test_summarize_portfolio_excludes_analyses_without_a_project_name(repository):
+def test_summarize_portfolio_excludes_analyses_without_a_project_name(repository, org_id):
     repository.save_analysis(
         kind="risk",
+        organization_id=org_id,
         project_name=None,
         payload={"model_output": {"structured": True, "risks": [{"description": "a"}]}},
     )
     repository.save_analysis(
         kind="risk",
+        organization_id=org_id,
         project_name="Multilift",
         payload={"model_output": {"structured": True, "risks": [{"description": "b"}]}},
     )
 
-    portfolio = ProjectSummaryService(repository).summarize_portfolio()
+    portfolio = ProjectSummaryService(repository).summarize_portfolio(org_id)
 
     assert [entry["project_name"] for entry in portfolio] == ["Multilift"]
 
 
-def test_summarize_portfolio_groups_whitespace_variant_names_under_one_project(repository):
+def test_summarize_portfolio_groups_whitespace_variant_names_under_one_project(repository, org_id):
     # get_or_create_project_for_name() strips whitespace before resolving the
     # Project, so "Multilift" and "Multilift " (trailing space) already share
     # the same project_id at write time. summarize_portfolio() must group by
@@ -150,16 +181,18 @@ def test_summarize_portfolio_groups_whitespace_variant_names_under_one_project(r
     # instead of 1 (TD-008 Fase 3 bug, fixed by Epic W3-1 Fase 3a).
     repository.save_analysis(
         kind="risk",
+        organization_id=org_id,
         project_name="Multilift",
         payload={"model_output": {"structured": True, "risks": [{"description": "a"}]}},
     )
     repository.save_analysis(
         kind="meeting",
+        organization_id=org_id,
         project_name="Multilift ",
         payload={"model_output": {"structured": True, "action_items": [{"description": "x"}]}},
     )
 
-    portfolio = ProjectSummaryService(repository).summarize_portfolio()
+    portfolio = ProjectSummaryService(repository).summarize_portfolio(org_id)
 
     assert len(portfolio) == 1
     entry = portfolio[0]
@@ -169,14 +202,35 @@ def test_summarize_portfolio_groups_whitespace_variant_names_under_one_project(r
     assert entry["project_id"] is not None
 
 
-def test_summarize_portfolio_returns_empty_list_when_no_analyses_exist(repository):
+def test_summarize_portfolio_returns_empty_list_when_no_analyses_exist(repository, org_id):
 
-    assert ProjectSummaryService(repository).summarize_portfolio() == []
+    assert ProjectSummaryService(repository).summarize_portfolio(org_id) == []
 
 
-def test_list_action_items_flattens_items_from_meeting_analyses(repository):
+def test_summarize_portfolio_never_includes_another_organizations_analyses(repository, org_id):
+    other_org_id = repository.enterprise.create_organization("Outra Organização")
+    repository.save_analysis(
+        kind="risk",
+        organization_id=org_id,
+        project_name="Multilift",
+        payload={"model_output": {"structured": True, "risks": [{"description": "a"}]}},
+    )
+    repository.save_analysis(
+        kind="risk",
+        organization_id=other_org_id,
+        project_name="Medlog",
+        payload={"model_output": {"structured": True, "risks": [{"description": "b"}]}},
+    )
+
+    portfolio = ProjectSummaryService(repository).summarize_portfolio(org_id)
+
+    assert [entry["project_name"] for entry in portfolio] == ["Multilift"]
+
+
+def test_list_action_items_flattens_items_from_meeting_analyses(repository, org_id):
     analysis_id = repository.save_analysis(
         kind="meeting",
+        organization_id=org_id,
         project_name="Multilift",
         payload={
             "model_output": {
@@ -189,7 +243,7 @@ def test_list_action_items_flattens_items_from_meeting_analyses(repository):
         },
     )
 
-    items = ProjectSummaryService(repository).list_action_items("Multilift")
+    items = ProjectSummaryService(repository).list_action_items(org_id, "Multilift")
 
     assert len(items) == 2
     first, second = items
@@ -204,58 +258,65 @@ def test_list_action_items_flattens_items_from_meeting_analyses(repository):
     assert second["due_date"] is None
 
 
-def test_list_action_items_without_project_name_spans_the_portfolio(repository):
+def test_list_action_items_without_project_name_spans_the_portfolio(repository, org_id):
     repository.save_analysis(
         kind="meeting",
+        organization_id=org_id,
         project_name="Multilift",
         payload={"model_output": {"structured": True, "action_items": [{"description": "a"}]}},
     )
     repository.save_analysis(
         kind="meeting",
+        organization_id=org_id,
         project_name="Medlog",
         payload={"model_output": {"structured": True, "action_items": [{"description": "b"}]}},
     )
 
-    items = ProjectSummaryService(repository).list_action_items()
+    items = ProjectSummaryService(repository).list_action_items(org_id)
 
     assert sorted(item["project_name"] for item in items) == ["Medlog", "Multilift"]
 
 
-def test_list_action_items_scopes_to_the_requested_project(repository):
+def test_list_action_items_scopes_to_the_requested_project(repository, org_id):
     repository.save_analysis(
         kind="meeting",
+        organization_id=org_id,
         project_name="Multilift",
         payload={"model_output": {"structured": True, "action_items": [{"description": "a"}]}},
     )
     repository.save_analysis(
         kind="meeting",
+        organization_id=org_id,
         project_name="Medlog",
         payload={"model_output": {"structured": True, "action_items": [{"description": "b"}]}},
     )
 
-    items = ProjectSummaryService(repository).list_action_items("Medlog")
+    items = ProjectSummaryService(repository).list_action_items(org_id, "Medlog")
 
     assert [item["description"] for item in items] == ["b"]
 
 
-def test_list_action_items_ignores_non_meeting_and_unstructured_analyses(repository):
+def test_list_action_items_ignores_non_meeting_and_unstructured_analyses(repository, org_id):
     repository.save_analysis(
         kind="risk",
+        organization_id=org_id,
         project_name="Multilift",
         payload={"model_output": {"structured": True, "risks": [{"description": "r"}]}},
     )
     repository.save_analysis(
         kind="meeting",
+        organization_id=org_id,
         project_name="Multilift",
         payload={"model_output": {"structured": False, "raw_output": "not json"}},
     )
 
-    assert ProjectSummaryService(repository).list_action_items("Multilift") == []
+    assert ProjectSummaryService(repository).list_action_items(org_id, "Multilift") == []
 
 
-def test_list_action_items_excludes_a_malformed_item_without_dropping_the_rest(repository):
+def test_list_action_items_excludes_a_malformed_item_without_dropping_the_rest(repository, org_id):
     repository.save_analysis(
         kind="meeting",
+        organization_id=org_id,
         project_name="Multilift",
         payload={
             "model_output": {
@@ -269,7 +330,7 @@ def test_list_action_items_excludes_a_malformed_item_without_dropping_the_rest(r
         },
     )
 
-    items = ProjectSummaryService(repository).list_action_items("Multilift")
+    items = ProjectSummaryService(repository).list_action_items(org_id, "Multilift")
 
     # Only the item with a real description survives; its non-string
     # owner/due_date degrade to None instead of breaking the rollup.
@@ -279,9 +340,10 @@ def test_list_action_items_excludes_a_malformed_item_without_dropping_the_rest(r
     assert items[0]["due_date"] is None
 
 
-def test_list_action_items_orders_newest_meeting_first_preserving_item_order(repository):
+def test_list_action_items_orders_newest_meeting_first_preserving_item_order(repository, org_id):
     first_id = repository.save_analysis(
         kind="meeting",
+        organization_id=org_id,
         project_name="Multilift",
         payload={
             "model_output": {
@@ -292,21 +354,23 @@ def test_list_action_items_orders_newest_meeting_first_preserving_item_order(rep
     )
     second_id = repository.save_analysis(
         kind="meeting",
+        organization_id=org_id,
         project_name="Multilift",
         payload={"model_output": {"structured": True, "action_items": [{"description": "recente"}]}},
     )
     assert second_id > first_id
 
-    items = ProjectSummaryService(repository).list_action_items("Multilift")
+    items = ProjectSummaryService(repository).list_action_items(org_id, "Multilift")
 
     # Repository streams analyses newest-first; within one meeting, the
     # items keep the order the agent extracted them in.
     assert [item["description"] for item in items] == ["recente", "antiga-1", "antiga-2"]
 
 
-def test_list_latest_risks_returns_risks_from_the_most_recent_analysis_only(repository):
+def test_list_latest_risks_returns_risks_from_the_most_recent_analysis_only(repository, org_id):
     repository.save_analysis(
         kind="risk",
+        organization_id=org_id,
         project_name="Multilift",
         payload={
             "model_output": {
@@ -318,6 +382,7 @@ def test_list_latest_risks_returns_risks_from_the_most_recent_analysis_only(repo
     )
     second_id = repository.save_analysis(
         kind="risk",
+        organization_id=org_id,
         project_name="Multilift",
         payload={
             "model_output": {
@@ -330,7 +395,7 @@ def test_list_latest_risks_returns_risks_from_the_most_recent_analysis_only(repo
         },
     )
 
-    items = ProjectSummaryService(repository).list_latest_risks("Multilift")
+    items = ProjectSummaryService(repository).list_latest_risks(org_id, "Multilift")
 
     assert len(items) == 1
     assert items[0]["description"] == "risco recente"
@@ -341,9 +406,10 @@ def test_list_latest_risks_returns_risks_from_the_most_recent_analysis_only(repo
     assert items[0]["source_analysis_id"] == second_id
 
 
-def test_list_latest_risks_falls_back_to_an_older_structured_analysis(repository):
+def test_list_latest_risks_falls_back_to_an_older_structured_analysis(repository, org_id):
     first_id = repository.save_analysis(
         kind="risk",
+        organization_id=org_id,
         project_name="Multilift",
         payload={
             "model_output": {
@@ -355,20 +421,22 @@ def test_list_latest_risks_falls_back_to_an_older_structured_analysis(repository
     )
     repository.save_analysis(
         kind="risk",
+        organization_id=org_id,
         project_name="Multilift",
         payload={"model_output": {"structured": False, "raw_output": "not json"}},
     )
 
-    items = ProjectSummaryService(repository).list_latest_risks("Multilift")
+    items = ProjectSummaryService(repository).list_latest_risks(org_id, "Multilift")
 
     assert len(items) == 1
     assert items[0]["description"] == "risco válido"
     assert items[0]["source_analysis_id"] == first_id
 
 
-def test_list_latest_risks_without_project_name_spans_the_portfolio(repository):
+def test_list_latest_risks_without_project_name_spans_the_portfolio(repository, org_id):
     repository.save_analysis(
         kind="risk",
+        organization_id=org_id,
         project_name="Multilift",
         payload={
             "model_output": {
@@ -380,6 +448,7 @@ def test_list_latest_risks_without_project_name_spans_the_portfolio(repository):
     )
     repository.save_analysis(
         kind="risk",
+        organization_id=org_id,
         project_name="Medlog",
         payload={
             "model_output": {
@@ -390,29 +459,32 @@ def test_list_latest_risks_without_project_name_spans_the_portfolio(repository):
         },
     )
 
-    items = ProjectSummaryService(repository).list_latest_risks()
+    items = ProjectSummaryService(repository).list_latest_risks(org_id)
 
     assert sorted(item["project_name"] for item in items) == ["Medlog", "Multilift"]
 
 
-def test_list_latest_risks_ignores_non_risk_and_unstructured_analyses(repository):
+def test_list_latest_risks_ignores_non_risk_and_unstructured_analyses(repository, org_id):
     repository.save_analysis(
         kind="meeting",
+        organization_id=org_id,
         project_name="Multilift",
         payload={"model_output": {"structured": True, "action_items": [{"description": "x"}]}},
     )
     repository.save_analysis(
         kind="risk",
+        organization_id=org_id,
         project_name="Multilift",
         payload={"model_output": {"structured": False, "raw_output": "not json"}},
     )
 
-    assert ProjectSummaryService(repository).list_latest_risks("Multilift") == []
+    assert ProjectSummaryService(repository).list_latest_risks(org_id, "Multilift") == []
 
 
-def test_list_latest_risks_excludes_a_malformed_risk_without_dropping_the_rest(repository):
+def test_list_latest_risks_excludes_a_malformed_risk_without_dropping_the_rest(repository, org_id):
     repository.save_analysis(
         kind="risk",
+        organization_id=org_id,
         project_name="Multilift",
         payload={
             "model_output": {
@@ -427,11 +499,11 @@ def test_list_latest_risks_excludes_a_malformed_risk_without_dropping_the_rest(r
         },
     )
 
-    items = ProjectSummaryService(repository).list_latest_risks("Multilift")
+    items = ProjectSummaryService(repository).list_latest_risks(org_id, "Multilift")
 
     assert len(items) == 1
     assert items[0]["description"] == "risco válido"
 
 
-def test_list_latest_risks_returns_empty_list_when_there_are_no_risk_analyses(repository):
-    assert ProjectSummaryService(repository).list_latest_risks("Multilift") == []
+def test_list_latest_risks_returns_empty_list_when_there_are_no_risk_analyses(repository, org_id):
+    assert ProjectSummaryService(repository).list_latest_risks(org_id, "Multilift") == []

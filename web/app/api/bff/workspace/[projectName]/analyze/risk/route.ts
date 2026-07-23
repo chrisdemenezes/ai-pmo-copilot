@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { institutionalHeaders, readSessionIdentity } from "@/lib/bff/domain-proxy";
 import type { AnalyzeRiskReviewResponse, WorkspaceErrorBody } from "@/lib/workspace/types";
 
 // Same convention as .../analyze/status/route.ts (TIP-005): 60s, not the 8s
@@ -25,6 +26,13 @@ export async function POST(
       { error: "bff_not_configured", detail: "BACKEND_URL ou API_KEY não configurados." },
       503,
     );
+  }
+
+  // Security Hardening Gate (C-1/C-2): the backend now requires RBAC +
+  // organization scope on this route.
+  const identity = readSessionIdentity(request);
+  if (identity === null) {
+    return errorResponse({ error: "unauthorized", detail: "Sessão inválida ou expirada." }, 401);
   }
 
   const { projectName: rawProjectName } = await params;
@@ -64,7 +72,11 @@ export async function POST(
   try {
     const backendResponse = await fetch(`${backendUrl}/api/risks/analyze`, {
       method: "POST",
-      headers: { "X-API-Key": apiKey, "Content-Type": "application/json" },
+      headers: {
+        "X-API-Key": apiKey,
+        "Content-Type": "application/json",
+        ...institutionalHeaders(identity),
+      },
       body: JSON.stringify({ project_context: projectContext, project_name: projectName }),
       signal: controller.signal,
       cache: "no-store",

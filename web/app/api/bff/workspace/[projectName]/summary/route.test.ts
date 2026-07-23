@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { authenticatedRequest } from "@/lib/bff/test-support";
+
 import { GET } from "./route";
 
 const SAMPLE = {
@@ -21,6 +23,7 @@ describe("GET /api/bff/workspace/[projectName]/summary", () => {
   beforeEach(() => {
     vi.stubEnv("BACKEND_URL", "http://backend.test");
     vi.stubEnv("API_KEY", "secret-key");
+    vi.stubEnv("SESSION_SECRET", "test-secret");
   });
 
   afterEach(() => {
@@ -30,10 +33,19 @@ describe("GET /api/bff/workspace/[projectName]/summary", () => {
 
   it("returns 503 without leaking detail when BACKEND_URL or API_KEY are unset", async () => {
     vi.stubEnv("API_KEY", "");
-    const response = await GET(new Request("http://localhost/x"), paramsFor("Aurora"));
+    const response = await GET(authenticatedRequest("http://localhost/x"), paramsFor("Aurora"));
     expect(response.status).toBe(503);
     const body = await response.json();
     expect(JSON.stringify(body)).not.toContain("secret-key");
+  });
+
+  it("returns 401 when there is no session cookie", async () => {
+    const response = await GET(new Request("http://localhost/x"), paramsFor("Aurora"));
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({
+      error: "unauthorized",
+      detail: "Sessão inválida ou expirada.",
+    });
   });
 
   it("proxies a successful backend response verbatim", async () => {
@@ -42,7 +54,7 @@ describe("GET /api/bff/workspace/[projectName]/summary", () => {
       vi.fn().mockResolvedValue(new Response(JSON.stringify(SAMPLE), { status: 200 })),
     );
 
-    const response = await GET(new Request("http://localhost/x"), paramsFor("Aurora"));
+    const response = await GET(authenticatedRequest("http://localhost/x"), paramsFor("Aurora"));
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual(SAMPLE);
   });
@@ -58,7 +70,7 @@ describe("GET /api/bff/workspace/[projectName]/summary", () => {
       .mockResolvedValue(new Response(JSON.stringify(SAMPLE), { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
 
-    await GET(new Request("http://localhost/x"), paramsFor("Implantacao SAP S/4HANA"));
+    await GET(authenticatedRequest("http://localhost/x"), paramsFor("Implantacao SAP S/4HANA"));
 
     const [calledUrl] = fetchMock.mock.calls[0];
     const url = new URL(String(calledUrl));
@@ -76,7 +88,7 @@ describe("GET /api/bff/workspace/[projectName]/summary", () => {
       .mockResolvedValue(new Response(JSON.stringify({ ...SAMPLE, project_name: name }), { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
 
-    await GET(new Request("http://localhost/x"), paramsFor(name));
+    await GET(authenticatedRequest("http://localhost/x"), paramsFor(name));
 
     const [calledUrl] = fetchMock.mock.calls[0];
     expect(new URL(String(calledUrl)).searchParams.get("project_name")).toBe(name);
@@ -88,7 +100,7 @@ describe("GET /api/bff/workspace/[projectName]/summary", () => {
       .mockResolvedValue(new Response(JSON.stringify(SAMPLE), { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
 
-    await GET(new Request("http://localhost/x"), {
+    await GET(authenticatedRequest("http://localhost/x"), {
       params: Promise.resolve({ projectName: "Implantacao%20SAP%20S%2F4HANA" }),
     });
 
@@ -98,10 +110,27 @@ describe("GET /api/bff/workspace/[projectName]/summary", () => {
     );
   });
 
+  it("sends institutional headers resolved from the session cookie", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify(SAMPLE), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await GET(
+      authenticatedRequest("http://localhost/x", {}, { userId: 7, organizationId: 3 }),
+      paramsFor("Aurora"),
+    );
+
+    const [, init] = fetchMock.mock.calls[0];
+    const headers = init.headers as Record<string, string>;
+    expect(headers["X-Stratech-User-Id"]).toBe("7");
+    expect(headers["X-Stratech-Organization-Id"]).toBe("3");
+  });
+
   it("returns 502 without leaking the key when the backend errors", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("boom", { status: 500 })));
 
-    const response = await GET(new Request("http://localhost/x"), paramsFor("Aurora"));
+    const response = await GET(authenticatedRequest("http://localhost/x"), paramsFor("Aurora"));
     expect(response.status).toBe(502);
     const body = await response.json();
     expect(JSON.stringify(body)).not.toContain("secret-key");

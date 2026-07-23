@@ -79,13 +79,18 @@ class TestRoles:
         roles = {r.name for r in migrated_repo.administration.list_roles()}
         assert roles == {"organization_admin", "pmo", "project_manager", "viewer"}
 
-    def test_list_permissions_for_role_matches_migration_0006(self, migrated_repo):
+    def test_list_permissions_for_role_matches_migration_0006_and_0010(self, migrated_repo):
         roles = {r.name: r.id for r in migrated_repo.administration.list_roles()}
         viewer_permissions = {
             p.name
             for p in migrated_repo.administration.list_permissions_for_role(roles["viewer"])
         }
-        assert viewer_permissions == {"portfolio.read", "program.read", "project_delivery.read"}
+        assert viewer_permissions == {
+            "portfolio.read",
+            "program.read",
+            "project_delivery.read",
+            "intelligence.read",
+        }
 
     def test_assign_role_is_idempotent(self, migrated_repo):
         org_id = migrated_repo.enterprise.create_organization("Org A")

@@ -27,7 +27,7 @@ from src.api.security import verify_api_key
 from src.database.repository import AnalysisRepository
 from src.services.domain_service import DomainService
 from src.services.identity.models import RequestContext
-from src.api.routes.intelligence import build_repository
+from src.api.dependencies import build_repository
 
 logger = logging.getLogger(__name__)
 

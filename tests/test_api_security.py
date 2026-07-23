@@ -53,12 +53,28 @@ def test_protected_route_returns_200_when_api_key_header_is_correct(monkeypatch)
         def list_analyses(self, **kwargs):
             return []
 
+    class AlwaysAllowChecker:
+        def has_permission(self, user_id, permission):
+            return True
+
     from src.api.routes import intelligence
+    from src.api import authorization as authorization_module
 
     app.dependency_overrides[intelligence.build_repository] = lambda: FakeRepository()
+    app.dependency_overrides[authorization_module.build_permission_checker] = (
+        lambda: AlwaysAllowChecker()
+    )
     client = TestClient(app)
 
-    response = client.get("/api/analyses", headers={"X-API-Key": "secret-key"})
+    response = client.get(
+        "/api/analyses",
+        headers={
+            "X-API-Key": "secret-key",
+            "X-Stratech-User-Id": "1",
+            "X-Stratech-Organization-Id": "1",
+            "X-Stratech-Session-Id": "session-1",
+        },
+    )
 
     assert response.status_code == 200
     assert response.json() == []

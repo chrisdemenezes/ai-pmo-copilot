@@ -20,13 +20,32 @@ function errorResponse(body: DashboardErrorBody, status: number) {
   return NextResponse.json(body, { status });
 }
 
-function readSessionIdentity(request: Request) {
+/**
+ * Exported for BFF routes that need custom behavior `forwardDomainRequest`
+ * doesn't support (per-route timeout, field renaming, status-code mapping
+ * -- the 3 analyze routes and the 4 Intelligence read routes, Security
+ * Hardening Gate) but still need the same session-cookie -> institutional
+ * headers resolution, never duplicated.
+ */
+export function readSessionIdentity(request: Request) {
   const token = request.headers
     .get("cookie")
     ?.split("; ")
     .find((entry) => entry.startsWith(`${SESSION_COOKIE_NAME}=`))
     ?.slice(SESSION_COOKIE_NAME.length + 1);
   return resolveSessionIdentity(token);
+}
+
+export function institutionalHeaders(identity: {
+  userId: number;
+  organizationId: number;
+  sessionId: string;
+}): Record<string, string> {
+  return {
+    "X-Stratech-User-Id": String(identity.userId),
+    "X-Stratech-Organization-Id": String(identity.organizationId),
+    "X-Stratech-Session-Id": identity.sessionId,
+  };
 }
 
 export async function forwardDomainRequest(
@@ -57,7 +76,12 @@ export async function forwardDomainRequest(
     // helper still serves every HTTP verb instead of a second one.
     const method = request.method;
     const hasBody = method !== "GET" && method !== "HEAD" && method !== "DELETE";
-    const backendResponse = await fetch(`${backendUrl}${backendPath}`, {
+    // Forward the caller's query string too (Security Hardening Gate --
+    // intelligence.py's read routes are all query-parameter driven:
+    // project_name/kind/created_from/created_to) -- a no-op for routes the
+    // frontend never calls with a query string.
+    const incomingSearch = new URL(request.url).search;
+    const backendResponse = await fetch(`${backendUrl}${backendPath}${incomingSearch}`, {
       method,
       headers: {
         "X-API-Key": apiKey,

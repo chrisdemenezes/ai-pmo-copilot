@@ -8,10 +8,7 @@ import pytest
 
 from src.database.enterprise_repository import CrossTenantViolationError
 from src.database.models import Project, UserProjectMembership
-from src.database.project_identity import (
-    DEFAULT_ORGANIZATION_NAME,
-    FALLBACK_PROJECT_NAME,
-)
+from src.database.project_identity import FALLBACK_PROJECT_NAME
 from src.database.repository import AnalysisRecord, AnalysisRepository
 from tests.db import temp_database_url
 
@@ -78,18 +75,23 @@ class TestCrossTenantSegregation:
 
 
 class TestDeterministicProjectResolution:
-    def test_save_analysis_links_a_real_project(self, repo):
-        record_id = repo.save_analysis("project_status", {}, "Projeto Novo")
+    @pytest.fixture()
+    def org(self, repo):
+        return repo.enterprise.create_organization("Organização Única")
+
+    def test_save_analysis_links_a_real_project(self, repo, org):
+        record_id = repo.save_analysis("project_status", {}, org, "Projeto Novo")
         with repo.SessionLocal() as session:
             record = session.get(AnalysisRecord, record_id)
             assert record.project_id is not None
+            assert record.organization_id == org
             project = session.get(Project, record.project_id)
             assert project.name == "Projeto Novo"
             assert project.legacy_project_name == "Projeto Novo"
 
-    def test_whitespace_variants_share_one_project(self, repo):
-        id1 = repo.save_analysis("project_status", {}, "Projeto Alfa")
-        id2 = repo.save_analysis("risk_review", {}, "  Projeto Alfa  ")
+    def test_whitespace_variants_share_one_project(self, repo, org):
+        id1 = repo.save_analysis("project_status", {}, org, "Projeto Alfa")
+        id2 = repo.save_analysis("risk_review", {}, org, "  Projeto Alfa  ")
         with repo.SessionLocal() as session:
             r1 = session.get(AnalysisRecord, id1)
             r2 = session.get(AnalysisRecord, id2)
@@ -97,18 +99,18 @@ class TestDeterministicProjectResolution:
             # Original free text preserved untouched per record.
             assert r2.project_name == "  Projeto Alfa  "
 
-    def test_capitalization_variants_stay_distinct(self, repo):
-        id1 = repo.save_analysis("project_status", {}, "Projeto Alfa")
-        id2 = repo.save_analysis("project_status", {}, "projeto alfa")
+    def test_capitalization_variants_stay_distinct(self, repo, org):
+        id1 = repo.save_analysis("project_status", {}, org, "Projeto Alfa")
+        id2 = repo.save_analysis("project_status", {}, org, "projeto alfa")
         with repo.SessionLocal() as session:
             r1 = session.get(AnalysisRecord, id1)
             r2 = session.get(AnalysisRecord, id2)
             assert r1.project_id != r2.project_id
 
-    def test_null_and_empty_use_the_fallback_project(self, repo):
-        id1 = repo.save_analysis("meeting_intelligence", {}, None)
-        id2 = repo.save_analysis("meeting_intelligence", {}, "")
-        id3 = repo.save_analysis("meeting_intelligence", {}, "   ")
+    def test_null_and_empty_use_the_fallback_project(self, repo, org):
+        id1 = repo.save_analysis("meeting_intelligence", {}, org, None)
+        id2 = repo.save_analysis("meeting_intelligence", {}, org, "")
+        id3 = repo.save_analysis("meeting_intelligence", {}, org, "   ")
         with repo.SessionLocal() as session:
             pids = {session.get(AnalysisRecord, i).project_id for i in (id1, id2, id3)}
             assert len(pids) == 1
@@ -116,10 +118,28 @@ class TestDeterministicProjectResolution:
             assert project.name == FALLBACK_PROJECT_NAME
             assert project.legacy_project_name is None
 
-    def test_projects_created_at_save_belong_to_default_org(self, repo):
-        repo.save_analysis("project_status", {}, "Projeto Alfa")
+    def test_projects_created_at_save_belong_to_the_given_organization(self, repo, org):
+        repo.save_analysis("project_status", {}, org, "Projeto Alfa")
         with repo.SessionLocal() as session:
             project = session.query(Project).filter(Project.name == "Projeto Alfa").one()
-            org = repo.enterprise.get_or_create_default_organization(session)
-            assert project.organization_id == org.id
-            assert org.name == DEFAULT_ORGANIZATION_NAME
+            assert project.organization_id == org
+
+    def test_two_organizations_with_the_same_project_name_get_distinct_projects(self, repo):
+        # Security Hardening Gate (C-2): get_or_create_project_for_name used
+        # to always resolve to one hardcoded "default organization"
+        # regardless of who called it -- confirms that regression can't
+        # come back: each organization gets its own Project namespace.
+        org_a = repo.enterprise.create_organization("Organização A")
+        org_b = repo.enterprise.create_organization("Organização B")
+        id_a = repo.save_analysis("project_status", {}, org_a, "Projeto Alfa")
+        id_b = repo.save_analysis("project_status", {}, org_b, "Projeto Alfa")
+        with repo.SessionLocal() as session:
+            record_a = session.get(AnalysisRecord, id_a)
+            record_b = session.get(AnalysisRecord, id_b)
+            assert record_a.project_id != record_b.project_id
+            assert record_a.organization_id == org_a
+            assert record_b.organization_id == org_b
+            project_a = session.get(Project, record_a.project_id)
+            project_b = session.get(Project, record_b.project_id)
+            assert project_a.organization_id == org_a
+            assert project_b.organization_id == org_b

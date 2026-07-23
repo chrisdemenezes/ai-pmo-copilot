@@ -10,16 +10,18 @@ class ProjectSummaryService:
     def __init__(self, repository: AnalysisRepository) -> None:
         self._repository = repository
 
-    def summarize(self, project_name: str) -> dict:
+    def summarize(self, organization_id: int, project_name: str) -> dict:
         # Relies on the repository's list_analyses ordering records newest-first.
-        records = self._repository.list_analyses(project_name=project_name, limit=None)
+        records = self._repository.list_analyses(
+            organization_id=organization_id, project_name=project_name, limit=None
+        )
         project_id = records[0].project_id if records else None
         return self._aggregate(project_name, project_id, records)
 
-    def summarize_portfolio(self) -> list[dict]:
+    def summarize_portfolio(self, organization_id: int) -> list[dict]:
         # One fetch of everything, grouped in memory, instead of one query per
         # project — MVP data volume doesn't justify N+1 queries here.
-        records = self._repository.list_analyses(limit=None)
+        records = self._repository.list_analyses(organization_id=organization_id, limit=None)
 
         # Grouped by project_id (not the raw project_name string): two
         # analyses saved under names that differ only by incidental
@@ -42,11 +44,14 @@ class ProjectSummaryService:
         logger.info("Summarized portfolio: %d projects", len(summaries))
         return summaries
 
-    def list_action_items(self, project_name: str | None = None) -> list[dict]:
+    def list_action_items(
+        self, organization_id: int, project_name: str | None = None
+    ) -> list[dict]:
         # Same call already used by summarize()/summarize_portfolio() -- zero
         # new query, zero new table (FS-007 §2.1). One fetch, flattened in
         # memory, never one query per meeting.
         records = self._repository.list_analyses(
+            organization_id=organization_id,
             project_name=project_name,
             kind="meeting",
             limit=None,
@@ -85,13 +90,16 @@ class ProjectSummaryService:
         )
         return items
 
-    def list_latest_risks(self, project_name: str | None = None) -> list[dict]:
+    def list_latest_risks(
+        self, organization_id: int, project_name: str | None = None
+    ) -> list[dict]:
         # Same call already used by list_action_items() -- zero new query.
         # Difference: keeps only the MOST RECENT risk analysis per project
         # (same principle as latest_health_status in _aggregate), not the
         # whole history -- the attention zone is always about the current
         # analysis, matching what the Riscos Brief already shows today.
         records = self._repository.list_analyses(
+            organization_id=organization_id,
             project_name=project_name,
             kind="risk",
             limit=None,

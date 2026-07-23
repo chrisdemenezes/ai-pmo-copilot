@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { institutionalHeaders, readSessionIdentity } from "@/lib/bff/domain-proxy";
 import type { AnalysisListItem, WorkspaceErrorBody } from "@/lib/workspace/types";
 
 const BACKEND_TIMEOUT_MS = 8_000;
@@ -27,6 +28,13 @@ export async function GET(
     );
   }
 
+  // Security Hardening Gate (C-1/C-2): the backend now requires RBAC +
+  // organization scope on this route.
+  const identity = readSessionIdentity(request);
+  if (identity === null) {
+    return errorResponse({ error: "unauthorized", detail: "Sessão inválida ou expirada." }, 401);
+  }
+
   // Next.js hands this route the raw (still URL-encoded) segment -- decode
   // once. URLSearchParams.set() below encodes it correctly for the outbound
   // query string; no manual encodeURIComponent is needed for this one.
@@ -48,7 +56,7 @@ export async function GET(
 
   try {
     const backendResponse = await fetch(backendUrlObj, {
-      headers: { "X-API-Key": apiKey },
+      headers: { "X-API-Key": apiKey, ...institutionalHeaders(identity) },
       signal: controller.signal,
       cache: "no-store",
     });
