@@ -40,7 +40,7 @@ class AnalysisRepository:
         self.SessionLocal = sessionmaker(bind=self.engine, autoflush=False, autocommit=False)
         self.enterprise = EnterpriseRepository(self.SessionLocal)
         self.domain = DomainRepository(self.SessionLocal)
-        self.administration = AdministrationRepository(self.SessionLocal)
+        self.administration = AdministrationRepository(self.SessionLocal, self.enterprise)
 
     def save_analysis(self, kind: str, payload: dict, project_name: str | None = None) -> int:
         with self.SessionLocal() as session:

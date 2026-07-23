@@ -21,8 +21,15 @@ fake list. "Configurações" stays out per the Blueprint's own deferral
 """
 import logging
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 
+from src.database.enterprise_repository import (
+    EmailConflictError,
+    EnterpriseRepository,
+    LastActiveAdminError,
+    SelfDeactivationError,
+)
 from src.database.models import (
     AuditLog,
     Organization,
@@ -32,13 +39,17 @@ from src.database.models import (
     User,
     UserRole,
 )
+from src.services.identity.email_normalization import normalize_email
 
 logger = logging.getLogger(__name__)
 
+ADMIN_ROLE_NAME = "organization_admin"
+
 
 class AdministrationRepository:
-    def __init__(self, session_factory: sessionmaker):
+    def __init__(self, session_factory: sessionmaker, enterprise: EnterpriseRepository):
         self._session_factory = session_factory
+        self._enterprise = enterprise
 
     # -- Organization ------------------------------------------------------
 
@@ -72,11 +83,239 @@ class AdministrationRepository:
             logger.info("Listed %d users organization_id=%s", len(users), organization_id)
             return users
 
+    def get_user(self, user_id: int, organization_id: int) -> User | None:
+        with self._session_factory() as session:
+            return (
+                session.query(User)
+                .filter(User.id == user_id, User.organization_id == organization_id)
+                .one_or_none()
+            )
+
+    def create_user(
+        self,
+        organization_id: int,
+        email: str,
+        display_name: str,
+        password_hash: str,
+        role_name: str,
+    ) -> User:
+        """Creates the user and assigns the initial role in one
+        transaction (Technical Design §3) -- if the role does not exist,
+        neither the user nor the role assignment is persisted (same
+        all-or-nothing guarantee `AuthService.bootstrap_administrator`
+        already relies on for `create_user_in_session` +
+        `assign_role_in_session`, reused here rather than duplicated).
+
+        Unlike `assign_role_in_session`'s bootstrap-only fallback (which
+        creates an unknown role on demand for cold-start installs), an
+        admin-supplied role name here must already exist in the catalog --
+        checked explicitly so a typo creates a 400, never a new role."""
+        normalized_email = normalize_email(email)
+        with self._session_factory() as session:
+            if session.query(Role).filter(Role.name == role_name).one_or_none() is None:
+                raise ValueError(f"Role {role_name!r} does not exist")
+            try:
+                user = self._enterprise.create_user_in_session(
+                    session,
+                    organization_id=organization_id,
+                    email=normalized_email,
+                    display_name=display_name,
+                    password_hash=password_hash,
+                )
+                self._enterprise.assign_role_in_session(session, user.id, role_name)
+                session.commit()
+            except IntegrityError as exc:
+                session.rollback()
+                raise EmailConflictError(
+                    f"Email {email!r} already exists in this organization"
+                ) from exc
+            session.refresh(user)
+            logger.info(
+                "Created user id=%s organization_id=%s role=%s",
+                user.id,
+                organization_id,
+                role_name,
+            )
+            return user
+
+    def update_user(
+        self,
+        user_id: int,
+        organization_id: int,
+        email: str | None = None,
+        display_name: str | None = None,
+    ) -> tuple[User, dict, dict] | None:
+        """Returns (user, before, after) so the caller can audit the exact
+        state transition. Only email/display_name are accepted -- there is
+        no password parameter here at all, so a plaintext credential can
+        never reach this method, let alone the audit log it feeds."""
+        with self._session_factory() as session:
+            user = (
+                session.query(User)
+                .filter(User.id == user_id, User.organization_id == organization_id)
+                .one_or_none()
+            )
+            if user is None:
+                return None
+            before = {"email": user.email, "display_name": user.display_name}
+            if email is not None:
+                user.email = normalize_email(email)
+            if display_name is not None:
+                user.display_name = display_name
+            try:
+                session.commit()
+            except IntegrityError as exc:
+                session.rollback()
+                raise EmailConflictError(
+                    f"Email {email!r} already exists in this organization"
+                ) from exc
+            session.refresh(user)
+            after = {"email": user.email, "display_name": user.display_name}
+            logger.info("Updated user id=%s organization_id=%s", user_id, organization_id)
+            return user, before, after
+
+    def _lock_active_admin_user_ids(self, session, organization_id: int) -> list[int]:
+        """Row-locks (`SELECT ... FOR UPDATE`) every active
+        `organization_admin` user in the organization, closing the race
+        between two concurrent requests that could otherwise both pass a
+        naive pre-check and leave the organization with zero admins."""
+        rows = (
+            session.query(User.id)
+            .join(UserRole, UserRole.user_id == User.id)
+            .join(Role, Role.id == UserRole.role_id)
+            .filter(
+                User.organization_id == organization_id,
+                User.is_active.is_(True),
+                Role.name == ADMIN_ROLE_NAME,
+            )
+            .with_for_update(of=User)
+            .all()
+        )
+        return [row[0] for row in rows]
+
+    def set_user_active(
+        self,
+        user_id: int,
+        organization_id: int,
+        is_active: bool,
+        actor_user_id: int,
+    ) -> User | None:
+        if not is_active and user_id == actor_user_id:
+            raise SelfDeactivationError("An administrator cannot deactivate their own account")
+        with self._session_factory() as session:
+            user = (
+                session.query(User)
+                .filter(User.id == user_id, User.organization_id == organization_id)
+                .one_or_none()
+            )
+            if user is None:
+                return None
+            before_active = user.is_active
+            if not is_active and before_active:
+                has_admin_role = (
+                    session.query(UserRole)
+                    .join(Role, Role.id == UserRole.role_id)
+                    .filter(UserRole.user_id == user_id, Role.name == ADMIN_ROLE_NAME)
+                    .first()
+                    is not None
+                )
+                if has_admin_role:
+                    locked_ids = self._lock_active_admin_user_ids(session, organization_id)
+                    if len(locked_ids) <= 1:
+                        raise LastActiveAdminError(
+                            "Cannot deactivate the last active administrator of this organization"
+                        )
+            user.is_active = is_active
+            session.commit()
+            session.refresh(user)
+            logger.info(
+                "Set is_active=%s for user_id=%s organization_id=%s",
+                is_active,
+                user_id,
+                organization_id,
+            )
+            return user
+
+    def remove_role(
+        self, user_id: int, organization_id: int, role_name: str, actor_user_id: int
+    ) -> User | None:
+        with self._session_factory() as session:
+            user = (
+                session.query(User)
+                .filter(User.id == user_id, User.organization_id == organization_id)
+                .one_or_none()
+            )
+            if user is None:
+                return None
+            role = session.query(Role).filter(Role.name == role_name).one_or_none()
+            if role is None:
+                raise ValueError(f"Role {role_name!r} does not exist")
+            if role_name == ADMIN_ROLE_NAME and user.is_active:
+                locked_ids = self._lock_active_admin_user_ids(session, organization_id)
+                if len(locked_ids) <= 1 and user_id in locked_ids:
+                    raise LastActiveAdminError(
+                        "Cannot remove the last active administrator's role"
+                    )
+            user_role = (
+                session.query(UserRole)
+                .filter(UserRole.user_id == user_id, UserRole.role_id == role.id)
+                .one_or_none()
+            )
+            if user_role is not None:
+                session.delete(user_role)
+                session.commit()
+                session.refresh(user)
+                logger.info(
+                    "Removed role=%s from user_id=%s organization_id=%s",
+                    role_name,
+                    user_id,
+                    organization_id,
+                )
+            return user
+
     # -- Roles / Permissions (global catalog, per Épico 1) ------------------
 
     def list_roles(self) -> list[Role]:
         with self._session_factory() as session:
             return session.query(Role).order_by(Role.name).all()
+
+    def list_role_names_by_user(self, organization_id: int) -> dict[int, list[str]]:
+        """Bulk (whole org, one query) role-name index -- lets the
+        Frontend's user list render/filter by role without an N+1 request
+        per row, and without changing `UserResponse`'s shape."""
+        with self._session_factory() as session:
+            rows = (
+                session.query(User.id, Role.name)
+                .join(UserRole, UserRole.user_id == User.id)
+                .join(Role, Role.id == UserRole.role_id)
+                .filter(User.organization_id == organization_id)
+                .order_by(User.id, Role.name)
+                .all()
+            )
+            result: dict[int, list[str]] = {}
+            for user_id, role_name in rows:
+                result.setdefault(user_id, []).append(role_name)
+            return result
+
+    def list_roles_for_user(self, user_id: int, organization_id: int) -> list[Role] | None:
+        """Org-scoped (same not-found-not-yours discipline as every other
+        per-user lookup here) -- the Frontend needs this to render which
+        roles a user already has, so it can offer "assign" vs. "remove"."""
+        with self._session_factory() as session:
+            user = (
+                session.query(User)
+                .filter(User.id == user_id, User.organization_id == organization_id)
+                .one_or_none()
+            )
+            if user is None:
+                return None
+            return (
+                session.query(Role)
+                .join(UserRole, UserRole.role_id == Role.id)
+                .filter(UserRole.user_id == user_id)
+                .order_by(Role.name)
+                .all()
+            )
 
     def list_permissions_for_role(self, role_id: int) -> list[Permission]:
         with self._session_factory() as session:

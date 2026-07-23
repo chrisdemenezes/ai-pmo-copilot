@@ -132,3 +132,23 @@ def test_user_with_no_role_has_no_permissions(migrated_session_factory):
 def test_unknown_user_id_has_no_permissions(migrated_session_factory):
     checker = SqlPermissionChecker(migrated_session_factory)
     assert checker.has_permission(999999, "portfolio.read") is False
+
+
+def test_inactive_user_has_no_permissions_even_with_organization_admin_role(
+    migrated_session_factory,
+):
+    """User Management (Wave 2): an inactive user must be denied every
+    permission, on every route -- enforced once, here, not per-route."""
+    from sqlalchemy import text
+
+    checker = SqlPermissionChecker(migrated_session_factory)
+    admin_id = _create_user_with_role(migrated_session_factory, "organization_admin")
+
+    with migrated_session_factory() as session:
+        session.execute(
+            text("UPDATE users SET is_active = false WHERE id = :id"), {"id": admin_id}
+        )
+        session.commit()
+
+    assert checker.has_permission(admin_id, "portfolio.read") is False
+    assert checker.has_permission(admin_id, "administration.write") is False

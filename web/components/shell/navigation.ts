@@ -1,4 +1,4 @@
-import { ClipboardList, Folder, Gavel, LayoutDashboard, Lightbulb, ListOrdered, Network, Radar, Rocket } from "lucide-react";
+import { ClipboardList, Folder, Gavel, LayoutDashboard, Lightbulb, ListOrdered, Network, Radar, Rocket, Users } from "lucide-react";
 
 import type { NavItem } from "./types";
 
@@ -33,6 +33,10 @@ export const NAV_ITEMS: NavItem[] = [
   // consultada esporadicamente (Architecture Review §1, pergunta 4),
   // diferente do ritual diário das Capabilities anteriores.
   { label: "Aprendizados", href: "/aprendizados", icon: Lightbulb },
+  // Enterprise Administration -- User Management Capability (Wave 2):
+  // primeira tela administrativa real (rota, dado, estados e testes),
+  // mesma regra de entrada da navegação usada por toda Capability.
+  { label: "Administração", href: "/administracao/usuarios", icon: Users },
   // Mission Control (Sprint 1, Diretriz Complementar) -- painel do Founder.
   // Acesso hoje é apenas "autenticado" (proxy.ts), não "Founder" de fato --
   // RBAC funcional (Épico 3) ainda não existe. Limitação documentada, não

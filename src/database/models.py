@@ -14,13 +14,16 @@ from datetime import datetime, timezone
 
 from sqlalchemy import (
     JSON,
+    Boolean,
     Column,
     Date,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     String,
     UniqueConstraint,
+    text,
 )
 
 from src.database.base import Base
@@ -45,7 +48,22 @@ class Organization(Base):
 
 class User(Base):
     __tablename__ = "users"
-    __table_args__ = (UniqueConstraint("organization_id", "email", name="uq_users_org_email"),)
+    # User Management (Wave 2, migration 0009): case-insensitive uniqueness
+    # enforced at the database, not just at the application layer -- a
+    # functional unique index on lower(email) closes the concurrent-insert
+    # race a plain "check then insert" would leave open. Replaces the
+    # original case-sensitive uq_users_org_email (migration 0002); callers
+    # normalize email to lowercase before writing (see
+    # src/services/identity/email_normalization.py), so this index and the
+    # stored values agree by construction.
+    __table_args__ = (
+        Index(
+            "uq_users_org_email_lower",
+            "organization_id",
+            text("lower(email)"),
+            unique=True,
+        ),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     organization_id = Column(
@@ -57,6 +75,11 @@ class User(Base):
     # "standard" | "demo" -- distinguishes the Demo Mode user from real
     # accounts without a second boolean column (Epico 2, migration 0003).
     identity_type = Column(String(20), nullable=False, default="standard")
+    # User Management (Wave 2, migration 0009): soft state, never a hard
+    # delete -- consistent with every other Enterprise entity. An inactive
+    # user cannot authenticate (AuthService.authenticate) nor pass any
+    # permission check (SqlPermissionChecker.has_permission).
+    is_active = Column(Boolean, nullable=False, default=True, server_default=text("true"))
     created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
 
 

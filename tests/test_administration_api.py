@@ -252,6 +252,286 @@ class TestRoles:
         assert response.status_code == 403
 
 
+class TestUserManagementAPI:
+    """User Management Capability -- create/get/edit/activate-deactivate/
+    remove role, exercised end to end through the real API + RBAC +
+    audit log, against the real migration 0006/0009 schema."""
+
+    def test_organization_admin_creates_a_user(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        admin_id = _actor(repo, org_id)
+
+        response = test_client.post(
+            "/api/admin/users",
+            headers=_headers(org_id, admin_id),
+            json={
+                "email": "New@Example.com",
+                "display_name": "New User",
+                "password": "a-strong-password",
+                "role_name": "viewer",
+            },
+        )
+
+        assert response.status_code == 201
+        body = response.json()
+        assert body["email"] == "new@example.com"
+        assert body["is_active"] is True
+        assert "password" not in body
+
+        audit = repo.administration.list_audit_log(org_id)
+        created_entries = [e for e in audit if e.action == "user.created"]
+        assert len(created_entries) == 1
+        assert "password" not in str(created_entries[0].details).lower().replace(
+            "passwordless", ""
+        )
+
+    def test_create_user_rejects_duplicate_email_case_insensitively(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        admin_id = _actor(repo, org_id)
+        repo.enterprise.create_user(org_id, "dup@example.com", "Existing")
+
+        response = test_client.post(
+            "/api/admin/users",
+            headers=_headers(org_id, admin_id),
+            json={
+                "email": "DUP@Example.com",
+                "display_name": "Duplicate",
+                "password": "a-strong-password",
+                "role_name": "viewer",
+            },
+        )
+
+        assert response.status_code == 409
+
+    def test_viewer_cannot_create_users(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        viewer_id = _actor(repo, org_id, "viewer")
+
+        response = test_client.post(
+            "/api/admin/users",
+            headers=_headers(org_id, viewer_id),
+            json={
+                "email": "new@example.com",
+                "display_name": "New",
+                "password": "a-strong-password",
+                "role_name": "viewer",
+            },
+        )
+
+        assert response.status_code == 403
+
+    def test_get_user_scoped_to_organization(self, client):
+        test_client, repo = client
+        org_a = repo.enterprise.create_organization("Org A")
+        org_b = repo.enterprise.create_organization("Org B")
+        admin_a = _actor(repo, org_a)
+        user_b = repo.enterprise.create_user(org_b, "b@example.com", "User B")
+
+        own_org_response = test_client.get(
+            "/api/admin/users/" + str(admin_a), headers=_headers(org_a, admin_a)
+        )
+        assert own_org_response.status_code == 200
+
+        cross_tenant_response = test_client.get(
+            f"/api/admin/users/{user_b}", headers=_headers(org_a, admin_a)
+        )
+        assert cross_tenant_response.status_code == 404
+
+    def test_update_user_display_name_and_email(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        admin_id = _actor(repo, org_id)
+        target = repo.enterprise.create_user(org_id, "old@example.com", "Old Name")
+
+        response = test_client.patch(
+            f"/api/admin/users/{target}",
+            headers=_headers(org_id, admin_id),
+            json={"email": "New@Example.com", "display_name": "New Name"},
+        )
+
+        assert response.status_code == 200
+        assert response.json()["email"] == "new@example.com"
+        assert response.json()["display_name"] == "New Name"
+
+        audit = repo.administration.list_audit_log(org_id)
+        updated = [e for e in audit if e.action == "user.updated"]
+        assert len(updated) == 1
+        assert updated[0].details["before"]["email"] == "old@example.com"
+        assert updated[0].details["after"]["email"] == "new@example.com"
+
+    def test_update_user_email_conflict_returns_409(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        admin_id = _actor(repo, org_id)
+        repo.enterprise.create_user(org_id, "taken@example.com", "Taken")
+        target = repo.enterprise.create_user(org_id, "target@example.com", "Target")
+
+        response = test_client.patch(
+            f"/api/admin/users/{target}",
+            headers=_headers(org_id, admin_id),
+            json={"email": "Taken@Example.com"},
+        )
+
+        assert response.status_code == 409
+
+    def test_update_unknown_user_returns_404(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        admin_id = _actor(repo, org_id)
+
+        response = test_client.patch(
+            "/api/admin/users/999999",
+            headers=_headers(org_id, admin_id),
+            json={"display_name": "X"},
+        )
+
+        assert response.status_code == 404
+
+    def test_deactivate_and_reactivate_a_user(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        admin_id = _actor(repo, org_id)
+        target = repo.enterprise.create_user(org_id, "target@example.com", "Target")
+
+        deactivate_response = test_client.patch(
+            f"/api/admin/users/{target}/status",
+            headers=_headers(org_id, admin_id),
+            json={"is_active": False},
+        )
+        assert deactivate_response.status_code == 200
+        assert deactivate_response.json()["is_active"] is False
+
+        reactivate_response = test_client.patch(
+            f"/api/admin/users/{target}/status",
+            headers=_headers(org_id, admin_id),
+            json={"is_active": True},
+        )
+        assert reactivate_response.status_code == 200
+        assert reactivate_response.json()["is_active"] is True
+
+        audit = repo.administration.list_audit_log(org_id)
+        actions = [e.action for e in audit]
+        assert "user.deactivated" in actions
+        assert "user.activated" in actions
+
+    def test_admin_cannot_deactivate_self_via_api(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        admin_id = _actor(repo, org_id)
+        _actor(repo, org_id, "pmo")  # irrelevant second user, not another admin
+
+        response = test_client.patch(
+            f"/api/admin/users/{admin_id}/status",
+            headers=_headers(org_id, admin_id),
+            json={"is_active": False},
+        )
+
+        assert response.status_code == 400
+
+    def test_two_admins_one_can_deactivate_the_other(self, client):
+        """Only `organization_admin` holds `administration.write` (migration
+        0007), so any actor able to reach this route is themselves an
+        active admin -- the last-admin guard can only ever be tripped by a
+        sole admin acting on their own account, never by a distinct actor
+        deactivating someone else (that always leaves >= 1 admin: the
+        actor). Covered here for deactivation; role removal's equivalent
+        self-service case is covered below since it has no separate
+        self-protection rule to short-circuit it first."""
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        admin_a = _actor(repo, org_id, "organization_admin")
+        with repo.SessionLocal() as session:
+            other_admin = repo.enterprise.create_user_in_session(
+                session,
+                organization_id=org_id,
+                email="admin-b@example.com",
+                display_name="Admin B",
+                password_hash="hash",
+            )
+            repo.enterprise.assign_role_in_session(session, other_admin.id, "organization_admin")
+            session.commit()
+            admin_b_id = other_admin.id
+
+        response = test_client.patch(
+            f"/api/admin/users/{admin_b_id}/status",
+            headers=_headers(org_id, admin_a),
+            json={"is_active": False},
+        )
+
+        assert response.status_code == 200
+        assert response.json()["is_active"] is False
+
+    def test_inactive_user_is_denied_every_protected_route(self, client):
+        """RBAC (Wave 2, Sprint 3) + is_active (User Management): an
+        inactive user must be blocked platform-wide, not just at login."""
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        admin_id = _actor(repo, org_id)
+        target = repo.enterprise.create_user(org_id, "target@example.com", "Target")
+        with repo.SessionLocal() as session:
+            repo.enterprise.assign_role_in_session(session, target, "organization_admin")
+            session.commit()
+
+        test_client.patch(
+            f"/api/admin/users/{target}/status",
+            headers=_headers(org_id, admin_id),
+            json={"is_active": False},
+        )
+
+        response = test_client.get("/api/admin/users", headers=_headers(org_id, target))
+
+        assert response.status_code == 403
+
+    def test_remove_role(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        admin_id = _actor(repo, org_id)
+        target = repo.enterprise.create_user(org_id, "target@example.com", "Target")
+        with repo.SessionLocal() as session:
+            repo.enterprise.assign_role_in_session(session, target, "viewer")
+            session.commit()
+
+        response = test_client.delete(
+            f"/api/admin/users/{target}/roles/viewer", headers=_headers(org_id, admin_id)
+        )
+
+        assert response.status_code == 200
+        audit = repo.administration.list_audit_log(org_id)
+        assert any(e.action == "role.removed" for e in audit)
+
+    def test_sole_admin_cannot_remove_their_own_admin_role(self, client):
+        """Role removal has no separate self-protection rule (unlike
+        deactivation) -- this is the one API-reachable path that actually
+        exercises the last-active-admin guard end to end, since the sole
+        admin is both the actor and the target."""
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        sole_admin = _actor(repo, org_id, "organization_admin")
+
+        response = test_client.delete(
+            f"/api/admin/users/{sole_admin}/roles/organization_admin",
+            headers=_headers(org_id, sole_admin),
+        )
+
+        assert response.status_code == 409
+
+    def test_remove_unknown_role_returns_400(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        admin_id = _actor(repo, org_id)
+        target = repo.enterprise.create_user(org_id, "target@example.com", "Target")
+
+        response = test_client.delete(
+            f"/api/admin/users/{target}/roles/does_not_exist",
+            headers=_headers(org_id, admin_id),
+        )
+
+        assert response.status_code == 400
+
+
 class TestAuditLog:
     def test_domain_mutations_are_recorded_and_visible_via_the_api(self, client):
         """End-to-end: creating a Portfolio through the Enterprise Domain

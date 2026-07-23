@@ -57,6 +57,34 @@ class TestAuthenticate:
             is None
         )
 
+    def test_inactive_user_cannot_authenticate(self, repo, auth_service):
+        """User Management (Wave 2): an inactivated user must not log in,
+        even with the correct password -- same uniform-failure treatment
+        as every other authentication failure (EO-015)."""
+        auth_service.bootstrap_administrator("admin@example.com", "correct-password")
+        with repo.SessionLocal() as session:
+            user = session.query(User).filter(User.email == "admin@example.com").one()
+            user.is_active = False
+            session.commit()
+
+        assert (
+            auth_service.authenticate(
+                DEFAULT_ORGANIZATION_SLUG, "admin@example.com", "correct-password"
+            )
+            is None
+        )
+
+    def test_login_normalizes_email_case(self, auth_service):
+        """A user cadastrado com e-mail normalizado (lowercase) autentica
+        independentemente da caixa digitada no login."""
+        auth_service.bootstrap_administrator("admin@example.com", "correct-password")
+
+        result = auth_service.authenticate(
+            DEFAULT_ORGANIZATION_SLUG, "Admin@Example.com", "correct-password"
+        )
+
+        assert result is not None
+
     def test_unknown_email_returns_none(self, auth_service):
         assert (
             auth_service.authenticate(

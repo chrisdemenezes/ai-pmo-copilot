@@ -117,6 +117,257 @@ class TestRoles:
             migrated_repo.administration.assign_role(user_id, org_id, "does_not_exist")
 
 
+class TestUserManagement:
+    """User Management Capability -- create/edit/activate-deactivate/
+    assign-remove role, with the governance guards the Founder mandated
+    (self-deactivation, last active admin, cross-tenant, email conflict)."""
+
+    def test_create_user_and_assigns_role_transactionally(self, migrated_repo):
+        org_id = migrated_repo.enterprise.create_organization("Org A")
+
+        user = migrated_repo.administration.create_user(
+            org_id, "New@Example.com", "New User", "hashed-password", "viewer"
+        )
+
+        assert user.email == "new@example.com"  # normalized
+        assert user.is_active is True
+        with migrated_repo.SessionLocal() as session:
+            from src.database.models import Role, UserRole
+
+            role = session.query(Role).filter(Role.name == "viewer").one()
+            assert (
+                session.query(UserRole)
+                .filter(UserRole.user_id == user.id, UserRole.role_id == role.id)
+                .one_or_none()
+                is not None
+            )
+
+    def test_create_user_with_unknown_role_leaves_no_orphan_user(self, migrated_repo):
+        from src.database.models import User
+
+        org_id = migrated_repo.enterprise.create_organization("Org A")
+
+        with pytest.raises(ValueError):
+            migrated_repo.administration.create_user(
+                org_id, "orphan@example.com", "Orphan", "hash", "does_not_exist"
+            )
+
+        with migrated_repo.SessionLocal() as session:
+            assert (
+                session.query(User).filter(User.email == "orphan@example.com").one_or_none()
+                is None
+            )
+
+    def test_create_user_rejects_case_insensitive_duplicate_email_in_same_org(self, migrated_repo):
+        from src.database.enterprise_repository import EmailConflictError
+
+        org_id = migrated_repo.enterprise.create_organization("Org A")
+        migrated_repo.administration.create_user(
+            org_id, "dup@example.com", "First", "hash", "viewer"
+        )
+
+        with pytest.raises(EmailConflictError):
+            migrated_repo.administration.create_user(
+                org_id, "DUP@Example.com", "Second", "hash", "viewer"
+            )
+
+    def test_create_user_allows_same_email_in_different_organization(self, migrated_repo):
+        org_a = migrated_repo.enterprise.create_organization("Org A")
+        org_b = migrated_repo.enterprise.create_organization("Org B")
+        migrated_repo.administration.create_user(org_a, "shared@example.com", "A", "hash", "viewer")
+
+        user_b = migrated_repo.administration.create_user(
+            org_b, "shared@example.com", "B", "hash", "viewer"
+        )
+
+        assert user_b.organization_id == org_b
+
+    def test_get_user_is_scoped_by_organization(self, migrated_repo):
+        org_a = migrated_repo.enterprise.create_organization("Org A")
+        org_b = migrated_repo.enterprise.create_organization("Org B")
+        user = migrated_repo.administration.create_user(
+            org_a, "user@example.com", "User", "hash", "viewer"
+        )
+
+        assert migrated_repo.administration.get_user(user.id, org_a) is not None
+        assert migrated_repo.administration.get_user(user.id, org_b) is None
+
+    def test_update_user_changes_email_and_display_name(self, migrated_repo):
+        org_id = migrated_repo.enterprise.create_organization("Org A")
+        user = migrated_repo.administration.create_user(
+            org_id, "old@example.com", "Old Name", "hash", "viewer"
+        )
+
+        result = migrated_repo.administration.update_user(
+            user.id, org_id, email="New@Example.com", display_name="New Name"
+        )
+
+        updated_user, before, after = result
+        assert updated_user.email == "new@example.com"
+        assert updated_user.display_name == "New Name"
+        assert before == {"email": "old@example.com", "display_name": "Old Name"}
+        assert after == {"email": "new@example.com", "display_name": "New Name"}
+
+    def test_update_user_rejects_case_insensitive_duplicate_email(self, migrated_repo):
+        from src.database.enterprise_repository import EmailConflictError
+
+        org_id = migrated_repo.enterprise.create_organization("Org A")
+        migrated_repo.administration.create_user(org_id, "taken@example.com", "A", "hash", "viewer")
+        user_b = migrated_repo.administration.create_user(
+            org_id, "b@example.com", "B", "hash", "viewer"
+        )
+
+        with pytest.raises(EmailConflictError):
+            migrated_repo.administration.update_user(
+                user_b.id, org_id, email="Taken@Example.com"
+            )
+
+    def test_update_unknown_user_returns_none(self, migrated_repo):
+        org_id = migrated_repo.enterprise.create_organization("Org A")
+        assert migrated_repo.administration.update_user(999999, org_id, display_name="X") is None
+
+    def test_set_user_active_toggles_status(self, migrated_repo):
+        org_id = migrated_repo.enterprise.create_organization("Org A")
+        actor = migrated_repo.administration.create_user(
+            org_id, "actor@example.com", "Actor", "hash", "organization_admin"
+        )
+        target = migrated_repo.administration.create_user(
+            org_id, "target@example.com", "Target", "hash", "viewer"
+        )
+
+        deactivated = migrated_repo.administration.set_user_active(
+            target.id, org_id, False, actor_user_id=actor.id
+        )
+        assert deactivated.is_active is False
+
+        reactivated = migrated_repo.administration.set_user_active(
+            target.id, org_id, True, actor_user_id=actor.id
+        )
+        assert reactivated.is_active is True
+
+    def test_admin_cannot_deactivate_self(self, migrated_repo):
+        from src.database.enterprise_repository import SelfDeactivationError
+
+        org_id = migrated_repo.enterprise.create_organization("Org A")
+        admin = migrated_repo.administration.create_user(
+            org_id, "admin@example.com", "Admin", "hash", "organization_admin"
+        )
+        # A second admin so "last admin" would not also fire -- isolates
+        # the self-deactivation guard specifically.
+        migrated_repo.administration.create_user(
+            org_id, "admin2@example.com", "Admin 2", "hash", "organization_admin"
+        )
+
+        with pytest.raises(SelfDeactivationError):
+            migrated_repo.administration.set_user_active(
+                admin.id, org_id, False, actor_user_id=admin.id
+            )
+
+    def test_cannot_deactivate_the_last_active_admin(self, migrated_repo):
+        from src.database.enterprise_repository import LastActiveAdminError
+
+        org_id = migrated_repo.enterprise.create_organization("Org A")
+        sole_admin = migrated_repo.administration.create_user(
+            org_id, "admin@example.com", "Admin", "hash", "organization_admin"
+        )
+        other_actor = migrated_repo.administration.create_user(
+            org_id, "other@example.com", "Other", "hash", "viewer"
+        )
+
+        with pytest.raises(LastActiveAdminError):
+            migrated_repo.administration.set_user_active(
+                sole_admin.id, org_id, False, actor_user_id=other_actor.id
+            )
+
+    def test_deactivating_one_of_two_admins_is_allowed(self, migrated_repo):
+        org_id = migrated_repo.enterprise.create_organization("Org A")
+        admin_a = migrated_repo.administration.create_user(
+            org_id, "admin-a@example.com", "Admin A", "hash", "organization_admin"
+        )
+        admin_b = migrated_repo.administration.create_user(
+            org_id, "admin-b@example.com", "Admin B", "hash", "organization_admin"
+        )
+
+        result = migrated_repo.administration.set_user_active(
+            admin_b.id, org_id, False, actor_user_id=admin_a.id
+        )
+        assert result.is_active is False
+
+    def test_last_admin_guard_is_scoped_by_organization(self, migrated_repo):
+        """The sole admin of Org A being deactivated must never be blocked
+        by an admin existing in Org B -- the count is organization-scoped."""
+        org_a = migrated_repo.enterprise.create_organization("Org A")
+        org_b = migrated_repo.enterprise.create_organization("Org B")
+        migrated_repo.administration.create_user(
+            org_b, "admin-b@example.com", "Admin B", "hash", "organization_admin"
+        )
+        sole_admin_a = migrated_repo.administration.create_user(
+            org_a, "admin-a@example.com", "Admin A", "hash", "organization_admin"
+        )
+        other_actor = migrated_repo.administration.create_user(
+            org_a, "other@example.com", "Other", "hash", "viewer"
+        )
+
+        from src.database.enterprise_repository import LastActiveAdminError
+
+        with pytest.raises(LastActiveAdminError):
+            migrated_repo.administration.set_user_active(
+                sole_admin_a.id, org_a, False, actor_user_id=other_actor.id
+            )
+
+    def test_remove_role_deletes_the_assignment(self, migrated_repo):
+        from src.database.models import Role, UserRole
+
+        org_id = migrated_repo.enterprise.create_organization("Org A")
+        admin = migrated_repo.administration.create_user(
+            org_id, "admin@example.com", "Admin", "hash", "organization_admin"
+        )
+        user = migrated_repo.administration.create_user(
+            org_id, "user@example.com", "User", "hash", "viewer"
+        )
+
+        migrated_repo.administration.remove_role(user.id, org_id, "viewer", actor_user_id=admin.id)
+
+        with migrated_repo.SessionLocal() as session:
+            role = session.query(Role).filter(Role.name == "viewer").one()
+            assert (
+                session.query(UserRole)
+                .filter(UserRole.user_id == user.id, UserRole.role_id == role.id)
+                .one_or_none()
+                is None
+            )
+
+    def test_cannot_remove_organization_admin_role_from_the_last_active_admin(self, migrated_repo):
+        from src.database.enterprise_repository import LastActiveAdminError
+
+        org_id = migrated_repo.enterprise.create_organization("Org A")
+        sole_admin = migrated_repo.administration.create_user(
+            org_id, "admin@example.com", "Admin", "hash", "organization_admin"
+        )
+        other_actor = migrated_repo.administration.create_user(
+            org_id, "other@example.com", "Other", "hash", "viewer"
+        )
+
+        with pytest.raises(LastActiveAdminError):
+            migrated_repo.administration.remove_role(
+                sole_admin.id, org_id, "organization_admin", actor_user_id=other_actor.id
+            )
+
+    def test_remove_role_unknown_role_raises(self, migrated_repo):
+        org_id = migrated_repo.enterprise.create_organization("Org A")
+        admin = migrated_repo.administration.create_user(
+            org_id, "admin@example.com", "Admin", "hash", "organization_admin"
+        )
+        user = migrated_repo.administration.create_user(
+            org_id, "user@example.com", "User", "hash", "viewer"
+        )
+
+        with pytest.raises(ValueError):
+            migrated_repo.administration.remove_role(
+                user.id, org_id, "does_not_exist", actor_user_id=admin.id
+            )
+
+
 class TestAuditLog:
     def test_record_and_list_audit_log(self, repo):
         org_id = repo.enterprise.create_organization("Org A")

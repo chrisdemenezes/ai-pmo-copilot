@@ -12,6 +12,7 @@ from sqlalchemy.orm import sessionmaker
 
 from src.database.enterprise_repository import EnterpriseRepository
 from src.database.project_identity import DEFAULT_ORGANIZATION_NAME, organization_slug
+from src.services.identity.email_normalization import normalize_email
 from src.services.identity.interfaces import CredentialVerifier
 from src.services.identity.models import AuthenticatedUser, OrganizationIdentity
 
@@ -63,11 +64,18 @@ class AuthService:
                 logger.info("Login failed: organization not found slug=%s", organization_slug)
                 return None
 
-            user = self._repo.get_user_by_email(session, org.id, email)
+            user = self._repo.get_user_by_email(session, org.id, normalize_email(email))
             if user is None or user.password_hash is None:
                 logger.info(
                     "Login failed: user not found organization_id=%s email=%s", org.id, email
                 )
+                return None
+
+            if not user.is_active:
+                # Same uniform-failure treatment as every other cause here
+                # (EO-015): an inactive account must not be distinguishable
+                # from a wrong password to the caller.
+                logger.info("Login failed: user inactive user_id=%s", user.id)
                 return None
 
             if not self._credentials.verify(password, user.password_hash):

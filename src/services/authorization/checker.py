@@ -13,7 +13,7 @@ import logging
 
 from sqlalchemy.orm import sessionmaker
 
-from src.database.models import Permission, RolePermission, UserRole
+from src.database.models import Permission, RolePermission, User, UserRole
 
 logger = logging.getLogger(__name__)
 
@@ -23,12 +23,21 @@ class SqlPermissionChecker:
         self._session_factory = session_factory
 
     def has_permission(self, user_id: int, permission: str) -> bool:
+        """An inactive user (User Management, Wave 2) is denied every
+        permission here -- the single seam every protected route already
+        passes through (`require_permission`), so this is enforced
+        platform-wide without touching each route individually."""
         with self._session_factory() as session:
             match = (
                 session.query(Permission)
                 .join(RolePermission, RolePermission.permission_id == Permission.id)
                 .join(UserRole, UserRole.role_id == RolePermission.role_id)
-                .filter(UserRole.user_id == user_id, Permission.name == permission)
+                .join(User, User.id == UserRole.user_id)
+                .filter(
+                    UserRole.user_id == user_id,
+                    Permission.name == permission,
+                    User.is_active.is_(True),
+                )
                 .first()
             )
             granted = match is not None

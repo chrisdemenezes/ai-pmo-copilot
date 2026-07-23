@@ -31,6 +31,21 @@ class CrossTenantViolationError(Exception):
     """A write tried to link entities that belong to different organizations."""
 
 
+class EmailConflictError(Exception):
+    """A user create/update collided with an existing email in the same
+    organization (case-insensitive -- User Management, Wave 2)."""
+
+
+class LastActiveAdminError(Exception):
+    """An operation would leave an organization with zero active
+    `organization_admin` users (User Management, Wave 2)."""
+
+
+class SelfDeactivationError(Exception):
+    """An actor tried to deactivate their own user account (User
+    Management, Wave 2)."""
+
+
 class EnterpriseRepository:
     """Operates inside sessions produced by the injected sessionmaker.
 

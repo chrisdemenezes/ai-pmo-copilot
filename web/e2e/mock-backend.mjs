@@ -245,6 +245,43 @@ const DOMAIN_PROJECTS = [
   },
 ];
 
+// The E2E login (POST /api/auth/login below) always resolves to user_id 1
+// -- used to exercise the self-deactivation guard for User Management.
+const E2E_ACTOR_USER_ID = 1;
+
+// User Management (Enterprise Administration Capability) fixtures --
+// mutable (create/edit/status/roles all write here), reset via
+// resetFixtures() like SAMPLE/ANALYSES.
+const PRISTINE_ADMIN_USERS = [
+  { id: 1, email: "ana.admin@example.com", display_name: "Ana Souza", identity_type: "standard", is_active: true },
+  { id: 2, email: "bruno.pmo@example.com", display_name: "Bruno Castro", identity_type: "standard", is_active: true },
+  { id: 3, email: "carla.viewer@example.com", display_name: "Carla Mendes", identity_type: "standard", is_active: false },
+];
+const PRISTINE_ADMIN_USER_ROLES = {
+  1: ["organization_admin"],
+  2: ["pmo"],
+  3: ["viewer"],
+};
+const ADMIN_ROLES = [
+  { id: 1, name: "organization_admin", description: "Administra a organização" },
+  { id: 2, name: "pmo", description: "Visão e governança" },
+  { id: 3, name: "project_manager", description: "Execução de Program/Project" },
+  { id: 4, name: "viewer", description: "Somente leitura" },
+];
+
+const ADMIN_USERS = [];
+const ADMIN_USER_ROLES = {};
+let nextAdminUserId = 1000;
+
+function resetAdminFixtures() {
+  ADMIN_USERS.length = 0;
+  ADMIN_USERS.push(...JSON.parse(JSON.stringify(PRISTINE_ADMIN_USERS)));
+  for (const key of Object.keys(ADMIN_USER_ROLES)) delete ADMIN_USER_ROLES[key];
+  Object.assign(ADMIN_USER_ROLES, JSON.parse(JSON.stringify(PRISTINE_ADMIN_USER_ROLES)));
+  nextAdminUserId = 1000;
+}
+resetAdminFixtures();
+
 const WORKSPACE_SUMMARY = {
   Aurora: {
     project_name: "Aurora",
@@ -454,6 +491,8 @@ function resetFixtures() {
   nextAnalysisId = PRISTINE_NEXT_ANALYSIS_ID;
 
   Object.assign(workspaceScenario, JSON.parse(JSON.stringify(PRISTINE_WORKSPACE_SCENARIO)));
+
+  resetAdminFixtures();
 }
 
 function send(res, status, body) {
@@ -559,6 +598,155 @@ const server = http.createServer((req, res) => {
   }
   if (url.pathname === "/api/projects-delivery") {
     return send(res, 200, DOMAIN_PROJECTS);
+  }
+
+  // User Management (Enterprise Administration Capability) -- mirrors
+  // src/api/routes/administration.py's User Management routes.
+  if (url.pathname === "/api/admin/user-roles-index") {
+    const index = {};
+    for (const [userId, roleNames] of Object.entries(ADMIN_USER_ROLES)) {
+      index[userId] = roleNames;
+    }
+    return send(res, 200, index);
+  }
+
+  if (url.pathname === "/api/admin/roles") {
+    return send(res, 200, ADMIN_ROLES);
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/admin/users") {
+    return send(res, 200, ADMIN_USERS);
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/admin/users") {
+    let raw = "";
+    req.on("data", (chunk) => (raw += chunk));
+    req.on("end", () => {
+      const { email, display_name: displayName, role_name: roleName } = JSON.parse(raw);
+      const normalizedEmail = email.trim().toLowerCase();
+      if (ADMIN_USERS.some((u) => u.email === normalizedEmail)) {
+        return send(res, 409, { detail: `Email '${email}' already exists in this organization` });
+      }
+      if (!ADMIN_ROLES.some((r) => r.name === roleName)) {
+        return send(res, 400, { detail: `Role '${roleName}' does not exist` });
+      }
+      const user = {
+        id: nextAdminUserId++,
+        email: normalizedEmail,
+        display_name: displayName,
+        identity_type: "standard",
+        is_active: true,
+      };
+      ADMIN_USERS.push(user);
+      ADMIN_USER_ROLES[user.id] = [roleName];
+      return send(res, 201, user);
+    });
+    return;
+  }
+
+  const userRolesMatch = url.pathname.match(/^\/api\/admin\/users\/(\d+)\/roles$/);
+  if (userRolesMatch) {
+    const userId = Number(userRolesMatch[1]);
+    const user = ADMIN_USERS.find((u) => u.id === userId);
+    if (!user) return send(res, 404, { detail: "User not found" });
+
+    if (req.method === "GET") {
+      const names = ADMIN_USER_ROLES[userId] ?? [];
+      return send(res, 200, ADMIN_ROLES.filter((r) => names.includes(r.name)));
+    }
+    if (req.method === "POST") {
+      let raw = "";
+      req.on("data", (chunk) => (raw += chunk));
+      req.on("end", () => {
+        const { role_name: roleName } = JSON.parse(raw);
+        if (!ADMIN_ROLES.some((r) => r.name === roleName)) {
+          return send(res, 400, { detail: `Role '${roleName}' does not exist` });
+        }
+        const names = ADMIN_USER_ROLES[userId] ?? (ADMIN_USER_ROLES[userId] = []);
+        if (!names.includes(roleName)) names.push(roleName);
+        return send(res, 200, user);
+      });
+      return;
+    }
+  }
+
+  const removeRoleMatch = url.pathname.match(/^\/api\/admin\/users\/(\d+)\/roles\/([^/]+)$/);
+  if (removeRoleMatch && req.method === "DELETE") {
+    const userId = Number(removeRoleMatch[1]);
+    const roleName = decodeURIComponent(removeRoleMatch[2]);
+    const user = ADMIN_USERS.find((u) => u.id === userId);
+    if (!user) return send(res, 404, { detail: "User not found" });
+    if (!ADMIN_ROLES.some((r) => r.name === roleName)) {
+      return send(res, 400, { detail: `Role '${roleName}' does not exist` });
+    }
+    const names = ADMIN_USER_ROLES[userId] ?? [];
+    const activeAdminCount = ADMIN_USERS.filter(
+      (u) => u.is_active && (ADMIN_USER_ROLES[u.id] ?? []).includes("organization_admin"),
+    ).length;
+    if (roleName === "organization_admin" && user.is_active && activeAdminCount <= 1) {
+      return send(res, 409, { detail: "Cannot remove the last active administrator's role" });
+    }
+    ADMIN_USER_ROLES[userId] = names.filter((name) => name !== roleName);
+    return send(res, 200, user);
+  }
+
+  const userStatusMatch = url.pathname.match(/^\/api\/admin\/users\/(\d+)\/status$/);
+  if (userStatusMatch && req.method === "PATCH") {
+    const userId = Number(userStatusMatch[1]);
+    const user = ADMIN_USERS.find((u) => u.id === userId);
+    if (!user) return send(res, 404, { detail: "User not found" });
+    let raw = "";
+    req.on("data", (chunk) => (raw += chunk));
+    req.on("end", () => {
+      const { is_active: isActive } = JSON.parse(raw);
+      if (!isActive && userId === E2E_ACTOR_USER_ID) {
+        return send(res, 400, { detail: "An administrator cannot deactivate their own account" });
+      }
+      if (!isActive && user.is_active) {
+        const names = ADMIN_USER_ROLES[userId] ?? [];
+        const activeAdminCount = ADMIN_USERS.filter(
+          (u) => u.is_active && (ADMIN_USER_ROLES[u.id] ?? []).includes("organization_admin"),
+        ).length;
+        if (names.includes("organization_admin") && activeAdminCount <= 1) {
+          return send(res, 409, {
+            detail: "Cannot deactivate the last active administrator of this organization",
+          });
+        }
+      }
+      user.is_active = isActive;
+      return send(res, 200, user);
+    });
+    return;
+  }
+
+  const userMatch = url.pathname.match(/^\/api\/admin\/users\/(\d+)$/);
+  if (userMatch) {
+    const userId = Number(userMatch[1]);
+    const user = ADMIN_USERS.find((u) => u.id === userId);
+    if (!user) return send(res, 404, { detail: "User not found" });
+
+    if (req.method === "GET") {
+      return send(res, 200, user);
+    }
+    if (req.method === "PATCH") {
+      let raw = "";
+      req.on("data", (chunk) => (raw += chunk));
+      req.on("end", () => {
+        const { email, display_name: displayName } = JSON.parse(raw);
+        if (email !== undefined) {
+          const normalizedEmail = email.trim().toLowerCase();
+          if (ADMIN_USERS.some((u) => u.id !== userId && u.email === normalizedEmail)) {
+            return send(res, 409, {
+              detail: `Email '${email}' already exists in this organization`,
+            });
+          }
+          user.email = normalizedEmail;
+        }
+        if (displayName !== undefined) user.display_name = displayName;
+        return send(res, 200, user);
+      });
+      return;
+    }
   }
 
   // project_name is a query param here, not a path segment -- matches the

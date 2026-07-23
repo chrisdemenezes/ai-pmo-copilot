@@ -52,25 +52,41 @@ export async function forwardDomainRequest(
   const timeout = setTimeout(() => controller.abort(), BACKEND_TIMEOUT_MS);
 
   try {
+    // Forward the method + body verbatim (User Management, Wave 2 --
+    // POST/PATCH/DELETE joined the previously GET-only Domain BFF), so one
+    // helper still serves every HTTP verb instead of a second one.
+    const method = request.method;
+    const hasBody = method !== "GET" && method !== "HEAD" && method !== "DELETE";
     const backendResponse = await fetch(`${backendUrl}${backendPath}`, {
+      method,
       headers: {
         "X-API-Key": apiKey,
         "X-Stratech-User-Id": String(identity.userId),
         "X-Stratech-Organization-Id": String(identity.organizationId),
         "X-Stratech-Session-Id": identity.sessionId,
+        ...(hasBody ? { "Content-Type": "application/json" } : {}),
       },
+      body: hasBody ? await request.text() : undefined,
       signal: controller.signal,
       cache: "no-store",
     });
 
+    const responseBody = await backendResponse.json().catch(() => null);
+
     if (!backendResponse.ok) {
+      // The backend's own status (401/403/404/400/409/...) and detail
+      // message are real signal for a write -- collapsing every failure
+      // to a generic 502 (as the read-only routes always did, since a
+      // failed read only ever meant "something's wrong") would hide the
+      // difference between "email já existe" (409) and "not found" (404)
+      // from the Frontend.
       return errorResponse(
-        { error: "backend_error", detail: `Backend respondeu ${backendResponse.status}.` },
-        502,
+        responseBody ?? { error: "backend_error", detail: `Backend respondeu ${backendResponse.status}.` },
+        backendResponse.status,
       );
     }
 
-    return NextResponse.json(await backendResponse.json());
+    return NextResponse.json(responseBody, { status: backendResponse.status });
   } catch (reason) {
     if (reason instanceof Error && reason.name === "AbortError") {
       return errorResponse(
