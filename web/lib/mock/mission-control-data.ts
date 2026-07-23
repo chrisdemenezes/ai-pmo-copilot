@@ -18,26 +18,40 @@ export interface EpicStatusEntry {
   detail: string;
 }
 
+/**
+ * Historical label, reclassified into the Enterprise Master Execution
+ * Program's Waves (Decision Log D-030) -- kept here as a record, not
+ * deleted, same convention as PROGRAM_PHASES/CAPABILITY_PROGRESS below.
+ * Statuses corrected during the Wave 3 Repository Audit (2026-07-23):
+ * Épicos 3-5 were stale at "Not Started" despite being done since Wave 2.
+ */
 export const EPIC_STATUS: EpicStatusEntry[] = [
   { code: "Épico 1", name: "Schema Foundation", status: "Merged", detail: "PR #39, #40" },
   { code: "Épico 2", name: "Identity Foundation", status: "Merged", detail: "PR #41, #42" },
-  { code: "Épico 3", name: "Organização e RBAC inicial", status: "Not Started", detail: "Próximo da Release 0.1" },
-  { code: "Épico 4", name: "Projeto como entidade real", status: "Not Started", detail: "—" },
-  { code: "Épico 5", name: "Auditoria e administração mínima", status: "Not Started", detail: "—" },
-  { code: "Épico 6", name: "Validação e documentação", status: "Not Started", detail: "Contínuo" },
+  { code: "Épico 3", name: "Organização e RBAC inicial", status: "Merged", detail: "Wave 2 Sprint 3 (D-034)" },
+  { code: "Épico 4", name: "Projeto como entidade real", status: "Merged", detail: "Wave 2 Sprints 1/5 (D-032, D-036); Fase 3a (D-040)" },
+  { code: "Épico 5", name: "Auditoria e administração mínima", status: "Merged", detail: "Wave 2 Sprint 4 + User Management (D-035, D-038)" },
+  { code: "Épico 6", name: "Validação e documentação", status: "In Progress", detail: "Contínuo -- AR-1/AR-2/RC-2/Repository Audit" },
 ];
 
 export interface ReleaseStatusEntry {
   version: string;
   name: string;
-  status: "In Progress" | "Not Started";
+  status: "Done" | "In Progress" | "Not Started";
   progress: number;
 }
 
+/**
+ * Historical label, superseded by the Enterprise Master Execution Program's
+ * Waves as the single active planning axis (Decision Log D-028/D-030) --
+ * kept here as a record, not deleted. Statuses corrected during the Wave 3
+ * Repository Audit (2026-07-23): 0.1/0.2 were stale at "In Progress" despite
+ * mapping to Wave 1/2, both fully done; 0.3 maps to Wave 3, now in progress.
+ */
 export const RELEASE_STATUS: ReleaseStatusEntry[] = [
-  { version: "0.1", name: "Enterprise Foundation", status: "In Progress", progress: 33 },
-  { version: "0.2", name: "Portfolio & Governance Foundation", status: "In Progress", progress: 35 },
-  { version: "0.3", name: "AI Foundation", status: "Not Started", progress: 0 },
+  { version: "0.1", name: "Enterprise Foundation", status: "Done", progress: 100 },
+  { version: "0.2", name: "Portfolio & Governance Foundation", status: "Done", progress: 100 },
+  { version: "0.3", name: "AI Foundation", status: "In Progress", progress: 10 },
   { version: "0.4", name: "Integration Hub", status: "Not Started", progress: 0 },
   { version: "0.5", name: "Event Orchestration", status: "Not Started", progress: 0 },
 ];
@@ -99,6 +113,7 @@ export interface RecentDecisionEntry {
 }
 
 export const RECENT_DECISIONS: RecentDecisionEntry[] = [
+  { id: "D-042", summary: "Repository Audit Wave 3: Go with Conditions — 2 achados críticos de segurança pré-existentes (intelligence.py sem RBAC; AnalysisRecord sem organization_id) registrados como Decision Proposal; Epic W3-3 não avança para Implementação até o Founder decidir" },
   { id: "D-041", summary: "Wave 3, Epic W3-2 avaliado e adiado: AI Platform Foundation não tem consumidor real hoje (nenhum caso de uso de multi-provider, versionamento de prompt ou custo/token) — nenhum código produzido, Wave avança para W3-3" },
   { id: "D-040", summary: "Wave 3, Epic W3-1 concluído: Project Identity Unification (TD-008 Fase 3a) — ProjectSummaryService agrupa por project_id, corrige bug de duplicidade por variação de espaço; Fase 3b (aposentar ProjectSummary) documentada, não implementada" },
   { id: "D-039", summary: "Wave 3 aberta: Architecture Review AR-2 concluída, Epic Ledger definido (W3-1 Project Identity Unification, W3-2 AI Platform Foundation, W3-3 Risk Advisor PoC); Knowledge Platform e demais Enterprise Agents bloqueados por Decision Proposal ao Founder" },
@@ -128,6 +143,7 @@ export interface ProductPulseEntry {
 
 /** Release 0.2, Capability 03 -- Product Pulse (topo do Mission Control). */
 export const PRODUCT_PULSE_TODAY: ProductPulseEntry[] = [
+  { label: "Repository Audit Wave 3: Go with Conditions — 2 achados críticos de segurança pré-existentes registrados como Decision Proposal; Epic W3-3 aguarda decisão do Founder antes da Implementação", done: true },
   { label: "Wave 3, Epic W3-2 avaliado e adiado (sem consumidor real hoje) — Wave avança para o Epic W3-3 (Risk Advisor)", done: true },
   { label: "Wave 3, Epic W3-1 concluído: Project Identity Unification (TD-008 Fase 3a) — bug de agrupamento de portfólio corrigido, project_id aditivo na API/frontend", done: true },
   { label: "Wave 3 aberta: Architecture Review AR-2 concluída, Epic Ledger definido — W3-1/W3-2/W3-3 liberados, Knowledge Platform e demais Enterprise Agents bloqueados aguardando decisão do Founder", done: true },
@@ -313,7 +329,7 @@ export const DOMAIN_EVOLUTION: DomainEvolutionNode[] = [
   {
     name: "Project",
     status: "Done",
-    note: "Cadeia completa banco → API → BFF → página (Sprint 5); resta a Fase 3 do TD-008 (reconciliar analysis_records → project_id), programada para a Wave 3",
+    note: "Cadeia completa banco → API → BFF → página (Sprint 5); Fase 3a do TD-008 concluída (Wave 3, D-040) -- Fase 3b (aposentar ProjectSummary em toda a superfície de frontend) permanece futura, sem data",
   },
   { name: "Demand", status: "Not Started" },
   { name: "Risk", status: "Not Started" },

@@ -285,6 +285,17 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Nenhum Blueprint, Domain Model ou ADR aprovado foi alterado.** Nenhuma decisão de que a STRATECH nunca terá múltiplos providers — apenas que não há hoje nenhum caso de uso que justifique construir isso agora.
 - **Sprint:** Wave 3, Epic W3-2 (Architecture/Blueprint apenas, sem implementação).
 
+### D-042 — Repository Audit Wave 3: Go with Conditions; 2 achados críticos de segurança pré-existentes registrados como Decision Proposal
+
+- **Contexto:** o Founder autorizou uma Auditoria Técnica completa do repositório (`docs/product/governance/REPOSITORY-AUDIT-WAVE-3.md`) antes de atualizar a `main` e iniciar o Epic W3-3, cobrindo estrutura, código/dependências, banco de dados/PostgreSQL, testes/qualidade, segurança e coerência de documentação.
+- **Achados críticos (C-1, C-2), ambos pré-existentes desde o V1, não introduzidos por nenhum trabalho da Wave 2/3:** `src/api/routes/intelligence.py` não aplica RBAC nem contexto organizacional em nenhuma de suas 8 rotas (ao contrário de todo outro módulo de rota); `AnalysisRecord` não tem `organization_id`, causando vazamento real de dados entre as duas organizações reais que já coexistem na base ("Default Organization", "Demo Organization"). **Nenhuma correção de código aplicada** — registrado como Decision Proposal (`ENTERPRISE-MASTER-EXECUTION-PROGRAM.md` §16), não decidido silenciosamente, per instrução explícita do Founder.
+- **Correções de baixo risco aplicadas durante a auditoria:** `mission-control-data.ts::EPIC_STATUS`/`RELEASE_STATUS` corrigidos (Épicos 3-5 estavam "Not Started" já concluídos; Releases 0.1/0.2 estavam "In Progress" já 100% concluídas); nota de `DOMAIN_EVOLUTION` sobre TD-008 atualizada; `README.md` status corrigido de "Wave 2 RC-2" para "Wave 3 em progresso".
+- **Incidente de ambiente registrado por transparência:** o serviço PostgreSQL do ambiente parou durante a auditoria (confirmado via `pg_isready`), causando 171 falhas de conexão em uma execução de `pytest --cov` — não um defeito de código. Reiniciado e revalidado limpo (282/282 testes, 97% cobertura).
+- **E2E:** suíte completa (241 testes, 3 projetos) — 230 passed, 11 failed; re-execução isolada confirma que apenas 6 falhas são deterministicamente reproduzíveis, todas já rastreadas como TD-004/005/006 (Baseline Defects conhecidos); as demais 5 não reproduziram isoladamente (transitórias, atribuídas à contenção de recursos do ambiente).
+- **Recomendação: GO WITH CONDITIONS.** Atualização da `main` autorizada (nenhuma mudança desta sessão piora C-1/C-2). Implementação do Epic W3-3 (Risk Advisor) **não deve prosseguir** até o Founder decidir a Decision Proposal — o Advisor construiria diretamente sobre a rota vulnerável (C-1). Blueprint/Technical Design do W3-3 podem prosseguir em paralelo, nomeando esta dependência explicitamente.
+- **Nenhum Blueprint, Domain Model ou ADR aprovado foi alterado.**
+- **Missão:** Repository Audit Wave 3 (pré-requisito Founder para main update + Epic W3-3).
+
 ---
 
 ## Convenção

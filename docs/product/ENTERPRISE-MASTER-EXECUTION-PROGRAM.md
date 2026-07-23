@@ -345,3 +345,30 @@ Sim — todas as 29 decisões têm uma Wave associada (Seção 12), sem nenhuma 
 | **Não decidido por este documento** | Se/quando os demais 7 Advisors avançam, e qual forma o framework de orquestração assume. Aguardando o Founder, informado pelo resultado do PoC do Risk Advisor. |
 
 **Nenhuma destas duas pendências bloqueia o restante da Wave 3** (Epic W3-1 Project Identity Unification, Epic W3-2 AI Platform Foundation, Epic W3-3 Risk Advisor) — apenas os 2 sub-espaços específicos acima permanecem fora de escopo até o Founder decidir.
+
+---
+
+## 16. Decision Proposal — Repository Audit Wave 3: 2 achados críticos de segurança pré-existentes em `intelligence.py`/`AnalysisRecord`
+
+**Contexto:** o Founder autorizou uma Auditoria Técnica completa do repositório antes da atualização da `main` e do início do Epic W3-3 (`docs/product/governance/REPOSITORY-AUDIT-WAVE-3.md`). A auditoria encontrou 2 achados Críticos, ambos pré-existentes desde o V1 (nunca atualizados quando RBAC e multi-organização foram introduzidos no resto da plataforma nas Waves 1-2), não introduzidos por nenhum trabalho desta sessão.
+
+### 16.1 C-1 — `src/api/routes/intelligence.py`: nenhuma das 8 rotas aplica RBAC
+
+| | |
+|---|---|
+| **Gatilho acionado** | "Necessidade de alteração arquitetural significativa" (adicionar um par de permissões e decidir papéis) e "decisão estratégica dependente do Founder" (é uma lacuna de segurança, não uma escolha técnica isolada) |
+| **Por quê** | Todo outro módulo de rota (`administration.py`, `portfolio.py`, `program.py`, `project_delivery.py`) aplica `Depends(require_permission("<domínio>.read"\|"<domínio>.write"))` em cada endpoint; `intelligence.py` nunca recebeu esse tratamento, apesar de expor mutações de IA (meeting/risk/status analyze) e leitura de todo o histórico de análises. |
+| **Opções** | **(a)** novo par `intelligence.read`/`intelligence.write` no catálogo de permissões, com papéis a definir; **(b)** reaproveitar `project_delivery.*` ou `portfolio.*` se o Founder considerar Intelligence parte funcional desses domínios, evitando um par de permissões novo. |
+| **Relevância para W3-3** | O Risk Advisor porta exatamente o Accelerator `risk_review`, que passa por esta mesma rota sem controle de acesso — recomendação técnica (não uma decisão): resolver C-1 antes da Implementação do Epic W3-3, mesmo que Blueprint/Technical Design prossigam em paralelo. |
+| **Não decidido por este documento** | Qual opção adotar, e quais papéis recebem a(s) permissão(ões). Aguardando o Founder. |
+
+### 16.2 C-2 — `AnalysisRecord` sem `organization_id`: vazamento real entre organizações
+
+| | |
+|---|---|
+| **Gatilho acionado** | "Alteração arquitetural significativa" (nova coluna + migração + backfill + enforcement em toda a superfície de leitura) |
+| **Por quê** | `list_analyses()`, `get_analysis()` e `ProjectSummaryService` (chamadas sem `project_name`) não filtram por organização. Duas organizações reais coexistem hoje na mesma base ("Default Organization", "Demo Organization") — confirmado que qualquer usuário autenticado de uma organização recebe, sem filtro, transcrições/riscos/status de análises de **todas** as organizações ao chamar `GET /portfolio/summary` ou `GET /analyses`. |
+| **Opções** | **(a)** migração adicionando `organization_id` a `analysis_records`, com backfill via `project_id → projects.organization_id` (join direto, sem ambiguidade, já que todo registro tem `project_id` populado desde o Épico 1); **(b)** confirmar que a granularidade correta é a organização do Project vinculado (não a do ator que criou o registro) — hoje as duas nunca divergem, mas é uma decisão que deveria ser explícita, não assumida. |
+| **Não decidido por este documento** | Quando resolver, e confirmação da granularidade (organização do Project vs. do ator). Aguardando o Founder. |
+
+**Nenhuma correção de código foi aplicada a `intelligence.py` ou `AnalysisRecord` por esta auditoria** — per a instrução explícita do Founder, uma correção com este impacto não pode ser decidida silenciosamente. A atualização da `main` (Etapa 2 da missão de auditoria) não piora estes achados, pois nenhuma mudança desta sessão toca esses arquivos além da extensão aditiva de `project_id` (Epic W3-1, que não introduz nem resolve o problema de escopo organizacional). A Implementação do Epic W3-3, no entanto, constrói diretamente sobre a rota vulnerável (C-1) e não deve prosseguir antes de uma decisão do Founder.

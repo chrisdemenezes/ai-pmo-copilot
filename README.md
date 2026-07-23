@@ -4,15 +4,14 @@
 
 An intelligent PMO assistant designed to automate project governance, reporting, meeting intelligence and decision support using Artificial Intelligence.
 
-**Status: STRATECH V2 — Wave 2 Release Candidate (RC-2).** PostgreSQL is now the official database
-for local development and production (see `docs/product/release-candidate/RC-2/Quick-Start.md`) —
-`make dev` takes a fresh clone to a fully running platform in one command. The V1 RC-1 Feature
-Freeze described
-below has ended: STRATECH V2's Release 0.1 (Enterprise Foundation — Organization/Identity schema,
-Épicos 1-2) is merged, and Release 0.2 (Portfolio & Governance Foundation) has completed its first
-three Capabilities — Portfolio Management, Program Management, and Project Delivery — as a DDD
-domain layer in `web/lib/domain/`, certified by Architecture Review AR-1
-(`docs/architecture/ARCHITECTURE-BASELINE-RC2.md`, `docs/product/governance/AR-1-EXECUTIVE-REPORT.md`).
+**Status: STRATECH V2 — Wave 3 (Enterprise Intelligence) in progress.** Wave 2 (Enterprise
+Foundation, RBAC, Portfolio/Program/Project domain, Enterprise Administration incl. User
+Management) is fully closed (Decision Log D-038). PostgreSQL is the official database for local
+development and production (see `docs/product/release-candidate/RC-2/Quick-Start.md`) — `make dev`
+takes a fresh clone to a fully running platform in one command. Wave 3 opened with Architecture
+Review AR-2 (`docs/architecture/AR-2-WAVE-3-ARCHITECTURE-REVIEW.md`); see
+`docs/product/ENTERPRISE-MASTER-EXECUTION-PROGRAM.md` for the full Wave/Epic plan and
+`docs/product/stratech-v2/DECISION-LOG.md` for the current decision trail.
 See `docs/product/STRATECH_V2_MASTER_ROADMAP.md` for current status across all Releases/Épicos/
 Capabilities, and `docs/architecture/DOMAIN-MODEL.md` for the domain reference. The backend (`src/`)
 is untouched by this V2 frontend domain work — no migration, no new provider/registry (see
