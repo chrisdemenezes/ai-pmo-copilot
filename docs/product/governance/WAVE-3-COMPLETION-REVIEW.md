@@ -1,3 +1,5 @@
+> **Nota de superação (2026-07-23, D-048):** a Seção 7/8 abaixo (recomendação de encerrar a Wave 3 mantendo Knowledge Platform e os 7 Advisors restantes como Decision Proposal) foi **revogada** por uma segunda decisão do Founder no mesmo dia ("Superseding Decision — Wave Completion Policy"), que torna obrigatório todo item que já fazia parte do planejamento aprovado de uma Wave — a proibição de arquitetura especulativa deixa de se aplicar a eles. Este documento é preservado sem edição, per a disciplina de nunca reescrever retroativamente uma decisão já registrada; o levantamento retrospectivo atualizado (Waves 1-3) está em `WAVE-COMPLETION-REVIEW-RETROSPECTIVE.md`.
+
 # WAVE 3 COMPLETION REVIEW — Enterprise Intelligence
 
 **Data:** 2026-07-23

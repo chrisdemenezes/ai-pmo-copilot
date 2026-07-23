@@ -207,7 +207,7 @@ export const ENTERPRISE_PROGRAM_WAVES: WaveEntry[] = [
     code: "Wave 3",
     name: "Enterprise Intelligence",
     status: "In Progress",
-    detail: "Baseline oficial consolidada na main (D-044, hash d8ff04d). AR-2 (D-039), Epic W3-1 concluído (D-040), Epic W3-2 adiado (D-041) e depois redefinido/implementado como Digital PMO Intelligence Foundation (D-047), Repository Audit Go with Conditions (D-042), Epic W3-3 Blueprint concluído (D-043). Security Hardening Gate (C-1/C-2) concluído (D-045). Epic W3-3 (Risk Advisor) implementado (D-046) e migrado para a Foundation (D-047).",
+    detail: "W3-1 (D-040), W3-2 Digital PMO Intelligence Foundation (D-041/D-047) e W3-3 Risk Advisor (D-046/D-047) concluídos; Security Hardening Gate (C-1/C-2) concluído (D-045). Per a Wave Completion Policy superseding (D-048), as exclusões anteriores de Knowledge Platform e dos 7 Enterprise Advisors restantes como \"Decision Proposal que não bloqueia o fechamento\" foram revogadas -- ambos passam a ser escopo obrigatório da Wave 3. Wave Completion Review retrospectivo (Waves 1-3) em andamento para levantar toda pendência antes de qualquer encerramento.",
   },
   {
     code: "Wave 4",

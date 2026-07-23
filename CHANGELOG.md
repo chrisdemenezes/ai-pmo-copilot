@@ -301,3 +301,17 @@ Both dependencies blocking the Blueprint's Implementation (D-043) are resolved: 
 - New end-to-end Playwright test (mock backend -> BFF -> hook -> component) passing across all 3 breakpoints; Workspace suite spot-checked (60/63 -- the 3 failures already confirmed pre-existing and unrelated during the Security Hardening Gate's own verification).
 
 **Decision Log:** D-046.
+
+## Superseding Decision (2026-07-23): official Wave Completion Policy; retrospective Wave Completion Review (Waves 1-3) opened
+
+The Founder issued a superseding decision revoking every prior decision that allowed deferring an originally-planned Epic, Capability, or Enterprise Analyst, treating built infrastructure as sufficient to close a Wave, carrying planned scope forward as an open Decision Proposal, or closing a Wave with remaining functional backlog.
+
+**New permanent Wave Completion Policy**: a Wave can only be declared CONCLUÍDA when, simultaneously: 100% of technical and functional scope is implemented; 100% of originally-planned Epics, Capabilities, and Enterprise Analysts are implemented and functional; 100% of Domain Blueprints and Technical Designs have matching implementation; 100% of Executive Reports are published; all unit/integration/E2E tests pass; and zero placeholder/TODO/stub/partial implementation remains in the Wave's scope.
+
+**Substantive change, not just a stricter checklist**: the permanent prohibition on speculative architecture now applies only to work outside a Wave's official plan. Anything that was already part of an approved Wave plan (e.g., Knowledge Platform and the 7 Enterprise Advisors beyond Risk Advisor, both named in `DOMAIN-BLUEPRINT-WAVE-3-ENTERPRISE-INTELLIGENCE.md`) stops being speculative and becomes mandatory -- reversing the reasoning D-039/D-041/the Repository Audit (D-042) and the initial `WAVE-3-COMPLETION-REVIEW.md` used to treat them as blocked Decision Proposals that didn't gate Wave 3's closure.
+
+**Immediate action mandated**: a full retrospective Wave Completion Review across Waves 1, 2, and 3 -- comparing original planning, Decision Logs, Mission Control, Domain Blueprints, Technical Designs, Executive Reports, implemented code, and the running application -- to surface and then close every remaining gap.
+
+**No Wave is declared complete by this entry.** This entry records the policy change itself; the retrospective audit and the implementation of whatever gaps it finds are tracked in subsequent Decision Log entries as each is resolved.
+
+**Decision Log:** D-048.
