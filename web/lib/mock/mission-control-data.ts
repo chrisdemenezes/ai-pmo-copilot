@@ -99,6 +99,7 @@ export interface RecentDecisionEntry {
 }
 
 export const RECENT_DECISIONS: RecentDecisionEntry[] = [
+  { id: "D-038", summary: "Wave 2 encerrada: Capability User Management implementada (migração 0009, RBAC, auditoria, Backend→BFF→Frontend) — Épico Enterprise Administration completo para o escopo mínimo aprovado" },
   { id: "D-037", summary: "RC-2: PostgreSQL torna-se o banco oficial (dev + produção); suíte de testes migrada de SQLite para bancos Postgres efêmeros por teste — nenhuma mudança de domínio/arquitetura" },
   { id: "D-036", summary: "Wave 2 Sprint 5: frontend migrado para a API real — arrays semeados deletados, seed movido para o banco (migração 0008), demo user com papel viewer" },
   { id: "D-035", summary: "Wave 2 Sprint 4: Enterprise Administration implementado (Nível 1+2) — auditoria retroativa nas mutações de Portfolio/Program/Project; Sessões não implementado (não existe session store)" },
@@ -124,6 +125,7 @@ export interface ProductPulseEntry {
 
 /** Release 0.2, Capability 03 -- Product Pulse (topo do Mission Control). */
 export const PRODUCT_PULSE_TODAY: ProductPulseEntry[] = [
+  { label: "Wave 2 encerrada: Capability User Management implementada (migração 0009, RBAC, auditoria, Backend→BFF→Frontend) — Épico Enterprise Administration completo, Wave 2 declarada 100% concluída", done: true },
   { label: "RC-2 Enterprise Certification concluída e publicada", done: true },
   { label: "PR #44 mergeado em main — baseline oficial pós Capabilities 01-03 + AR-1 + RC-2", done: true },
   { label: "Phase 1 — Enterprise Platform Foundation encerrada", done: true },
@@ -167,8 +169,8 @@ export const ENTERPRISE_PROGRAM_WAVES: WaveEntry[] = [
   {
     code: "Wave 2",
     name: "Enterprise Platform",
-    status: "In Progress",
-    detail: "Enterprise Domain completo de ponta a ponta: persistido e unificado (Sprint 1), API real (Sprint 2), RBAC fino (Sprint 3), Administration Nível 1+2 (Sprint 4) e frontend consumindo a API real (Sprint 5 -- mock de domínio eliminado). Pendências da Wave: Sessões (TD-010, sem session store) e Convites/Stakeholders (escopo Master Roadmap §3.2, não iniciado).",
+    status: "Done",
+    detail: "100% concluída para os 3 Épicos (Identity, Administration, Domain): Enterprise Domain completo de ponta a ponta (Sprints 1-2-5), RBAC fino (Sprint 3), Administration completo com User Management (Sprint 4 Nível 1+2 + Capability User Management -- D-038). Sessões/Convites/Workspaces/API Keys/Tenant Settings permanecem fora, por decisão explícita do Founder (Decision Proposal §9, não bloqueiam o fechamento). Ver USER-MANAGEMENT-EXECUTIVE-REPORT.md.",
   },
   {
     code: "Wave 3",
