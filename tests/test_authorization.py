@@ -10,10 +10,11 @@ import subprocess
 import sys
 
 import pytest
-from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from src.database.engine import build_engine
 from src.services.authorization.checker import SqlPermissionChecker
+from tests.db import temp_database_url
 
 
 def _alembic(env, *args):
@@ -29,15 +30,14 @@ def _alembic(env, *args):
 
 
 @pytest.fixture()
-def migrated_session_factory(tmp_path):
-    db_path = tmp_path / "authorization.db"
-    database_url = f"sqlite:///{db_path}"
-    env = os.environ.copy()
-    env["DATABASE_URL"] = database_url
-    _alembic(env, "upgrade", "head")
+def migrated_session_factory():
+    with temp_database_url("authorization") as database_url:
+        env = os.environ.copy()
+        env["DATABASE_URL"] = database_url
+        _alembic(env, "upgrade", "head")
 
-    engine = create_engine(database_url, connect_args={"check_same_thread": False})
-    return sessionmaker(bind=engine, autoflush=False, autocommit=False)
+        engine = build_engine(database_url)
+        yield sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 
 def _create_user_with_role(session_factory, role_name: str) -> int:

@@ -7,11 +7,13 @@ import sys
 import pytest
 
 from src.database.repository import AnalysisRepository
+from tests.db import temp_database_url
 
 
 @pytest.fixture()
-def repo(tmp_path):
-    return AnalysisRepository(database_url=f"sqlite:///{tmp_path / 'administration.db'}")
+def repo():
+    with temp_database_url("administration_repo") as database_url:
+        yield AnalysisRepository(database_url=database_url)
 
 
 def _alembic(env, *args):
@@ -27,17 +29,16 @@ def _alembic(env, *args):
 
 
 @pytest.fixture()
-def migrated_repo(tmp_path):
+def migrated_repo():
     """Roles/permissions/role_permissions only exist with real data after
     `alembic upgrade head` -- `AnalysisRepository`'s own `create_all()` only
     provisions empty tables (same reason `test_domain_repository.py`'s
     plain `repo` fixture can't be used for RBAC-dependent assertions)."""
-    db_path = tmp_path / "administration_migrated.db"
-    database_url = f"sqlite:///{db_path}"
-    env = os.environ.copy()
-    env["DATABASE_URL"] = database_url
-    _alembic(env, "upgrade", "head")
-    return AnalysisRepository(database_url=database_url)
+    with temp_database_url("administration_migrated") as database_url:
+        env = os.environ.copy()
+        env["DATABASE_URL"] = database_url
+        _alembic(env, "upgrade", "head")
+        yield AnalysisRepository(database_url=database_url)
 
 
 class TestOrganization:

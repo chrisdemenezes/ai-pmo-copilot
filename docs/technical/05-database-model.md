@@ -50,25 +50,29 @@ foreign key to a `Project` entity.
 
 Alembic manages schema evolution for real deployments (`alembic/`, config in `alembic.ini`).
 
-- `alembic upgrade head` reads `DATABASE_URL` the same way `AnalysisRepository` does (env var,
-  falling back to `sqlite:///./ai_pmo_copilot.db`), so it targets whatever database the app would
-  actually connect to.
-- Tests do **not** use Alembic — they call `AnalysisRepository(database_url=...)`, which still runs
-  `Base.metadata.create_all()` against an ephemeral SQLite database. This is intentional: fast,
-  isolated tests do not need a migration history. Alembic is for evolving a real, persistent
-  database (Postgres or a long-lived SQLite file) without dropping data.
-- `tests/test_alembic_migration.py` runs `alembic upgrade head` against a temporary SQLite file and
-  asserts the resulting schema matches `AnalysisRecord` — this exists specifically to catch drift if
-  the model changes without the migration being updated to match.
-- Verified end-to-end against a real PostgreSQL 16 instance (not just SQLite): `alembic upgrade
-  head` ran clean, and the resulting schema was inspected column-by-column via `psql` and matched
-  `AnalysisRecord` exactly (`id`, `kind`, `project_name`, `payload`, `created_at`, plus both indexes
-  — `analysis_records_pkey` and `ix_analysis_records_project_name`). The full app was then run with
-  `DATABASE_URL` pointed at that Postgres instance and exercised over real HTTP (`POST
-  /api/meetings/analyze`, `GET /api/analyses`, `GET /api/projects/{name}/summary`, `GET
-  /api/portfolio/summary`) — every response was correct, and `X-Request-ID` correlation showed up
-  as expected in the logs for each request. See `docs/releases/mvp-validation.md`, Evidence Entry
-  012, for the full record. This closes `TASK-INF-01` from the Master Product Backlog.
+- **PostgreSQL is the official database from RC-2 onward** (see
+  `docs/product/release-candidate/RC-2/Quick-Start.md`). `alembic upgrade head` and
+  `AnalysisRepository` both resolve `DATABASE_URL` through the single shared helper
+  `src/database/engine.py::resolve_database_url`, falling back to
+  `sqlite:///./ai_pmo_copilot.db` only when `DATABASE_URL` is unset -- SQLite is kept solely as a
+  zero-dependency default, never as a deployment target.
+- **Tests run against real, ephemeral PostgreSQL databases**, not SQLite. `tests/db.py` provides
+  `temp_database_url(prefix)`, a context manager that creates a uniquely-named Postgres database
+  (the same one-database-per-test isolation a SQLite tmp file used to give), yields its URL, and
+  drops it afterward. Every test that touches the database -- repository tests, API tests, and the
+  migration-invariant tests below -- uses this one seam instead of each file hand-rolling its own
+  SQLite file. Requires a reachable local Postgres (`TEST_POSTGRES_ADMIN_URL`, default
+  `postgresql://aipmo:aipmo@localhost:5432/postgres`).
+- `tests/test_alembic_migration.py` runs `alembic upgrade head` against a fresh Postgres database
+  and asserts the resulting schema matches the SQLAlchemy models -- this exists specifically to
+  catch drift if a model changes without the migration being updated to match.
+- Verified end-to-end against a real PostgreSQL 16 instance as part of the RC-2 mission: full
+  `alembic upgrade head` / `downgrade base` / re-`upgrade head` round trip, the complete pytest
+  suite (245 tests) running with each test against its own ephemeral Postgres database, and a live
+  `uvicorn` + `next dev` stack smoke-tested over real HTTP (login, `/api/portfolios`,
+  `/api/programs`, `/api/projects-delivery`, RBAC 403 enforcement, `/health`) -- all against the
+  same Postgres instance, no SQLite involved. See
+  `docs/product/release-candidate/RC-2/Release-Validation-Checklist.md` for the full record.
 
 To create a new migration after changing `AnalysisRecord`:
 

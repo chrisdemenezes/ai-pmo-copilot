@@ -4,6 +4,7 @@ import subprocess
 import sys
 
 import pytest
+
 from fastapi.testclient import TestClient
 
 from src.api import authorization as authorization_module
@@ -12,6 +13,8 @@ from src.database.repository import AnalysisRepository
 from src.main import app
 from src.services.administration_service import AdministrationService
 from src.services.authorization.checker import SqlPermissionChecker
+
+from tests.db import temp_database_url
 
 
 def _alembic(env, *args):
@@ -35,23 +38,22 @@ def _headers(organization_id: int, user_id: int) -> dict:
 
 
 @pytest.fixture()
-def client(tmp_path):
-    db_path = tmp_path / "administration_api.db"
-    database_url = f"sqlite:///{db_path}"
-    env = os.environ.copy()
-    env["DATABASE_URL"] = database_url
-    _alembic(env, "upgrade", "head")
+def client():
+    with temp_database_url("administration_api") as database_url:
+        env = os.environ.copy()
+        env["DATABASE_URL"] = database_url
+        _alembic(env, "upgrade", "head")
 
-    repo = AnalysisRepository(database_url=database_url)
-    app.dependency_overrides[administration_routes.build_administration_service] = (
-        lambda: AdministrationService(repo)
-    )
-    app.dependency_overrides[authorization_module.build_permission_checker] = (
-        lambda: SqlPermissionChecker(repo.SessionLocal)
-    )
-    yield TestClient(app), repo
-    app.dependency_overrides.pop(administration_routes.build_administration_service, None)
-    app.dependency_overrides.pop(authorization_module.build_permission_checker, None)
+        repo = AnalysisRepository(database_url=database_url)
+        app.dependency_overrides[administration_routes.build_administration_service] = (
+            lambda: AdministrationService(repo)
+        )
+        app.dependency_overrides[authorization_module.build_permission_checker] = (
+            lambda: SqlPermissionChecker(repo.SessionLocal)
+        )
+        yield TestClient(app), repo
+        app.dependency_overrides.pop(administration_routes.build_administration_service, None)
+        app.dependency_overrides.pop(authorization_module.build_permission_checker, None)
 
 
 def _actor(repo, organization_id: int, role: str = "organization_admin") -> int:

@@ -11,21 +11,23 @@ from src.services.identity.auth_service import (
     AuthService,
 )
 from src.services.identity.password_hashing import Argon2PasswordHasher
+from tests.db import temp_database_url
 
 
 @pytest.fixture()
-def repo(tmp_path):
+def repo():
     """AnalysisRepository's create_all() provisions schema only -- the
     roles seeded by migration 0002 (organization_admin, pmo,
     project_manager, viewer) are inserted here to mirror a real
     alembic-migrated database, since AuthService.bootstrap_administrator
     depends on organization_admin already existing."""
-    instance = AnalysisRepository(database_url=f"sqlite:///{tmp_path / 'auth_service.db'}")
-    with instance.SessionLocal() as session:
-        for name in ("organization_admin", "pmo", "project_manager", "viewer"):
-            session.add(Role(name=name))
-        session.commit()
-    return instance
+    with temp_database_url("auth_service") as database_url:
+        instance = AnalysisRepository(database_url=database_url)
+        with instance.SessionLocal() as session:
+            for name in ("organization_admin", "pmo", "project_manager", "viewer"):
+                session.add(Role(name=name))
+            session.commit()
+        yield instance
 
 
 @pytest.fixture()

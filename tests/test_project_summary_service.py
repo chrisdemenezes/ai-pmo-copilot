@@ -1,13 +1,17 @@
+import pytest
+
 from src.database.repository import AnalysisRepository
 from src.services.project_summary_service import ProjectSummaryService
+from tests.db import temp_database_url
 
 
-def _repository() -> AnalysisRepository:
-    return AnalysisRepository(database_url="sqlite:///:memory:")
+@pytest.fixture()
+def repository():
+    with temp_database_url("project_summary") as database_url:
+        yield AnalysisRepository(database_url=database_url)
 
 
-def test_summarize_counts_risks_and_action_items_from_structured_payloads():
-    repository = _repository()
+def test_summarize_counts_risks_and_action_items_from_structured_payloads(repository):
     repository.save_analysis(
         kind="risk",
         project_name="Multilift",
@@ -35,8 +39,7 @@ def test_summarize_counts_risks_and_action_items_from_structured_payloads():
     }
 
 
-def test_summarize_uses_latest_status_analysis():
-    repository = _repository()
+def test_summarize_uses_latest_status_analysis(repository):
     repository.save_analysis(
         kind="status",
         project_name="Multilift",
@@ -53,8 +56,7 @@ def test_summarize_uses_latest_status_analysis():
     assert summary["latest_health_status"] == "green"
 
 
-def test_summarize_ignores_fallback_unstructured_payloads():
-    repository = _repository()
+def test_summarize_ignores_fallback_unstructured_payloads(repository):
     repository.save_analysis(
         kind="risk",
         project_name="Multilift",
@@ -67,8 +69,7 @@ def test_summarize_ignores_fallback_unstructured_payloads():
     assert summary["total_analyses"] == 1
 
 
-def test_summarize_only_counts_analyses_for_the_requested_project():
-    repository = _repository()
+def test_summarize_only_counts_analyses_for_the_requested_project(repository):
     repository.save_analysis(
         kind="risk",
         project_name="Multilift",
@@ -86,8 +87,7 @@ def test_summarize_only_counts_analyses_for_the_requested_project():
     assert summary["open_risks"] == 1
 
 
-def test_summarize_returns_zeros_for_project_with_no_analyses():
-    repository = _repository()
+def test_summarize_returns_zeros_for_project_with_no_analyses(repository):
 
     summary = ProjectSummaryService(repository).summarize("Unknown")
 
@@ -100,8 +100,7 @@ def test_summarize_returns_zeros_for_project_with_no_analyses():
     }
 
 
-def test_summarize_portfolio_groups_by_project_and_sorts_by_name():
-    repository = _repository()
+def test_summarize_portfolio_groups_by_project_and_sorts_by_name(repository):
     repository.save_analysis(
         kind="risk",
         project_name="Multilift",
@@ -123,8 +122,7 @@ def test_summarize_portfolio_groups_by_project_and_sorts_by_name():
     assert multilift["pending_action_items"] == 0
 
 
-def test_summarize_portfolio_excludes_analyses_without_a_project_name():
-    repository = _repository()
+def test_summarize_portfolio_excludes_analyses_without_a_project_name(repository):
     repository.save_analysis(
         kind="risk",
         project_name=None,
@@ -141,14 +139,12 @@ def test_summarize_portfolio_excludes_analyses_without_a_project_name():
     assert [entry["project_name"] for entry in portfolio] == ["Multilift"]
 
 
-def test_summarize_portfolio_returns_empty_list_when_no_analyses_exist():
-    repository = _repository()
+def test_summarize_portfolio_returns_empty_list_when_no_analyses_exist(repository):
 
     assert ProjectSummaryService(repository).summarize_portfolio() == []
 
 
-def test_list_action_items_flattens_items_from_meeting_analyses():
-    repository = _repository()
+def test_list_action_items_flattens_items_from_meeting_analyses(repository):
     analysis_id = repository.save_analysis(
         kind="meeting",
         project_name="Multilift",
@@ -178,8 +174,7 @@ def test_list_action_items_flattens_items_from_meeting_analyses():
     assert second["due_date"] is None
 
 
-def test_list_action_items_without_project_name_spans_the_portfolio():
-    repository = _repository()
+def test_list_action_items_without_project_name_spans_the_portfolio(repository):
     repository.save_analysis(
         kind="meeting",
         project_name="Multilift",
@@ -196,8 +191,7 @@ def test_list_action_items_without_project_name_spans_the_portfolio():
     assert sorted(item["project_name"] for item in items) == ["Medlog", "Multilift"]
 
 
-def test_list_action_items_scopes_to_the_requested_project():
-    repository = _repository()
+def test_list_action_items_scopes_to_the_requested_project(repository):
     repository.save_analysis(
         kind="meeting",
         project_name="Multilift",
@@ -214,8 +208,7 @@ def test_list_action_items_scopes_to_the_requested_project():
     assert [item["description"] for item in items] == ["b"]
 
 
-def test_list_action_items_ignores_non_meeting_and_unstructured_analyses():
-    repository = _repository()
+def test_list_action_items_ignores_non_meeting_and_unstructured_analyses(repository):
     repository.save_analysis(
         kind="risk",
         project_name="Multilift",
@@ -230,8 +223,7 @@ def test_list_action_items_ignores_non_meeting_and_unstructured_analyses():
     assert ProjectSummaryService(repository).list_action_items("Multilift") == []
 
 
-def test_list_action_items_excludes_a_malformed_item_without_dropping_the_rest():
-    repository = _repository()
+def test_list_action_items_excludes_a_malformed_item_without_dropping_the_rest(repository):
     repository.save_analysis(
         kind="meeting",
         project_name="Multilift",
@@ -257,8 +249,7 @@ def test_list_action_items_excludes_a_malformed_item_without_dropping_the_rest()
     assert items[0]["due_date"] is None
 
 
-def test_list_action_items_orders_newest_meeting_first_preserving_item_order():
-    repository = _repository()
+def test_list_action_items_orders_newest_meeting_first_preserving_item_order(repository):
     first_id = repository.save_analysis(
         kind="meeting",
         project_name="Multilift",
@@ -283,8 +274,7 @@ def test_list_action_items_orders_newest_meeting_first_preserving_item_order():
     assert [item["description"] for item in items] == ["recente", "antiga-1", "antiga-2"]
 
 
-def test_list_latest_risks_returns_risks_from_the_most_recent_analysis_only():
-    repository = _repository()
+def test_list_latest_risks_returns_risks_from_the_most_recent_analysis_only(repository):
     repository.save_analysis(
         kind="risk",
         project_name="Multilift",
@@ -321,8 +311,7 @@ def test_list_latest_risks_returns_risks_from_the_most_recent_analysis_only():
     assert items[0]["source_analysis_id"] == second_id
 
 
-def test_list_latest_risks_falls_back_to_an_older_structured_analysis():
-    repository = _repository()
+def test_list_latest_risks_falls_back_to_an_older_structured_analysis(repository):
     first_id = repository.save_analysis(
         kind="risk",
         project_name="Multilift",
@@ -347,8 +336,7 @@ def test_list_latest_risks_falls_back_to_an_older_structured_analysis():
     assert items[0]["source_analysis_id"] == first_id
 
 
-def test_list_latest_risks_without_project_name_spans_the_portfolio():
-    repository = _repository()
+def test_list_latest_risks_without_project_name_spans_the_portfolio(repository):
     repository.save_analysis(
         kind="risk",
         project_name="Multilift",
@@ -377,8 +365,7 @@ def test_list_latest_risks_without_project_name_spans_the_portfolio():
     assert sorted(item["project_name"] for item in items) == ["Medlog", "Multilift"]
 
 
-def test_list_latest_risks_ignores_non_risk_and_unstructured_analyses():
-    repository = _repository()
+def test_list_latest_risks_ignores_non_risk_and_unstructured_analyses(repository):
     repository.save_analysis(
         kind="meeting",
         project_name="Multilift",
@@ -393,8 +380,7 @@ def test_list_latest_risks_ignores_non_risk_and_unstructured_analyses():
     assert ProjectSummaryService(repository).list_latest_risks("Multilift") == []
 
 
-def test_list_latest_risks_excludes_a_malformed_risk_without_dropping_the_rest():
-    repository = _repository()
+def test_list_latest_risks_excludes_a_malformed_risk_without_dropping_the_rest(repository):
     repository.save_analysis(
         kind="risk",
         project_name="Multilift",
@@ -417,6 +403,5 @@ def test_list_latest_risks_excludes_a_malformed_risk_without_dropping_the_rest()
     assert items[0]["description"] == "risco válido"
 
 
-def test_list_latest_risks_returns_empty_list_when_there_are_no_risk_analyses():
-    repository = _repository()
+def test_list_latest_risks_returns_empty_list_when_there_are_no_risk_analyses(repository):
     assert ProjectSummaryService(repository).list_latest_risks("Multilift") == []

@@ -13,11 +13,13 @@ from src.database.project_identity import (
     FALLBACK_PROJECT_NAME,
 )
 from src.database.repository import AnalysisRecord, AnalysisRepository
+from tests.db import temp_database_url
 
 
 @pytest.fixture()
-def repo(tmp_path):
-    return AnalysisRepository(database_url=f"sqlite:///{tmp_path / 'enterprise.db'}")
+def repo():
+    with temp_database_url("enterprise_repo") as database_url:
+        yield AnalysisRepository(database_url=database_url)
 
 
 @pytest.fixture()

@@ -1,4 +1,3 @@
-import os
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -6,6 +5,7 @@ from sqlalchemy import pool
 
 from alembic import context
 
+from src.database.engine import resolve_database_url
 from src.database.repository import Base
 
 # this is the Alembic Config object, which provides
@@ -19,12 +19,10 @@ if config.config_file_name is not None:
 
 target_metadata = Base.metadata
 
-# Same DATABASE_URL resolution as src.database.repository.AnalysisRepository,
-# so `alembic upgrade head` targets the same database the app would connect to.
-config.set_main_option(
-    "sqlalchemy.url",
-    os.getenv("DATABASE_URL", "sqlite:///./ai_pmo_copilot.db"),
-)
+# Same DATABASE_URL resolution as src.database.repository.AnalysisRepository
+# (src.database.engine.resolve_database_url), so `alembic upgrade head`
+# always targets the same database the app would connect to.
+config.set_main_option("sqlalchemy.url", resolve_database_url())
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

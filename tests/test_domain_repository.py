@@ -7,11 +7,13 @@ import pytest
 
 from src.database.enterprise_repository import CrossTenantViolationError
 from src.database.repository import AnalysisRepository
+from tests.db import temp_database_url
 
 
 @pytest.fixture()
-def repo(tmp_path):
-    return AnalysisRepository(database_url=f"sqlite:///{tmp_path / 'domain.db'}")
+def repo():
+    with temp_database_url("domain_repo") as database_url:
+        yield AnalysisRepository(database_url=database_url)
 
 
 @pytest.fixture()

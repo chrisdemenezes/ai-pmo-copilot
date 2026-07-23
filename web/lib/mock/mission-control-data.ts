@@ -99,6 +99,7 @@ export interface RecentDecisionEntry {
 }
 
 export const RECENT_DECISIONS: RecentDecisionEntry[] = [
+  { id: "D-037", summary: "RC-2: PostgreSQL torna-se o banco oficial (dev + produção); suíte de testes migrada de SQLite para bancos Postgres efêmeros por teste — nenhuma mudança de domínio/arquitetura" },
   { id: "D-036", summary: "Wave 2 Sprint 5: frontend migrado para a API real — arrays semeados deletados, seed movido para o banco (migração 0008), demo user com papel viewer" },
   { id: "D-035", summary: "Wave 2 Sprint 4: Enterprise Administration implementado (Nível 1+2) — auditoria retroativa nas mutações de Portfolio/Program/Project; Sessões não implementado (não existe session store)" },
   { id: "D-034", summary: "Wave 2 Sprint 3: RBAC fine-grained enforcement aplicado às 9 rotas — permissões seedadas via migração 0006, checagem via SqlPermissionChecker" },
@@ -136,6 +137,7 @@ export const PRODUCT_PULSE_TODAY: ProductPulseEntry[] = [
   { label: "Wave 2 Sprint 4: Enterprise Administration (Organizações/Usuários/Papéis/Auditoria/Logs/Segurança) — 8 novos endpoints, auditoria retroativa nas mutações do Domain", done: true },
   { label: "Wave 2 Sprint 5: frontend migrado para a API real — fim do mock de domínio; Portfolio/Program/Project agora fluem banco → API → BFF → página", done: true },
   { label: "Regressão real de E2E encontrada pelo CI e corrigida (e2e/shell.spec.ts)", done: true },
+  { label: "RC-2: PostgreSQL oficial, make dev/test reproduzível, suíte completa (245+436+203 testes) validada em Postgres real — pronta para Homologação Oficial da Wave 2", done: true },
 ];
 
 export const PRODUCT_DNA_STATEMENT =

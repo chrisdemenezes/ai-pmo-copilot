@@ -4,7 +4,10 @@
 
 An intelligent PMO assistant designed to automate project governance, reporting, meeting intelligence and decision support using Artificial Intelligence.
 
-**Status: STRATECH V2 — Release 0.2 in progress (RC-2).** The V1 RC-1 Feature Freeze described
+**Status: STRATECH V2 — Wave 2 Release Candidate (RC-2).** PostgreSQL is now the official database
+for local development and production (see `docs/product/release-candidate/RC-2/Quick-Start.md`) —
+`make dev` takes a fresh clone to a fully running platform in one command. The V1 RC-1 Feature
+Freeze described
 below has ended: STRATECH V2's Release 0.1 (Enterprise Foundation — Organization/Identity schema,
 Épicos 1-2) is merged, and Release 0.2 (Portfolio & Governance Foundation) has completed its first
 three Capabilities — Portfolio Management, Program Management, and Project Delivery — as a DDD
@@ -42,7 +45,7 @@ Legacy or parallel implementations must not be expanded. New code must be added 
 - Project Status, Risk Review, and Meeting Intelligence agents
 - Single prompt registry
 - Production LLM provider using Anthropic via environment configuration (or `mock` for Demo Mode, no key required)
-- SQLAlchemy persistence repository (SQLite locally, Postgres in production)
+- SQLAlchemy persistence repository — PostgreSQL is official from RC-2 onward, SQLite kept only as a zero-dependency fallback default (`src/database/engine.py`)
 - Enterprise Foundation schema (Organization/User/Role/Permission/Project, multi-tenant) — STRATECH V2 Épico 1-2
 - CI workflow running lint, tests, and E2E (`.github/workflows/ci.yml`)
 
@@ -56,10 +59,14 @@ Legacy or parallel implementations must not be expanded. New code must be added 
 
 ```text
 .github/workflows/ci.yml
+Makefile
 alembic.ini
 alembic/
   env.py
   versions/
+scripts/
+  rc2-db.sh / rc2-db.ps1
+  prepare-env.sh
 src/
   main.py
   api/routes/intelligence.py
@@ -80,23 +87,31 @@ Backend (`src/`) and frontend (`web/`) are two separate applications with indepe
 trees — see `web/README.md` for frontend setup and RFC-001 (referenced in
 `docs/development/01-project-structure.md`) for its architecture.
 
-## Run locally (full platform — backend + frontend)
+## Run locally (full platform — backend + frontend, PostgreSQL)
 
 ```bash
 git clone <this-repo-url> ai-pmo-copilot
 cd ai-pmo-copilot
-bash scripts/rc1-local-start.sh   # macOS/Linux — one command, no prior setup needed
+make dev
 ```
 
-Windows: `setup.bat` once, then `start.bat` (PowerShell equivalents: `setup.ps1` / `start.ps1`).
-Stop with `demo/stop-demo.sh` (macOS/Linux) or `stop.bat` (Windows).
+`make dev` alone runs the complete pipeline for a fresh clone — installs dependencies, provisions
+PostgreSQL, applies migrations (schema + Enterprise Domain seed: Organizations, Roles, Portfolios,
+Programs, Projects), then starts backend and frontend. Stop with `make stop`.
 
 This is the single, authoritative path to run the whole platform locally — see
-[`docs/product/release-candidate/Local-Installation-Guide.html`](docs/product/release-candidate/Local-Installation-Guide.html)
-for the full walkthrough (prerequisites, environment variables, database, troubleshooting) and
-[`docs/product/release-candidate/Founder-Quick-Start.html`](docs/product/release-candidate/Founder-Quick-Start.html)
-for a one-page version. Validated against a genuinely clean install — see
-`docs/product/release-candidate/Installation-Report.html`.
+[`docs/product/release-candidate/RC-2/Quick-Start.md`](docs/product/release-candidate/RC-2/Quick-Start.md)
+for the full walkthrough (PostgreSQL install per OS, environment variables, migrations, seed,
+troubleshooting) and
+[`docs/product/release-candidate/RC-2/Release-Validation-Checklist.md`](docs/product/release-candidate/RC-2/Release-Validation-Checklist.md)
+for the formal homologation checklist. `docs/technical/03-development-environment.md` lists every
+`make` target.
+
+Windows: no native `make` — use WSL2, or run the underlying commands by hand after
+`setup.bat`/`setup.ps1` (see the Quick Start above). The V1-era `scripts/rc1-local-start.sh` /
+`start.bat` / `stop.bat` flow (SQLite, no Postgres/Docker) still works unchanged for a
+zero-dependency quick look — see
+[`docs/product/release-candidate/Local-Installation-Guide.html`](docs/product/release-candidate/Local-Installation-Guide.html).
 
 ### Backend only
 
@@ -106,21 +121,17 @@ If you're only working inside `src/` and don't need the frontend:
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+export DATABASE_URL="postgresql://aipmo:aipmo@localhost:5432/aipmo"   # official from RC-2 onward
 export LLM_PROVIDER=mock   # or ANTHROPIC_API_KEY=your-key for the real provider
 export API_KEY="choose-a-local-secret"
+alembic upgrade head
 uvicorn src.main:app --reload
 ```
 
-By default this uses a local SQLite file with the schema auto-created — no migration needed. To
-run against a real Postgres database with a proper migration history instead:
-
-```bash
-export DATABASE_URL="postgresql://user:password@localhost:5432/ai_pmo_copilot"
-alembic upgrade head
-```
-
-See `docs/technical/05-database-model.md` for details on when to use Alembic vs. auto-created
-tables.
+Leaving `DATABASE_URL` unset falls back to a local SQLite file with the schema auto-created (no
+migration, no seed) — useful for a quick look, not a supported deployment target. See
+`docs/technical/05-database-model.md` and `docs/technical/03-development-environment.md` for
+details.
 
 ## Run with Docker Compose
 
