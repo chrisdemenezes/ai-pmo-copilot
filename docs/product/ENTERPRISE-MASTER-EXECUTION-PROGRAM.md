@@ -318,3 +318,30 @@ Sim — todas as 29 decisões têm uma Wave associada (Seção 12), sem nenhuma 
 **Não.** A Wave 1 e o início da Wave 2 (RBAC, Domain, itens já com Technical Design) estão prontos para implementação sem nova reorganização. As Waves 3, 4 (parcialmente), 5 e 6 **não estão** — faltam, no mínimo: um Blueprint dedicado para Enterprise Intelligence (Wave 3) e uma Architecture Review associada; a resolução do Decision Proposal de Enterprise Administration (Seção 9); a confirmação do escopo exato do Épico 3; a decisão de unificação de Project (Épico 4); e, para a Wave 6, uma decisão de modelo de negócio do Founder que nem sequer existe como pergunta em nenhum documento anterior a esta missão.
 
 **Por regra explícita da própria missão** ("Se a resposta para qualquer item for não, interrompa a missão e apresente as pendências antes de prosseguir"): esta missão é encerrada **sem autorizar o início da implementação ponta a ponta**. As pendências que bloqueiam esse início estão listadas na Seção 13 e resumidas abaixo, no Executive Report.
+
+---
+
+## 15. Decision Proposal — Wave 3: decisões pendentes do Founder antes de 2 sub-áreas específicas
+
+**Contexto:** o Founder autorizou formalmente a abertura da Wave 3 ("AUTORIZAÇÃO — INÍCIO DA WAVE 3", 2026-07-23), com a regra explícita de não interromper a execução entre Epics, exceto diante de 5 gatilhos: alteração arquitetural significativa, ampliação de escopo aprovado, criação de novos Bounded Contexts, mudança do Product Constitution, ou decisão estratégica dependente do Founder. A Architecture Review AR-2 (`docs/architecture/AR-2-WAVE-3-ARCHITECTURE-REVIEW.md`) organizou a Wave 3 em um Epic Ledger e encontrou exatamente 2 sub-áreas que acionam esses gatilhos — registradas aqui como Decision Proposal, em vez de decididas silenciosamente, na mesma disciplina já usada na Seção 9 deste documento.
+
+### 15.1 Knowledge Platform — adoção de Vector Store
+
+| | |
+|---|---|
+| **Gatilho acionado** | "Decisão estratégica dependente do Founder" (e, por consequência, também "alteração arquitetural significativa") |
+| **Por quê** | Todo o sub-espaço (Enterprise Knowledge Base, Semantic Search, Embeddings, Vector Store, RAG Strategy, Context Manager) depende de introduzir um tipo de armazenamento novo — hoje a STRATECH só tem Postgres/SQLite via SQLAlchemy. Nenhum ADR, Blueprint ou dependência instalada cobre isso hoje (`DOMAIN-BLUEPRINT-WAVE-3-ENTERPRISE-INTELLIGENCE.md` §2). |
+| **Opções** | **(A)** adotar um Vector Store dedicado (ex.: pgvector sobre o Postgres já oficial — menor mudança de infraestrutura operacional; ou um serviço externo dedicado — maior custo/operação, maior capacidade). **(B)** adiar Knowledge Platform inteiramente para uma Wave futura, sem decidir a tecnologia agora. |
+| **Recomendação técnica, não uma decisão** | Se e quando o Founder decidir avançar, `pgvector` é o caminho de menor risco arquitetural (reaproveita o Postgres já oficial desde a RC-2, nenhum serviço novo para operar) — mas esta é uma recomendação, não uma escolha desta Architecture Review. |
+| **Não decidido por este documento** | Se/quando Knowledge Platform avança, e qual tecnologia. Aguardando o Founder. |
+
+### 15.2 Enterprise Agents — framework de orquestração multi-agente (além do Risk Advisor PoC)
+
+| | |
+|---|---|
+| **Gatilho acionado** | "Necessidade de alteração arquitetural significativa" e, dependendo do desenho escolhido, "criação de novos Bounded Contexts" |
+| **Por quê** | Os 3 agentes reais de hoje são chamadas diretas e isoladas a `LLMProvider` via `PromptRegistry`, sem comunicação entre si, sem memória compartilhada, sem roteamento. Generalizar de 1 Advisor (Risk Advisor, autorizado no Epic W3-3 da AR-2 como prova de conceito, por já ter um Accelerator real por trás) para os 8 nomeados no Blueprint da Wave 3 exige inventar esse framework — decisão de arquitetura de produto inteiramente nova, sem precedente em nenhum documento aprovado. |
+| **Escopo já autorizado, sem esperar esta decisão** | Epic W3-3 (Risk Advisor, prova de conceito isolada) prossegue normalmente — não aciona este gatilho, desde que sua Technical Design confirme que nenhum framework de orquestração está sendo introduzido (guarda-corpo já registrado na AR-2). |
+| **Não decidido por este documento** | Se/quando os demais 7 Advisors avançam, e qual forma o framework de orquestração assume. Aguardando o Founder, informado pelo resultado do PoC do Risk Advisor. |
+
+**Nenhuma destas duas pendências bloqueia o restante da Wave 3** (Epic W3-1 Project Identity Unification, Epic W3-2 AI Platform Foundation, Epic W3-3 Risk Advisor) — apenas os 2 sub-espaços específicos acima permanecem fora de escopo até o Founder decidir.

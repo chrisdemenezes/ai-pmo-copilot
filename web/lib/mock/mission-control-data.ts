@@ -99,6 +99,7 @@ export interface RecentDecisionEntry {
 }
 
 export const RECENT_DECISIONS: RecentDecisionEntry[] = [
+  { id: "D-039", summary: "Wave 3 aberta: Architecture Review AR-2 concluída, Epic Ledger definido (W3-1 Project Identity Unification, W3-2 AI Platform Foundation, W3-3 Risk Advisor PoC); Knowledge Platform e demais Enterprise Agents bloqueados por Decision Proposal ao Founder" },
   { id: "D-038", summary: "Wave 2 encerrada: Capability User Management implementada (migração 0009, RBAC, auditoria, Backend→BFF→Frontend) — Épico Enterprise Administration completo para o escopo mínimo aprovado" },
   { id: "D-037", summary: "RC-2: PostgreSQL torna-se o banco oficial (dev + produção); suíte de testes migrada de SQLite para bancos Postgres efêmeros por teste — nenhuma mudança de domínio/arquitetura" },
   { id: "D-036", summary: "Wave 2 Sprint 5: frontend migrado para a API real — arrays semeados deletados, seed movido para o banco (migração 0008), demo user com papel viewer" },
@@ -125,6 +126,7 @@ export interface ProductPulseEntry {
 
 /** Release 0.2, Capability 03 -- Product Pulse (topo do Mission Control). */
 export const PRODUCT_PULSE_TODAY: ProductPulseEntry[] = [
+  { label: "Wave 3 aberta: Architecture Review AR-2 concluída, Epic Ledger definido — W3-1/W3-2/W3-3 liberados, Knowledge Platform e demais Enterprise Agents bloqueados aguardando decisão do Founder", done: true },
   { label: "Wave 2 encerrada: Capability User Management implementada (migração 0009, RBAC, auditoria, Backend→BFF→Frontend) — Épico Enterprise Administration completo, Wave 2 declarada 100% concluída", done: true },
   { label: "RC-2 Enterprise Certification concluída e publicada", done: true },
   { label: "PR #44 mergeado em main — baseline oficial pós Capabilities 01-03 + AR-1 + RC-2", done: true },
@@ -175,8 +177,8 @@ export const ENTERPRISE_PROGRAM_WAVES: WaveEntry[] = [
   {
     code: "Wave 3",
     name: "Enterprise Intelligence",
-    status: "Not Started",
-    detail: "Sem Blueprint próprio ainda -- 3 de 12 Accelerators existem, mas sobre o modelo V1. Nenhuma Sprint planejável em detalhe até um Blueprint dedicado existir.",
+    status: "In Progress",
+    detail: "Architecture Review AR-2 concluída (Decision Log D-039) -- Epic Ledger: W3-1 Project Identity Unification (TD-008 Fase 3) e W3-2 AI Platform Foundation liberados para início imediato; W3-3 Risk Advisor liberado condicionalmente (guarda-corpo contra framework de orquestração). Knowledge Platform e os demais 7 Enterprise Agents bloqueados -- Decision Proposal ao Founder (Master Execution Program §15).",
   },
   {
     code: "Wave 4",
@@ -276,6 +278,12 @@ export interface ArchitectureReviewEntry {
 
 /** AR-1 (Release 0.2) -- checkpoint formal entre a Capability 03 e a Capability 04, não uma Capability em si. */
 export const ARCHITECTURE_REVIEWS: ArchitectureReviewEntry[] = [
+  {
+    code: "AR-2",
+    name: "Wave 3 Readiness (Enterprise Intelligence)",
+    status: "Approved with Observations",
+    note: "Baseline aprovado sem correções de código; 2 sub-áreas (Knowledge Platform, Enterprise Agents além do Risk Advisor) bloqueadas por Decision Proposal ao Founder; ver AR-2-WAVE-3-ARCHITECTURE-REVIEW.md",
+  },
   {
     code: "AR-1",
     name: "Baseline Certification (Capabilities 01-03)",
