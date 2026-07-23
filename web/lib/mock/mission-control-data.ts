@@ -113,6 +113,7 @@ export interface RecentDecisionEntry {
 }
 
 export const RECENT_DECISIONS: RecentDecisionEntry[] = [
+  { id: "D-044", summary: "Baseline oficial consolidada: PR #45 mergeado na main (hash d8ff04d), todos os checks essenciais revalidados (backend, frontend, PostgreSQL, migrations upgrade/downgrade/re-upgrade); bug de CI real corrigido (validate nunca provisionava Postgres). Risk Advisor ainda não iniciado -- próximo: Security Hardening Gate" },
   { id: "D-043", summary: "Wave 3, Epic W3-3: Enterprise Domain Blueprint do Risk Advisor concluído (somente leitura, reaproveita Project/AnalysisRecord, sem framework de orquestração) — Implementação bloqueada até o Founder decidir C-1/C-2 e a main ser consolidada (PR #45)" },
   { id: "D-042", summary: "Repository Audit Wave 3: Go with Conditions — 2 achados críticos de segurança pré-existentes (intelligence.py sem RBAC; AnalysisRecord sem organization_id) registrados como Decision Proposal; Epic W3-3 não avança para Implementação até o Founder decidir" },
   { id: "D-041", summary: "Wave 3, Epic W3-2 avaliado e adiado: AI Platform Foundation não tem consumidor real hoje (nenhum caso de uso de multi-provider, versionamento de prompt ou custo/token) — nenhum código produzido, Wave avança para W3-3" },
@@ -144,6 +145,7 @@ export interface ProductPulseEntry {
 
 /** Release 0.2, Capability 03 -- Product Pulse (topo do Mission Control). */
 export const PRODUCT_PULSE_TODAY: ProductPulseEntry[] = [
+  { label: "Baseline oficial consolidada: PR #45 mergeado na main (d8ff04d), todos os checks essenciais revalidados; Security Hardening Gate (C-1/C-2) autorizado em seguida", done: true },
   { label: "Repository Audit Wave 3: Go with Conditions — 2 achados críticos de segurança pré-existentes registrados como Decision Proposal; Epic W3-3 aguarda decisão do Founder antes da Implementação", done: true },
   { label: "Wave 3, Epic W3-2 avaliado e adiado (sem consumidor real hoje) — Wave avança para o Epic W3-3 (Risk Advisor)", done: true },
   { label: "Wave 3, Epic W3-1 concluído: Project Identity Unification (TD-008 Fase 3a) — bug de agrupamento de portfólio corrigido, project_id aditivo na API/frontend", done: true },
@@ -199,7 +201,7 @@ export const ENTERPRISE_PROGRAM_WAVES: WaveEntry[] = [
     code: "Wave 3",
     name: "Enterprise Intelligence",
     status: "In Progress",
-    detail: "AR-2 (D-039), Epic W3-1 concluído (D-040), Epic W3-2 adiado (D-041), Repository Audit Go with Conditions (D-042), Epic W3-3 Blueprint concluído mas Implementação bloqueada (D-043) aguardando decisão do Founder sobre 2 achados críticos de segurança pré-existentes (Master Execution Program §16) e a consolidação da main (PR #45). Knowledge Platform e os demais 7 Enterprise Agents bloqueados -- Decision Proposal ao Founder (§15).",
+    detail: "Baseline oficial consolidada na main (D-044, hash d8ff04d). AR-2 (D-039), Epic W3-1 concluído (D-040), Epic W3-2 adiado (D-041), Repository Audit Go with Conditions (D-042), Epic W3-3 Blueprint concluído (D-043). Security Hardening Gate (C-1/C-2, Master Execution Program §16) em andamento -- Risk Advisor aguarda seu encerramento antes de retomar a Implementação.",
   },
   {
     code: "Wave 4",

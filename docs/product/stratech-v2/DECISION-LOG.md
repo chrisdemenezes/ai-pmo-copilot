@@ -304,6 +304,27 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Nenhum Blueprint, Domain Model ou ADR aprovado foi alterado.**
 - **Missão:** Wave 3, Epic W3-3 (Blueprint apenas, Implementação pendente).
 
+### D-044 — Baseline oficial consolidada: PR #45 mergeado na `main`, todos os checks essenciais revalidados
+
+- **Contexto:** o Founder autorizou o merge imediato da PR #45 (Wave 2 closure + abertura da Wave 3, Phase 2 Foundation → Repository Audit) e exigiu revalidação completa sobre a `main` após o merge.
+- **Merge:** PR #45 mergeado via `merge` commit — hash final da `main`: **`d8ff04d5db3999a3defafdc8ee9362e0ab7308b3`** (branch origem: `claude/stratech-permanent-principles-yjnm74` @ `2362688`; branch destino: `main`, anterior em `3eb9f18`). Árvore do merge commit confirmada idêntica (`git diff` vazio) ao HEAD da branch de origem — nenhuma surpresa introduzida pelo merge. Branch remota `origin/main` confirmada sincronizada com o local (`git fetch` + `git log` no mesmo hash).
+- **Checks essenciais revalidados sobre a `main` (não a branch de origem) após o merge:**
+
+| Check | Resultado |
+|---|---|
+| Backend (`pytest`) | 282 passed |
+| `ruff check src tests` | Limpo |
+| Frontend `tsc --noEmit` | Limpo |
+| Frontend `eslint .` | Limpo |
+| Frontend `vitest run` | 437 passed |
+| Integração PostgreSQL | Confirmada — toda a suíte de integração já roda sobre Postgres real (`tests/db.py`) |
+| Migrations (upgrade → downgrade → re-upgrade, `0001`→`0009`→`base`→`0009`) | Round-trip completo validado em banco descartável, limpo em todas as 3 direções |
+
+- **Achado incidental durante a validação de PR #45:** a falha de CI real reportada pelo GitHub (`check_run` 89228306744, job `validate`) revelou que `.github/workflows/ci.yml` nunca provisionava um serviço PostgreSQL — o job falhava deterministicamente (não uma flakiness) desde que a RC-2 tornou Postgres obrigatório para a suíte de integração. Corrigido durante a mesma sessão (serviço `postgres:16`, `aipmo`/`aipmo`, healthcheck `pg_isready`) — ambos os checks obrigatórios (`validate`, `frontend`) ficaram verdes na `PR #45` antes do merge ser autorizado.
+- **Governança atualizada:** Mission Control, CHANGELOG (esta entrada).
+- **Confirmação:** a `main` representa a baseline oficial da Wave 3 em progresso (Epics W3-1 concluído, W3-2 adiado, W3-3 com Blueprint concluído e Implementação bloqueada). Per a própria autorização do Founder, **a implementação do Risk Advisor não foi iniciada** — próximo passo autorizado é o Security Hardening Gate (C-1/C-2).
+- **Missão:** Repository Audit Wave 3, Etapa 2 (consolidação da `main`).
+
 ---
 
 ## Convenção

@@ -213,3 +213,22 @@ Full repository audit (structure, code/dependencies, database/PostgreSQL, tests/
 **No code produced.** Implementation is explicitly held pending two dependencies outside this Epic's control: the Founder's decision on the C-1/C-2 security Decision Proposal (the Risk Advisor would otherwise inherit intelligence.py's missing RBAC/org-scoping), and the main branch merge (PR #45).
 
 **Decision Log:** D-043.
+
+## Baseline consolidation — PR #45 merged to main (2026-07-23)
+
+Per the Founder's authorization, PR #45 (Wave 2 closure + Wave 3 opening, Phase 2 Foundation through the Repository Audit) merged into `main`. Final `main` hash: **`d8ff04d5db3999a3defafdc8ee9362e0ab7308b3`**. Merge commit tree confirmed identical to the source branch (`git diff` empty) -- no surprises introduced. `origin/main` confirmed synchronized.
+
+**Essential checks re-validated directly on `main`:**
+- Backend (`pytest`): 282 passed
+- `ruff check src tests`: clean
+- Frontend `tsc --noEmit`: clean
+- Frontend `eslint .`: clean
+- Frontend `vitest run`: 437 passed
+- PostgreSQL integration: confirmed (entire integration suite already runs on real Postgres)
+- Migrations: full upgrade (0001→0009) → downgrade (base) → re-upgrade round trip validated clean on a disposable database
+
+**Incidental finding while validating PR #45**: the real CI failure GitHub reported on the PR revealed `.github/workflows/ci.yml`'s `validate` job never provisioned a PostgreSQL service -- a deterministic failure (not flakiness) since RC-2 made Postgres required for the integration suite. Fixed in the same session (`postgres:16` service, `aipmo`/`aipmo`, `pg_isready` healthcheck) -- both required checks were green before the merge was authorized.
+
+**Per the Founder's explicit instruction, Risk Advisor implementation has not started.** Next: Security Hardening Gate (C-1/C-2).
+
+**Decision Log:** D-044.
