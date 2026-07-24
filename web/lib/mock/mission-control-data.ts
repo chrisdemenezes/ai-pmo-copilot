@@ -113,6 +113,7 @@ export interface RecentDecisionEntry {
 }
 
 export const RECENT_DECISIONS: RecentDecisionEntry[] = [
+  { id: "D-052", summary: "Wave Completion Review retrospectivo, item 4: Configurações da Organização e Tenant/System Settings formalmente separados -- auditoria exaustiva do repositório não encontrou nenhuma definição funcional concreta para Configurações (fica 'Sem Escopo Funcional Definido', não implementado); Tenant/System Settings depende das 7 perguntas sem resposta do Business Model Blueprint (Wave 6, 'Pendente de Decisão de Negócio'); melhoria de infraestrutura (rate limit por org) rejeitada como substituto para encerrar o item -- fecha como Governança Concluída, não Implementado" },
   { id: "D-051", summary: "Wave Completion Review retrospectivo, item 3: API Keys implementado -- correção arquitetural retroativa (Nível 3 \"depende de Integration Hub\" -> Nível 1 \"fundamental\"); chave autentica como o usuário criador, reaproveita 100% do RBAC/auditoria/Argon2 já existentes; segunda via de autenticação aditiva em get_request_context (X-Stratech-Api-Key), toda rota já protegida ganha suporte sem mudança própria; princípio permanente do Founder registrado: componente fundamental nunca depende de componente futuro" },
   { id: "D-050", summary: "Wave Completion Review retrospectivo, item 2: TD-004/005/006 resolvidos -- race de invalidação do React Query corrigida (cancelQueries antes de invalidateQueries nos 3 hooks de mutação de Analisar Projeto); verificação A/B controlada confirma a causa raiz e a correção" },
   { id: "D-049", summary: "Wave Completion Review retrospectivo, item 1: Event Foundation (Wave 1) implementado -- EventEmitter Protocol + NoOpEventEmitter, DomainService emite 5 eventos de domínio já especificados na Technical Design; Wave 1 fechada -- 341 testes backend validados" },
@@ -152,6 +153,7 @@ export interface ProductPulseEntry {
 
 /** Release 0.2, Capability 03 -- Product Pulse (topo do Mission Control). */
 export const PRODUCT_PULSE_TODAY: ProductPulseEntry[] = [
+  { label: "Wave Completion Review retrospectivo, item 4: Configurações da Organização (D-052) reclassificada como Sem Escopo Funcional Definido; Tenant/System Settings Pendente de Decisão de Negócio (Wave 6) -- Governança Concluída, sem código especulativo", done: true },
   { label: "Wave Completion Review retrospectivo, item 3: API Keys implementado (D-051) -- Blueprint corrigido (API Keys é Nível 1, não depende de Integration Hub), chave autentica como o usuário criador, RBAC/auditoria/Argon2 100% reaproveitados", done: true },
   { label: "Wave Completion Review retrospectivo, item 2: TD-004/005/006 resolvidos (D-050) -- race de invalidação do React Query corrigida nos 3 hooks de mutação de Analisar Projeto", done: true },
   { label: "Wave Completion Review retrospectivo, item 1: Event Foundation (Wave 1) implementado -- EventEmitter Protocol + NoOpEventEmitter, 5 eventos de domínio emitidos por DomainService; Wave 1 fechada", done: true },

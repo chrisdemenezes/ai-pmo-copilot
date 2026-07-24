@@ -373,3 +373,17 @@ The Founder issued a permanent decision: an architectural dependency never autho
 - Extended: `tests/test_administration_repository.py`, `tests/test_administration_api.py`, `web/components/shell/navigation.test.ts`, `web/e2e/shell.spec.ts` (nav count 10 -> 11).
 
 **Decision Log:** D-051.
+
+## Wave Completion Review retrospective, item 4 (2026-07-24): Configurações da Organização / Tenant System Settings separated and reclassified -- Governance Concluded, not Implemented
+
+Sequencing item 4 ("Tenant/System Settings") initially considered per-organization rate limiting as the buildable scope for "Configurações da Organização." The Founder corrected this: making rate limiting organization-aware is a platform infrastructure improvement, not an Organização Settings feature, and using it to close the Epic would violate the explicit rule against "using infrastructure improvements just to justify closing an Epic." A mandatory repository-wide audit followed: does any official document (Blueprints, Technical Designs, Business Model Blueprint, Mission Control, Decision Log, backlog, roadmap) specify any concrete content for "Configurações da Organização"?
+
+**Result: no.** Every occurrence of the term across the repository is either a bare label in a list of admin sub-areas, or an explicit statement that scope is still undefined -- no field (language, timezone, branding, notifications, default role, feature flags) is named anywhere. `Organization` (`src/database/models.py`) has no settings column.
+
+**Reclassified (`DOMAIN-BLUEPRINT-ENTERPRISE-ADMINISTRATION.md` new §0.1), two distinct concepts, two distinct statuses:**
+- **Configurações da Organização** (functional preferences) -> **No Defined Functional Scope.** Not an architectural or business-model block -- a genuine absence of a product requirement. Stays out of scope until the Founder defines concrete content; must not be filled with invented behavior or a repurposed infrastructure improvement.
+- **Tenant/System Settings** (SaaS commercial model -- plans, billing, per-paying-tenant isolated config) -> **Pending Business Decision (Wave 6 -- `BUSINESS-MODEL-BLUEPRINT.md`).** Depends entirely on that document's 7 unanswered questions -- a real, never-answered business decision, not an eliminable architectural dependency under D-051's permanent principle.
+
+**No code produced.** This item closes as Governance Concluded: the audit is complete, both concepts are formally separated and documented in a non-ambiguous, trackable state, but there is no functional requirement to implement until the Founder changes either status.
+
+**Decision Log:** D-052.
