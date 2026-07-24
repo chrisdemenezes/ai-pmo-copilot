@@ -731,3 +731,72 @@ class TestApiKeys:
         )
 
         assert response.status_code == 403
+
+
+class TestSessions:
+    """Item 5 -- server-side sessions (resolves TD-010)."""
+
+    def test_list_sessions_returns_only_active_scoped_by_organization(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        admin_id = _actor(repo, org_id)
+        repo.administration.create_session("sess-active", admin_id, org_id)
+        repo.administration.create_session("sess-revoked", admin_id, org_id)
+        repo.administration.revoke_session("sess-revoked")
+
+        response = test_client.get("/api/admin/sessions", headers=_headers(org_id, admin_id))
+
+        assert response.status_code == 200
+        body = response.json()
+        assert [s["id"] for s in body] == ["sess-active"]
+        assert body[0]["user_id"] == admin_id
+
+    def test_revoke_session_returns_200_with_the_revoked_row(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        admin_id = _actor(repo, org_id)
+        repo.administration.create_session("sess-1", admin_id, org_id)
+
+        response = test_client.delete(
+            "/api/admin/sessions/sess-1", headers=_headers(org_id, admin_id)
+        )
+
+        assert response.status_code == 200
+        assert response.json()["revoked_at"] is not None
+        assert repo.administration.is_session_revoked("sess-1") is True
+
+    def test_revoke_unknown_session_returns_404(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        admin_id = _actor(repo, org_id)
+
+        response = test_client.delete(
+            "/api/admin/sessions/does-not-exist", headers=_headers(org_id, admin_id)
+        )
+
+        assert response.status_code == 404
+
+    def test_cannot_revoke_a_session_from_another_organization(self, client):
+        test_client, repo = client
+        org_a = repo.enterprise.create_organization("Org A")
+        org_b = repo.enterprise.create_organization("Org B")
+        admin_a = _actor(repo, org_a)
+        admin_b = _actor(repo, org_b)
+        repo.administration.create_session("sess-a", admin_a, org_a)
+
+        response = test_client.delete(
+            "/api/admin/sessions/sess-a", headers=_headers(org_b, admin_b)
+        )
+
+        assert response.status_code == 404
+        assert repo.administration.is_session_revoked("sess-a") is False
+
+    def test_viewer_cannot_manage_sessions(self, client):
+        """sessions.manage is organization_admin only (migration 0012)."""
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        viewer_id = _actor(repo, org_id, "viewer")
+
+        response = test_client.get("/api/admin/sessions", headers=_headers(org_id, viewer_id))
+
+        assert response.status_code == 403

@@ -284,6 +284,11 @@ function omitHashedSecret(apiKey) {
   return copy;
 }
 
+// Item 5 -- server-side sessions (resolves TD-010). Login mints one, logout
+// and the admin DELETE revoke it, GET lists the active (non-revoked) ones.
+const ADMIN_SESSIONS = [];
+let nextAdminSessionSeq = 1;
+
 function resetAdminFixtures() {
   ADMIN_USERS.length = 0;
   ADMIN_USERS.push(...JSON.parse(JSON.stringify(PRISTINE_ADMIN_USERS)));
@@ -292,6 +297,8 @@ function resetAdminFixtures() {
   nextAdminUserId = 1000;
   ADMIN_API_KEYS.length = 0;
   nextAdminApiKeyId = 1;
+  ADMIN_SESSIONS.length = 0;
+  nextAdminSessionSeq = 1;
 }
 resetAdminFixtures();
 
@@ -577,7 +584,16 @@ const server = http.createServer((req, res) => {
         email === E2E_USER.email &&
         password === E2E_USER.password
       ) {
-        return send(res, 200, { user_id: 1, organization_id: 1 });
+        const sessionId = `e2e-session-${nextAdminSessionSeq++}`;
+        ADMIN_SESSIONS.push({
+          id: sessionId,
+          user_id: 1,
+          organization_id: 1,
+          created_at: new Date().toISOString(),
+          last_seen_at: null,
+          revoked_at: null,
+        });
+        return send(res, 200, { user_id: 1, organization_id: 1, session_id: sessionId });
       }
       return send(res, 401, { detail: "Invalid organization, email or password" });
     });
@@ -588,7 +604,11 @@ const server = http.createServer((req, res) => {
     let body = "";
     req.on("data", (chunk) => (body += chunk));
     req.on("end", () => {
-      JSON.parse(body); // {session_id, user_id} -- acknowledged, nothing persisted
+      const { session_id: sessionId } = JSON.parse(body);
+      const session = ADMIN_SESSIONS.find((s) => s.id === sessionId);
+      if (session && session.revoked_at === null) {
+        session.revoked_at = new Date().toISOString();
+      }
       return send(res, 200, { acknowledged: true });
     });
     return;
@@ -798,6 +818,23 @@ const server = http.createServer((req, res) => {
     // route returns the same shape (forwardDomainRequest always parses a
     // JSON body, which a body-less 204 can't satisfy).
     return send(res, 200, omitHashedSecret(apiKey));
+  }
+
+  // Sessions (item 5, resolves TD-010).
+  if (req.method === "GET" && url.pathname === "/api/admin/sessions") {
+    return send(res, 200, ADMIN_SESSIONS.filter((s) => s.revoked_at === null));
+  }
+
+  const sessionMatch = url.pathname.match(/^\/api\/admin\/sessions\/([^/]+)$/);
+  if (sessionMatch && req.method === "DELETE") {
+    const sessionId = decodeURIComponent(sessionMatch[1]);
+    const session = ADMIN_SESSIONS.find((s) => s.id === sessionId);
+    if (!session || session.revoked_at !== null) {
+      return send(res, 404, { detail: "Session not found" });
+    }
+    session.revoked_at = new Date().toISOString();
+    // 200 with the revoked resource, not a bare 204 (same reason as api-keys).
+    return send(res, 200, session);
   }
 
   // project_name is a query param here, not a path segment -- matches the

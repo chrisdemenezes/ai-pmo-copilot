@@ -35,7 +35,7 @@ test("redirects the root route to /dashboard when authenticated", async ({ page 
   await expect(page).toHaveURL(/\/dashboard/);
 });
 
-test("renders exactly eleven nav items, only Dashboard active on /dashboard", async ({ page }) => {
+test("renders exactly twelve nav items, only Dashboard active on /dashboard", async ({ page }) => {
   await login(page);
 
   const visibleNav = (await page.viewportSize())!.width < MOBILE_BREAKPOINT
@@ -43,7 +43,7 @@ test("renders exactly eleven nav items, only Dashboard active on /dashboard", as
     : page.getByTestId("sidebar-nav");
 
   const links = visibleNav.getByRole("link");
-  await expect(links).toHaveCount(11);
+  await expect(links).toHaveCount(12);
   await expect(links.first()).toHaveAttribute("aria-current", "page");
   await expect(links.first()).toHaveAttribute("href", "/dashboard");
   await expect(links.nth(1)).not.toHaveAttribute("aria-current", "page");
@@ -65,7 +65,9 @@ test("renders exactly eleven nav items, only Dashboard active on /dashboard", as
   await expect(links.nth(9)).not.toHaveAttribute("aria-current", "page");
   await expect(links.nth(9)).toHaveAttribute("href", "/administracao/api-keys");
   await expect(links.nth(10)).not.toHaveAttribute("aria-current", "page");
-  await expect(links.nth(10)).toHaveAttribute("href", "/mission-control");
+  await expect(links.nth(10)).toHaveAttribute("href", "/administracao/sessoes");
+  await expect(links.nth(11)).not.toHaveAttribute("aria-current", "page");
+  await expect(links.nth(11)).toHaveAttribute("href", "/mission-control");
 });
 
 test("shows the sidebar shape appropriate to the current breakpoint", async ({ page }) => {

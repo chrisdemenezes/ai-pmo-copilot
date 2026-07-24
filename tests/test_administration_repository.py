@@ -507,3 +507,75 @@ class TestApiKeys:
         repo.administration.touch_api_key_last_used(api_key.id)
 
         assert repo.administration.get_api_key(api_key.id, org_id).last_used_at is not None
+
+
+class TestSessions:
+    """Item 5 -- server-side session store resolving TD-010."""
+
+    def test_create_and_list_active_sessions_newest_first(self, repo):
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = repo.enterprise.create_user(org_id, "admin@example.com", "Admin")
+
+        first = repo.administration.create_session("sess-1", user_id, org_id)
+        second = repo.administration.create_session("sess-2", user_id, org_id)
+
+        active = repo.administration.list_active_sessions(org_id)
+        assert [s.id for s in active] == [second.id, first.id]
+
+    def test_list_active_sessions_scoped_by_organization(self, repo):
+        org_a = repo.enterprise.create_organization("Org A")
+        org_b = repo.enterprise.create_organization("Org B")
+        user_a = repo.enterprise.create_user(org_a, "a@example.com", "A")
+        user_b = repo.enterprise.create_user(org_b, "b@example.com", "B")
+        repo.administration.create_session("sess-a", user_a, org_a)
+        repo.administration.create_session("sess-b", user_b, org_b)
+
+        assert [s.id for s in repo.administration.list_active_sessions(org_a)] == ["sess-a"]
+
+    def test_revoke_session_excludes_it_from_active_list_and_is_idempotent(self, repo):
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = repo.enterprise.create_user(org_id, "admin@example.com", "Admin")
+        repo.administration.create_session("sess-1", user_id, org_id)
+
+        revoked = repo.administration.revoke_session("sess-1")
+        assert revoked.revoked_at is not None
+        assert repo.administration.list_active_sessions(org_id) == []
+
+        # Revoking an already-revoked session returns None, never a second event.
+        assert repo.administration.revoke_session("sess-1") is None
+
+    def test_revoke_unknown_session_returns_none(self, repo):
+        assert repo.administration.revoke_session("does-not-exist") is None
+
+    def test_is_session_revoked_only_true_for_explicitly_revoked_rows(self, repo):
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = repo.enterprise.create_user(org_id, "admin@example.com", "Admin")
+        repo.administration.create_session("sess-active", user_id, org_id)
+        repo.administration.create_session("sess-revoked", user_id, org_id)
+        repo.administration.revoke_session("sess-revoked")
+
+        assert repo.administration.is_session_revoked("sess-revoked") is True
+        assert repo.administration.is_session_revoked("sess-active") is False
+        # An unknown id (predating the store / a fabricated one) is active,
+        # never revoked -- this is what keeps existing sessions from breaking.
+        assert repo.administration.is_session_revoked("never-seen") is False
+
+    def test_get_session_returns_row_including_organization(self, repo):
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = repo.enterprise.create_user(org_id, "admin@example.com", "Admin")
+        repo.administration.create_session("sess-1", user_id, org_id)
+
+        session = repo.administration.get_session("sess-1")
+        assert session.organization_id == org_id
+        assert session.user_id == user_id
+        assert repo.administration.get_session("nope") is None
+
+    def test_touch_session_last_seen_sets_timestamp(self, repo):
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = repo.enterprise.create_user(org_id, "admin@example.com", "Admin")
+        repo.administration.create_session("sess-1", user_id, org_id)
+        assert repo.administration.get_session("sess-1").last_seen_at is None
+
+        repo.administration.touch_session_last_seen("sess-1")
+
+        assert repo.administration.get_session("sess-1").last_seen_at is not None

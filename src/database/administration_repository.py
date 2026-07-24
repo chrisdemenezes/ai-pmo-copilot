@@ -7,18 +7,11 @@ the established alternative). Covers Épico 5 Nível 1 (Organizations/Users/
 Roles read, Auditoria) and the ratified Nível 2 subset that needed no new
 domain concept (Logs, served by the same audit_logs table as Auditoria).
 
-Nível 2's "Sessões" and "Segurança" are deliberately NOT here:
-`DOMAIN-BLUEPRINT-ENTERPRISE-ADMINISTRATION.md` §2 described Sessões as a
-"painel é só leitura+revogação sobre o que já existe" -- but no
-server-side session store exists (`auth_service.py`'s `logout()`
-docstring: "No server-side session store exists yet, TDS Section 15.2" --
-sessions are a stateless HMAC-signed cookie). Listing/revoking sessions
-the Blueprint described is not buildable without a new session-store
-component, a bigger scope than "extensão de baixo risco" assumed --
-correction registered in the Decision Log, not silently implemented as a
-fake list. "Configurações" stays out per the Blueprint's own deferral
-(needs product scope definition first).
-"""
+"Sessões" (item 5 of the Wave Completion Review retrospective, resolving
+TD-010) is implemented below alongside API Keys -- the session store this
+docstring used to say didn't exist. "Configurações" stays out per the
+Blueprint's own deferral (D-052: no functional scope defined anywhere in
+the repository, not an architectural or business-model block)."""
 import logging
 from datetime import datetime, timezone
 
@@ -40,6 +33,7 @@ from src.database.models import (
     RolePermission,
     User,
     UserRole,
+    UserSession,
 )
 from src.services.identity.email_normalization import normalize_email
 
@@ -483,3 +477,76 @@ class AdministrationRepository:
                 return
             api_key.last_used_at = datetime.now(timezone.utc)
             session.commit()
+
+    # -- Sessions (item 5, resolves TD-010) -----------------------------
+
+    def create_session(
+        self, session_id: str, user_id: int, organization_id: int
+    ) -> UserSession:
+        with self._session_factory() as db_session:
+            user_session = UserSession(
+                id=session_id, user_id=user_id, organization_id=organization_id
+            )
+            db_session.add(user_session)
+            db_session.commit()
+            db_session.refresh(user_session)
+            logger.info(
+                "Created session id=%s user_id=%s organization_id=%s",
+                session_id,
+                user_id,
+                organization_id,
+            )
+            return user_session
+
+    def list_active_sessions(self, organization_id: int) -> list[UserSession]:
+        with self._session_factory() as db_session:
+            return (
+                db_session.query(UserSession)
+                .filter(
+                    UserSession.organization_id == organization_id,
+                    UserSession.revoked_at.is_(None),
+                )
+                .order_by(UserSession.created_at.desc())
+                .all()
+            )
+
+    def get_session(self, session_id: str) -> UserSession | None:
+        with self._session_factory() as db_session:
+            return db_session.get(UserSession, session_id)
+
+    def revoke_session(self, session_id: str) -> UserSession | None:
+        """Returns None for both "not found" and "already revoked" -- same
+        idempotency guard as `revoke_api_key`. Not organization-scoped at
+        this layer -- `session_id` is a globally unique, unguessable UUID
+        (unlike `ApiKey.id`, a small sequential integer that needs a
+        compound scope); tenant-isolation for the admin-facing revoke route
+        is enforced one level up, in `AdministrationService`, by checking
+        `get_session(...).organization_id` before calling this."""
+        with self._session_factory() as db_session:
+            user_session = db_session.get(UserSession, session_id)
+            if user_session is None or user_session.revoked_at is not None:
+                return None
+            user_session.revoked_at = datetime.now(timezone.utc)
+            db_session.commit()
+            db_session.refresh(user_session)
+            logger.info("Revoked session id=%s", session_id)
+            return user_session
+
+    def is_session_revoked(self, session_id: str) -> bool:
+        """True only when a row exists AND has been explicitly revoked --
+        an unknown session_id (e.g. one that predates this table, or a
+        fabricated id such as a test fixture) is treated as still active,
+        never as revoked. This is what lets revocation enforcement be added
+        to `require_permission` without retroactively breaking any session
+        that isn't tracked by this store."""
+        with self._session_factory() as db_session:
+            user_session = db_session.get(UserSession, session_id)
+            return user_session is not None and user_session.revoked_at is not None
+
+    def touch_session_last_seen(self, session_id: str) -> None:
+        with self._session_factory() as db_session:
+            user_session = db_session.get(UserSession, session_id)
+            if user_session is None:
+                return
+            user_session.last_seen_at = datetime.now(timezone.utc)
+            db_session.commit()

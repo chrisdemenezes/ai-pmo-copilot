@@ -7,9 +7,11 @@ without this class changing.
 """
 import logging
 import os
+import uuid
 
 from sqlalchemy.orm import sessionmaker
 
+from src.database.administration_repository import AdministrationRepository
 from src.database.enterprise_repository import EnterpriseRepository
 from src.database.project_identity import DEFAULT_ORGANIZATION_NAME, organization_slug
 from src.services.identity.email_normalization import normalize_email
@@ -35,10 +37,16 @@ class AuthService:
         session_factory: sessionmaker,
         credential_verifier: CredentialVerifier,
         enterprise_repository: EnterpriseRepository | None = None,
+        administration_repository: AdministrationRepository | None = None,
     ):
         self._session_factory = session_factory
         self._credentials = credential_verifier
         self._repo = enterprise_repository or EnterpriseRepository(session_factory)
+        # Session store (item 5, TD-010) -- the same AdministrationRepository
+        # every admin route already uses; reused here, not a second store.
+        self._administration = administration_repository or AdministrationRepository(
+            session_factory, self._repo
+        )
 
     # -- Login ---------------------------------------------------------
 
@@ -102,14 +110,28 @@ class AuthService:
             )
             return authenticated_user, organization
 
-    # -- Logout ----------------------------------------------------------
+    # -- Sessions (item 5, resolves TD-010) ------------------------------
+
+    def create_session(self, user_id: int, organization_id: int) -> str:
+        """Mint the server-side session record at login (item 5, resolves
+        TD-010). Returns the `session_id` the BFF then signs into its HMAC
+        cookie -- the id is generated here, not in the BFF, so both sides
+        track one identifier and the session becomes revocable before its
+        natural 12h expiry."""
+        session_id = str(uuid.uuid4())
+        self._administration.create_session(
+            session_id=session_id, user_id=user_id, organization_id=organization_id
+        )
+        return session_id
 
     def logout(self, session_id: str, user_id: int) -> None:
-        """No server-side session store exists yet (TDS Section 15.2) --
-        this call only records the event. Its fixed contract is what lets a
-        future epic add real server-side invalidation without a new
-        endpoint or a BFF change."""
-        logger.info("Logout acknowledged session_id=%s user_id=%s", session_id, user_id)
+        """Revokes the server-side session record (item 5, resolving
+        TD-010 -- this used to be a no-op because no session store existed).
+        Idempotent: a session_id with no matching row (e.g. one that
+        predates this store) is silently ignored, never an error, so the
+        fixed contract with the BFF is unchanged."""
+        self._administration.revoke_session(session_id)
+        logger.info("Logout: session revoked session_id=%s user_id=%s", session_id, user_id)
 
     # -- Bootstrap ---------------------------------------------------------
 

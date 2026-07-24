@@ -159,6 +159,16 @@ class ApiKeyCreatedResponse(ApiKeyResponse):
     plaintext_key: str
 
 
+class SessionResponse(BaseModel):
+    id: str
+    user_id: int
+    created_at: datetime
+    last_seen_at: datetime | None
+    revoked_at: datetime | None
+
+    model_config = {"from_attributes": True}
+
+
 @router.get("/admin/organization", response_model=OrganizationResponse, tags=["administration"])
 def get_organization(
     context: RequestContext = Depends(get_request_context),
@@ -475,3 +485,35 @@ def revoke_api_key(
     if api_key is None:
         raise HTTPException(status_code=404, detail="API key not found")
     return api_key
+
+
+@router.get("/admin/sessions", response_model=list[SessionResponse], tags=["administration"])
+def list_sessions(
+    context: RequestContext = Depends(get_request_context),
+    service: AdministrationService = Depends(build_administration_service),
+    _permission: None = Depends(require_permission("sessions.manage")),
+):
+    """Active (non-revoked) login sessions for the caller's organization
+    (item 5, resolves TD-010)."""
+    return service.list_active_sessions(context.organization.organization_id)
+
+
+@router.delete(
+    "/admin/sessions/{session_id}", response_model=SessionResponse, tags=["administration"]
+)
+def revoke_session(
+    session_id: str,
+    context: RequestContext = Depends(get_request_context),
+    service: AdministrationService = Depends(build_administration_service),
+    _permission: None = Depends(require_permission("sessions.manage")),
+):
+    """Returns the revoked session (200), not a bare 204 -- same convention
+    as `revoke_api_key`/`remove_role` (`forwardDomainRequest` always parses
+    a JSON body). Revoking takes effect on the session's next request via
+    `require_permission`'s revocation check."""
+    user_session = service.revoke_session(
+        session_id, context.organization.organization_id, actor_user_id=context.user.user_id
+    )
+    if user_session is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return user_session

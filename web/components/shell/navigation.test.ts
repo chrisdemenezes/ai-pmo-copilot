@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { NAV_ITEMS } from "./navigation";
 
 describe("NAV_ITEMS", () => {
-  it("contains exactly eleven entries -- the only fully real modules today (Capability 03, User Management, API Keys, Mission Control)", () => {
-    expect(NAV_ITEMS).toHaveLength(11);
+  it("contains exactly twelve entries -- the only fully real modules today (Capability 03, User Management, API Keys, Sessions, Mission Control)", () => {
+    expect(NAV_ITEMS).toHaveLength(12);
   });
 
   it("points the first entry at the real Dashboard route", () => {
@@ -57,8 +57,13 @@ describe("NAV_ITEMS", () => {
     expect(NAV_ITEMS[9].label).toBe("Chaves de API");
   });
 
-  it("points the eleventh entry at Mission Control", () => {
-    expect(NAV_ITEMS[10].href).toBe("/mission-control");
-    expect(NAV_ITEMS[10].label).toBe("Mission Control");
+  it("points the eleventh entry at the real Sessões (server-side sessions, TD-010) route", () => {
+    expect(NAV_ITEMS[10].href).toBe("/administracao/sessoes");
+    expect(NAV_ITEMS[10].label).toBe("Sessões");
+  });
+
+  it("points the twelfth entry at Mission Control", () => {
+    expect(NAV_ITEMS[11].href).toBe("/mission-control");
+    expect(NAV_ITEMS[11].label).toBe("Mission Control");
   });
 });

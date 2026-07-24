@@ -111,3 +111,41 @@ class TestRevokeApiKey:
 
     def test_revoke_unknown_key_returns_none(self, service, org_id, actor_id):
         assert service.revoke_api_key(999999, org_id, actor_id) is None
+
+
+class TestSessions:
+    """Item 5 -- server-side sessions (resolves TD-010)."""
+
+    def test_list_active_sessions_returns_only_non_revoked(
+        self, service, repository, org_id, actor_id
+    ):
+        repository.administration.create_session("sess-1", actor_id, org_id)
+        repository.administration.create_session("sess-2", actor_id, org_id)
+        service.revoke_session("sess-2", org_id, actor_id)
+
+        active = service.list_active_sessions(org_id)
+        assert [s.id for s in active] == ["sess-1"]
+
+    def test_revoke_records_an_audit_entry(self, service, repository, org_id, actor_id):
+        repository.administration.create_session("sess-1", actor_id, org_id)
+
+        service.revoke_session("sess-1", org_id, actor_id)
+
+        entries = repository.administration.list_audit_log(org_id)
+        assert entries[0].action == "session.revoked"
+        assert entries[0].details["session_id"] == "sess-1"
+
+    def test_revoke_session_from_another_organization_returns_none(
+        self, service, repository, org_id, actor_id
+    ):
+        other_org = repository.enterprise.create_organization("Org B")
+        repository.administration.create_session("sess-other", actor_id, other_org)
+
+        # An admin of org_id cannot revoke a session that belongs to org B,
+        # even though session_id is globally unique -- tenant isolation is
+        # enforced at the service layer.
+        assert service.revoke_session("sess-other", org_id, actor_id) is None
+        assert repository.administration.is_session_revoked("sess-other") is False
+
+    def test_revoke_unknown_session_returns_none(self, service, org_id, actor_id):
+        assert service.revoke_session("does-not-exist", org_id, actor_id) is None

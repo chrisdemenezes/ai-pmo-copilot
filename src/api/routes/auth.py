@@ -29,6 +29,10 @@ class LoginRequest(BaseModel):
 class LoginResponse(BaseModel):
     user_id: int
     organization_id: int
+    # Server-minted session id (item 5, resolves TD-010) -- the BFF signs
+    # this into its HMAC cookie instead of generating its own, so the
+    # backend's `sessions` table can list/revoke it before natural expiry.
+    session_id: str
 
 
 class LogoutRequest(BaseModel):
@@ -59,7 +63,14 @@ def login(request: LoginRequest, auth_service: AuthService = Depends(build_auth_
     if result is None:
         raise HTTPException(status_code=401, detail="Invalid organization, email or password")
     user, organization = result
-    return LoginResponse(user_id=user.user_id, organization_id=organization.organization_id)
+    session_id = auth_service.create_session(
+        user_id=user.user_id, organization_id=organization.organization_id
+    )
+    return LoginResponse(
+        user_id=user.user_id,
+        organization_id=organization.organization_id,
+        session_id=session_id,
+    )
 
 
 @router.post("/auth/logout", response_model=LogoutResponse)

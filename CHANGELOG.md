@@ -387,3 +387,22 @@ Sequencing item 4 ("Tenant/System Settings") initially considered per-organizati
 **No code produced.** This item closes as Governance Concluded: the audit is complete, both concepts are formally separated and documented in a non-ambiguous, trackable state, but there is no functional requirement to implement until the Founder changes either status.
 
 **Decision Log:** D-052.
+
+## Wave Completion Review retrospective, item 5 (2026-07-24): server-side sessions -- real session revocation (resolves TD-010)
+
+The STRATECH login cookie was always a stateless HMAC token with no server-side record, so "logout" only discarded the client cookie (the token stayed valid until its 12h expiry) and no session could be listed or revoked early. The Administration Blueprint wrongly assumed Sessões was "just read + revoke over what already exists"; TD-010 recorded that no store existed. Item 5 builds it.
+
+**Added**
+- `sessions` table + migration `0012` (+ `sessions.manage` permission, `organization_admin` only). The `session_id` is now minted by the backend at login (`AuthService.create_session`) instead of by the BFF's `crypto.randomUUID()`, so both sides track one id the table can revoke.
+- `AuthService.logout()` stops being a no-op and revokes the session row (idempotent). `LoginResponse` gains `session_id`; `web/lib/session.ts` signs that backend-issued id into its cookie instead of generating its own.
+- Revocation enforcement in `require_permission` via a new, overridable `build_session_revocation_checker` dependency -- a revoked session is rejected (401) on its next request, not in up to 12h. **Fail-open:** only an id with an explicit `revoked_at` row is rejected; an unknown id (predating the store, or a test fixture) is treated as active, so no existing session breaks. `api-key:` sessions are skipped (already revocable via the key).
+- Routes `GET /api/admin/sessions`, `DELETE /api/admin/sessions/{id}` (200 with the resource, not 204). Tenant isolation enforced in `AdministrationService` (checks `organization_id` before revoking, since `session_id` is globally unique). Each revocation is audited (`session.revoked`).
+- Frontend: `/administracao/sessoes` page (new "Sessões" nav entry, 12th item), list + revoke-with-confirmation, no creation (sessions are born from login).
+
+**Design note (DI):** the revocation check is a dedicated overridable dependency defaulted to "never revoked" by conftest's autouse fixture (same pattern as `verify_api_key`/`enforce_rate_limit`), so the ~12 existing API test modules -- which use fabricated session ids -- are untouched, while production (never overridden) runs the real DB-backed check.
+
+**Tests**
+- New: `tests/test_migration_0012_sessions.py`, `tests/test_session_revocation_enforcement.py`, `web/e2e/sessions-admin.spec.ts`.
+- Extended: `test_administration_repository.py`, `test_administration_service.py`, `test_administration_api.py` (all gained a `TestSessions` class), `test_auth_api.py` (login now returns/creates a session), `web/lib/session.test.ts`, `web/components/shell/navigation.test.ts`, `web/e2e/shell.spec.ts` (nav count 11 -> 12).
+
+**Decision Log:** D-053.

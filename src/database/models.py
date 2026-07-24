@@ -271,6 +271,32 @@ class ApiKey(Base):
     revoked_at = Column(DateTime(timezone=True), nullable=True)
 
 
+class UserSession(Base):
+    """Enterprise Administration -- server-side record of a login session
+    (item 5 of the Wave Completion Review retrospective, resolving TD-010).
+    Named `UserSession`, not `Session`, to avoid colliding with
+    `sqlalchemy.orm.Session` -- every repository method already uses
+    `session` as the local variable name for the SQLAlchemy ORM session.
+
+    The BFF's HMAC-signed cookie (`web/lib/session.ts`) is unchanged; this
+    table only makes the `session_id` it already carries revocable before
+    its natural 12h expiry -- `id` is that same UUID, minted by the backend
+    at login (`AuthService.create_session`) instead of by the BFF, so the
+    two sides agree on one identifier. `revoked_at` is the only field that
+    matters for enforcement (`AdministrationRepository.is_session_revoked`);
+    an id with no row at all is treated as still active, never as revoked,
+    so sessions that predate this table are never retroactively broken."""
+
+    __tablename__ = "sessions"
+
+    id = Column(String(64), primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
+    last_seen_at = Column(DateTime(timezone=True), nullable=True)
+    revoked_at = Column(DateTime(timezone=True), nullable=True)
+
+
 class AuditLog(Base):
     """Enterprise Administration, Wave 2 (Épico 5, Nível 1 -- auditoria de
     mutações). Doubles as the "Logs" surface (Nível 2,

@@ -59,10 +59,9 @@ Registro vivo de débitos arquiteturais conhecidos. Cada item tem origem, status
 
 - **Origem:** Wave 2, Sprint 4 (Enterprise Administration) — encontrada ao tentar implementar "Sessões" per `DOMAIN-BLUEPRINT-ENTERPRISE-ADMINISTRATION.md` §2.
 - **Classificação:** Médio (segurança/observabilidade prospectiva).
-- **Status:** Aberto (aceito conscientemente — não implementado nesta Sprint).
-- **Descrição:** a sessão da STRATECH é um cookie HMAC-assinado, sem estado no servidor (`src/services/identity/auth_service.py`, `logout()`: "No server-side session store exists yet"). Isso significa que não há como listar sessões ativas de um usuário nem revogar uma sessão individual antes de sua expiração natural (12h) — um logout hoje é apenas o cliente descartando o cookie, o token continua criptograficamente válido até expirar. O Blueprint de Administration assumiu incorretamente que isso já existia ("painel é só leitura+revogação sobre o que já existe").
-- **Resolver antes de:** qualquer requisito de segurança que exija revogação imediata de sessão (ex.: usuário removido/desativado deveria perder acesso instantaneamente, não em até 12h).
-- **Plano de resolução:** exigiria um componente de session store novo (ex.: tabela `sessions` com `revoked_at`, checada a cada request) — decisão de arquitetura própria, fora do escopo de "extensão de baixo risco" que o Blueprint assumiu; não avaliado em detalhe nesta Sprint.
+- **Status:** ✅ **RESOLVIDO — D-053** (item 5 do Wave Completion Review retrospectivo, 2026-07-24).
+- **Descrição:** a sessão da STRATECH era um cookie HMAC-assinado, sem estado no servidor (`src/services/identity/auth_service.py`, `logout()`: "No server-side session store exists yet"). Não havia como listar sessões ativas nem revogar uma sessão antes da expiração natural (12h) — um logout era apenas o cliente descartando o cookie. O Blueprint de Administration assumiu incorretamente que isso já existia ("painel é só leitura+revogação sobre o que já existe").
+- **Resolução (D-053):** nova tabela `sessions` (migração 0012, `revoked_at`), `session_id` cunhado pelo backend no login em vez do BFF, `AuthService.logout()` revoga a linha, e enforcement de revogação em `require_permission` (uma sessão revogada é rejeitada com 401 na requisição seguinte). Fail-open para ids não rastreados (não quebra sessões anteriores ao store). Painel `/administracao/sessoes` para listagem/revogação. Ver `TECHNICAL-DESIGN-SESSIONS.md`.
 
 ---
 

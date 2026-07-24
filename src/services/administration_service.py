@@ -7,7 +7,15 @@ every write path goes through exactly one place that remembers to audit.
 import logging
 import secrets
 
-from src.database.models import ApiKey, AuditLog, Organization, Permission, Role, User
+from src.database.models import (
+    ApiKey,
+    AuditLog,
+    Organization,
+    Permission,
+    Role,
+    User,
+    UserSession,
+)
 from src.database.repository import AnalysisRepository
 from src.services.identity.password_hashing import Argon2PasswordHasher
 
@@ -249,3 +257,32 @@ class AdministrationService:
                 self._repository.administration.touch_api_key_last_used(candidate.id)
                 return candidate
         return None
+
+    # -- Sessions (item 5, resolves TD-010) -----------------------------
+
+    def list_active_sessions(self, organization_id: int) -> list[UserSession]:
+        return self._repository.administration.list_active_sessions(organization_id)
+
+    def revoke_session(
+        self, session_id: str, organization_id: int, actor_user_id: int
+    ) -> UserSession | None:
+        """Tenant isolation is enforced here, not in the repository: a
+        session_id belonging to another organization (or one that doesn't
+        exist / is already revoked) returns None, mapped to 404 by the
+        route -- an admin can never revoke a session outside their own org
+        even though `session_id` is globally unique."""
+        existing = self._repository.administration.get_session(session_id)
+        if existing is None or existing.organization_id != organization_id:
+            return None
+        user_session = self._repository.administration.revoke_session(session_id)
+        if user_session is None:
+            return None
+        self._repository.administration.record_audit(
+            organization_id,
+            actor_user_id,
+            "session.revoked",
+            "session",
+            None,
+            {"session_id": session_id, "user_id": user_session.user_id},
+        )
+        return user_session
