@@ -5,12 +5,18 @@ record an audit entry here (not in the route, not in the repository) so
 every write path goes through exactly one place that remembers to audit.
 """
 import logging
+import secrets
 
-from src.database.models import AuditLog, Organization, Permission, Role, User
+from src.database.models import ApiKey, AuditLog, Organization, Permission, Role, User
 from src.database.repository import AnalysisRepository
 from src.services.identity.password_hashing import Argon2PasswordHasher
 
 logger = logging.getLogger(__name__)
+
+API_KEY_PREFIX = "sk_live_"
+# Displayed forever in the list view so an admin can tell keys apart
+# without the full secret ever being shown again after creation.
+API_KEY_DISPLAY_PREFIX_LENGTH = len(API_KEY_PREFIX) + 8
 
 
 class AdministrationService:
@@ -178,3 +184,68 @@ class AdministrationService:
 
     def list_audit_log(self, organization_id: int, limit: int = 50) -> list[AuditLog]:
         return self._repository.administration.list_audit_log(organization_id, limit)
+
+    # -- API Keys (D-051) ----------------------------------------------
+    #
+    # A foundational Enterprise Administration credential, not an
+    # Integration Hub artifact (see DOMAIN-BLUEPRINT-API-KEYS.md). An API
+    # Key authenticates as the user who created it -- `authenticate_api_key`
+    # below is consumed by `get_request_context`'s second auth path, and
+    # every permission check downstream is the exact same RBAC check a
+    # session-authenticated request for that user would get.
+
+    def create_api_key(self, organization_id: int, name: str, actor_user_id: int) -> tuple[ApiKey, str]:
+        """Returns (ApiKey, plaintext_key). The plaintext is never stored --
+        this is the only place in the system it exists outside the caller's
+        response, and the caller must display it to the admin exactly once."""
+        plaintext_key = API_KEY_PREFIX + secrets.token_urlsafe(32)
+        hashed_secret = self._password_hasher.hash(plaintext_key)
+        api_key = self._repository.administration.create_api_key(
+            organization_id,
+            actor_user_id,
+            name,
+            plaintext_key[:API_KEY_DISPLAY_PREFIX_LENGTH],
+            hashed_secret,
+        )
+        self._repository.administration.record_audit(
+            organization_id,
+            actor_user_id,
+            "api_key.created",
+            "api_key",
+            api_key.id,
+            {"name": name, "key_prefix": api_key.key_prefix},
+        )
+        return api_key, plaintext_key
+
+    def list_api_keys(self, organization_id: int) -> list[ApiKey]:
+        return self._repository.administration.list_api_keys(organization_id)
+
+    def revoke_api_key(
+        self, api_key_id: int, organization_id: int, actor_user_id: int
+    ) -> ApiKey | None:
+        api_key = self._repository.administration.revoke_api_key(api_key_id, organization_id)
+        if api_key is None:
+            return None
+        self._repository.administration.record_audit(
+            organization_id,
+            actor_user_id,
+            "api_key.revoked",
+            "api_key",
+            api_key_id,
+            {"name": api_key.name},
+        )
+        return api_key
+
+    def authenticate_api_key(self, plaintext_key: str) -> ApiKey | None:
+        """Never logs or raises on the plaintext -- an unrecognized or
+        revoked key is indistinguishable from a wrong one, same discipline
+        `AuthService` already applies to passwords."""
+        if not plaintext_key.startswith(API_KEY_PREFIX):
+            return None
+        prefix = plaintext_key[:API_KEY_DISPLAY_PREFIX_LENGTH]
+        candidates = self._repository.administration.list_active_api_keys_by_prefix(prefix)
+        for candidate in candidates:
+            if self._password_hasher.verify(plaintext_key, candidate.hashed_secret):
+                self._repository.administration.touch_api_key_last_used(candidate.id)
+                return candidate
+        return None

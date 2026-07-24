@@ -37,19 +37,27 @@ def test_protected_route_returns_429_after_exceeding_limit(monkeypatch):
         lambda: AlwaysAllowChecker()
     )
 
-    client = TestClient(app)
-    headers = {"X-API-Key": "secret-key", **INSTITUTIONAL_HEADERS}
+    try:
+        client = TestClient(app)
+        headers = {"X-API-Key": "secret-key", **INSTITUTIONAL_HEADERS}
 
-    first = client.get("/api/analyses", headers=headers)
-    second = client.get("/api/analyses", headers=headers)
-    third = client.get("/api/analyses", headers=headers)
+        first = client.get("/api/analyses", headers=headers)
+        second = client.get("/api/analyses", headers=headers)
+        third = client.get("/api/analyses", headers=headers)
 
-    assert first.status_code == 200
-    assert second.status_code == 200
-    assert third.status_code == 429
-    assert third.json()["detail"] == "Rate limit exceeded"
-
-    build_rate_limiter.cache_clear()
+        assert first.status_code == 200
+        assert second.status_code == 200
+        assert third.status_code == 429
+        assert third.json()["detail"] == "Rate limit exceeded"
+    finally:
+        build_rate_limiter.cache_clear()
+        # Never cleaned up before this fix -- these overrides otherwise
+        # persist for the rest of the pytest process (not reset by
+        # conftest's autouse fixture, which only covers verify_api_key/
+        # enforce_rate_limit), silently breaking any later test that needs
+        # a real repository/permission checker and doesn't override them.
+        app.dependency_overrides.pop(intelligence.build_repository, None)
+        app.dependency_overrides.pop(authorization_module.build_permission_checker, None)
 
 
 def test_rate_limit_tracks_api_keys_independently(monkeypatch):
@@ -68,21 +76,24 @@ def test_rate_limit_tracks_api_keys_independently(monkeypatch):
         lambda: AlwaysAllowChecker()
     )
 
-    client = TestClient(app)
+    try:
+        client = TestClient(app)
 
-    response_key_a = client.get(
-        "/api/analyses", headers={"X-API-Key": "key-a", **INSTITUTIONAL_HEADERS}
-    )
-    response_key_a_again = client.get(
-        "/api/analyses", headers={"X-API-Key": "key-a", **INSTITUTIONAL_HEADERS}
-    )
-    response_key_b = client.get(
-        "/api/analyses", headers={"X-API-Key": "key-b", **INSTITUTIONAL_HEADERS}
-    )
+        response_key_a = client.get(
+            "/api/analyses", headers={"X-API-Key": "key-a", **INSTITUTIONAL_HEADERS}
+        )
+        response_key_a_again = client.get(
+            "/api/analyses", headers={"X-API-Key": "key-a", **INSTITUTIONAL_HEADERS}
+        )
+        response_key_b = client.get(
+            "/api/analyses", headers={"X-API-Key": "key-b", **INSTITUTIONAL_HEADERS}
+        )
 
-    assert response_key_a.status_code == 200
-    assert response_key_a_again.status_code == 429
-    assert response_key_b.status_code == 200
-
-    build_rate_limiter.cache_clear()
-    app.dependency_overrides.pop(verify_api_key, None)
+        assert response_key_a.status_code == 200
+        assert response_key_a_again.status_code == 429
+        assert response_key_b.status_code == 200
+    finally:
+        build_rate_limiter.cache_clear()
+        app.dependency_overrides.pop(verify_api_key, None)
+        app.dependency_overrides.pop(intelligence.build_repository, None)
+        app.dependency_overrides.pop(authorization_module.build_permission_checker, None)

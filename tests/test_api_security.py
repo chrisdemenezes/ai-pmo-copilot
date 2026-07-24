@@ -64,17 +64,26 @@ def test_protected_route_returns_200_when_api_key_header_is_correct(monkeypatch)
     app.dependency_overrides[authorization_module.build_permission_checker] = (
         lambda: AlwaysAllowChecker()
     )
-    client = TestClient(app)
+    try:
+        client = TestClient(app)
 
-    response = client.get(
-        "/api/analyses",
-        headers={
-            "X-API-Key": "secret-key",
-            "X-Stratech-User-Id": "1",
-            "X-Stratech-Organization-Id": "1",
-            "X-Stratech-Session-Id": "session-1",
-        },
-    )
+        response = client.get(
+            "/api/analyses",
+            headers={
+                "X-API-Key": "secret-key",
+                "X-Stratech-User-Id": "1",
+                "X-Stratech-Organization-Id": "1",
+                "X-Stratech-Session-Id": "session-1",
+            },
+        )
 
-    assert response.status_code == 200
-    assert response.json() == []
+        assert response.status_code == 200
+        assert response.json() == []
+    finally:
+        # Never cleaned up before this fix -- `intelligence.build_repository`
+        # is the same `src.api.dependencies.build_repository` every other
+        # route module's Depends(...) resolves to, so leaving `FakeRepository`
+        # in place here silently broke any *later* test in the same pytest
+        # process that needed a real repository and didn't override it itself.
+        app.dependency_overrides.pop(intelligence.build_repository, None)
+        app.dependency_overrides.pop(authorization_module.build_permission_checker, None)

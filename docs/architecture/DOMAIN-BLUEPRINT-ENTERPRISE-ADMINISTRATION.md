@@ -8,6 +8,24 @@
 
 ---
 
+## 0. Correção de escopo — API Keys (D-051, substitui a classificação da Seção 2)
+
+**O Founder emitiu uma decisão arquitetural permanente e retroativa**: uma dependência arquitetural nunca autoriza deixar um Epic previsto pendente; quando uma dependência é encontrada, a resposta é revisar a arquitetura e eliminá-la se for artificial, não esperar por uma decisão futura que ainda não existe. Especificamente sobre API Keys, o Founder determinou o princípio permanente: **componente fundamental nunca pode depender de componente futuro; o inverso (componente futuro consumindo um fundamental) é sempre permitido.**
+
+Sob esse princípio, a classificação original da Seção 2 (API Keys = Nível 3, "pertence à decisão de Integration Hub, Wave 4") está **incorreta** e é revogada por esta seção. O raciocínio original invertia a relação de dependência: nada em "uma organização emite e revoga credenciais de API para autenticar chamadas em nome de um usuário já existente" depende de a STRATECH ter (ou vir a ter) um Integration Hub. É o oposto — um futuro Integration Hub, se e quando existir, seria apenas mais um **consumidor** de uma capacidade de API Keys que já existe hoje, exatamente como qualquer outra rota autenticada.
+
+**Reclassificação: API Keys passa de Nível 3 para Nível 1** (mesmo nível de Usuários/Organizações/Papéis/Auditoria — schema e infraestrutura de autenticação já existentes reaproveitados integralmente, nenhum conceito de domínio novo):
+
+| Sub-área | Nível (revisado) | Grounding | Recomendação |
+|---|---|---|---|
+| **API Keys** | **1 — fundamental, sem dependência de Integration Hub** | A chave de API autentica **como o usuário que a criou** — reaproveita 100% do RBAC/auditoria já existentes (`AuthenticatedUser`, `require_permission`, `record_audit`); o hashing reaproveita `Argon2PasswordHasher`, já usado para senhas. Nenhum modelo de permissão novo, nenhum provider novo, nenhum registry novo. | Implementar imediatamente como extensão do Épico 5 (Enterprise Administration), não como parte do Integration Hub. Um futuro Integration Hub (Wave 4) consome esta capacidade — não a inversa. |
+
+Isso não reabre nem reclassifica as demais linhas Nível 3 (Workspaces administrativos, Tenant/System Settings) — cada uma delas depende de uma decisão de produto/nome ainda não tomada (colisão de nome com o Workspace de produto; modelo de negócio multi-tenant), o que é uma dependência real de decisão, não uma dependência arquitetural artificial como a que existia para API Keys. A distinção que o Founder traçou é exatamente essa: uma dependência é ilegítima quando é **apenas o resultado de uma decisão arquitetural anterior** (o caso de API Keys); continua legítima quando depende de uma **decisão de produto ainda não tomada** por ninguém, em nenhum documento.
+
+Implementação completa desta correção: ver `AR-4-API-KEYS-REVIEW.md`, `TECHNICAL-DESIGN-API-KEYS.md` e Decision Log D-051.
+
+---
+
 ## 1. O conflito, resumido
 
 | | Escopo aprovado (Épico 5, Release 0.1) | Escopo pedido por esta missão |

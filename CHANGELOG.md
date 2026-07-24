@@ -347,3 +347,29 @@ The Riscos panel, Comunicação panel, and Executive Memory's "Mudou" insight al
 - A stale Next.js dev-server build cache (`.next`) was found to cause broad, unrelated full-suite flakiness under this session's sustained hot-reload load -- confirmed independent of this fix (`rm -rf web/.next` eliminated it); noted in `TECHNICAL_DEBT.md` so it isn't mistaken for a regression later.
 
 **Decision Log:** D-050.
+
+## Wave Completion Review retrospective, item 3 (2026-07-24): API Keys implemented -- architectural correction, not a new dependency
+
+The Founder issued a permanent decision: an architectural dependency never authorizes leaving a planned Epic pending -- when one is found, the correct response is to review and remove it if artificial, not wait on a future decision. Specifically for API Keys, the prior Blueprint classified it as depending on a future Integration Hub (Wave 4); auditing that dependency found it was never real -- just the result of an earlier architectural decision. Corrected: **no foundational component may depend on a future component; the reverse is always allowed.** API Keys is reclassified from "depends on Integration Hub" to foundational (same tier as Users/Organizations/Roles/Audit).
+
+**Added**
+- `ApiKey` model + migration `0011` (table + `api_keys.manage` permission, `organization_admin` only).
+- `AdministrationRepository`/`AdministrationService`: CRUD (create/list/revoke) + `authenticate_api_key` (narrows candidates by non-secret `key_prefix`, then verifies via the same `Argon2PasswordHasher` already used for passwords -- no new hashing infrastructure).
+- A second, additive authentication path in `get_request_context`: header `X-Stratech-Api-Key`, alternative to the existing 3 session headers. **Every existing permission-protected route gains API Key auth automatically, with zero changes to its own route wiring** -- a key authenticates as the user who created it, inheriting that user's RBAC exactly as a session would.
+- Routes `GET/POST /api/admin/api-keys`, `DELETE /api/admin/api-keys/{id}` (revoke returns `200` with the resource, not `204` -- `forwardDomainRequest`, the shared BFF proxy helper, can't represent a body-less 204; same convention as `remove_role`).
+- Frontend: `/administracao/api-keys` page (new "Chaves de API" nav entry), two-step creation dialog (form -> one-time plaintext reveal, does not auto-close), revoke button with confirmation.
+
+**Fixed (pre-existing gaps found during implementation, corrected in-scope, not deferred)**
+- `web/proxy.ts::config.matcher` never included `/administracao`/`/administracao/:path*` -- an unauthenticated visitor could load the Administração page shell (BFF calls still 401'd). Affected `/administracao/usuarios` too, not just the new page.
+- `app.dependency_overrides` leaked in 3 tests across `tests/test_api_security.py` and `tests/test_rate_limit_api.py` -- exposed only because the new end-to-end auth-path test was the first to exercise the real (non-overridden) `build_repository` path in the full suite.
+
+**Design note (DI):** `AdministrationService` is constructed via a plain function call inside the `X-Stratech-Api-Key` branch, not a declared `Depends(...)` parameter -- a declared dependency on a widely-shared function like `get_request_context` would force FastAPI to eagerly build a real repository on every request, across every existing test file, even when no API key is sent.
+
+**Fixed (E2E infra, found while adding the API Keys nav entry)**
+- Adding an 11th nav item exposed the same known Next.js dev-overlay (`nextjs-portal`) click-interception artifact already documented in `workspace.spec.ts`, this time on `portfolio.spec.ts`'s mobile "Priorização" nav-click test (confirmed via controlled A/B: 2/2 pass on baseline, 5/5 fail with the change). Since this test must click the nav bar link itself, it hides the overlay via `page.addStyleTag` before clicking, rather than using `workspace.spec.ts`'s in-page-link workaround.
+
+**Tests**
+- New: `tests/test_migration_0011_api_keys.py`, `tests/test_administration_service.py`, `tests/test_identity_context_api_key_auth.py`, `web/e2e/api-keys-admin.spec.ts`.
+- Extended: `tests/test_administration_repository.py`, `tests/test_administration_api.py`, `web/components/shell/navigation.test.ts`, `web/e2e/shell.spec.ts` (nav count 10 -> 11).
+
+**Decision Log:** D-051.

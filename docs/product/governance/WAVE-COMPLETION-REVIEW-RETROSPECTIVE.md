@@ -107,4 +107,5 @@ Este documento não implementa nada por si — é o levantamento exigido por D-0
 |---|---|---|
 | 1 | Event Foundation (Wave 1) | ✅ Concluído — D-049. Wave 1 fechada. |
 | 2 | TD-004/005/006 (race de invalidação) | ✅ Concluído — D-050. |
-| 3-13, — | Demais itens + Policies/Claims | Pendentes, na ordem da Seção 6. |
+| 3 | API Keys por organização (Wave 2) | ✅ Concluído — D-051. Correção arquitetural retroativa: reclassificado de "depende de Integration Hub" (Nível 3) para fundamental (Nível 1) — Blueprint corrigido (`DOMAIN-BLUEPRINT-ENTERPRISE-ADMINISTRATION.md` §0), nova Architecture Review (`AR-4-API-KEYS-REVIEW.md`) e Technical Design (`TECHNICAL-DESIGN-API-KEYS.md`) produzidas. Chave autentica como o usuário criador, 100% do RBAC/auditoria/hashing reaproveitados; segunda via de autenticação aditiva em `get_request_context`. |
+| 4-13, — | Demais itens + Policies/Claims | Pendentes, na ordem da Seção 6. |

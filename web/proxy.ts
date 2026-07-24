@@ -29,6 +29,13 @@ export const config = {
     "/aprendizados/:path*",
     "/mission-control",
     "/mission-control/:path*",
+    // D-051 -- Administração (Usuários, Chaves de API) was never in this
+    // matcher: an unauthenticated visitor could load the page shell (data
+    // fetches would still 401 via the BFF gate below, but the page itself
+    // rendered). API Keys makes this gap more consequential -- closing it
+    // for the whole section, not just the new page.
+    "/administracao",
+    "/administracao/:path*",
     "/api/bff/:path*",
   ],
 };

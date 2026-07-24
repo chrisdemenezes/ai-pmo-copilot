@@ -135,6 +135,30 @@ class SecurityPostureResponse(BaseModel):
     mfa_available: bool
 
 
+class ApiKeyResponse(BaseModel):
+    """Never carries `hashed_secret` -- the plaintext key is returned
+    exactly once, only by `create_api_key` below, never by this model."""
+
+    id: int
+    name: str
+    key_prefix: str
+    created_at: datetime
+    last_used_at: datetime | None
+    revoked_at: datetime | None
+
+    model_config = {"from_attributes": True}
+
+
+class ApiKeyCreateRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=255)
+
+
+class ApiKeyCreatedResponse(ApiKeyResponse):
+    # Only ever populated on the create response -- the one moment this
+    # value exists anywhere outside the caller's own memory.
+    plaintext_key: str
+
+
 @router.get("/admin/organization", response_model=OrganizationResponse, tags=["administration"])
 def get_organization(
     context: RequestContext = Depends(get_request_context),
@@ -394,3 +418,60 @@ def get_security_posture(
     """Minimal, read-only (Nível 2 "Segurança" -- no password policy
     configuration or MFA exists to expose beyond this today)."""
     return SecurityPostureResponse(password_hashing_algorithm="argon2", mfa_available=False)
+
+
+@router.get("/admin/api-keys", response_model=list[ApiKeyResponse], tags=["administration"])
+def list_api_keys(
+    context: RequestContext = Depends(get_request_context),
+    service: AdministrationService = Depends(build_administration_service),
+    _permission: None = Depends(require_permission("api_keys.manage")),
+):
+    return service.list_api_keys(context.organization.organization_id)
+
+
+@router.post(
+    "/admin/api-keys",
+    response_model=ApiKeyCreatedResponse,
+    status_code=201,
+    tags=["administration"],
+)
+def create_api_key(
+    request: ApiKeyCreateRequest,
+    context: RequestContext = Depends(get_request_context),
+    service: AdministrationService = Depends(build_administration_service),
+    _permission: None = Depends(require_permission("api_keys.manage")),
+):
+    """The response's `plaintext_key` is the only time the raw key is ever
+    returned by any endpoint -- the caller must display and store it now."""
+    api_key, plaintext_key = service.create_api_key(
+        context.organization.organization_id, request.name, actor_user_id=context.user.user_id
+    )
+    return ApiKeyCreatedResponse(
+        id=api_key.id,
+        name=api_key.name,
+        key_prefix=api_key.key_prefix,
+        created_at=api_key.created_at,
+        last_used_at=api_key.last_used_at,
+        revoked_at=api_key.revoked_at,
+        plaintext_key=plaintext_key,
+    )
+
+
+@router.delete("/admin/api-keys/{api_key_id}", response_model=ApiKeyResponse, tags=["administration"])
+def revoke_api_key(
+    api_key_id: int,
+    context: RequestContext = Depends(get_request_context),
+    service: AdministrationService = Depends(build_administration_service),
+    _permission: None = Depends(require_permission("api_keys.manage")),
+):
+    """Returns the revoked key (200), not a bare 204 -- same convention as
+    `remove_role` below: `forwardDomainRequest` (the BFF's shared proxy
+    helper) always attempts to parse a JSON body from the backend's
+    response, which a real 204 (body-less by HTTP definition) can't
+    satisfy."""
+    api_key = service.revoke_api_key(
+        api_key_id, context.organization.organization_id, actor_user_id=context.user.user_id
+    )
+    if api_key is None:
+        raise HTTPException(status_code=404, detail="API key not found")
+    return api_key

@@ -20,6 +20,7 @@ fake list. "Configurações" stays out per the Blueprint's own deferral
 (needs product scope definition first).
 """
 import logging
+from datetime import datetime, timezone
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
@@ -31,6 +32,7 @@ from src.database.enterprise_repository import (
     SelfDeactivationError,
 )
 from src.database.models import (
+    ApiKey,
     AuditLog,
     Organization,
     Permission,
@@ -398,3 +400,86 @@ class AdministrationRepository:
                 .limit(limit)
                 .all()
             )
+
+    # -- API Keys (D-051) ----------------------------------------------
+
+    def create_api_key(
+        self,
+        organization_id: int,
+        created_by_user_id: int,
+        name: str,
+        key_prefix: str,
+        hashed_secret: str,
+    ) -> ApiKey:
+        with self._session_factory() as session:
+            api_key = ApiKey(
+                organization_id=organization_id,
+                created_by_user_id=created_by_user_id,
+                name=name,
+                key_prefix=key_prefix,
+                hashed_secret=hashed_secret,
+            )
+            session.add(api_key)
+            session.commit()
+            session.refresh(api_key)
+            logger.info(
+                "Created api_key id=%s organization_id=%s created_by_user_id=%s",
+                api_key.id,
+                organization_id,
+                created_by_user_id,
+            )
+            return api_key
+
+    def list_api_keys(self, organization_id: int) -> list[ApiKey]:
+        with self._session_factory() as session:
+            return (
+                session.query(ApiKey)
+                .filter(ApiKey.organization_id == organization_id)
+                .order_by(ApiKey.created_at.desc())
+                .all()
+            )
+
+    def get_api_key(self, api_key_id: int, organization_id: int) -> ApiKey | None:
+        with self._session_factory() as session:
+            return (
+                session.query(ApiKey)
+                .filter(ApiKey.id == api_key_id, ApiKey.organization_id == organization_id)
+                .one_or_none()
+            )
+
+    def revoke_api_key(self, api_key_id: int, organization_id: int) -> ApiKey | None:
+        with self._session_factory() as session:
+            api_key = (
+                session.query(ApiKey)
+                .filter(ApiKey.id == api_key_id, ApiKey.organization_id == organization_id)
+                .one_or_none()
+            )
+            if api_key is None or api_key.revoked_at is not None:
+                return None
+            api_key.revoked_at = datetime.now(timezone.utc)
+            session.commit()
+            session.refresh(api_key)
+            logger.info("Revoked api_key id=%s organization_id=%s", api_key_id, organization_id)
+            return api_key
+
+    def list_active_api_keys_by_prefix(self, key_prefix: str) -> list[ApiKey]:
+        """Candidates for `AuthService`-style credential verification: never
+        looked up by id (the caller doesn't have one, only the raw key), and
+        `hashed_secret` can't be queried by equality -- narrowing by the
+        cheap, non-secret `key_prefix` keeps this to a handful of rows for
+        `Argon2PasswordHasher.verify` to check, exactly like email lookup
+        narrows password verification instead of scanning every user."""
+        with self._session_factory() as session:
+            return (
+                session.query(ApiKey)
+                .filter(ApiKey.key_prefix == key_prefix, ApiKey.revoked_at.is_(None))
+                .all()
+            )
+
+    def touch_api_key_last_used(self, api_key_id: int) -> None:
+        with self._session_factory() as session:
+            api_key = session.get(ApiKey, api_key_id)
+            if api_key is None:
+                return
+            api_key.last_used_at = datetime.now(timezone.utc)
+            session.commit()

@@ -273,12 +273,25 @@ const ADMIN_USERS = [];
 const ADMIN_USER_ROLES = {};
 let nextAdminUserId = 1000;
 
+// D-051 -- API Keys (Enterprise Administration): a foundational
+// credential, not an Integration Hub artifact.
+const ADMIN_API_KEYS = [];
+let nextAdminApiKeyId = 1;
+
+function omitHashedSecret(apiKey) {
+  const copy = { ...apiKey };
+  delete copy.hashed_secret;
+  return copy;
+}
+
 function resetAdminFixtures() {
   ADMIN_USERS.length = 0;
   ADMIN_USERS.push(...JSON.parse(JSON.stringify(PRISTINE_ADMIN_USERS)));
   for (const key of Object.keys(ADMIN_USER_ROLES)) delete ADMIN_USER_ROLES[key];
   Object.assign(ADMIN_USER_ROLES, JSON.parse(JSON.stringify(PRISTINE_ADMIN_USER_ROLES)));
   nextAdminUserId = 1000;
+  ADMIN_API_KEYS.length = 0;
+  nextAdminApiKeyId = 1;
 }
 resetAdminFixtures();
 
@@ -747,6 +760,44 @@ const server = http.createServer((req, res) => {
       });
       return;
     }
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/admin/api-keys") {
+    return send(res, 200, ADMIN_API_KEYS.map(omitHashedSecret));
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/admin/api-keys") {
+    let raw = "";
+    req.on("data", (chunk) => (raw += chunk));
+    req.on("end", () => {
+      const { name } = JSON.parse(raw);
+      const id = nextAdminApiKeyId++;
+      const plaintextKey = `sk_live_e2e-mock-key-${id}`;
+      const apiKey = {
+        id,
+        name,
+        key_prefix: plaintextKey.slice(0, 16),
+        hashed_secret: "mock-hash",
+        created_at: new Date().toISOString(),
+        last_used_at: null,
+        revoked_at: null,
+      };
+      ADMIN_API_KEYS.push(apiKey);
+      return send(res, 201, { ...omitHashedSecret(apiKey), plaintext_key: plaintextKey });
+    });
+    return;
+  }
+
+  const apiKeyMatch = url.pathname.match(/^\/api\/admin\/api-keys\/(\d+)$/);
+  if (apiKeyMatch && req.method === "DELETE") {
+    const apiKeyId = Number(apiKeyMatch[1]);
+    const apiKey = ADMIN_API_KEYS.find((k) => k.id === apiKeyId);
+    if (!apiKey) return send(res, 404, { detail: "API key not found" });
+    apiKey.revoked_at = new Date().toISOString();
+    // 200 with the revoked resource, not a bare 204 -- the real backend's
+    // route returns the same shape (forwardDomainRequest always parses a
+    // JSON body, which a body-less 204 can't satisfy).
+    return send(res, 200, omitHashedSecret(apiKey));
   }
 
   // project_name is a query param here, not a path segment -- matches the

@@ -1,4 +1,4 @@
-import { ClipboardList, Folder, Gavel, LayoutDashboard, Lightbulb, ListOrdered, Network, Radar, Rocket, Users } from "lucide-react";
+import { ClipboardList, Folder, Gavel, KeyRound, LayoutDashboard, Lightbulb, ListOrdered, Network, Radar, Rocket, Users } from "lucide-react";
 
 import type { NavItem } from "./types";
 
@@ -37,6 +37,10 @@ export const NAV_ITEMS: NavItem[] = [
   // primeira tela administrativa real (rota, dado, estados e testes),
   // mesma regra de entrada da navegação usada por toda Capability.
   { label: "Administração", href: "/administracao/usuarios", icon: Users },
+  // D-051 -- API Keys (Enterprise Administration): a foundational
+  // credential, not an Integration Hub artifact. Same nav entry-rule as
+  // every other Capability: real route, real data, full states, tests.
+  { label: "Chaves de API", href: "/administracao/api-keys", icon: KeyRound },
   // Mission Control (Sprint 1, Diretriz Complementar) -- painel do Founder.
   // Acesso hoje é apenas "autenticado" (proxy.ts), não "Founder" de fato --
   // RBAC funcional (Épico 3) ainda não existe. Limitação documentada, não

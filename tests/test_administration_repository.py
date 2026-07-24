@@ -411,3 +411,99 @@ class TestAuditLog:
 
         entries = repo.administration.list_audit_log(org_id)
         assert [e.id for e in entries] == [second_id, first_id]
+
+
+class TestApiKeys:
+    """D-051 -- a foundational Enterprise Administration credential, not an
+    Integration Hub artifact (DOMAIN-BLUEPRINT-API-KEYS.md)."""
+
+    def test_create_and_get_api_key(self, repo):
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = repo.enterprise.create_user(org_id, "admin@example.com", "Admin")
+
+        api_key = repo.administration.create_api_key(
+            org_id, user_id, "CI pipeline", "sk_live_AbCdEfGh", "hashed-value"
+        )
+
+        fetched = repo.administration.get_api_key(api_key.id, org_id)
+        assert fetched.name == "CI pipeline"
+        assert fetched.key_prefix == "sk_live_AbCdEfGh"
+        assert fetched.hashed_secret == "hashed-value"
+        assert fetched.revoked_at is None
+        assert fetched.last_used_at is None
+
+    def test_get_api_key_from_another_organization_returns_none(self, repo):
+        org_a = repo.enterprise.create_organization("Org A")
+        org_b = repo.enterprise.create_organization("Org B")
+        user_a = repo.enterprise.create_user(org_a, "a@example.com", "A")
+
+        api_key = repo.administration.create_api_key(
+            org_a, user_a, "Key A", "sk_live_AAAAAAAA", "hash-a"
+        )
+
+        assert repo.administration.get_api_key(api_key.id, org_b) is None
+
+    def test_list_api_keys_scoped_by_organization_newest_first(self, repo):
+        org_a = repo.enterprise.create_organization("Org A")
+        org_b = repo.enterprise.create_organization("Org B")
+        user_a = repo.enterprise.create_user(org_a, "a@example.com", "A")
+        user_b = repo.enterprise.create_user(org_b, "b@example.com", "B")
+
+        first = repo.administration.create_api_key(org_a, user_a, "First", "sk_live_111", "h1")
+        second = repo.administration.create_api_key(org_a, user_a, "Second", "sk_live_222", "h2")
+        repo.administration.create_api_key(org_b, user_b, "Other org", "sk_live_333", "h3")
+
+        keys = repo.administration.list_api_keys(org_a)
+        assert [k.id for k in keys] == [second.id, first.id]
+
+    def test_revoke_api_key_sets_revoked_at_and_is_idempotent(self, repo):
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = repo.enterprise.create_user(org_id, "admin@example.com", "Admin")
+        api_key = repo.administration.create_api_key(
+            org_id, user_id, "Key", "sk_live_AAAAAAAA", "hash"
+        )
+
+        revoked = repo.administration.revoke_api_key(api_key.id, org_id)
+        assert revoked.revoked_at is not None
+
+        # Revoking an already-revoked key returns None, never a second event.
+        assert repo.administration.revoke_api_key(api_key.id, org_id) is None
+
+    def test_revoke_api_key_from_another_organization_returns_none(self, repo):
+        org_a = repo.enterprise.create_organization("Org A")
+        org_b = repo.enterprise.create_organization("Org B")
+        user_a = repo.enterprise.create_user(org_a, "a@example.com", "A")
+        api_key = repo.administration.create_api_key(
+            org_a, user_a, "Key A", "sk_live_AAAAAAAA", "hash-a"
+        )
+
+        assert repo.administration.revoke_api_key(api_key.id, org_b) is None
+        assert repo.administration.get_api_key(api_key.id, org_a).revoked_at is None
+
+    def test_list_active_api_keys_by_prefix_excludes_revoked_and_other_prefixes(self, repo):
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = repo.enterprise.create_user(org_id, "admin@example.com", "Admin")
+        active = repo.administration.create_api_key(
+            org_id, user_id, "Active", "sk_live_AAAAAAAA", "hash-active"
+        )
+        revoked = repo.administration.create_api_key(
+            org_id, user_id, "Revoked", "sk_live_AAAAAAAA", "hash-revoked"
+        )
+        repo.administration.revoke_api_key(revoked.id, org_id)
+        repo.administration.create_api_key(org_id, user_id, "Other", "sk_live_BBBBBBBB", "hash-b")
+
+        candidates = repo.administration.list_active_api_keys_by_prefix("sk_live_AAAAAAAA")
+
+        assert [c.id for c in candidates] == [active.id]
+
+    def test_touch_api_key_last_used_sets_timestamp(self, repo):
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = repo.enterprise.create_user(org_id, "admin@example.com", "Admin")
+        api_key = repo.administration.create_api_key(
+            org_id, user_id, "Key", "sk_live_AAAAAAAA", "hash"
+        )
+        assert repo.administration.get_api_key(api_key.id, org_id).last_used_at is None
+
+        repo.administration.touch_api_key_last_used(api_key.id)
+
+        assert repo.administration.get_api_key(api_key.id, org_id).last_used_at is not None

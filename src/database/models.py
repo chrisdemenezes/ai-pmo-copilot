@@ -243,6 +243,34 @@ class UserProjectMembership(Base):
     role_in_project = Column(String(50), nullable=False, default="member")
 
 
+class ApiKey(Base):
+    """Enterprise Administration -- organization-scoped credential for
+    programmatic API access (D-051, superseding the original API Keys
+    deferral in `DOMAIN-BLUEPRINT-ENTERPRISE-ADMINISTRATION.md`). A
+    foundational identity primitive alongside Users/Roles/Sessions, not an
+    Integration Hub artifact: it authenticates AS the user who created it
+    (`get_request_context`'s second auth path), reusing every RBAC/audit
+    check that path already has. Any future consumer (Integration Hub or
+    otherwise) authenticates through this, never the reverse."""
+
+    __tablename__ = "api_keys"
+
+    id = Column(Integer, primary_key=True, index=True)
+    organization_id = Column(
+        Integer, ForeignKey("organizations.id"), nullable=False, index=True
+    )
+    created_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    name = Column(String(255), nullable=False)
+    # First characters of the plaintext key, safe to display forever so an
+    # admin can tell keys apart without the full secret ever being shown
+    # again after creation.
+    key_prefix = Column(String(20), nullable=False)
+    hashed_secret = Column(String(255), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
+    last_used_at = Column(DateTime(timezone=True), nullable=True)
+    revoked_at = Column(DateTime(timezone=True), nullable=True)
+
+
 class AuditLog(Base):
     """Enterprise Administration, Wave 2 (Épico 5, Nível 1 -- auditoria de
     mutações). Doubles as the "Logs" surface (Nível 2,
