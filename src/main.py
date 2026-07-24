@@ -10,6 +10,7 @@ from src.api.routes.administration import router as administration_router
 from src.api.routes.auth import build_auth_service
 from src.api.routes.auth import router as auth_router
 from src.api.routes.intelligence import router as intelligence_router
+from src.api.routes.invitations import router as invitations_router
 from src.api.routes.portfolio import router as portfolio_router
 from src.api.routes.program import router as program_router
 from src.api.routes.project_delivery import router as project_delivery_router
@@ -63,6 +64,7 @@ app.include_router(portfolio_router, prefix="/api", tags=["portfolio"])
 app.include_router(program_router, prefix="/api", tags=["program"])
 app.include_router(project_delivery_router, prefix="/api", tags=["project-delivery"])
 app.include_router(administration_router, prefix="/api", tags=["administration"])
+app.include_router(invitations_router, prefix="/api", tags=["administration"])
 
 
 @app.exception_handler(ProviderConfigError)

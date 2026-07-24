@@ -126,3 +126,69 @@ export async function forwardDomainRequest(
     clearTimeout(timeout);
   }
 }
+
+/**
+ * Session-LESS forwarding for the public invitation flow (item 6, Convites
+ * -- D-054): the invitee has no account yet, so there are no institutional
+ * headers to resolve -- authorization is the token in the URL/body itself,
+ * exactly like `/api/bff/session`'s login POST. Same timeout/error contract
+ * as `forwardDomainRequest`, minus the session gate. Only mount this on
+ * routes the `proxy.ts` matcher exempts from the session gate.
+ */
+export async function forwardPublicRequest(
+  request: Request,
+  backendPath: string,
+): Promise<NextResponse> {
+  const backendUrl = process.env.BACKEND_URL;
+  const apiKey = process.env.API_KEY;
+
+  if (!backendUrl || !apiKey) {
+    return errorResponse(
+      { error: "bff_not_configured", detail: "BACKEND_URL ou API_KEY não configurados." },
+      503,
+    );
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), BACKEND_TIMEOUT_MS);
+
+  try {
+    const method = request.method;
+    const hasBody = method !== "GET" && method !== "HEAD" && method !== "DELETE";
+    const backendResponse = await fetch(`${backendUrl}${backendPath}`, {
+      method,
+      headers: {
+        "X-API-Key": apiKey,
+        ...(hasBody ? { "Content-Type": "application/json" } : {}),
+      },
+      body: hasBody ? await request.text() : undefined,
+      signal: controller.signal,
+      cache: "no-store",
+    });
+
+    const responseBody = await backendResponse.json().catch(() => null);
+    if (!backendResponse.ok) {
+      return errorResponse(
+        responseBody ?? {
+          error: "backend_error",
+          detail: `Backend respondeu ${backendResponse.status}.`,
+        },
+        backendResponse.status,
+      );
+    }
+    return NextResponse.json(responseBody, { status: backendResponse.status });
+  } catch (reason) {
+    if (reason instanceof Error && reason.name === "AbortError") {
+      return errorResponse(
+        { error: "backend_timeout", detail: "Backend não respondeu a tempo." },
+        504,
+      );
+    }
+    return errorResponse(
+      { error: "backend_unavailable", detail: "Não foi possível contatar o backend." },
+      502,
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
+}

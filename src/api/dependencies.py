@@ -13,6 +13,8 @@ from functools import lru_cache
 from src.database.repository import AnalysisRepository
 from src.services.events.interfaces import EventEmitter
 from src.services.events.noop_emitter import NoOpEventEmitter
+from src.services.notifications.interfaces import NotificationProvider
+from src.services.notifications.noop_provider import NoOpNotificationProvider
 
 
 @lru_cache
@@ -23,3 +25,11 @@ def build_repository() -> AnalysisRepository:
 @lru_cache
 def build_event_emitter() -> EventEmitter:
     return NoOpEventEmitter()
+
+
+@lru_cache
+def build_notification_provider() -> NotificationProvider:
+    # Item 6 (Convites, D-054): the delivery seam. NoOp today -- no concrete
+    # SMTP/SES provider is chosen; the invitation token is returned once at
+    # creation for manual delivery. Same pattern as build_event_emitter.
+    return NoOpNotificationProvider()

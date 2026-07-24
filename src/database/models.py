@@ -297,6 +297,55 @@ class UserSession(Base):
     revoked_at = Column(DateTime(timezone=True), nullable=True)
 
 
+class Invitation(Base):
+    """Enterprise Administration -- onboarding credential that lets a
+    not-yet-registered person join an organization with a predetermined
+    role (item 6 of the Wave Completion Review retrospective, D-054).
+    A foundational identity primitive alongside Users/Roles/ApiKey/
+    UserSession -- NOT an email artifact: the invitation carries a
+    single-use token deliverable by any channel; email is only the
+    (future, abstracted-away) automatic delivery mechanism
+    (`NotificationProvider`), never a constituent of the domain.
+
+    Reuses the same "narrow by non-secret prefix, then Argon2-verify the
+    secret" discipline as ApiKey (D-051): `hashed_token` is never re-exposed
+    after creation; the plaintext token is returned exactly once, at
+    creation, for manual delivery until a concrete notification provider
+    exists. State (Pendente/Aceito/Expirado/Cancelado) is derived from the
+    timestamps below, never stored as a mutable column -- "Expirado" needs
+    no background job to flip a flag."""
+
+    __tablename__ = "invitations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    organization_id = Column(
+        Integer, ForeignKey("organizations.id"), nullable=False, index=True
+    )
+    email = Column(String(255), nullable=False)
+    role_name = Column(String(100), nullable=False)
+    invited_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    # First characters of the plaintext token, safe to display forever so an
+    # admin can tell invitations apart without the secret being shown again.
+    token_prefix = Column(String(20), nullable=False)
+    hashed_token = Column(String(255), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    accepted_at = Column(DateTime(timezone=True), nullable=True)
+    cancelled_at = Column(DateTime(timezone=True), nullable=True)
+
+    def status(self, now: datetime) -> str:
+        """Derived state (Domain Blueprint §3): terminal transitions win,
+        then expiry by elapsed time. `now` is passed in (not read here) so
+        callers control the clock and the value is deterministic in tests."""
+        if self.cancelled_at is not None:
+            return "cancelled"
+        if self.accepted_at is not None:
+            return "accepted"
+        if self.expires_at <= now:
+            return "expired"
+        return "pending"
+
+
 class AuditLog(Base):
     """Enterprise Administration, Wave 2 (Épico 5, Nível 1 -- auditoria de
     mutações). Doubles as the "Logs" surface (Nível 2,

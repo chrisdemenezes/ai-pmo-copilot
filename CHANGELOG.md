@@ -406,3 +406,27 @@ The STRATECH login cookie was always a stateless HMAC token with no server-side 
 - Extended: `test_administration_repository.py`, `test_administration_service.py`, `test_administration_api.py` (all gained a `TestSessions` class), `test_auth_api.py` (login now returns/creates a session), `web/lib/session.test.ts`, `web/components/shell/navigation.test.ts`, `web/e2e/shell.spec.ts` (nav count 11 -> 12).
 
 **Decision Log:** D-053.
+
+## Wave Completion Review retrospective, item 6 (2026-07-24): Invitations (Convites) -- domain decoupled from email infrastructure
+
+The closure plan flagged Convites as blocked on "email sending -- an SMTP/SES provider decision is a prerequisite". A mandatory repository-wide audit separated domain from infrastructure: "Convites e Stakeholders" is approved scope (Master Roadmap §3.2, Release 0.2, Planned/0%) -- so mandatory under D-048 -- but no document defines the invitation functionally (actors, states, expiry, RBAC, audit all UNSPECIFIED) or ties it intrinsically to email. The only email mention is the closure plan's own assumption, describing email as the *delivery mechanism*, never a constituent of the domain. So the email dependency is artificial as a domain blocker, real only as a delivery mechanism.
+
+Implemented the full domain, with the functional spec supplied by the Founder's decision, and isolated delivery behind a `NotificationProvider` abstraction with a `NoOpNotificationProvider` default -- no concrete provider (SMTP/SES/etc.) is chosen. Same discipline as the Event Foundation's `NoOpEventEmitter` (D-049): the seam exists, the provider doesn't yet. The invitation is fully functional without email -- the token is returned once at creation for manual delivery.
+
+**Added**
+- `Invitation` model + migration `0013` (table + `invitations.manage` permission, `organization_admin` only). States (pending/accepted/expired/cancelled) are derived from timestamps, never a stored mutable flag -- "expired" needs no background job.
+- `src/services/notifications/` -- `NotificationProvider` Protocol + `NoOpNotificationProvider` (logs only). Wired via `build_notification_provider`.
+- `AdministrationRepository`/`AdministrationService`: create/list/cancel + token preview/accept. Acceptance is atomic (re-load FOR UPDATE, re-check pending, create user+role via the existing `create_user` path, stamp accepted). Token hashed with the same Argon2 already used for passwords/API keys; narrow-by-prefix lookup like API keys. The invitee sets their own password on accept -- the admin never sees it.
+- New `src/api/routes/invitations.py`: admin routes (`POST/GET /api/admin/invitations`, `DELETE .../{id}`, 200 with body) require `invitations.manage`; public routes (`GET /api/invitations/{token}` preview, `POST /api/invitations/accept`) are token-authenticated with no session -- same session-less design as login.
+- `web/proxy.ts` exempts `/api/bff/invitations/` from the session gate (like `LOGIN_ROUTE`); `forwardPublicRequest` added to the shared BFF proxy for session-less forwarding.
+- Frontend: `/administracao/convites` admin page (13th nav entry, "Convites") with create (two-step link reveal) + cancel-with-confirmation; public `/convite/[token]` acceptance page (outside the session gate).
+
+**Design note:** an invitation's 7-day expiry is an implementation default (documented in `TECHNICAL-DESIGN-INVITATIONS.md`), not an invented product behavior -- the "expired" state the Founder named requires that a validity exist; the concrete duration is a sensible default, same nature as a session's 12h TTL.
+
+**Not chosen, deliberately:** any concrete notification provider (SMTP/SES/etc.). That remains a pending business decision (communication model) that does not block the domain -- a future provider consumes this capability, never the reverse.
+
+**Tests**
+- New: `tests/test_migration_0013_invitations.py`, `tests/test_invitations.py` (repository + service + NoOp provider), `tests/test_invitations_api.py` (admin RBAC + public no-session flow), `web/e2e/convites-admin.spec.ts` (incl. public end-to-end acceptance with no login).
+- Extended: `web/components/shell/navigation.test.ts`, `web/e2e/shell.spec.ts` (nav count 12 -> 13).
+
+**Decision Log:** D-054.

@@ -289,6 +289,31 @@ function omitHashedSecret(apiKey) {
 const ADMIN_SESSIONS = [];
 let nextAdminSessionSeq = 1;
 
+// Item 6 -- Convites (D-054). A foundational onboarding credential; the
+// invite token is returned once at creation. State is derived from the
+// timestamps (accepted_at/cancelled_at/expires_at), same as the backend.
+const ADMIN_INVITATIONS = [];
+let nextAdminInvitationId = 1;
+
+function omitHashedToken(invitation) {
+  const copy = { ...invitation };
+  delete copy.hashed_token;
+  delete copy.plaintext_token;
+  return copy;
+}
+
+function invitationStatus(invitation) {
+  if (invitation.cancelled_at !== null) return "cancelled";
+  if (invitation.accepted_at !== null) return "accepted";
+  if (new Date(invitation.expires_at).getTime() <= Date.now()) return "expired";
+  return "pending";
+}
+
+function invitationResponse(invitation) {
+  const base = omitHashedToken(invitation);
+  return { ...base, status: invitationStatus(invitation) };
+}
+
 function resetAdminFixtures() {
   ADMIN_USERS.length = 0;
   ADMIN_USERS.push(...JSON.parse(JSON.stringify(PRISTINE_ADMIN_USERS)));
@@ -299,6 +324,8 @@ function resetAdminFixtures() {
   nextAdminApiKeyId = 1;
   ADMIN_SESSIONS.length = 0;
   nextAdminSessionSeq = 1;
+  ADMIN_INVITATIONS.length = 0;
+  nextAdminInvitationId = 1;
 }
 resetAdminFixtures();
 
@@ -835,6 +862,87 @@ const server = http.createServer((req, res) => {
     session.revoked_at = new Date().toISOString();
     // 200 with the revoked resource, not a bare 204 (same reason as api-keys).
     return send(res, 200, session);
+  }
+
+  // Invitations (item 6, Convites -- D-054).
+  if (req.method === "GET" && url.pathname === "/api/admin/invitations") {
+    return send(res, 200, ADMIN_INVITATIONS.map(invitationResponse));
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/admin/invitations") {
+    let raw = "";
+    req.on("data", (chunk) => (raw += chunk));
+    req.on("end", () => {
+      const { email, role_name } = JSON.parse(raw);
+      if (!ADMIN_ROLES.some((r) => r.name === role_name)) {
+        return send(res, 400, { detail: `Role '${role_name}' does not exist` });
+      }
+      const id = nextAdminInvitationId++;
+      const plaintextToken = `inv_e2e-mock-token-${id}`;
+      const now = Date.now();
+      const invitation = {
+        id,
+        email,
+        role_name,
+        token_prefix: plaintextToken.slice(0, 12),
+        hashed_token: "mock-hash",
+        created_at: new Date(now).toISOString(),
+        expires_at: new Date(now + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        accepted_at: null,
+        cancelled_at: null,
+      };
+      ADMIN_INVITATIONS.push(invitation);
+      return send(res, 201, {
+        ...invitationResponse(invitation),
+        plaintext_token: plaintextToken,
+      });
+    });
+    return;
+  }
+
+  const invitationMatch = url.pathname.match(/^\/api\/admin\/invitations\/(\d+)$/);
+  if (invitationMatch && req.method === "DELETE") {
+    const invitationId = Number(invitationMatch[1]);
+    const invitation = ADMIN_INVITATIONS.find((i) => i.id === invitationId);
+    if (!invitation || invitationStatus(invitation) !== "pending") {
+      return send(res, 404, { detail: "Invitation not found or not pending" });
+    }
+    invitation.cancelled_at = new Date().toISOString();
+    // 200 with the cancelled resource, not a bare 204 (same reason as api-keys).
+    return send(res, 200, invitationResponse(invitation));
+  }
+
+  // Public invitation flow (no session -- the token is the authorization).
+  const invitationPreviewMatch = url.pathname.match(/^\/api\/invitations\/([^/]+)$/);
+  if (invitationPreviewMatch && req.method === "GET") {
+    const token = decodeURIComponent(invitationPreviewMatch[1]);
+    const invitation = ADMIN_INVITATIONS.find(
+      (i) => `inv_e2e-mock-token-${i.id}` === token,
+    );
+    if (!invitation) return send(res, 404, { detail: "Invalid invitation" });
+    return send(res, 200, {
+      organization_name: "e2e-organization",
+      role_name: invitation.role_name,
+      status: invitationStatus(invitation),
+      email: invitation.email,
+    });
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/invitations/accept") {
+    let raw = "";
+    req.on("data", (chunk) => (raw += chunk));
+    req.on("end", () => {
+      const { token } = JSON.parse(raw);
+      const invitation = ADMIN_INVITATIONS.find(
+        (i) => `inv_e2e-mock-token-${i.id}` === token,
+      );
+      if (!invitation || invitationStatus(invitation) !== "pending") {
+        return send(res, 404, { detail: "Invalid, expired, or already-used invitation" });
+      }
+      invitation.accepted_at = new Date().toISOString();
+      return send(res, 200, { user_id: 9000 + invitation.id, organization_id: 1 });
+    });
+    return;
   }
 
   // project_name is a query param here, not a path segment -- matches the

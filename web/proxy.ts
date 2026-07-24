@@ -7,6 +7,14 @@ import { SESSION_COOKIE_NAME, verifySessionToken } from "@/lib/session";
 // session, so it must stay reachable while unauthenticated.
 const LOGIN_ROUTE = "/api/bff/session";
 
+// D-054 (Convites): the public invitation flow (preview + accept) is
+// authenticated by the token itself, not a session -- the invitee has no
+// account yet. These BFF routes must stay reachable while unauthenticated,
+// exactly like LOGIN_ROUTE. Note the trailing slash and the deliberate
+// exclusion of "/api/bff/admin/invitations" -- admin management stays
+// session-gated; only "/api/bff/invitations/" (preview/accept) is public.
+const PUBLIC_INVITATION_PREFIX = "/api/bff/invitations/";
+
 export const config = {
   matcher: [
     "/dashboard",
@@ -50,7 +58,7 @@ export function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  if (pathname === LOGIN_ROUTE) {
+  if (pathname === LOGIN_ROUTE || pathname.startsWith(PUBLIC_INVITATION_PREFIX)) {
     return NextResponse.next();
   }
 

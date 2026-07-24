@@ -27,6 +27,7 @@ from src.database.enterprise_repository import (
 from src.database.models import (
     ApiKey,
     AuditLog,
+    Invitation,
     Organization,
     Permission,
     Role,
@@ -550,3 +551,171 @@ class AdministrationRepository:
                 return
             user_session.last_seen_at = datetime.now(timezone.utc)
             db_session.commit()
+
+    # -- Invitations (item 6, Convites -- D-054) ------------------------
+
+    def create_invitation(
+        self,
+        organization_id: int,
+        email: str,
+        role_name: str,
+        invited_by_user_id: int,
+        token_prefix: str,
+        hashed_token: str,
+        expires_at: datetime,
+    ) -> Invitation:
+        normalized_email = normalize_email(email)
+        with self._session_factory() as session:
+            # A typo in the role must fail now (400), never create an
+            # invitation that can only fail at accept time -- same explicit
+            # catalog check `create_user` makes.
+            if session.query(Role).filter(Role.name == role_name).one_or_none() is None:
+                raise ValueError(f"Role {role_name!r} does not exist")
+            invitation = Invitation(
+                organization_id=organization_id,
+                email=normalized_email,
+                role_name=role_name,
+                invited_by_user_id=invited_by_user_id,
+                token_prefix=token_prefix,
+                hashed_token=hashed_token,
+                expires_at=expires_at,
+            )
+            session.add(invitation)
+            session.commit()
+            session.refresh(invitation)
+            logger.info(
+                "Created invitation id=%s organization_id=%s role=%s",
+                invitation.id,
+                organization_id,
+                role_name,
+            )
+            return invitation
+
+    def list_invitations(self, organization_id: int) -> list[Invitation]:
+        with self._session_factory() as session:
+            return (
+                session.query(Invitation)
+                .filter(Invitation.organization_id == organization_id)
+                .order_by(Invitation.created_at.desc())
+                .all()
+            )
+
+    def get_invitation(
+        self, invitation_id: int, organization_id: int
+    ) -> Invitation | None:
+        with self._session_factory() as session:
+            return (
+                session.query(Invitation)
+                .filter(
+                    Invitation.id == invitation_id,
+                    Invitation.organization_id == organization_id,
+                )
+                .one_or_none()
+            )
+
+    def cancel_invitation(
+        self, invitation_id: int, organization_id: int
+    ) -> Invitation | None:
+        """Cancels only a still-pending invitation. Returns None if not
+        found or already terminal (accepted/cancelled) -- same idempotency
+        guard as `revoke_api_key`. An expired-but-not-cancelled invitation
+        may still be cancelled (harmless bookkeeping; it's already
+        unusable)."""
+        with self._session_factory() as session:
+            invitation = (
+                session.query(Invitation)
+                .filter(
+                    Invitation.id == invitation_id,
+                    Invitation.organization_id == organization_id,
+                )
+                .one_or_none()
+            )
+            if (
+                invitation is None
+                or invitation.accepted_at is not None
+                or invitation.cancelled_at is not None
+            ):
+                return None
+            invitation.cancelled_at = datetime.now(timezone.utc)
+            session.commit()
+            session.refresh(invitation)
+            logger.info(
+                "Cancelled invitation id=%s organization_id=%s",
+                invitation_id,
+                organization_id,
+            )
+            return invitation
+
+    def list_pending_invitations_by_prefix(self, token_prefix: str) -> list[Invitation]:
+        """Candidates for token verification (narrow-by-prefix, then
+        Argon2-verify the secret -- same discipline as
+        `list_active_api_keys_by_prefix`). Excludes accepted/cancelled;
+        expiry is checked by the caller against the clock, not filtered
+        here, so an expired token still resolves to its invitation and can
+        be reported as Expirado rather than silently 'not found'."""
+        with self._session_factory() as session:
+            return (
+                session.query(Invitation)
+                .filter(
+                    Invitation.token_prefix == token_prefix,
+                    Invitation.accepted_at.is_(None),
+                    Invitation.cancelled_at.is_(None),
+                )
+                .all()
+            )
+
+    def accept_invitation(
+        self, invitation_id: int, display_name: str, password_hash: str
+    ) -> User | None:
+        """Atomically: re-load the invitation FOR UPDATE, re-check it is
+        still pending (not accepted/cancelled/expired), create the user +
+        role in the same transaction, and stamp accepted_at. Returns None if
+        the invitation is no longer acceptable (lost a race, expired between
+        the service's check and here). Maps an email collision to
+        EmailConflictError, same as `create_user`."""
+        now = datetime.now(timezone.utc)
+        with self._session_factory() as session:
+            invitation = (
+                session.query(Invitation)
+                .filter(Invitation.id == invitation_id)
+                .with_for_update()
+                .one_or_none()
+            )
+            if (
+                invitation is None
+                or invitation.accepted_at is not None
+                or invitation.cancelled_at is not None
+                or invitation.expires_at <= now
+            ):
+                return None
+            if (
+                session.query(Role).filter(Role.name == invitation.role_name).one_or_none()
+                is None
+            ):
+                raise ValueError(f"Role {invitation.role_name!r} does not exist")
+            try:
+                user = self._enterprise.create_user_in_session(
+                    session,
+                    organization_id=invitation.organization_id,
+                    email=invitation.email,
+                    display_name=display_name,
+                    password_hash=password_hash,
+                )
+                self._enterprise.assign_role_in_session(
+                    session, user.id, invitation.role_name
+                )
+                invitation.accepted_at = now
+                session.commit()
+            except IntegrityError as exc:
+                session.rollback()
+                raise EmailConflictError(
+                    f"Email {invitation.email!r} already exists in this organization"
+                ) from exc
+            session.refresh(user)
+            logger.info(
+                "Accepted invitation id=%s -> user id=%s organization_id=%s",
+                invitation_id,
+                user.id,
+                invitation.organization_id,
+            )
+            return user

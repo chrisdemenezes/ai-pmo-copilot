@@ -6,10 +6,12 @@ every write path goes through exactly one place that remembers to audit.
 """
 import logging
 import secrets
+from datetime import datetime, timedelta, timezone
 
 from src.database.models import (
     ApiKey,
     AuditLog,
+    Invitation,
     Organization,
     Permission,
     Role,
@@ -18,6 +20,8 @@ from src.database.models import (
 )
 from src.database.repository import AnalysisRepository
 from src.services.identity.password_hashing import Argon2PasswordHasher
+from src.services.notifications.interfaces import NotificationProvider
+from src.services.notifications.noop_provider import NoOpNotificationProvider
 
 logger = logging.getLogger(__name__)
 
@@ -26,18 +30,33 @@ API_KEY_PREFIX = "sk_live_"
 # without the full secret ever being shown again after creation.
 API_KEY_DISPLAY_PREFIX_LENGTH = len(API_KEY_PREFIX) + 8
 
+# Invitations (item 6, Convites -- D-054).
+INVITATION_TOKEN_PREFIX = "inv_"
+INVITATION_DISPLAY_PREFIX_LENGTH = len(INVITATION_TOKEN_PREFIX) + 8
+# Implementation default, not a documented product behavior: the "Expirado"
+# state named by the Founder's decision requires that a validity exist; the
+# concrete duration is a sensible default (same nature as a Session's 12h
+# TTL), documented in TECHNICAL-DESIGN-INVITATIONS.md §1.
+INVITATION_TTL = timedelta(days=7)
+
 
 class AdministrationService:
     def __init__(
         self,
         repository: AnalysisRepository,
         password_hasher: Argon2PasswordHasher | None = None,
+        notification_provider: NotificationProvider | None = None,
     ) -> None:
         self._repository = repository
         # Only User Management's create_user needs this -- the plaintext
         # password lives only as a local variable inside that one method,
         # never reaching the repository, the audit log, or a log line.
         self._password_hasher = password_hasher or Argon2PasswordHasher()
+        # Delivery seam for Convites (D-054). NoOp by default -- no concrete
+        # provider is chosen; the invitation token is returned once at
+        # creation for manual delivery. A real provider implements the same
+        # Protocol without this class changing.
+        self._notifications = notification_provider or NoOpNotificationProvider()
 
     # -- Organization ------------------------------------------------------
 
@@ -286,3 +305,108 @@ class AdministrationService:
             {"session_id": session_id, "user_id": user_session.user_id},
         )
         return user_session
+
+    # -- Invitations (item 6, Convites -- D-054) ------------------------
+
+    def create_invitation(
+        self, organization_id: int, email: str, role_name: str, actor_user_id: int
+    ) -> tuple[Invitation, str]:
+        """Returns (Invitation, plaintext_token). The plaintext token is
+        never stored -- this is the only place it exists outside the
+        caller's response, delivered to the admin exactly once for manual
+        (or, later, provider-automated) delivery. The NotificationProvider
+        is invoked here; today it is a NoOp, so nothing is sent -- the
+        returned token is the delivery path."""
+        plaintext_token = INVITATION_TOKEN_PREFIX + secrets.token_urlsafe(32)
+        hashed_token = self._password_hasher.hash(plaintext_token)
+        expires_at = datetime.now(timezone.utc) + INVITATION_TTL
+        invitation = self._repository.administration.create_invitation(
+            organization_id=organization_id,
+            email=email,
+            role_name=role_name,
+            invited_by_user_id=actor_user_id,
+            token_prefix=plaintext_token[:INVITATION_DISPLAY_PREFIX_LENGTH],
+            hashed_token=hashed_token,
+            expires_at=expires_at,
+        )
+        self._repository.administration.record_audit(
+            organization_id,
+            actor_user_id,
+            "invitation.created",
+            "invitation",
+            invitation.id,
+            {"email": invitation.email, "role_name": role_name},
+        )
+        self._notifications.notify_invitation_created(invitation, plaintext_token)
+        return invitation, plaintext_token
+
+    def list_invitations(self, organization_id: int) -> list[Invitation]:
+        return self._repository.administration.list_invitations(organization_id)
+
+    def cancel_invitation(
+        self, invitation_id: int, organization_id: int, actor_user_id: int
+    ) -> Invitation | None:
+        invitation = self._repository.administration.cancel_invitation(
+            invitation_id, organization_id
+        )
+        if invitation is None:
+            return None
+        self._repository.administration.record_audit(
+            organization_id,
+            actor_user_id,
+            "invitation.cancelled",
+            "invitation",
+            invitation_id,
+            {"email": invitation.email},
+        )
+        return invitation
+
+    def preview_invitation(self, plaintext_token: str) -> Invitation | None:
+        """Resolves a token to its invitation for the public acceptance page
+        (shows org/role/status before accepting). No session required -- the
+        token is the authorization. Returns the invitation even when
+        expired, so the page can say Expirado rather than 'not found'."""
+        invitation = self._resolve_invitation_token(plaintext_token)
+        return invitation
+
+    def accept_invitation(
+        self, plaintext_token: str, display_name: str, password: str
+    ) -> User | None:
+        """Verifies the token, confirms the invitation is still Pendente,
+        then atomically creates the account + role and marks it Aceito.
+        Returns None for an invalid token or an invitation in any
+        non-pending state -- the route maps that to 404."""
+        invitation = self._resolve_invitation_token(plaintext_token)
+        if invitation is None:
+            return None
+        if invitation.status(datetime.now(timezone.utc)) != "pending":
+            return None
+        password_hash = self._password_hasher.hash(password)
+        user = self._repository.administration.accept_invitation(
+            invitation.id, display_name, password_hash
+        )
+        if user is None:
+            return None
+        self._repository.administration.record_audit(
+            invitation.organization_id,
+            user.id,
+            "invitation.accepted",
+            "invitation",
+            invitation.id,
+            {"email": invitation.email, "role_name": invitation.role_name},
+        )
+        return user
+
+    def _resolve_invitation_token(self, plaintext_token: str) -> Invitation | None:
+        """Narrow by non-secret prefix, then Argon2-verify -- same discipline
+        as `authenticate_api_key`. Never logs or raises on the token."""
+        if not plaintext_token.startswith(INVITATION_TOKEN_PREFIX):
+            return None
+        prefix = plaintext_token[:INVITATION_DISPLAY_PREFIX_LENGTH]
+        candidates = self._repository.administration.list_pending_invitations_by_prefix(
+            prefix
+        )
+        for candidate in candidates:
+            if self._password_hasher.verify(plaintext_token, candidate.hashed_token):
+                return candidate
+        return None

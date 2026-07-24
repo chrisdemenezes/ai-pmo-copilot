@@ -43,7 +43,7 @@ test("renders exactly twelve nav items, only Dashboard active on /dashboard", as
     : page.getByTestId("sidebar-nav");
 
   const links = visibleNav.getByRole("link");
-  await expect(links).toHaveCount(12);
+  await expect(links).toHaveCount(13);
   await expect(links.first()).toHaveAttribute("aria-current", "page");
   await expect(links.first()).toHaveAttribute("href", "/dashboard");
   await expect(links.nth(1)).not.toHaveAttribute("aria-current", "page");
@@ -67,7 +67,9 @@ test("renders exactly twelve nav items, only Dashboard active on /dashboard", as
   await expect(links.nth(10)).not.toHaveAttribute("aria-current", "page");
   await expect(links.nth(10)).toHaveAttribute("href", "/administracao/sessoes");
   await expect(links.nth(11)).not.toHaveAttribute("aria-current", "page");
-  await expect(links.nth(11)).toHaveAttribute("href", "/mission-control");
+  await expect(links.nth(11)).toHaveAttribute("href", "/administracao/convites");
+  await expect(links.nth(12)).not.toHaveAttribute("aria-current", "page");
+  await expect(links.nth(12)).toHaveAttribute("href", "/mission-control");
 });
 
 test("shows the sidebar shape appropriate to the current breakpoint", async ({ page }) => {
