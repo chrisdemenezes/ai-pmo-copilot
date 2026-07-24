@@ -3,7 +3,23 @@ from fastapi.testclient import TestClient
 from src.api import authorization as authorization_module
 from src.api.routes import intelligence
 from src.api.security import verify_api_key
+from src.database.enterprise_repository import ProjectNotFoundError
 from src.main import app
+
+
+class _UnseededEnterprise:
+    """Resolver stub: no Project rows exist, so a name never resolves and the
+    additive contract flows it through to the service unchanged (TD-008 Phase
+    3b, Etapa 1)."""
+
+    def resolve_project_reference(self, organization_id, project_id=None, project_name=None):
+        if project_id is None and (project_name is None or project_name.strip() == ""):
+            return None
+        raise ProjectNotFoundError("no Project rows in this stub")
+
+
+class _FakeRepository:
+    enterprise = _UnseededEnterprise()
 
 ORG_ID = 1
 HEADERS = {
@@ -23,15 +39,23 @@ class FakeService:
         self._items = items
         self.received_organization_id = "sentinel-not-called"
         self.received_project_name = "sentinel-not-called"
+        self.received_project_id = "sentinel-not-called"
 
-    def list_latest_risks(self, organization_id: int, project_name: str | None = None) -> list[dict]:
+    def list_latest_risks(
+        self,
+        organization_id: int,
+        project_name: str | None = None,
+        project_id: int | None = None,
+    ) -> list[dict]:
         self.received_organization_id = organization_id
         self.received_project_name = project_name
+        self.received_project_id = project_id
         return self._items
 
 
 def _install(fake_service):
     app.dependency_overrides[intelligence.build_project_summary_service] = lambda: fake_service
+    app.dependency_overrides[intelligence.build_repository] = lambda: _FakeRepository()
     app.dependency_overrides[authorization_module.build_permission_checker] = (
         lambda: AlwaysAllowChecker()
     )

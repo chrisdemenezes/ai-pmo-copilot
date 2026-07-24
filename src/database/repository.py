@@ -84,6 +84,7 @@ class AnalysisRepository:
         created_to: datetime | None = None,
         limit: int | None = 20,
         offset: int = 0,
+        project_id: int | None = None,
     ) -> list[AnalysisRecord]:
         with self.SessionLocal() as session:
             query = (
@@ -91,7 +92,13 @@ class AnalysisRepository:
                 .filter(AnalysisRecord.organization_id == organization_id)
                 .order_by(AnalysisRecord.created_at.desc(), AnalysisRecord.id.desc())
             )
-            if project_name is not None:
+            # TD-008 Phase 3b (Etapa 1): when a project_id is provided it is
+            # the exact key (the migration's whole point -- two projects can
+            # share a name but never an id); it takes precedence over the
+            # legacy name filter. Name-only callers are unchanged.
+            if project_id is not None:
+                query = query.filter(AnalysisRecord.project_id == project_id)
+            elif project_name is not None:
                 query = query.filter(AnalysisRecord.project_name == project_name)
             if kind is not None:
                 query = query.filter(AnalysisRecord.kind == kind)

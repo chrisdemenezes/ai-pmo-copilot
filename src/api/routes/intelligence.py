@@ -23,6 +23,11 @@ from src.api.dependencies import build_repository
 from src.api.identity_context import get_request_context
 from src.api.rate_limiter import enforce_rate_limit
 from src.api.security import verify_api_key
+from src.database.enterprise_repository import (
+    AmbiguousProjectNameError,
+    ProjectNotFoundError,
+    ProjectReferenceMismatchError,
+)
 from src.llm.providers.base import LLMProvider
 from src.llm.providers.factory import get_provider
 from src.prompts.registry import PromptRegistry
@@ -143,6 +148,60 @@ def build_project_summary_service(
     return ProjectSummaryService(repository=repository)
 
 
+def resolve_project_scope(
+    repository: AnalysisRepository,
+    organization_id: int,
+    project_id: int | None,
+    project_name: str | None,
+) -> tuple[int | None, str | None]:
+    """Dual-key boundary check (TD-008 Phase 3b, Etapa 1). Returns the
+    `(project_id, project_name)` pair the caller should filter by -- at most
+    one is non-None. Maps the resolver's domain errors to HTTP:
+    - not found by id / cross-organization -> 404 (never confirm a foreign id);
+    - ambiguous name                       -> 409 (never silently pick one);
+    - id/name divergence                   -> 409.
+
+    Additive-by-design rules that keep this a zero-regression change:
+    - neither given -> (None, None): portfolio scope, unchanged.
+    - id given (with or without name) -> full validation, filter by the
+      resolved id (exact -- the migration's whole point).
+    - name only:
+        * resolves uniquely -> filter by its id (identical results to the
+          legacy name filter for a unique name, but now exact);
+        * ambiguous (>1 match) -> 409 (the one behavior we tighten, per the
+          Founder's 'não permitir resolução ambígua por nome');
+        * no Project row at all (never analyzed) -> preserve the legacy
+          empty-list behavior by filtering on the raw name (a genuinely
+          nonexistent project simply has no analyses).
+    """
+    has_name = project_name is not None and project_name.strip() != ""
+    if project_id is None and not has_name:
+        return (None, None)
+
+    try:
+        project = repository.enterprise.resolve_project_reference(
+            organization_id, project_id=project_id, project_name=project_name
+        )
+        return (project.id, None) if project is not None else (None, None)
+    except ProjectNotFoundError as exc:
+        # An id that doesn't resolve is always a hard 404 (incl. cross-org).
+        # A NAME that doesn't resolve, with no id supplied, is the legacy
+        # "never-analyzed project" case -> keep filtering by the raw name
+        # (empty result), never a 404, to stay additive.
+        if project_id is None:
+            return (None, project_name)
+        raise HTTPException(status_code=404, detail="Project not found") from exc
+    except AmbiguousProjectNameError as exc:
+        raise HTTPException(
+            status_code=409, detail="Project name is ambiguous; use project_id"
+        ) from exc
+    except ProjectReferenceMismatchError as exc:
+        raise HTTPException(
+            status_code=409,
+            detail="project_id and project_name refer to different projects",
+        ) from exc
+
+
 @router.post("/meetings/analyze")
 def analyze_meeting(
     request: MeetingAnalysisRequest,
@@ -244,6 +303,7 @@ def analyze_project_status(
 @router.get("/analyses", response_model=list[AnalysisSummary])
 def list_analyses(
     project_name: str | None = None,
+    project_id: int | None = None,
     kind: str | None = None,
     created_from: datetime | None = None,
     created_to: datetime | None = None,
@@ -254,10 +314,14 @@ def list_analyses(
     _permission: None = Depends(require_permission("intelligence.read")),
 ):
     organization_id = context.organization.organization_id
+    scope_id, scope_name = resolve_project_scope(
+        repository, organization_id, project_id, project_name
+    )
     logger.info(
-        "Listing analyses organization_id=%s project_name=%s kind=%s created_from=%s created_to=%s limit=%d offset=%d",
+        "Listing analyses organization_id=%s project_id=%s project_name=%s kind=%s created_from=%s created_to=%s limit=%d offset=%d",
         organization_id,
-        project_name,
+        scope_id,
+        scope_name,
         kind,
         created_from,
         created_to,
@@ -266,7 +330,8 @@ def list_analyses(
     )
     return repository.list_analyses(
         organization_id=organization_id,
-        project_name=project_name,
+        project_name=scope_name,
+        project_id=scope_id,
         kind=kind,
         created_from=created_from,
         created_to=created_to,
@@ -292,39 +357,54 @@ def get_analysis(
 @router.get("/action-items", response_model=list[ActionItemResponse])
 def list_action_items(
     project_name: str | None = None,
+    project_id: int | None = None,
     context: RequestContext = Depends(get_request_context),
+    repository: AnalysisRepository = Depends(build_repository),
     service: ProjectSummaryService = Depends(build_project_summary_service),
     _permission: None = Depends(require_permission("intelligence.read")),
 ):
-    # project_name is optional: present = Workspace view, absent = portfolio
-    # view (FS-007 §2.2) -- same query-parameter design as GET /analyses.
-    logger.info("Listing action items project_name=%s", project_name)
+    # project_name/project_id are optional: present = Workspace view, absent
+    # = portfolio view (FS-007 §2.2) -- same query-parameter design as
+    # GET /analyses. project_id takes precedence (TD-008 Phase 3b, Etapa 1).
+    organization_id = context.organization.organization_id
+    scope_id, scope_name = resolve_project_scope(
+        repository, organization_id, project_id, project_name
+    )
+    logger.info("Listing action items project_id=%s project_name=%s", scope_id, scope_name)
     return service.list_action_items(
-        organization_id=context.organization.organization_id, project_name=project_name
+        organization_id=organization_id, project_name=scope_name, project_id=scope_id
     )
 
 
 @router.get("/risks/latest", response_model=list[LatestRiskItemResponse])
 def list_latest_risks(
     project_name: str | None = None,
+    project_id: int | None = None,
     context: RequestContext = Depends(get_request_context),
+    repository: AnalysisRepository = Depends(build_repository),
     service: ProjectSummaryService = Depends(build_project_summary_service),
     _permission: None = Depends(require_permission("intelligence.read")),
 ):
-    # Same query-parameter design as GET /action-items: project_name
+    # Same query-parameter design as GET /action-items: project_name/id
     # present = Workspace scope, absent = portfolio scope. Decision
     # Center's single new backend investment (FS-008 §3.1) -- reused by
     # any future Capability needing the latest risk analysis per project.
-    logger.info("Listing latest risks project_name=%s", project_name)
+    organization_id = context.organization.organization_id
+    scope_id, scope_name = resolve_project_scope(
+        repository, organization_id, project_id, project_name
+    )
+    logger.info("Listing latest risks project_id=%s project_name=%s", scope_id, scope_name)
     return service.list_latest_risks(
-        organization_id=context.organization.organization_id, project_name=project_name
+        organization_id=organization_id, project_name=scope_name, project_id=scope_id
     )
 
 
 @router.get("/projects/summary", response_model=ProjectSummaryResponse)
 def get_project_summary(
-    project_name: str,
+    project_name: str | None = None,
+    project_id: int | None = None,
     context: RequestContext = Depends(get_request_context),
+    repository: AnalysisRepository = Depends(build_repository),
     service: ProjectSummaryService = Depends(build_project_summary_service),
     _permission: None = Depends(require_permission("intelligence.read")),
 ):
@@ -333,9 +413,18 @@ def get_project_summary(
     # segment (the ASGI server decodes %2F before route matching, so no
     # client-side encoding can work around it). Query parameters don't have
     # this restriction, matching the already-working GET /analyses design.
-    logger.info("Summarizing project_name=%s", project_name)
+    # project_id takes precedence when supplied (TD-008 Phase 3b, Etapa 1).
+    organization_id = context.organization.organization_id
+    if project_id is None and (project_name is None or project_name.strip() == ""):
+        raise HTTPException(
+            status_code=422, detail="project_name or project_id is required"
+        )
+    scope_id, scope_name = resolve_project_scope(
+        repository, organization_id, project_id, project_name
+    )
+    logger.info("Summarizing project_id=%s project_name=%s", scope_id, scope_name)
     return service.summarize(
-        organization_id=context.organization.organization_id, project_name=project_name
+        organization_id=organization_id, project_name=scope_name, project_id=scope_id
     )
 
 

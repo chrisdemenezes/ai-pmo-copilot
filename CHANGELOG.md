@@ -445,3 +445,27 @@ Item 7 ("Workspaces como entidade") was flagged "A esclarecer" -- the term colli
 **Decision: not implemented; formally reclassified.** No code produced. "Workspace" is reserved as a presentation-layer term, recorded in the Ubiquitous Language (`DOMAIN-MODEL.md` §1) and formalized in `DOMAIN-BLUEPRINT-ENTERPRISE-ADMINISTRATION.md` §0.2. Any future need to group users/projects under an organizational sub-unit is to be evaluated as an extension of Program/Portfolio or Organization Scope, with a name that does not collide with the product View -- never as a "Workspace" entity built to satisfy a roadmap item.
 
 **Decision Log:** D-055.
+
+## Wave Completion Review retrospective, item 8 — Etapa 1 (2026-07-24): TD-008 Phase 3b -- additive introduction of `project_id` with a dual-key contract
+
+Item 8 is the last technical gap of the retrospective: TD-008 Phase 3b, migrating Project's access key from `project_name` to `project_id`. Per the Founder, this runs as a controlled, auditable migration -- an Impact Assessment (`docs/architecture/TD-008-PHASE-3B-IMPACT-ASSESSMENT.md`) was produced and approved first, and execution proceeds in 5 stages, each concluded/tested/documented/committed separately. This entry is **Etapa 1 (additive, zero removal)**.
+
+**Adicionado**
+- `EnterpriseRepository.resolve_project_reference(organization_id, project_id?, project_name?)` -- org-scoped dual-key resolution returning the `Project` (or `None` when neither key is given). Typed exceptions `ProjectNotFoundError`, `AmbiguousProjectNameError`, `ProjectReferenceMismatchError` (`src/database/enterprise_repository.py`).
+- Intelligence read routes (`/api/analyses`, `/api/action-items`, `/api/risks/latest`, `/api/projects/summary`) now accept **`project_id` in addition to `project_name`**. A boundary helper `resolve_project_scope` maps the resolution: nonexistent/cross-org id → **404** (never confirms another org's id), id≠name divergence → **409**, ambiguous name → **409** (`src/api/routes/intelligence.py`).
+- `project_id` filter threaded through `AnalysisRepository.list_analyses` and `ProjectSummaryService` (`summarize`, `list_action_items`, `list_latest_risks`).
+- Migration `0014_analysis_project_id_backfill` -- defensive, idempotent, non-destructive re-backfill of `analysis_records.project_id` from the matching `Project`; **no NOT NULL** (that is Etapa 4). Downgrade is a documented no-op.
+
+**Additividade estrita (nada quebra):** when `project_id` is supplied it is the exact key (`AnalysisRecord.project_id`); a name that resolves uniquely now filters by that id (identical result, now exact); a **never-analyzed name keeps its legacy behavior (empty list, never 404)**. No frontend consumer migrated yet (Etapas 2-3).
+
+**Achado (reduz risco do Impact Assessment):** the `uq_projects_org_name` UNIQUE constraint on `projects(organization_id, name)` already makes two same-named projects in one organization impossible -- so **name ambiguity is structurally impossible today**. The resolver's ambiguity branch is retained as future-proof defensive code; the "duplicate name" risk drops from Medium to ~nil.
+
+**Testes**
+- `tests/test_project_resolver.py` (12): the 5 Founder-mandated scenarios (nonexistent name, duplicate name, nonexistent id, id≠name divergence, cross-org access) + whitespace normalization + the constraint invariant.
+- `tests/test_intelligence_dual_key_api.py` (9): id-exact filtering, dual-key 404/409 through the real routes, cross-org 404, name-only additivity.
+- `tests/test_migration_0014_backfill.py` (2): idempotent backfill + downgrade no-op.
+- Suíte backend completa: 449 testes passando (inclui a atualização dos test doubles `FakeService` de `/action-items`, `/risks/latest` e `/projects/summary`, que agora aceitam `project_id` e injetam um repositório stub org-escopado). E2E (lg/md/mobile): 292 testes passando. `ruff check src tests`: sem apontamentos.
+
+**Gate destrutivo (Etapa 4):** removing `project_name` as a key and `DROP COLUMN` will only happen once no behavior consumer uses the column as a key, a repository-wide search proves absence, the whole suite is green, backup+downgrade are tested, and **new explicit Founder approval is requested again**.
+
+**Decision Log:** D-056.

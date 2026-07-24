@@ -2,7 +2,24 @@ from fastapi.testclient import TestClient
 
 from src.api import authorization as authorization_module
 from src.api.routes import intelligence
+from src.database.enterprise_repository import ProjectNotFoundError
 from src.main import app
+
+
+class _UnseededEnterprise:
+    """Resolver stub for these route-level pass-through tests: no Project rows
+    exist, so a name never resolves. That is exactly the additive contract's
+    'never-analyzed project' branch -- the name flows through to the service
+    unchanged (TD-008 Phase 3b, Etapa 1)."""
+
+    def resolve_project_reference(self, organization_id, project_id=None, project_name=None):
+        if project_id is None and (project_name is None or project_name.strip() == ""):
+            return None
+        raise ProjectNotFoundError("no Project rows in this stub")
+
+
+class _FakeRepository:
+    enterprise = _UnseededEnterprise()
 
 ORG_ID = 1
 HEADERS = {
@@ -23,10 +40,17 @@ class FakeService:
         self._portfolio = portfolio
         self.received_organization_id = None
         self.received_project_name = None
+        self.received_project_id = None
 
-    def summarize(self, organization_id: int, project_name: str) -> dict:
+    def summarize(
+        self,
+        organization_id: int,
+        project_name: str | None = None,
+        project_id: int | None = None,
+    ) -> dict:
         self.received_organization_id = organization_id
         self.received_project_name = project_name
+        self.received_project_id = project_id
         return self._summary
 
     def summarize_portfolio(self, organization_id: int) -> list[dict]:
@@ -36,6 +60,7 @@ class FakeService:
 
 def _install(fake_service):
     app.dependency_overrides[intelligence.build_project_summary_service] = lambda: fake_service
+    app.dependency_overrides[intelligence.build_repository] = lambda: _FakeRepository()
     app.dependency_overrides[authorization_module.build_permission_checker] = (
         lambda: AlwaysAllowChecker()
     )

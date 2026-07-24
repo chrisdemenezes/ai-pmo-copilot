@@ -46,6 +46,28 @@ class SelfDeactivationError(Exception):
     Management, Wave 2)."""
 
 
+class ProjectNotFoundError(Exception):
+    """A project reference (id or name) did not resolve to a Project in the
+    caller's organization (TD-008 Phase 3b, dual-key resolution). A
+    cross-organization id resolves here too -- an id that exists in another
+    organization is reported as not-found, never confirmed, matching the
+    404 convention already used across the Enterprise Domain API."""
+
+
+class AmbiguousProjectNameError(Exception):
+    """A project name resolved to more than one Project in the organization
+    (TD-008 Phase 3b). Name is not a safe key precisely because of this --
+    the migration to project_id exists to remove the ambiguity; while both
+    keys coexist, an ambiguous name is rejected explicitly instead of
+    silently picking one."""
+
+
+class ProjectReferenceMismatchError(Exception):
+    """Both project_id and project_name were supplied and they point to
+    different Projects (TD-008 Phase 3b dual-key contract, Founder
+    requirement). Rejected explicitly -- never silently resolved to one."""
+
+
 class EnterpriseRepository:
     """Operates inside sessions produced by the injected sessionmaker.
 
@@ -231,6 +253,73 @@ class EnterpriseRepository:
                 raw_project_name,
             )
         return project
+
+    def resolve_project_reference(
+        self,
+        organization_id: int,
+        project_id: int | None = None,
+        project_name: str | None = None,
+    ) -> Project | None:
+        """Dual-key resolution (TD-008 Phase 3b, Etapa 1). Read-only -- never
+        creates a Project (that stays with `get_or_create_project_for_name`
+        on the analyze/write path).
+
+        Contract (Founder requirements):
+        - both None -> None (portfolio scope, no project filter).
+        - project_id given -> must exist AND belong to `organization_id`,
+          else ProjectNotFoundError (a cross-organization id is reported as
+          not-found, never confirmed).
+        - project_name given (no id) -> resolved within the organization;
+          0 matches -> ProjectNotFoundError; >1 -> AmbiguousProjectNameError
+          (name is not a safe key while duplicates can exist).
+        - both given -> each resolved as above, then they must be the SAME
+          Project, else ProjectReferenceMismatchError. Never silently picks
+          one.
+        """
+        has_id = project_id is not None
+        has_name = project_name is not None and project_name.strip() != ""
+        if not has_id and not has_name:
+            return None
+
+        with self._session_factory() as session:
+            by_id: Project | None = None
+            if has_id:
+                by_id = session.get(Project, project_id)
+                if by_id is None or by_id.organization_id != organization_id:
+                    raise ProjectNotFoundError(
+                        f"Project id={project_id} not found in organization {organization_id}"
+                    )
+
+            by_name: Project | None = None
+            if has_name:
+                name = normalize_project_name(project_name)
+                matches = (
+                    session.query(Project)
+                    .filter(
+                        Project.organization_id == organization_id,
+                        Project.name == name,
+                    )
+                    .all()
+                )
+                if len(matches) == 0:
+                    raise ProjectNotFoundError(
+                        f"Project name={project_name!r} not found in organization "
+                        f"{organization_id}"
+                    )
+                if len(matches) > 1:
+                    raise AmbiguousProjectNameError(
+                        f"Project name={project_name!r} is ambiguous "
+                        f"({len(matches)} matches) in organization {organization_id}"
+                    )
+                by_name = matches[0]
+
+            if has_id and has_name and by_id.id != by_name.id:
+                raise ProjectReferenceMismatchError(
+                    f"project_id={project_id} and project_name={project_name!r} "
+                    "refer to different projects"
+                )
+
+            return by_id or by_name
 
     # -- Memberships -------------------------------------------------------
 

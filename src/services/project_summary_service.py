@@ -10,13 +10,25 @@ class ProjectSummaryService:
     def __init__(self, repository: AnalysisRepository) -> None:
         self._repository = repository
 
-    def summarize(self, organization_id: int, project_name: str) -> dict:
+    def summarize(
+        self,
+        organization_id: int,
+        project_name: str | None = None,
+        project_id: int | None = None,
+    ) -> dict:
         # Relies on the repository's list_analyses ordering records newest-first.
+        # TD-008 Phase 3b (Etapa 1): project_id, when given, is the exact key.
         records = self._repository.list_analyses(
-            organization_id=organization_id, project_name=project_name, limit=None
+            organization_id=organization_id,
+            project_name=project_name,
+            project_id=project_id,
+            limit=None,
         )
-        project_id = records[0].project_id if records else None
-        return self._aggregate(project_name, project_id, records)
+        resolved_id = project_id if project_id is not None else (
+            records[0].project_id if records else None
+        )
+        display_name = records[0].project_name if records else project_name
+        return self._aggregate(display_name, resolved_id, records)
 
     def summarize_portfolio(self, organization_id: int) -> list[dict]:
         # One fetch of everything, grouped in memory, instead of one query per
@@ -45,7 +57,10 @@ class ProjectSummaryService:
         return summaries
 
     def list_action_items(
-        self, organization_id: int, project_name: str | None = None
+        self,
+        organization_id: int,
+        project_name: str | None = None,
+        project_id: int | None = None,
     ) -> list[dict]:
         # Same call already used by summarize()/summarize_portfolio() -- zero
         # new query, zero new table (FS-007 §2.1). One fetch, flattened in
@@ -53,6 +68,7 @@ class ProjectSummaryService:
         records = self._repository.list_analyses(
             organization_id=organization_id,
             project_name=project_name,
+            project_id=project_id,
             kind="meeting",
             limit=None,
         )
@@ -91,7 +107,10 @@ class ProjectSummaryService:
         return items
 
     def list_latest_risks(
-        self, organization_id: int, project_name: str | None = None
+        self,
+        organization_id: int,
+        project_name: str | None = None,
+        project_id: int | None = None,
     ) -> list[dict]:
         # Same call already used by list_action_items() -- zero new query.
         # Difference: keeps only the MOST RECENT risk analysis per project
@@ -101,6 +120,7 @@ class ProjectSummaryService:
         records = self._repository.list_analyses(
             organization_id=organization_id,
             project_name=project_name,
+            project_id=project_id,
             kind="risk",
             limit=None,
         )
