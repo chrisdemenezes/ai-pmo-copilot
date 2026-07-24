@@ -48,6 +48,43 @@ Registrado formalmente em Decision Log D-052. Item 4 do Wave Completion Review r
 
 ---
 
+## 0.2 Correção de escopo — Workspace é uma View, não uma entidade de domínio (D-055)
+
+**Auditoria realizada:** per o mesmo rigor dos itens 3/5/6, antes de implementar o item 7 ("Workspaces como entidade") foi feita uma auditoria arquitetural exaustiva de todo o repositório (Product Constitution, Permanent Principles, todos os Domain Blueprints, Domain Model, Technical Designs, Business Model Blueprint, Master Roadmap, Mission Control, Decision Logs, Executive Reports, backlog, e o código de `src/`/`web/`), respondendo à pergunta: qual é a **verdadeira natureza** do conceito Workspace?
+
+**Resultado — o termo "workspace" tem três sentidos, e apenas dois existem no produto; nenhum é uma entidade de domínio nova:**
+
+| Sentido | Existe? | Natureza | Evidência |
+|---|---|---|---|
+| (a) `/workspace/:projectName` | ✅ V1/RC-1 | **View/UI** — a página que reúne os painéis de análise de um projeto | `web/app/workspace/[projectName]/page.tsx`: "Rota dinâmica — não representa uma entidade Project persistida"; `STRATECH_V2_MASTER_ROADMAP.md`: "é a camada de apresentação dos domínios Portfolio/Project Intelligence e AI Intelligence Layer" |
+| (b) "sessão de workspace" | ✅ | **Sessão de autenticação Nível 1** (RFC-001) — sinônimo herdado para a sessão do tenant; hoje realizada pela entidade `Session` (D-053) | `web/lib/session.ts`: "the Nível 1 workspace-wide boolean session (RFC-001)"; `web/proxy.ts`: "Nível 1 workspace session" |
+| (c) "Workspaces" administrável (múltiplos por organização) | ❌ Não existe | **Placeholder de governança sem substância de domínio** — sem identidade, ciclo de vida, invariantes, permissões, relacionamentos ou persistência em nenhum documento | Esta Blueprint (§2) já classificava como "conflito de nome, decisão de domínio nova"; retrospectivo §6 item 7 "A esclarecer"; Visual Fidelity Gate: "Nenhuma FS descreve múltiplos workspaces… não existe no código" |
+
+**Classificação arquitetural (per a matriz da Decisão do Founder): (A) Workspace é apenas uma visão (View/UI).** O sentido (a) é presentation layer sobre os domínios Portfolio/Project Intelligence + AI Intelligence Layer; o sentido (b) é a sessão de autenticação, já modelada como `Session`. O sentido (c) — a suposta entidade administrável — **não deve ser promovido ao domínio**: nenhum dos elementos DDD obrigatórios existe.
+
+**Validação DDD (por que não promover):**
+
+| Critério DDD | Workspace-entidade (c) |
+|---|---|
+| Identidade própria | ❌ Não há `id`; a View é chaveada por um `project_name` (string), que é identidade do **Project**, não de um Workspace |
+| Invariantes | ❌ Nenhuma regra de construção/consistência documentada |
+| Ciclo de vida | ❌ Sem create/update/delete, sem máquina de estados |
+| Relacionamentos | ❌ Nenhum FK; a View apenas filtra análises por `project_name` |
+| Responsabilidade de domínio | ❌ Nenhum problema de negócio próprio; "agrupar usuários/projetos sob uma sub-unidade" já é responsabilidade de **Program/Portfolio** |
+| Limites de consistência | ❌ Não há agregado a proteger |
+
+Criar uma entidade "Workspace" seria **arquitetura paralela** e **duplicação** (CLAUDE.md: "nunca criar arquitetura paralela", "nunca duplicar código") — reimplementaria o agrupamento que Program/Portfolio já fazem, ou o escopo que o RBAC Organization Scope já provê. Per o princípio do Founder: "nem toda tela representa uma entidade de domínio; um conceito só deve ser promovido ao domínio quando possuir identidade, comportamento e responsabilidade de negócio claramente definidos" — nenhum desses existe aqui.
+
+**Reclassificação formal (substitui a linha "Workspaces" da Seção 2):**
+
+| Sub-área | Status formal | Justificativa |
+|---|---|---|
+| **Workspace** | **View/UI — não é uma entidade de domínio (não implementar)** | O termo denota uma camada de apresentação (a) e a sessão de autenticação (b, já = `Session`/D-053). A entidade administrável (c) não tem substância de domínio e seria arquitetura paralela sobre Program/Portfolio + RBAC Organization Scope. Reservado como termo de apresentação; registrado na Linguagem Ubíqua (`DOMAIN-MODEL.md` §1). |
+
+Registrado em Decision Log D-055. Item 7 fecha como **Governança Concluída** (auditoria completa, natureza esclarecida, reclassificado), não como Implementado — **não há entidade a construir.** Se no futuro surgir uma necessidade real de agrupar usuários/projetos sob uma sub-unidade organizacional, ela deve ser avaliada como extensão de Program/Portfolio ou do Organization Scope do RBAC, com nome próprio que não colida com a View de produto — nunca como uma entidade "Workspace" criada apenas para satisfazer um item de roadmap.
+
+---
+
 ## 1. O conflito, resumido
 
 | | Escopo aprovado (Épico 5, Release 0.1) | Escopo pedido por esta missão |
@@ -70,7 +107,7 @@ Registrado formalmente em Decision Log D-052. Item 4 do Wave Completion Review r
 | **Logs (visualização, não só auditoria de mutação)** | 2 — extensão natural | Logging já existe (`logger.info` em todas as rotas) mas não é agregado nem exposto em UI | Extensão recomendada — agregação de log estruturado, não um sistema de logging novo |
 | **Health (status da aplicação)** | 2 — extensão natural, baixo custo | Não existe hoje; é um endpoint de baixo risco (`/health`) comum em qualquer API | Extensão recomendada — implementação trivial, sem impacto em domínio |
 | **Configurações (preferências por organização)** | **Sem Escopo Funcional Definido (D-052 — ver §0.1)** | Auditoria exaustiva do repositório (D-052) confirmou: nenhum documento oficial especifica qualquer preferência/campo concreto | Não implementar até o Founder definir o conteúdo concreto — não preencher com suposições nem com melhorias de infraestrutura (ex.: rate limit por organização) usadas como substituto |
-| **Workspaces (administração de múltiplos workspaces por organização)** | 3 — conflito de nome, decisão de domínio nova | ⚠️ "Workspace" já é um termo de produto **diferente** — a página `/workspace/{project}` da V1/RC-1 (um workspace por projeto, não um conceito administrável). Introduzir "Workspaces" como unidade administrativa colidiria com esse termo já em produção. | **Não recomendado sem antes resolver a colisão de nome.** Se a necessidade real é "agrupar usuários/projetos sob uma sub-unidade da organização", isso já tem candidato natural no Domain Map (Program/Portfolio, Wave 2) — recomenda-se avaliar se "Workspaces administrativos" não é apenas RBAC com Organization Scope mais granular (Program-level), não uma entidade nova. |
+| **Workspaces (administração de múltiplos workspaces por organização)** | **View/UI — não é entidade de domínio (D-055 — ver §0.2)** | Auditoria arquitetural (D-055) confirmou: "workspace" é um termo de apresentação (a View `/workspace/{project}`) + a sessão de autenticação (já = `Session`/D-053); a entidade administrável não tem identidade/ciclo de vida/invariantes/relacionamentos/persistência em nenhum documento | **Não implementar.** Criar a entidade seria arquitetura paralela sobre Program/Portfolio + RBAC Organization Scope. Reservado como termo de apresentação (`DOMAIN-MODEL.md` §1). |
 | **Convites** | **1 — implementado, desacoplado de e-mail (D-054)** | `Invitation` (migração 0013): credencial de onboarding fundamental, ao lado de Users/Roles/API Keys/Sessions. Entrega abstraída em `NotificationProvider` (NoOp) — e-mail é mecanismo de notificação, não constituinte do domínio; o token é devolvido uma vez na criação para entrega manual | **Implementado.** Ver `DOMAIN-BLUEPRINT-INVITATIONS.md`, `AR-5-INVITATIONS-REVIEW.md`, `TECHNICAL-DESIGN-INVITATIONS.md`. A escolha de um provedor de notificação concreto (SMTP/SES) permanece decisão de negócio pendente, sem bloquear o domínio |
 | **API Keys** | 3 — não existe, sem precedente | Nenhuma menção prévia em nenhum Blueprint/ADR. A STRATECH não expõe hoje nenhuma API para consumo de terceiros autenticado por chave — a única autenticação de API é `X-API-Key` do próprio backend para o BFF (`verify_api_key`), um segredo de infraestrutura, não uma feature de produto | **Não recomendado agora.** Requer decisão de produto (a STRATECH expõe API pública para integrações de clientes?) antes de qualquer Technical Design — relacionado à Wave 4 (Integration Hub), não a Administration. |
 | **Tenant Settings / System Settings** | **Pendente de Decisão de Negócio (D-052 — ver §0.1)** | Depende inteiramente das 7 perguntas sem resposta de `BUSINESS-MODEL-BLUEPRINT.md` §2 — decisão comercial do Founder, não uma dependência arquitetural corrigível | Aguarda decisão de modelo de negócio (Wave 6); se a resposta for "a STRATECH nunca se torna produto multi-cliente comercial", este item deixa de existir como conceito, não apenas fica adiado. |

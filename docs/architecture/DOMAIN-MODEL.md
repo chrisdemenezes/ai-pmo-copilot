@@ -19,6 +19,7 @@
 | **Knowledge** *(futuro)* | Camada de inteligência/conhecimento corporativo (Accelerator futuro, Release 0.3+). |
 | **Bounded Context** | Um agrupamento coeso de entidades + regras que evolui junto (ex.: "Project Delivery" = Project + seus objetos de apoio). |
 | **Consolidação** | Regra pela qual uma entidade pai deriva seus indicadores (contagem, progresso, saúde) a partir dos filhos reais, nunca de valores próprios estáticos. |
+| **Workspace** | ⚠️ **Termo de apresentação, NÃO uma entidade de domínio** (auditoria D-055, item 7 do Wave Completion Review retrospectivo). Denota exclusivamente: (a) a **View/UI** `/workspace/:projectName` — a página que reúne os painéis de análise de um único projeto, explicitamente "não representa uma entidade persistida", é a camada de apresentação dos domínios Portfolio/Project Intelligence + AI Intelligence Layer; e (b) por metonímia herdada do RFC-001, a **sessão de autenticação Nível 1** ("sessão de workspace"), hoje realizada pela entidade `Session` (D-053). Não existe — e não deve ser criada — uma entidade "Workspace": ela não possui identidade, ciclo de vida, invariantes, permissões, relacionamentos nem persistência próprios; a necessidade de "agrupar usuários/projetos sob uma sub-unidade da organização" já é servida por Program/Portfolio (entidades reais) e por RBAC com Organization Scope. Ver `DOMAIN-BLUEPRINT-ENTERPRISE-ADMINISTRATION.md` §0.2. |
 
 ## 2. Hierarquia do Domínio
 

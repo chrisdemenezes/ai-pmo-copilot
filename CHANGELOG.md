@@ -430,3 +430,18 @@ Implemented the full domain, with the functional spec supplied by the Founder's 
 - Extended: `web/components/shell/navigation.test.ts`, `web/e2e/shell.spec.ts` (nav count 12 -> 13).
 
 **Decision Log:** D-054.
+
+## Wave Completion Review retrospective, item 7 (2026-07-24): Workspace reclassified as View/UI -- not a domain entity (Governance Concluded)
+
+Item 7 ("Workspaces como entidade") was flagged "A esclarecer" -- the term collides with the existing `/workspace/:projectName` UI route, needing its own Domain Blueprint before any code. A mandatory architectural audit of the whole repository (docs + code) established the true nature of the concept before writing anything.
+
+**Finding:** "workspace" has three senses, only two of which exist, and none is a new domain entity:
+- (a) the `/workspace/:projectName` **View/UI** -- a project's analysis page, explicitly "não representa uma entidade persistida", the presentation layer over Portfolio/Project Intelligence + AI Intelligence Layer;
+- (b) the **"workspace session"** -- an inherited RFC-001 synonym for the Nível-1 auth session, already realized by the `Session` entity (D-053);
+- (c) a proposed administrable **"Workspaces" entity** that does not exist -- no id, lifecycle, invariants, permissions, relationships, or persistence anywhere (`src/database/models.py` has no `workspaces` table; a prior Visual Fidelity Gate already flagged a "Workspaces" selector as design fiction with no FS and no code).
+
+**Classification (Founder's matrix): (A) View/UI.** DDD validation of sense (c) fails on every required element (identity, invariants, lifecycle, relationships, domain responsibility, consistency boundaries). Per the Founder's principle ("not every screen is a domain entity") and CLAUDE.md ("never create parallel architecture / duplicate code"), it must not be promoted: creating a "Workspace" entity would duplicate what Program/Portfolio already do, or the RBAC Organization Scope already provides.
+
+**Decision: not implemented; formally reclassified.** No code produced. "Workspace" is reserved as a presentation-layer term, recorded in the Ubiquitous Language (`DOMAIN-MODEL.md` §1) and formalized in `DOMAIN-BLUEPRINT-ENTERPRISE-ADMINISTRATION.md` §0.2. Any future need to group users/projects under an organizational sub-unit is to be evaluated as an extension of Program/Portfolio or Organization Scope, with a name that does not collide with the product View -- never as a "Workspace" entity built to satisfy a roadmap item.
+
+**Decision Log:** D-055.
