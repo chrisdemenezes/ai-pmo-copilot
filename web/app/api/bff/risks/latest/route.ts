@@ -33,10 +33,17 @@ export async function GET(request: Request) {
     return errorResponse({ error: "unauthorized", detail: "Sessão inválida ou expirada." }, 401);
   }
 
-  const projectName = new URL(request.url).searchParams.get("project_name");
+  const incoming = new URL(request.url);
+  const projectName = incoming.searchParams.get("project_name");
+  const projectId = incoming.searchParams.get("project_id");
   const backendUrlObj = new URL(`${backendUrl}/api/risks/latest`);
   if (projectName !== null) {
     backendUrlObj.searchParams.set("project_name", projectName);
+  }
+  // TD-008 Fase 3b, Etapa 2 (dual-key): encaminha o project_id quando o
+  // cliente o fornece, coexistindo com project_name. Aditivo.
+  if (projectId !== null) {
+    backendUrlObj.searchParams.set("project_id", projectId);
   }
 
   const controller = new AbortController();

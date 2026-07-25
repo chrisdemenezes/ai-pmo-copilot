@@ -36,10 +36,17 @@ export async function GET(request: Request) {
   // same reasoning as the workspace summary BFF route: Starlette's path
   // converter can't capture a literal "/" in a project name, query
   // parameters can. URLSearchParams already hands us the decoded value.
-  const projectName = new URL(request.url).searchParams.get("project_name");
+  const incoming = new URL(request.url);
+  const projectName = incoming.searchParams.get("project_name");
+  const projectId = incoming.searchParams.get("project_id");
   const backendUrlObj = new URL(`${backendUrl}/api/action-items`);
   if (projectName !== null) {
     backendUrlObj.searchParams.set("project_name", projectName);
+  }
+  // TD-008 Fase 3b, Etapa 2 (dual-key): encaminha o project_id quando o
+  // cliente o fornece, coexistindo com project_name. Aditivo.
+  if (projectId !== null) {
+    backendUrlObj.searchParams.set("project_id", projectId);
   }
 
   const controller = new AbortController();

@@ -332,6 +332,10 @@ resetAdminFixtures();
 const WORKSPACE_SUMMARY = {
   Aurora: {
     project_name: "Aurora",
+    // project_id: a saída do resolver (TD-008 Fase 3b, Etapa 1) que o
+    // /api/projects/summary real devolve; o Workspace o reaproveita como
+    // chave exata nas leituras irmãs (Etapa 2, dual-key coexistente).
+    project_id: 1,
     total_analyses: 2,
     open_risks: 0,
     pending_action_items: 1,
@@ -339,6 +343,7 @@ const WORKSPACE_SUMMARY = {
   },
   "Implantacao SAP S/4HANA": {
     project_name: "Implantacao SAP S/4HANA",
+    project_id: 2,
     total_analyses: 2,
     open_risks: 1,
     pending_action_items: 1,

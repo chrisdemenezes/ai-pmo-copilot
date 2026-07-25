@@ -466,6 +466,26 @@ Item 8 is the last technical gap of the retrospective: TD-008 Phase 3b, migratin
 - `tests/test_migration_0014_backfill.py` (2): idempotent backfill + downgrade no-op.
 - Suíte backend completa: 449 testes passando (inclui a atualização dos test doubles `FakeService` de `/action-items`, `/risks/latest` e `/projects/summary`, que agora aceitam `project_id` e injetam um repositório stub org-escopado). E2E (lg/md/mobile): 292 testes passando. `ruff check src tests`: sem apontamentos.
 
+## Wave Completion Review retrospective, item 8 — Etapa 2 (2026-07-25): TD-008 Phase 3b -- frontend consumers become dual-key
+
+Etapa 2 of the 5-stage migration: making the **frontend consumers** dual-key capable, coexisting `project_name` and `project_id` throughout. Frontend-only, additive, zero removal -- no `src/` (backend) change. Migrated consumer group by consumer group, each validated.
+
+**G1 -- BFF forwards `project_id`.** The 4 intelligence BFF routes (`/api/bff/workspace/[projectName]/summary`, `/api/bff/workspace/[projectName]/analyses`, `/api/bff/risks/latest`, `/api/bff/action-items`) now forward an optional `project_id` alongside `project_name`. Absent → byte-for-byte the previous behaviour.
+
+**G2 -- types + hooks carry `project_id`.** `WorkspaceSummary` gains `project_id` (the resolver output `/api/projects/summary` already returns since Etapa 1). The scoped hooks (`use-workspace-summary`, `use-latest-risks`, `use-action-items`, `use-workspace-latest`, `use-recent-analyses`, `use-workspace-timeline`) gain an optional `projectId`, forwarded as `project_id` and folded into the React Query key; `project_name` encoding preserved exactly (`%20`, not `+`).
+
+**G3 -- real end-to-end wiring, no new dependency.** In `executive-brief.tsx` (which already co-locates the summary read with the analysis reads), the resolved `project_id` from the summary is reused as the exact key on the sibling reads. While the summary is pending, or the project has no analyses (id null), the reads fall back to name -- panel independence and additivity preserved.
+
+**Arquitetura:** the Workspace stays name-keyed in the URL (UX preserved); `/projects/summary` is the name→id resolution and the resolved id is the key used downstream -- the ratified end-state ("resolve the name to a project_id before any domain operation", never forcing the user to type IDs). No new provider/registry/parallel architecture; 100% reuse of existing hooks/BFF/types.
+
+**Testes**
+- New dual-key forwarding tests across the 4 BFF route `.test.ts` files and the hook `.test.tsx` files; new `components/workspace/executive-brief.test.tsx` (2: id threaded when resolved; name-only fallback while pending).
+- `tsc` clean, `eslint` clean, `vitest`: 483 testes passando. E2E (lg/md/mobile): 292 testes passando (contra build de produção). Backend inalterado nesta etapa.
+
+**Gate destrutivo (Etapa 4):** removing `project_name` as a key + `DROP COLUMN` still needs **new explicit Founder approval**.
+
+**Decision Log:** D-057.
+
 **Gate destrutivo (Etapa 4):** removing `project_name` as a key and `DROP COLUMN` will only happen once no behavior consumer uses the column as a key, a repository-wide search proves absence, the whole suite is green, backup+downgrade are tested, and **new explicit Founder approval is requested again**.
 
 **Decision Log:** D-056.

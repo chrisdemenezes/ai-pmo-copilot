@@ -43,6 +43,15 @@ export async function GET(
   // matching the already-working /api/analyses BFF route.
   const backendUrlObj = new URL(`${backendUrl}/api/projects/summary`);
   backendUrlObj.searchParams.set("project_name", projectName);
+  // TD-008 Fase 3b, Etapa 2 (dual-key): quando o cliente já conhece o
+  // project_id resolvido (a saída do resolver, devolvida por este mesmo
+  // endpoint), encaminha-o junto com o nome. Aditivo -- ausente, o
+  // comportamento é idêntico ao anterior; presente, o backend valida que
+  // id e nome apontam para o mesmo Project e filtra pela chave exata.
+  const projectId = new URL(request.url).searchParams.get("project_id");
+  if (projectId !== null) {
+    backendUrlObj.searchParams.set("project_id", projectId);
+  }
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), BACKEND_TIMEOUT_MS);

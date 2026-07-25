@@ -72,6 +72,22 @@ describe("GET /api/bff/workspace/[projectName]/analyses", () => {
     expect(url.searchParams.get("limit")).toBe("1");
   });
 
+  it("forwards project_id alongside project_name when the client provides it (dual-key, Etapa 2)", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify(SAMPLE), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await GET(
+      authenticatedRequest("http://localhost/api/bff/workspace/Aurora/analyses?kind=risk&project_id=42"),
+      paramsFor("Aurora"),
+    );
+
+    const url = new URL(String(fetchMock.mock.calls[0][0]));
+    expect(url.searchParams.get("project_name")).toBe("Aurora");
+    expect(url.searchParams.get("project_id")).toBe("42");
+  });
+
   it("does not forward unrecognized query params", async () => {
     const fetchMock = vi
       .fn()

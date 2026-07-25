@@ -1,6 +1,10 @@
-/** Mirrors ProjectSummaryResponse in src/api/routes/intelligence.py:64. */
+/** Mirrors ProjectSummaryResponse in src/api/routes/intelligence.py. */
 export interface WorkspaceSummary {
   project_name: string;
+  // TD-008 Fase 3b, Etapa 2 (dual-key): a saída do resolver -- o project_id
+  // técnico que o backend já resolve a partir do nome (Etapa 1). null quando
+  // o projeto ainda não tem nenhuma análise registrada (nada a resolver).
+  project_id: number | null;
   total_analyses: number;
   open_risks: number;
   pending_action_items: number;

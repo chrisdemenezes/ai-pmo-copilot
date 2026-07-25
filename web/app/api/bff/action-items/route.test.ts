@@ -90,6 +90,33 @@ describe("GET /api/bff/action-items", () => {
     expect(url.searchParams.get("project_name")).toBe(name);
   });
 
+  it("forwards project_id alongside project_name when both are given (dual-key, Etapa 2)", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify([]), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await GET(authenticatedRequest(`${BASE_URL}?project_name=Aurora&project_id=42`));
+
+    const [calledUrl] = fetchMock.mock.calls[0];
+    const url = new URL(String(calledUrl));
+    expect(url.searchParams.get("project_name")).toBe("Aurora");
+    expect(url.searchParams.get("project_id")).toBe("42");
+  });
+
+  it("omits project_id when the client does not supply it (additive)", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify([]), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await GET(authenticatedRequest(`${BASE_URL}?project_name=Aurora`));
+
+    const [calledUrl] = fetchMock.mock.calls[0];
+    const url = new URL(String(calledUrl));
+    expect(url.searchParams.has("project_id")).toBe(false);
+  });
+
   it("sends the API key and institutional headers, never the key in the URL", async () => {
     const fetchMock = vi
       .fn()

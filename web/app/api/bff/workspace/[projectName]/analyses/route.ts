@@ -7,8 +7,11 @@ const BACKEND_TIMEOUT_MS = 8_000;
 
 // Query params this route accepts from the client and forwards as-is to the
 // backend's GET /api/analyses -- no new filter invented, only what
-// src/api/routes/intelligence.py:134 already supports.
-const FORWARDED_PARAMS = ["kind", "limit", "offset", "created_from", "created_to"];
+// src/api/routes/intelligence.py already supports. `project_id` is the
+// dual-key addition (TD-008 Fase 3b, Etapa 2): coexists with the path-derived
+// project_name; when present, the backend validates both and filters by the
+// exact id. Additive -- absent, behaviour is byte-for-byte the same.
+const FORWARDED_PARAMS = ["kind", "limit", "offset", "created_from", "created_to", "project_id"];
 
 function errorResponse(body: WorkspaceErrorBody, status: number) {
   return NextResponse.json(body, { status });

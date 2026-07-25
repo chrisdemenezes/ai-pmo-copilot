@@ -73,6 +73,30 @@ describe("GET /api/bff/risks/latest", () => {
     expect(url.searchParams.has("project_name")).toBe(false);
   });
 
+  it("forwards project_id alongside project_name when both are given (dual-key, Etapa 2)", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify([]), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await GET(authenticatedRequest(`${BASE_URL}?project_name=Aurora&project_id=42`));
+
+    const url = new URL(String(fetchMock.mock.calls[0][0]));
+    expect(url.searchParams.get("project_name")).toBe("Aurora");
+    expect(url.searchParams.get("project_id")).toBe("42");
+  });
+
+  it("omits project_id when the client does not supply it (additive)", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify([]), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await GET(authenticatedRequest(`${BASE_URL}?project_name=Aurora`));
+
+    expect(new URL(String(fetchMock.mock.calls[0][0])).searchParams.has("project_id")).toBe(false);
+  });
+
   it.each([
     ["a slash", "Implantacao SAP S/4HANA"],
     ["spaces", "Migracao de Data Center"],

@@ -9,6 +9,7 @@ async function fetchRecentByKind<K extends AnalysisKind>(
   projectName: string,
   kind: K,
   limit: number,
+  projectId?: number,
 ): Promise<AnalysisDetail<ModelOutputForKind<K>>[]> {
   const encodedProject = encodeURIComponent(projectName);
 
@@ -18,6 +19,10 @@ async function fetchRecentByKind<K extends AnalysisKind>(
   );
   listUrl.searchParams.set("kind", kind);
   listUrl.searchParams.set("limit", String(limit));
+  // TD-008 Fase 3b, Etapa 2 (dual-key): project_id coexiste com o nome.
+  if (projectId !== undefined) {
+    listUrl.searchParams.set("project_id", String(projectId));
+  }
 
   const listResponse = await fetch(listUrl.pathname + listUrl.search);
   const list = await parseWorkspaceResponse<AnalysisListItem[]>(listResponse);
@@ -44,10 +49,11 @@ export function useRecentAnalysesByKind<K extends AnalysisKind>(
   projectName: string,
   kind: K,
   limit: number,
+  projectId?: number,
 ) {
   return useQuery({
-    queryKey: ["workspace-recent", projectName, kind, limit],
-    queryFn: () => fetchRecentByKind(projectName, kind, limit),
+    queryKey: ["workspace-recent", projectName, kind, limit, projectId ?? null],
+    queryFn: () => fetchRecentByKind(projectName, kind, limit, projectId),
     staleTime: 30_000,
     retry: false,
   });
