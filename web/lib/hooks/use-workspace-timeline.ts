@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import type { AnalysisListItem } from "@/lib/workspace/types";
 import { parseWorkspaceResponse } from "./workspace-fetch-error";
@@ -45,5 +45,7 @@ export function useWorkspaceTimeline(projectName: string, options: TimelineOptio
     queryFn: () => fetchWorkspaceTimeline(projectName, options),
     staleTime: 30_000,
     retry: false,
+    // TD-008 Fase 3b, Etapa 3: troca de chave nome->id sem flash (dado igual).
+    placeholderData: keepPreviousData,
   });
 }

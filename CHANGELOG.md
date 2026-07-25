@@ -488,4 +488,27 @@ Etapa 2 of the 5-stage migration: making the **frontend consumers** dual-key cap
 
 **Gate destrutivo (Etapa 4):** removing `project_name` as a key and `DROP COLUMN` will only happen once no behavior consumer uses the column as a key, a repository-wide search proves absence, the whole suite is green, backup+downgrade are tested, and **new explicit Founder approval is requested again**.
 
+## Wave Completion Review retrospective, item 8 — Etapa 3 (2026-07-25): TD-008 Phase 3b -- consumers use `project_id` as the primary key
+
+Etapa 3 of the 5-stage migration: the remaining workspace consumers now use `project_id` as their **primary access key**, keeping `Project.name` purely as a display attribute. Frontend-only, additive, zero removal (no `src/` change). `project_name` and `ProjectSummary` are **not** removed here (that is Etapa 4/5).
+
+**Adicionado**
+- `lib/hooks/use-resolved-project-id.ts` -- `useResolvedProjectId(projectName)`: reads `useWorkspaceSummary` (the single name→id resolution, **deduplicated by React Query**) and projects the resolved `project_id`. Every consumer reuses the already-resolved id -- no redundant resolution, no extra request.
+
+**Migrado**
+- The remaining scoped consumers resolve via that hook and send `project_id` as the exact key: `RisksPanel` + `CommunicationBrief` (`useWorkspaceLatestByKind`), `IntelligenceTimeline` + `AnalysisHistory` (`useWorkspaceTimeline`), `ActionsSection` + `ActionsContextLine` (`useActionItems`). `ExecutiveBrief` already did so in Etapa 2.
+- `placeholderData: keepPreviousData` on the 5 scoped hooks (`use-workspace-latest`, `use-recent-analyses`, `use-workspace-timeline`, `use-latest-risks`, `use-action-items`): the name→id key switch keeps the (identical) displayed data with no loading flash -- functional behaviour unchanged.
+
+**Independência dos painéis preservada:** each section renders/fetches by name immediately; the id refines the key once the (deduplicated) summary resolves; nothing blocks anything. Post-mutation invalidations (`useSubmit*`) match by **key prefix** (`["workspace-latest", projectName, kind]` etc.), so they still hit the now id-suffixed queries -- post-analysis reflection unchanged.
+
+**Trade-off (registrado):** preserving panel independence means the id-refinement triggers a second read (deduplicated per summary, smoothed by `keepPreviousData`, same data). Absolute single-request would couple panel latency to the resolver (`enabled` gating) or need fragile cache seeding; the "avoid duplicate requests" directive was met best-effort ("sempre que possível") without sacrificing independence or correctness.
+
+**Testes**
+- New `lib/hooks/use-resolved-project-id.test.tsx` (3: resolved id, pending fallback, null-id fallback); updated the workspace component tests to mock the shared resolver.
+- `tsc` clean, `eslint` clean, `vitest`: 486 testes passando. E2E (lg/md/mobile): 292 testes passando (contra build de produção; suíte isolada `workspace.spec.ts` 19/19, suíte completa verde em servidor limpo -- o container é propenso a OOM sob carga acumulada). Backend inalterado.
+
+**Gate destrutivo (Etapa 4):** removing `project_name` as a key + `DROP COLUMN` still needs **new explicit Founder approval**.
+
+**Decision Log:** D-058.
+
 **Decision Log:** D-056.

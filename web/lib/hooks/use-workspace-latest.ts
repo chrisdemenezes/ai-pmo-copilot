@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import type {
   AnalysisDetail,
@@ -63,5 +63,9 @@ export function useWorkspaceLatestByKind<K extends AnalysisKind>(
     queryFn: () => fetchLatestByKind(projectName, kind, projectId),
     staleTime: 30_000,
     retry: false,
+    // TD-008 Fase 3b, Etapa 3 (dual-key): ao resolver o nome e a chave trocar
+    // de nome->id, mantém o resultado anterior (dado idêntico) durante o
+    // refino -- sem flash de loading, comportamento funcional inalterado.
+    placeholderData: keepPreviousData,
   });
 }

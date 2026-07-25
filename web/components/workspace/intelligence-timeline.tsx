@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useWorkspaceTimeline } from "@/lib/hooks/use-workspace-timeline";
+import { useResolvedProjectId } from "@/lib/hooks/use-resolved-project-id";
 import { analysisKindLabel } from "@/lib/workspace/labels";
 
 function formatDateTime(iso: string) {
@@ -21,7 +22,9 @@ function formatDateTime(iso: string) {
  * ordenado pelo backend) -- sem buscar o payload de cada item.
  */
 export function IntelligenceTimeline({ projectName }: { projectName: string }) {
-  const timeline = useWorkspaceTimeline(projectName, { limit: 10 });
+  // TD-008 Fase 3b, Etapa 3: reaproveita o project_id resolvido como chave exata.
+  const projectId = useResolvedProjectId(projectName);
+  const timeline = useWorkspaceTimeline(projectName, { limit: 10, projectId });
 
   return (
     <section className="flex flex-col gap-3" aria-labelledby="timeline-heading">

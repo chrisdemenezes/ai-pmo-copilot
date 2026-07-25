@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import type { ActionItemView } from "@/lib/workspace/types";
 import { parseWorkspaceResponse } from "./workspace-fetch-error";
@@ -39,5 +39,7 @@ export function useActionItems(projectName?: string, projectId?: number) {
     refetchInterval: 60_000,
     refetchIntervalInBackground: false,
     retry: false,
+    // TD-008 Fase 3b, Etapa 3: troca de chave nome->id sem flash (dado igual).
+    placeholderData: keepPreviousData,
   });
 }

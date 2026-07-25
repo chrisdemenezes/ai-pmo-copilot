@@ -6,6 +6,11 @@ import { useActionItems } from "@/lib/hooks/use-action-items";
 import type { ActionItemView } from "@/lib/workspace/types";
 
 vi.mock("@/lib/hooks/use-action-items", () => ({ useActionItems: vi.fn() }));
+// TD-008 Fase 3b, Etapa 3: a resolução nome->id é compartilhada; aqui o id
+// fica undefined (não resolvido) para exercitar o fallback por nome.
+vi.mock("@/lib/hooks/use-resolved-project-id", () => ({
+  useResolvedProjectId: vi.fn(() => undefined),
+}));
 
 const mockedActionItems = vi.mocked(useActionItems);
 
@@ -63,6 +68,6 @@ describe("ActionsContextLine", () => {
   it("scopes the hook to the project it renders", () => {
     mockedActionItems.mockReturnValue({ isPending: true, isError: false, data: undefined } as never);
     render(<ActionsContextLine projectName="Implantacao SAP S/4HANA" />);
-    expect(mockedActionItems).toHaveBeenCalledWith("Implantacao SAP S/4HANA");
+    expect(mockedActionItems).toHaveBeenCalledWith("Implantacao SAP S/4HANA", undefined);
   });
 });

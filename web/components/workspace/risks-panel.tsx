@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ActionsContextLine } from "@/components/workspace/actions-context-line";
 import { useWorkspaceLatestByKind } from "@/lib/hooks/use-workspace-latest";
+import { useResolvedProjectId } from "@/lib/hooks/use-resolved-project-id";
 import { buildRiskMatrix } from "@/lib/workspace/aggregate";
 import { severityLabel } from "@/lib/workspace/labels";
 import {
@@ -23,7 +24,10 @@ import { hasRiskShape, type RiskItem, type RiskModelOutput } from "@/lib/workspa
  * demais visíveis, nunca escondidos, só menos proeminentes.
  */
 export function RisksPanel({ projectName }: { projectName: string }) {
-  const latestRisk = useWorkspaceLatestByKind(projectName, "risk");
+  // TD-008 Fase 3b, Etapa 3: reaproveita o project_id já resolvido (summary
+  // deduplicado) como chave exata; enquanto não resolvido, segue por nome.
+  const projectId = useResolvedProjectId(projectName);
+  const latestRisk = useWorkspaceLatestByKind(projectName, "risk", projectId);
 
   return (
     <section className="flex flex-col gap-3" aria-labelledby="risks-heading">

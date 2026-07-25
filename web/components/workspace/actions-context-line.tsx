@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionItems } from "@/lib/hooks/use-action-items";
+import { useResolvedProjectId } from "@/lib/hooks/use-resolved-project-id";
 import { actionsContextLine, attentionCount } from "@/lib/workspace/action-momentum";
 
 /**
@@ -12,7 +13,10 @@ import { actionsContextLine, attentionCount } from "@/lib/workspace/action-momen
  * silenciosa em loading/erro -- é um complemento, não um painel próprio.
  */
 export function ActionsContextLine({ projectName }: { projectName: string }) {
-  const actionItems = useActionItems(projectName);
+  // TD-008 Fase 3b, Etapa 3: chave exata pelo project_id resolvido (summary
+  // deduplicado -- compartilhado com a seção de Ações e o Executive Brief).
+  const projectId = useResolvedProjectId(projectName);
+  const actionItems = useActionItems(projectName, projectId);
 
   if (!actionItems.data) return null;
 

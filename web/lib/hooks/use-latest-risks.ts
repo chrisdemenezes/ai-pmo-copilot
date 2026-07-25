@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import type { LatestRiskItem } from "@/lib/decision-center/types";
 import { parseWorkspaceResponse } from "./workspace-fetch-error";
@@ -35,5 +35,7 @@ export function useLatestRisks(projectName?: string, projectId?: number) {
     refetchInterval: 60_000,
     refetchIntervalInBackground: false,
     retry: false,
+    // TD-008 Fase 3b, Etapa 3: troca de chave nome->id sem flash (dado igual).
+    placeholderData: keepPreviousData,
   });
 }

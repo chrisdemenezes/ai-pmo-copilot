@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ActionsContextLine } from "@/components/workspace/actions-context-line";
 import { useWorkspaceLatestByKind } from "@/lib/hooks/use-workspace-latest";
+import { useResolvedProjectId } from "@/lib/hooks/use-resolved-project-id";
 import {
   NEXT_STEP_FALLBACK_MEETING,
   impactHeadline,
@@ -23,7 +24,10 @@ import { hasMeetingShape, type MeetingModelOutput } from "@/lib/workspace/types"
  * severidade inventada.
  */
 export function CommunicationBrief({ projectName }: { projectName: string }) {
-  const latestMeeting = useWorkspaceLatestByKind(projectName, "meeting");
+  // TD-008 Fase 3b, Etapa 3: chave exata pelo project_id resolvido (summary
+  // deduplicado); fallback por nome enquanto não resolvido.
+  const projectId = useResolvedProjectId(projectName);
+  const latestMeeting = useWorkspaceLatestByKind(projectName, "meeting", projectId);
 
   return (
     <section className="flex flex-col gap-3" aria-labelledby="communication-heading">

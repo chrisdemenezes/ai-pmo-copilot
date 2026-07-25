@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import type { AnalysisDetail, AnalysisListItem, ModelOutputForKind } from "@/lib/workspace/types";
 import { parseWorkspaceResponse } from "./workspace-fetch-error";
@@ -56,5 +56,8 @@ export function useRecentAnalysesByKind<K extends AnalysisKind>(
     queryFn: () => fetchRecentByKind(projectName, kind, limit, projectId),
     staleTime: 30_000,
     retry: false,
+    // TD-008 Fase 3b, Etapa 3: mantém o resultado durante a troca de chave
+    // nome->id (dado idêntico), sem flash de loading.
+    placeholderData: keepPreviousData,
   });
 }
