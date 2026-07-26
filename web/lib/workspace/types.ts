@@ -1,15 +1,9 @@
-/** Mirrors ProjectSummaryResponse in src/api/routes/intelligence.py. */
-export interface WorkspaceSummary {
-  project_name: string;
-  // TD-008 Fase 3b, Etapa 2 (dual-key): a saída do resolver -- o project_id
-  // técnico que o backend já resolve a partir do nome (Etapa 1). null quando
-  // o projeto ainda não tem nenhuma análise registrada (nada a resolver).
-  project_id: number | null;
-  total_analyses: number;
-  open_risks: number;
-  pending_action_items: number;
-  latest_health_status: "green" | "yellow" | "red" | null;
-}
+// TD-008 Fase 3b, Etapa 5: `WorkspaceSummary` foi consolidado em
+// `ProjectIntelligenceSummary` (`lib/project/intelligence-summary.ts`) --
+// o mesmo read-model de inteligência do Project usado pelo Dashboard, agora
+// único e ancorado no `project_id`. Re-exportado aqui para os consumidores
+// do Workspace que já importavam o summary deste módulo.
+export type { ProjectIntelligenceSummary } from "@/lib/project/intelligence-summary";
 
 /** Mirrors AnalysisSummary in src/api/routes/intelligence.py:51 -- no payload. */
 export interface AnalysisListItem {

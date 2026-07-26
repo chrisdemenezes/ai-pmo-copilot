@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { institutionalHeaders, readSessionIdentity } from "@/lib/bff/domain-proxy";
-import type { DashboardErrorBody, ProjectSummary } from "@/lib/dashboard/types";
+import type { DashboardErrorBody } from "@/lib/dashboard/types";
+import type { ProjectIntelligenceSummary } from "@/lib/project/intelligence-summary";
 
 const BACKEND_TIMEOUT_MS = 8_000;
 
@@ -48,7 +49,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const data = (await backendResponse.json()) as ProjectSummary[];
+    const data = (await backendResponse.json()) as ProjectIntelligenceSummary[];
     return NextResponse.json(data);
   } catch (reason) {
     if (reason instanceof Error && reason.name === "AbortError") {

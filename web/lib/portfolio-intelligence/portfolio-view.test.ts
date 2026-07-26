@@ -2,10 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import { buildExecutivePortfolioView } from "./portfolio-view";
 import type { ExecutiveDecision } from "@/lib/decision-center/decision-queue";
-import type { ProjectSummary } from "@/lib/dashboard/types";
+import type { ProjectIntelligenceSummary } from "@/lib/project/intelligence-summary";
 
-function project(overrides: Partial<ProjectSummary>): ProjectSummary {
+function project(overrides: Partial<ProjectIntelligenceSummary>): ProjectIntelligenceSummary {
   return {
+    project_id: 1,
     project_name: "Aurora",
     total_analyses: 1,
     open_risks: 0,

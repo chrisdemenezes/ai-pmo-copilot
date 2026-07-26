@@ -1,25 +1,25 @@
 import { describe, expect, it } from "vitest";
 
 import { aggregatePortfolio, groupByHealthStatus, rankByRisk } from "./aggregate";
-import type { ProjectSummary } from "./types";
+import type { ProjectIntelligenceSummary } from "@/lib/project/intelligence-summary";
 
-const projects: ProjectSummary[] = [
+const projects: ProjectIntelligenceSummary[] = [
   {
-    project_name: "Multilift",
+    project_name: "Multilift", project_id: 1,
     total_analyses: 5,
     open_risks: 3,
     pending_action_items: 2,
     latest_health_status: "red",
   },
   {
-    project_name: "Aurora",
+    project_name: "Aurora", project_id: 1,
     total_analyses: 2,
     open_risks: 0,
     pending_action_items: 1,
     latest_health_status: "green",
   },
   {
-    project_name: "Zephyr",
+    project_name: "Zephyr", project_id: 1,
     total_analyses: 1,
     open_risks: 1,
     pending_action_items: 0,

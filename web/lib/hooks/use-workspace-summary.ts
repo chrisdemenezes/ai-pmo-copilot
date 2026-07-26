@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 
-import type { WorkspaceSummary } from "@/lib/workspace/types";
+import type { ProjectIntelligenceSummary } from "@/lib/workspace/types";
 import { parseWorkspaceResponse } from "./workspace-fetch-error";
 
 async function fetchWorkspaceSummary(
   projectName: string,
   projectId?: number,
-): Promise<WorkspaceSummary> {
+): Promise<ProjectIntelligenceSummary> {
   const url = new URL(
     `/api/bff/workspace/${encodeURIComponent(projectName)}/summary`,
     window.location.origin,
@@ -18,7 +18,7 @@ async function fetchWorkspaceSummary(
     url.searchParams.set("project_id", String(projectId));
   }
   const response = await fetch(url.pathname + url.search);
-  return parseWorkspaceResponse<WorkspaceSummary>(response);
+  return parseWorkspaceResponse<ProjectIntelligenceSummary>(response);
 }
 
 /**

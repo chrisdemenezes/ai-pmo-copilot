@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { aggregatePortfolio } from "@/lib/dashboard/aggregate";
-import type { ProjectSummary } from "@/lib/dashboard/types";
+import type { ProjectIntelligenceSummary } from "@/lib/project/intelligence-summary";
 
 /**
  * W1 -- FS-001 §5. Client-side reduce over the same payload as the grid
@@ -24,7 +24,7 @@ export function PortfolioSummaryStrip({
   projects,
   criticalDecisionsCount,
 }: {
-  projects: ProjectSummary[];
+  projects: ProjectIntelligenceSummary[];
   criticalDecisionsCount: number | null;
 }) {
   const totals = aggregatePortfolio(projects);

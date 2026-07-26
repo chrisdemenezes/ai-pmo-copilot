@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import { buildExecutiveDecisionQueue, groupLatestRisksByProject, windowLabel } from "./decision-queue";
-import type { ProjectSummary } from "@/lib/dashboard/types";
+import type { ProjectIntelligenceSummary } from "@/lib/project/intelligence-summary";
 import type { LatestRiskItem } from "./types";
 
-function project(overrides: Partial<ProjectSummary>): ProjectSummary {
+function project(overrides: Partial<ProjectIntelligenceSummary>): ProjectIntelligenceSummary {
   return {
+    project_id: 1,
     project_name: "Aurora",
     total_analyses: 1,
     open_risks: 0,

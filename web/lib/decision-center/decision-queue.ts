@@ -1,5 +1,5 @@
 import { healthStatusLabel } from "@/components/ui/badge";
-import type { ProjectSummary } from "@/lib/dashboard/types";
+import type { ProjectIntelligenceSummary } from "@/lib/project/intelligence-summary";
 import { suggestedDecision } from "@/lib/workspace/decision-momentum";
 import { RISK_NEXT_STEP_FALLBACK, isHighAttentionRisk, suggestedRiskDecision } from "@/lib/workspace/risk-momentum";
 import type { LatestRiskItem } from "./types";
@@ -61,7 +61,7 @@ const CONSEQUENCE_TEXT: Record<DecisionSource, string> = {
   risk: "Nada muda sozinho: estes riscos permanecem na zona de atenção até uma nova Avaliação de Riscos ser executada.",
 };
 
-function statusDecision(project: ProjectSummary): ExecutiveDecision | null {
+function statusDecision(project: ProjectIntelligenceSummary): ExecutiveDecision | null {
   const status = project.latest_health_status;
   if (status !== "red" && status !== "yellow") return null;
 
@@ -128,7 +128,7 @@ function byWindowThenProject(a: ExecutiveDecision, b: ExecutiveDecision): number
  * quando nenhum dado de risco ainda foi carregado.
  */
 export function buildExecutiveDecisionQueue(
-  portfolio: ProjectSummary[],
+  portfolio: ProjectIntelligenceSummary[],
   latestRisksByProject: Map<string, LatestRiskItem[]> = new Map(),
 ): ExecutiveDecision[] {
   const decisions: ExecutiveDecision[] = [];

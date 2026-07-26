@@ -10,7 +10,7 @@
  * codebase (Decision Log D-019):
  *  1. The real backend `Project` model (`src/database/models.py`, Épico
  *     1) -- persisted, currently only used for org-scoped membership.
- *  2. `ProjectSummary` (`lib/dashboard/types.ts`) -- real V1 data from
+ *  2. `ProjectIntelligenceSummary` (`lib/dashboard/types.ts`) -- real V1 data from
  *     the BFF, keyed by free-text `project_name`, powering the existing
  *     "Projetos" grid/Risk Concentration/Health Distribution widgets.
  * All three stay deliberately disconnected (no shared ID) until the

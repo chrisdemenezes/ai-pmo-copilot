@@ -1,5 +1,5 @@
 import { rankByRisk } from "@/lib/dashboard/aggregate";
-import type { ProjectSummary } from "@/lib/dashboard/types";
+import type { ProjectIntelligenceSummary } from "@/lib/project/intelligence-summary";
 import type { ExecutiveDecision } from "@/lib/decision-center/decision-queue";
 
 /**
@@ -75,14 +75,14 @@ function groupDecisionsByProject(decisions: ExecutiveDecision[]): Map<string, Ex
  * risco de rankByRisk(), nunca reordenada aqui.
  */
 export function buildExecutivePortfolioView(
-  portfolio: ProjectSummary[],
+  portfolio: ProjectIntelligenceSummary[],
   decisions: ExecutiveDecision[],
 ): PortfolioIntelligenceItem[] {
   const decisionsByProject = groupDecisionsByProject(decisions);
 
   const decisionToday: PortfolioIntelligenceItem[] = [];
   const decisionThisWeek: PortfolioIntelligenceItem[] = [];
-  const withoutDecision: ProjectSummary[] = [];
+  const withoutDecision: ProjectIntelligenceSummary[] = [];
 
   for (const project of portfolio) {
     const projectDecisions = decisionsByProject.get(project.project_name);

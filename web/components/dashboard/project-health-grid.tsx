@@ -3,7 +3,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Badge, healthStatusLabel, healthStatusVariant } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import type { ProjectSummary } from "@/lib/dashboard/types";
+import type { ProjectIntelligenceSummary } from "@/lib/project/intelligence-summary";
 
 function workspaceHref(projectName: string) {
   return `/workspace/${encodeURIComponent(projectName)}`;
@@ -14,9 +14,9 @@ function workspaceHref(projectName: string) {
  * Fidelity Sprint, Release 0.3) per RFC-001's own responsive decision --
  * "tabela vira lista de cards empilhados abaixo de 768px". Same 5 real
  * fields either way, no column added that doesn't already exist in
- * ProjectSummary.
+ * ProjectIntelligenceSummary.
  */
-export function ProjectHealthGrid({ projects }: { projects: ProjectSummary[] }) {
+export function ProjectHealthGrid({ projects }: { projects: ProjectIntelligenceSummary[] }) {
   return (
     <>
       <div

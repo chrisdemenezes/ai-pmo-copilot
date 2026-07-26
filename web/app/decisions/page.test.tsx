@@ -4,7 +4,7 @@ import { render, screen } from "@testing-library/react";
 import DecisionsPage from "./page";
 import { usePortfolioSummary } from "@/lib/hooks/use-portfolio-summary";
 import { useLatestRisks } from "@/lib/hooks/use-latest-risks";
-import type { ProjectSummary } from "@/lib/dashboard/types";
+import type { ProjectIntelligenceSummary } from "@/lib/project/intelligence-summary";
 
 vi.mock("@/lib/hooks/use-portfolio-summary", () => ({
   usePortfolioSummary: vi.fn(),
@@ -31,9 +31,10 @@ function hookState(overrides: Partial<Record<string, unknown>>) {
   } as never;
 }
 
-const MIXED_PORTFOLIO: ProjectSummary[] = [
+const MIXED_PORTFOLIO: ProjectIntelligenceSummary[] = [
   {
     project_name: "Aurora",
+    project_id: 1,
     total_analyses: 2,
     open_risks: 0,
     pending_action_items: 1,
@@ -41,6 +42,7 @@ const MIXED_PORTFOLIO: ProjectSummary[] = [
   },
   {
     project_name: "Implantacao SAP S/4HANA",
+    project_id: 1,
     total_analyses: 3,
     open_risks: 1,
     pending_action_items: 1,
@@ -69,6 +71,7 @@ describe("DecisionsPage", () => {
         data: [
           {
             project_name: "Aurora",
+            project_id: 1,
             total_analyses: 1,
             open_risks: 0,
             pending_action_items: 0,
@@ -101,9 +104,10 @@ describe("DecisionsPage", () => {
 });
 
 describe("DecisionsPage -- sinal de Risco (Incremento 2)", () => {
-  const GREEN_PORTFOLIO: ProjectSummary[] = [
+  const GREEN_PORTFOLIO: ProjectIntelligenceSummary[] = [
     {
       project_name: "Aurora",
+      project_id: 1,
       total_analyses: 1,
       open_risks: 1,
       pending_action_items: 0,

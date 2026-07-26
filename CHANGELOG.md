@@ -511,4 +511,25 @@ Etapa 3 of the 5-stage migration: the remaining workspace consumers now use `pro
 
 **Decision Log:** D-058.
 
+## Wave Completion Review retrospective, item 8 — Etapa 5 (2026-07-26): TD-008 Phase 3b -- `ProjectSummary` eliminated, intelligence consolidated on the Project entity
+
+Founder reordered the sequence: run **Etapa 5 before the destructive Etapa 4**, with a **Gate Final de Migração** in between, to further de-risk the only irreversible step. Frontend-only, no DB change.
+
+**Achado:** `ProjectSummary` (`lib/dashboard/types.ts`) and `WorkspaceSummary` (`lib/workspace/types.ts`) were **two duplicated mirrors** of the same read-model — a Project's *intelligence projection* (`total_analyses`/`open_risks`/`pending_action_items`/`latest_health_status` over `AnalysisRecord`), already keyed by `project_id`. The domain `Project` (`lib/domain/project.ts`) is a **different bounded context** (the Delivery entity). Merging the intelligence read-model into the Delivery entity would conflate bounded contexts — rejected. "Consolidar sobre a entidade Project" = anchor the projection on the Project's identity (`project_id`) and remove `ProjectSummary` as a duplicated concept.
+
+**Alterado**
+- New canonical `ProjectIntelligenceSummary` (`lib/project/intelligence-summary.ts`): anchored on `project_id` (key, `number | null`) + `project_name` (display only).
+- All `ProjectSummary` consumers migrated (Dashboard/Portfolio/Decision Center: `aggregate`, `executive-focus`, `portfolio-view`, `decision-queue`, `use-portfolio-summary`, BFF `dashboard`, and the 4 dashboard widgets).
+- All `WorkspaceSummary` consumers migrated (`use-workspace-summary`, `use-resolved-project-id`, `workspace-header`, `executive-brief`, BFF `workspace/[projectName]/summary`).
+- `ProjectSummary` and `WorkspaceSummary` type definitions **removed**; `project_id` promoted from optional (Dashboard) to present key (`number | null`).
+
+**Backend inalterado:** `ProjectSummaryService`/`ProjectSummaryResponse` remain — the legitimate producer of the projection (already grouped by `project_id` since Fase 3a). Renaming them would touch the OpenAPI contract with no architectural gain; recorded in the Gate Final for Founder evaluation.
+
+**Testes**
+- `tsc` clean, `eslint` clean, `vitest`: 486 testes passando (fixtures updated to carry `project_id`). E2E (lg/md/mobile): 292 testes passando (contra build de produção). Backend inalterado.
+
+**Próximo passo:** o **Gate Final de Migração** (comprovações). A Etapa 4 (destrutiva) só inicia após a aprovação do Gate Final e permanece condicionada a **nova aprovação explícita do Founder**.
+
+**Decision Log:** D-059.
+
 **Decision Log:** D-056.
