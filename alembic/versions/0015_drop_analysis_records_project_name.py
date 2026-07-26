@@ -3,23 +3,20 @@
 STRATECH V2 -- item 8 of the Wave Completion Review retrospective, the ONLY
 **irreversible** stage of the project_name -> project_id migration.
 
-STATUS: **STAGED, NOT ACTIVATED.** This revision lives in
-`alembic/versions_pending/` (NOT on alembic's `version_locations`), so
-`alembic upgrade head` for the application and the test suite stops at 0014
-and the `analysis_records.project_name` column is preserved -- exactly as
-Etapa 4a requires. Activating it (moving this file into `alembic/versions/`
-so it becomes head) is the Etapa 4b act, which the Founder has explicitly
-blocked pending a separate, explicit approval.
+STATUS: **ACTIVE** (Etapa 4b autorizada pelo Founder, D-060). `project_id`
+torna-se a única chave de acesso interno ao Project (NOT NULL) e a coluna
+legada `analysis_records.project_name` é removida do banco e do ORM.
 
-Its upgrade AND downgrade are proven reversible on real PostgreSQL by
-`tests/test_migration_0015_drop_project_name.py` (run against a throwaway
-database, at raw-connection level so the still-mapped ORM column never
-conflicts). Backup/restore before activation follows RB-002 (Production
-Backup & Restore Runbook).
-
-Prerequisite already satisfied by Etapa 4a: no behavior reads or writes the
+Prerequisite satisfied by Etapa 4a: no behavior reads or writes the
 `project_name` column, and migration 0014 backfilled `project_id` on every
 row, so `SET NOT NULL` cannot fail on legacy data.
+
+Downgrade (Founder Condição 2 -- rollback íntegro): re-adds the column and
+**repopulates `project_name` from `projects.name` via `project_id`**, so a
+prior application version that reads the column operates over real display
+names (never an empty column). Proven reversible on real PostgreSQL by
+`tests/test_migration_0015_drop_project_name.py`. Backup/restore before
+activation follows RB-002 (Production Backup & Restore Runbook).
 
 Revision ID: 0015
 Revises: 0014
@@ -51,11 +48,10 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    # Fully reversible: re-add the column (nullable, as it always was) and its
-    # index, and relax project_id back to nullable. Historical project_name
-    # values are NOT restored (they were already unused since Etapa 4a and are
-    # not recoverable post-drop); the column comes back empty, which is exactly
-    # its state for every row written during Etapa 4a.
+    # Reversible with data restoration (Founder Condição 2): re-add the column
+    # and its index, relax project_id back to nullable, and REPOPULATE
+    # project_name from projects.name via the project_id link -- so a prior app
+    # version reading the column sees real display names, not an empty column.
     op.add_column(
         "analysis_records",
         sa.Column("project_name", sa.String(length=255), nullable=True),
@@ -71,4 +67,13 @@ def downgrade() -> None:
         "project_id",
         existing_type=sa.Integer(),
         nullable=True,
+    )
+    # Restore the display name from the Project (the source of truth since
+    # Fase 3b). The fallback Project keeps its "(sem projeto)" name; a prior
+    # version already treated that as "no project" for display.
+    op.execute(
+        "UPDATE analysis_records ar "
+        "SET project_name = p.name "
+        "FROM projects p "
+        "WHERE ar.project_id = p.id"
     )

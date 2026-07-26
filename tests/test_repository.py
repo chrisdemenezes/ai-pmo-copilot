@@ -47,10 +47,10 @@ def test_build_repository_returns_the_same_cached_instance(monkeypatch):
             build_repository.cache_clear()
 
 
-def test_save_analysis_links_project_without_writing_the_legacy_column(repository, org_id):
-    # TD-008 Fase 3b, Etapa 4a: the write path resolves the name to a real
-    # Project (project_id) but no longer materializes the legacy project_name
-    # column; the display name derives from Project.name via that link.
+def test_save_analysis_links_project_and_display_name_comes_from_project(repository, org_id):
+    # TD-008 Fase 3b, Etapa 4b: the legacy project_name column is gone; the
+    # write path resolves the name to a real Project (project_id) and the
+    # display name derives from Project.name via that link.
     repository.save_analysis(
         kind="meeting", payload={"result": "ok"}, organization_id=org_id, project_name="Multilift"
     )
@@ -59,7 +59,6 @@ def test_save_analysis_links_project_without_writing_the_legacy_column(repositor
         organization_id=org_id, project_id=_pid(repository, org_id, "Multilift")
     )
     assert len(records) == 1
-    assert records[0].project_name is None  # column stays unwritten
     assert analysis_display_name(records[0]) == "Multilift"  # derived from Project.name
     assert records[0].kind == "meeting"
 

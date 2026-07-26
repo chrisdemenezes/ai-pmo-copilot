@@ -488,6 +488,19 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-061 — TD-008 Fase 3b, Etapa 4b concluída (destrutiva): `project_name` removido; **TD-008 RESOLVIDO** (item 8 do Wave Completion Review retrospectivo)
+
+- **Contexto:** o Founder aprovou o Gate pós-Etapa 4a e autorizou a **Etapa 4b** (destrutiva), com quatro condições: (1) nome preservado como apresentação; (2) downgrade íntegro que repopula `project_name` de `projects.name`; (3) pacote de validação; (4) critérios de encerramento do TD-008.
+- **Decisão (operações executadas):** migração **`0015` ativada** (movida para `alembic/versions/`; `alembic heads` = `0015`): `SET NOT NULL` em `analysis_records.project_id` + `DROP COLUMN analysis_records.project_name` + drop do índice. Campo `project_name` **removido do ORM** (`AnalysisRecord`); `project_id` agora `nullable=False`. `project_id` é a **única chave de acesso interno** ao Project.
+- **Condição 1 — nome como apresentação (preservado):** `Project.name` continua sendo a fonte do nome de exibição; o campo `project_name` **permanece nas responses** (`AnalysisSummary`/`ActionItemResponse`/`LatestRiskItemResponse`/`ProjectSummaryResponse`), agora derivado exclusivamente de `Project.name` via `analysis_display_name`. **Nenhum campo foi removido das responses** → zero regressão de frontend; a UX de informar/selecionar por nome (resolvida para `project_id` antes de qualquer operação de domínio) é preservada. O nome nunca mais funciona como chave/join/identidade.
+- **Condição 2 — downgrade íntegro:** o downgrade da `0015` recria a coluna, recria o índice, relaxa `project_id` para nullable e **repopula `project_name` a partir de `projects.name` via `project_id`** (`UPDATE ... FROM projects`). Provado em **PostgreSQL real** (`tests/test_migration_0015_drop_project_name.py`): upgrade dropa a coluna + `NOT NULL`; downgrade restaura a coluna com o nome real do Project (`"Aurora"`), não vazia — uma versão anterior da aplicação que lê a coluna opera sobre nomes de exibição reais.
+- **Compatibilidade temporária:** removida a única que restava (coluna + campo ORM). O tratamento de nome remanescente (query params por nome, `resolve_scope_id`/`resolve_project_scope`, `project_name` de exibição nas responses) **não é compatibilidade temporária** — é a UX por nome exigida pelo end-state ratificado (resolução nome→id no boundary).
+- **Verificação:** `ruff check src tests` limpo; `pytest` **449 passando** (com a 0015 ativa e testada); `tsc`/`eslint` limpos; `vitest` **491**; Playwright E2E (lg/md/mobile) **292** passando (2 skipped). Busca global: 0 leituras/filtros/dedup/joins/escrita por nome; a coluna não existe mais no schema nem no ORM.
+- **Encerramento (Condição 4):** todos os critérios satisfeitos — 0015 ativa; coluna removida; rollback íntegro comprovado; suíte verde; modelo de domínio e documentação atualizados; sem compatibilidade temporária desnecessária. **TD-008 declarado RESOLVIDO.**
+- **Missão:** TD-008 Fase 3b — **concluída (Etapas 1-5 + 4a + 4b)**. TD-008 encerrado. Wave 2 → 100% depende ainda do tratamento documental de Tenant/System Settings como *Business Pending* (já Governança Concluída em D-052).
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.

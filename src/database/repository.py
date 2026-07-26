@@ -23,16 +23,13 @@ class AnalysisRecord(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     kind = Column(String(50), nullable=False)
-    # TD-008 Fase 3b, Etapa 4a: `project_name` deixou de ser chave. Nenhum
-    # comportamento lê ou escreve esta coluna a partir desta etapa -- o nome
-    # de exibição deriva de `Project.name` via `project_id` (relacionamento
-    # `project` abaixo). A coluna permanece apenas por reversibilidade; o
-    # `DROP COLUMN` é a Etapa 4b (destrutiva), sob nova aprovação do Founder.
-    project_name = Column(String(255), nullable=True, index=True)
-    # Real Project link (V2 Release 0.1) -- a partir da Etapa 4a é a ÚNICA
-    # chave de acesso interno ao Project. Nullable ainda; o NOT NULL definitivo
-    # é a Etapa 4b.
-    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
+    # TD-008 Fase 3b, Etapa 4b (D-060): a coluna legada `project_name` foi
+    # removida do banco (migração 0015) e do ORM. `project_id` é a ÚNICA chave
+    # de acesso interno ao Project e agora é obrigatória (NOT NULL); o nome de
+    # exibição deriva sempre de `Project.name` via o relacionamento `project`.
+    project_id = Column(
+        Integer, ForeignKey("projects.id"), nullable=False, index=True
+    )
     # Tenant isolation (Security Hardening Gate, migration 0010). NOT NULL
     # at the database level; every write path resolves it from the real
     # RequestContext, never a client-supplied value.
@@ -40,21 +37,20 @@ class AnalysisRecord(Base):
     payload = Column(JSON, nullable=False)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
-    # Read-only link to the resolved Project (TD-008 Fase 3b, Etapa 4a).
-    # `lazy="joined"` eager-loads it in the same query, so `record.project`
-    # is available after the session closes (no DetachedInstanceError) and
-    # display names can derive from `Project.name` -- never from the
-    # `project_name` column above.
+    # Read-only link to the resolved Project (TD-008 Fase 3b). `lazy="joined"`
+    # eager-loads it in the same query, so `record.project` is available after
+    # the session closes (no DetachedInstanceError) and display names derive
+    # from `Project.name` -- the sole source of the project name now that the
+    # legacy `project_name` column is gone (Etapa 4b, migração 0015).
     project = relationship("Project", lazy="joined")
 
 
 def analysis_display_name(record: "AnalysisRecord") -> str | None:
-    """Display name of an analysis derived from its Project (TD-008 Fase 3b,
-    Etapa 4a) -- `Project.name` via `project_id`, never `record.project_name`.
-
-    The single fallback Project (`FALLBACK_PROJECT_NAME`, for analyses saved
-    without an identifiable project) maps back to `None`, preserving the exact
-    "sem projeto" semantics the column previously carried as a null value.
+    """Display name of an analysis derived from its Project (TD-008 Fase 3b) --
+    `Project.name` via `project_id`. The single fallback Project
+    (`FALLBACK_PROJECT_NAME`, for analyses saved without an identifiable
+    project) maps back to `None`, preserving the "sem projeto" semantics the
+    removed `project_name` column once carried as a null value.
     """
     project = record.project
     if project is None:
@@ -78,11 +74,11 @@ class AnalysisRepository:
         with self.SessionLocal() as session:
             # Same transaction: the analysis row and its Project resolution
             # commit (or roll back) together, so no orphan can be written.
-            # `project_name` is still the free-text the user informed; it is
-            # resolved to a real Project here (name -> project_id) and then
-            # discarded as a stored value -- TD-008 Fase 3b, Etapa 4a: the
-            # write path no longer materializes the legacy `project_name`
-            # column (it stays NULL for new rows, unread by any behavior).
+            # `project_name` is the free-text the user informed; it is resolved
+            # to a real Project here (name -> project_id) and never stored --
+            # the legacy `project_name` column no longer exists (TD-008 Fase
+            # 3b, Etapa 4b). The preserved name-based UX is exactly this:
+            # resolve a name to the identity key before the domain write.
             project = self.enterprise.get_or_create_project_for_name(
                 session, organization_id, project_name
             )

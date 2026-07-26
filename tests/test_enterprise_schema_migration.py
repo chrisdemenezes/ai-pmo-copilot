@@ -69,7 +69,11 @@ def test_0002_migrates_legacy_records_deterministically():
             count_before = conn.execute(text("SELECT COUNT(*) FROM analysis_records")).scalar()
         assert count_before == len(LEGACY_NAMES)
 
-        _alembic(env, "upgrade", "head")
+        # Up to 0014, not head: this test inspects the legacy project_name
+        # column that migration 0015 (Etapa 4b) drops. 0014 is the last
+        # revision that preserves the column while including the 0008 seed
+        # (Demo Organization, roles) these assertions rely on.
+        _alembic(env, "upgrade", "0014")
 
         with engine.connect() as conn:
             # Invariant 1: identical row count.
@@ -171,7 +175,11 @@ def test_0002_downgrade_is_lossless_for_v1():
         engine = create_engine(database_url)
         _seed_legacy_records(engine)
 
-        _alembic(env, "upgrade", "head")
+        # Up to 0014 (not head): 0002's lossless downgrade is asserted over the
+        # raw project_name values, which migration 0015 (Etapa 4b) drops and
+        # repopulates from projects.name. 0015's own reversibility (with data
+        # restoration) is covered by test_migration_0015_drop_project_name.py.
+        _alembic(env, "upgrade", "0014")
         _alembic(env, "downgrade", "0001")
 
         inspector = inspect(engine)

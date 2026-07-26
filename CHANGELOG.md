@@ -556,3 +556,23 @@ Gate Final aprovado; `project_id` passa a ser a **única chave de escopo de leit
 **Testes** — `ruff` limpo; `pytest` 449 + teste da 0015; `tsc`/`eslint` limpos; `vitest` 491; Playwright E2E (lg/md/mobile) 292 passando (2 skipped). Novos testes de join por identidade (mesmo id/nomes diferentes → juntam; nomes iguais/ids diferentes → não juntam).
 
 **Decision Log:** D-060.
+
+## Wave 2 — TD-008 Fase 3b, Etapa 4b (2026-07-26): remoção de `project_name`; **TD-008 RESOLVIDO**
+
+Etapa destrutiva (autorizada pelo Founder). `project_id` é a única chave de acesso interno ao Project.
+
+**Removido**
+- Migração `0015` **ativada** (`alembic heads` = `0015`): `SET NOT NULL` em `analysis_records.project_id` + `DROP COLUMN analysis_records.project_name` + drop do índice `ix_analysis_records_project_name`.
+- Campo `project_name` **removido do ORM** (`AnalysisRecord`); `project_id` passa a `nullable=False`.
+
+**Preservado (Condição 1 do Founder — nome como apresentação)**
+- `Project.name` continua sendo a fonte do nome de exibição. O campo `project_name` **permanece nas responses** de intelligence, agora derivado exclusivamente de `Project.name` — **nenhum campo removido das responses, zero regressão de frontend**. A UX de informar/selecionar por nome (resolvida para `project_id` antes de qualquer operação de domínio) é preservada.
+
+**Downgrade íntegro (Condição 2 do Founder)**
+- O downgrade da `0015` recria a coluna + índice, relaxa `project_id` para nullable e **repopula `project_name` a partir de `projects.name` via `project_id`** (`UPDATE ... FROM projects`). Provado em PostgreSQL real (`tests/test_migration_0015_drop_project_name.py`): upgrade dropa a coluna + `NOT NULL`; downgrade restaura a coluna com o nome real do Project (não vazia) — uma versão anterior da aplicação que lê a coluna opera sobre nomes de exibição reais.
+
+**Testes** — `ruff` limpo; `pytest` **449 passando** (com a 0015 ativa + teste da 0015); `tsc`/`eslint` limpos; `vitest` **491**; Playwright E2E (lg/md/mobile) **292** passando (2 skipped). Busca global: 0 dependências comportamentais de `project_name`; a coluna não existe mais no schema nem no ORM.
+
+**Encerramento** — todos os critérios do Founder satisfeitos: 0015 ativa; coluna removida; rollback íntegro comprovado; suíte verde; modelo de domínio e docs atualizados; sem compatibilidade temporária desnecessária. **TD-008 declarado RESOLVIDO.**
+
+**Decision Log:** D-061.
