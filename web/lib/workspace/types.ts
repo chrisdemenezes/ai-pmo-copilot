@@ -5,10 +5,13 @@
 // do Workspace que já importavam o summary deste módulo.
 export type { ProjectIntelligenceSummary } from "@/lib/project/intelligence-summary";
 
-/** Mirrors AnalysisSummary in src/api/routes/intelligence.py:51 -- no payload. */
+/** Mirrors AnalysisSummary in src/api/routes/intelligence.py -- no payload. */
 export interface AnalysisListItem {
   id: number;
   kind: "meeting" | "risk" | "status";
+  // Identity key (TD-008 Fase 3b, Etapa 4a); project_name is display only,
+  // derived server-side from Project.name.
+  project_id: number | null;
   project_name: string | null;
   created_at: string;
 }
@@ -133,6 +136,8 @@ export type ModelOutputForKind<K extends AnalysisListItem["kind"]> = K extends "
  * "sem_prazo" instead of any layer rejecting it.
  */
 export interface ActionItemView {
+  // Identity key (TD-008 Fase 3b, Etapa 4a); project_name is display only.
+  project_id: number | null;
   project_name: string | null;
   description: string;
   owner: string | null;

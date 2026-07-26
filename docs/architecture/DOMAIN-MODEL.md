@@ -67,10 +67,13 @@ Todas vivem em `web/lib/domain/` — camada de domínio de **frontend**, sem per
 - **Objetos de apoio internos** (ainda não são entidades próprias): `Owner` (name, role), `Milestone` (name, dueDate, status), `Team` (size, leadName).
 - **Invariante:** `Project.create()` recusa um Project sem `programId`.
 - **Comportamento:** `belongsToProgram()`, `belongsToPortfolio(portfolioId, programs)` (deriva via o Program pai), `isOverdue()`, `isAtRisk()`, `completionPercentage()`, `health()`.
-- **Não confundir com** (Decision Log D-019) — dois outros "Project" já existentes no código, nenhum compartilha ID:
-  1. O `Project` real do backend (`src/database/models.py`, Épico 1) — persistido, hoje só usado para organização/membership.
-  2. `ProjectSummary` (`lib/dashboard/types.ts`) — dado real do V1 (BFF), chaveado por `project_name` livre, usado pelo Cockpit "Projetos"/Risk Concentration/Health Distribution.
-  Os três permanecem desconectados até o Épico 4 (unificação de `Project`).
+- **Não confundir com** (Decision Log D-019) — o outro "Project" já existente no código:
+  1. O `Project` real do backend (`src/database/models.py`, Épico 1) — persistido; desde a Fase 3b é a **identidade técnica** e a **única chave de acesso interno** ao Project (`project_id`). `project_name` persiste em `projects.name` apenas como atributo de exibição.
+
+### 3.4 Projeção de inteligência do Project (read-model) — classificação arquitetural
+
+- **`ProjectIntelligenceSummary` (`web/lib/project/intelligence-summary.ts`):** o read-model canônico da *projeção de inteligência* de um Project (`total_analyses`/`open_risks`/`pending_action_items`/`latest_health_status`, agregados sobre `AnalysisRecord`), ancorado em `project_id` (chave) — consolidou os antigos espelhos duplicados `ProjectSummary`/`WorkspaceSummary`, removidos na Etapa 5 (D-059). **Não é** a entidade de Entrega `Project` (§3.3): é uma projeção de leitura sobre uma identidade de Project, um bounded context distinto — fundir os dois seria conflação.
+- **`ProjectSummaryService` / `ProjectSummaryResponse` (`src/`):** classificados explicitamente (Founder, Decisão 2 de D-060) como **projeção de leitura** e **serviço de composição** — o *produtor* legítimo dessa projeção, agrupando por `project_id` desde a Fase 3a. **Não são modelos de domínio paralelos.** Os nomes são mantidos deliberadamente: renomeá-los alteraria o contrato OpenAPI sem ganho arquitetural ou funcional proporcional, e não introduzem uma quarta entidade "Project".
 
 ## 4. Relacionamentos
 

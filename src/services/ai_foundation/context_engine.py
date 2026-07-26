@@ -12,9 +12,19 @@ class AIContextEngine:
         self._repository = repository
 
     def gather(self, organization_id: int, project_name: str | None, kind: str) -> list[Evidence]:
+        # TD-008 Fase 3b, Etapa 4a: scope by project_id. The Analyst still
+        # receives the project by name (the user informs a name); it is
+        # resolved to an id before the query -- never used as a filter key. A
+        # name with no Project yields no evidence (an unanalyzed project has
+        # nothing to synthesize), same result the legacy name filter produced.
+        scope_id, unmatched = self._repository.resolve_scope_id(
+            organization_id, project_name=project_name
+        )
+        if unmatched:
+            return []
         records = self._repository.list_analyses(
             organization_id=organization_id,
-            project_name=project_name,
+            project_id=scope_id,
             kind=kind,
             limit=None,
         )

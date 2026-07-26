@@ -533,3 +533,26 @@ Founder reordered the sequence: run **Etapa 5 before the destructive Etapa 4**, 
 **Decision Log:** D-059.
 
 **Decision Log:** D-056.
+
+## Wave 2 — TD-008 Fase 3b, Etapa 4a (2026-07-26): Eliminação aditiva dos consumidores residuais de `project_name` como chave
+
+Gate Final aprovado; `project_id` passa a ser a **única chave de escopo de leitura**. Integralmente aditiva e reversível — nenhuma coluna removida (a `DROP COLUMN` é a Etapa 4b, bloqueada).
+
+**Alterado (backend)**
+- `list_analyses` id-only: removidos o parâmetro e o filtro por `project_name` (R1). Novo `AnalysisRepository.resolve_scope_id` (nome→id via `resolve_project_reference`), reutilizado pelo `ProjectSummaryService` e pelo `AIContextEngine` (Risk Advisor).
+- `AnalysisRecord.project` (relacionamento `lazy="joined"`) + helper `analysis_display_name` — todo nome de exibição deriva de `Project.name`; o projeto-sentinela "(sem projeto)" mapeia para `None` (preserva a semântica de nulos). Nada lê mais a coluna `project_name` (R3).
+- `list_latest_risks` deduplica por `project_id`; `summarize_portfolio` agrupa por `project_id` e exclui o sentinela por identidade (R2).
+- `AnalysisSummary`/`ActionItemResponse`/`LatestRiskItemResponse` ganharam `project_id`; `/analyses` e `/analyses/{id}` constroem o display a partir de `Project.name` (R3).
+- `save_analysis` deixou de gravar a coluna `project_name` — mantém o link real via `project_id`; a coluna fica `NULL` para linhas novas, sem leitor (R6).
+
+**Alterado (frontend)**
+- `decision-queue` e `portfolio-view` juntam por `project_id` (`ExecutiveDecision.project_id`, `groupLatestRisksByProject`/`groupDecisionsByProject` como `Map<number>`) (R4/R5).
+- Tipos `LatestRiskItem`/`ActionItemView`/`AnalysisListItem` ganharam `project_id`; `mock-backend` devolve `project_id` e deduplica riscos por id.
+
+**Migração 0015 (Etapa 4b, encenada)** — `alembic/versions_pending/0015_*.py` (fora do `version_locations` ativo): upgrade (`NOT NULL` em `project_id` + `DROP COLUMN project_name`) e downgrade **provados reversíveis em PostgreSQL real** por `tests/test_migration_0015_drop_project_name.py`. O head ativo permanece `0014`; a coluna é preservada até a Etapa 4b (nova aprovação do Founder).
+
+**Nomenclatura backend** — `ProjectSummaryResponse`/`ProjectSummaryService` mantidos e classificados como projeção de leitura/serviço de composição (registrado em `docs/architecture/DOMAIN-MODEL.md`).
+
+**Testes** — `ruff` limpo; `pytest` 449 + teste da 0015; `tsc`/`eslint` limpos; `vitest` 491; Playwright E2E (lg/md/mobile) 292 passando (2 skipped). Novos testes de join por identidade (mesmo id/nomes diferentes → juntam; nomes iguais/ids diferentes → não juntam).
+
+**Decision Log:** D-060.

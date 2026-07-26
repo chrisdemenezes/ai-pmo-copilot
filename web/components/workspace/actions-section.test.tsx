@@ -32,6 +32,7 @@ function daysFromNow(days: number): string {
 
 function item(overrides: Partial<ActionItemView>): ActionItemView {
   return {
+    project_id: 1,
     project_name: "Aurora",
     description: "Atualizar cronograma",
     owner: "Ana",

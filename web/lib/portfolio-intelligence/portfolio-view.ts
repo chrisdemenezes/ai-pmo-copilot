@@ -53,14 +53,16 @@ function highestPriorityDecision(decisions: ExecutiveDecision[]): ExecutiveDecis
   return decisions.find((d) => d.window === "hoje") ?? decisions[0];
 }
 
-function groupDecisionsByProject(decisions: ExecutiveDecision[]): Map<string, ExecutiveDecision[]> {
-  const grouped = new Map<string, ExecutiveDecision[]>();
+function groupDecisionsByProject(decisions: ExecutiveDecision[]): Map<number, ExecutiveDecision[]> {
+  // Keyed by project_id (identity), never by name (TD-008 Fase 3b, Etapa 4a).
+  const grouped = new Map<number, ExecutiveDecision[]>();
   for (const decision of decisions) {
-    const existing = grouped.get(decision.project_name);
+    if (decision.project_id === null) continue;
+    const existing = grouped.get(decision.project_id);
     if (existing) {
       existing.push(decision);
     } else {
-      grouped.set(decision.project_name, [decision]);
+      grouped.set(decision.project_id, [decision]);
     }
   }
   return grouped;
@@ -85,7 +87,8 @@ export function buildExecutivePortfolioView(
   const withoutDecision: ProjectIntelligenceSummary[] = [];
 
   for (const project of portfolio) {
-    const projectDecisions = decisionsByProject.get(project.project_name);
+    const projectDecisions =
+      project.project_id !== null ? decisionsByProject.get(project.project_id) : undefined;
     if (!projectDecisions || projectDecisions.length === 0) {
       withoutDecision.push(project);
       continue;
@@ -109,7 +112,8 @@ export function buildExecutivePortfolioView(
   // portfólio inteiro, diferente do widget do Dashboard (Architecture
   // Review §3.2).
   const riskRanked = rankByRisk(withoutDecision, withoutDecision.length);
-  const riskProjectNames = new Set(riskRanked.map((project) => project.project_name));
+  // Identity set by project_id (TD-008 Fase 3b, Etapa 4a).
+  const riskProjectIds = new Set(riskRanked.map((project) => project.project_id));
 
   const riskToMonitor: PortfolioIntelligenceItem[] = riskRanked.map((project) => ({
     project_name: project.project_name,
@@ -123,7 +127,7 @@ export function buildExecutivePortfolioView(
   }));
 
   const noSignal: PortfolioIntelligenceItem[] = withoutDecision
-    .filter((project) => !riskProjectNames.has(project.project_name))
+    .filter((project) => !riskProjectIds.has(project.project_id))
     .map((project): PortfolioIntelligenceItem => ({
       project_name: project.project_name,
       layer: "no_signal",

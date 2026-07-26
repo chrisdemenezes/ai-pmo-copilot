@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from src.api.dependencies import build_repository
-from src.database.repository import AnalysisRepository
+from src.database.repository import AnalysisRepository, analysis_display_name
 from tests.db import temp_database_url
 
 
@@ -16,6 +16,12 @@ def repository():
 @pytest.fixture()
 def org_id(repository):
     return repository.enterprise.create_organization("Organização Única")
+
+
+def _pid(repository, org_id, name):
+    """The project_id a free-text name resolves to -- the sole scope key from
+    TD-008 Fase 3b, Etapa 4a onward (list_analyses no longer filters by name)."""
+    return repository.enterprise.resolve_project_reference(org_id, project_name=name).id
 
 
 def test_repository_saves_analysis(repository, org_id):
@@ -41,18 +47,24 @@ def test_build_repository_returns_the_same_cached_instance(monkeypatch):
             build_repository.cache_clear()
 
 
-def test_save_analysis_stores_project_name(repository, org_id):
+def test_save_analysis_links_project_without_writing_the_legacy_column(repository, org_id):
+    # TD-008 Fase 3b, Etapa 4a: the write path resolves the name to a real
+    # Project (project_id) but no longer materializes the legacy project_name
+    # column; the display name derives from Project.name via that link.
     repository.save_analysis(
         kind="meeting", payload={"result": "ok"}, organization_id=org_id, project_name="Multilift"
     )
 
-    records = repository.list_analyses(organization_id=org_id, project_name="Multilift")
+    records = repository.list_analyses(
+        organization_id=org_id, project_id=_pid(repository, org_id, "Multilift")
+    )
     assert len(records) == 1
-    assert records[0].project_name == "Multilift"
+    assert records[0].project_name is None  # column stays unwritten
+    assert analysis_display_name(records[0]) == "Multilift"  # derived from Project.name
     assert records[0].kind == "meeting"
 
 
-def test_list_analyses_filters_by_project_name(repository, org_id):
+def test_list_analyses_filters_by_project_id(repository, org_id):
     repository.save_analysis(
         kind="meeting", payload={"result": "a"}, organization_id=org_id, project_name="Multilift"
     )
@@ -60,8 +72,10 @@ def test_list_analyses_filters_by_project_name(repository, org_id):
         kind="risk", payload={"result": "b"}, organization_id=org_id, project_name="Medlog"
     )
 
-    multilift_records = repository.list_analyses(organization_id=org_id, project_name="Multilift")
-    assert [r.project_name for r in multilift_records] == ["Multilift"]
+    multilift_records = repository.list_analyses(
+        organization_id=org_id, project_id=_pid(repository, org_id, "Multilift")
+    )
+    assert [analysis_display_name(r) for r in multilift_records] == ["Multilift"]
 
     all_records = repository.list_analyses(organization_id=org_id)
     assert len(all_records) == 2
@@ -72,7 +86,10 @@ def test_list_analyses_returns_empty_list_when_no_match(repository, org_id):
         kind="meeting", payload={"result": "a"}, organization_id=org_id, project_name="Multilift"
     )
 
-    assert repository.list_analyses(organization_id=org_id, project_name="Unknown") == []
+    # A project_id with no analyses (here Medlog, which exists but was never
+    # analyzed) yields an empty list.
+    medlog_id = repository.enterprise.create_project(org_id, "Medlog")
+    assert repository.list_analyses(organization_id=org_id, project_id=medlog_id) == []
 
 
 def test_list_analyses_respects_limit_and_offset(repository, org_id):
@@ -80,12 +97,13 @@ def test_list_analyses_respects_limit_and_offset(repository, org_id):
         repository.save_analysis(
             kind="meeting", payload={"i": i}, organization_id=org_id, project_name="Multilift"
         )
+    multilift_id = _pid(repository, org_id, "Multilift")
 
     first_page = repository.list_analyses(
-        organization_id=org_id, project_name="Multilift", limit=2, offset=0
+        organization_id=org_id, project_id=multilift_id, limit=2, offset=0
     )
     second_page = repository.list_analyses(
-        organization_id=org_id, project_name="Multilift", limit=2, offset=2
+        organization_id=org_id, project_id=multilift_id, limit=2, offset=2
     )
 
     assert len(first_page) == 2
@@ -101,7 +119,9 @@ def test_list_analyses_orders_newest_first(repository, org_id):
         kind="meeting", payload={"i": 2}, organization_id=org_id, project_name="Multilift"
     )
 
-    records = repository.list_analyses(organization_id=org_id, project_name="Multilift")
+    records = repository.list_analyses(
+        organization_id=org_id, project_id=_pid(repository, org_id, "Multilift")
+    )
     assert [r.id for r in records] == [second_id, first_id]
 
 
@@ -191,7 +211,7 @@ def test_list_analyses_combines_project_kind_and_period_filters(repository, org_
     now = datetime.now(timezone.utc)
     records = repository.list_analyses(
         organization_id=org_id,
-        project_name="Multilift",
+        project_id=_pid(repository, org_id, "Multilift"),
         kind="meeting",
         created_from=now - timedelta(days=1),
         created_to=now + timedelta(days=1),

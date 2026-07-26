@@ -9,10 +9,11 @@ from src.database.engine import build_engine, resolve_database_url
 # Base.metadata so create_all provisions the full schema on installs that do
 # not run alembic (the SQLite/demo path).
 from src.database import models  # noqa: F401
-from src.database.enterprise_repository import EnterpriseRepository
+from src.database.enterprise_repository import EnterpriseRepository, ProjectNotFoundError
 from src.database.domain_repository import DomainRepository
 from src.database.administration_repository import AdministrationRepository
-from sqlalchemy.orm import sessionmaker
+from src.database.project_identity import FALLBACK_PROJECT_NAME
+from sqlalchemy.orm import relationship, sessionmaker
 
 logger = logging.getLogger(__name__)
 
@@ -22,11 +23,15 @@ class AnalysisRecord(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     kind = Column(String(50), nullable=False)
+    # TD-008 Fase 3b, Etapa 4a: `project_name` deixou de ser chave. Nenhum
+    # comportamento lê ou escreve esta coluna a partir desta etapa -- o nome
+    # de exibição deriva de `Project.name` via `project_id` (relacionamento
+    # `project` abaixo). A coluna permanece apenas por reversibilidade; o
+    # `DROP COLUMN` é a Etapa 4b (destrutiva), sob nova aprovação do Founder.
     project_name = Column(String(255), nullable=True, index=True)
-    # Real Project link (V2 Release 0.1). Nullable during the transition:
-    # records written before migration 0002 are backfilled by it; records
-    # written after are linked at save time below. The NOT NULL constraint
-    # lands in Épico 4, when the API itself starts requiring a project_id.
+    # Real Project link (V2 Release 0.1) -- a partir da Etapa 4a é a ÚNICA
+    # chave de acesso interno ao Project. Nullable ainda; o NOT NULL definitivo
+    # é a Etapa 4b.
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
     # Tenant isolation (Security Hardening Gate, migration 0010). NOT NULL
     # at the database level; every write path resolves it from the real
@@ -34,6 +39,27 @@ class AnalysisRecord(Base):
     organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=False, index=True)
     payload = Column(JSON, nullable=False)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    # Read-only link to the resolved Project (TD-008 Fase 3b, Etapa 4a).
+    # `lazy="joined"` eager-loads it in the same query, so `record.project`
+    # is available after the session closes (no DetachedInstanceError) and
+    # display names can derive from `Project.name` -- never from the
+    # `project_name` column above.
+    project = relationship("Project", lazy="joined")
+
+
+def analysis_display_name(record: "AnalysisRecord") -> str | None:
+    """Display name of an analysis derived from its Project (TD-008 Fase 3b,
+    Etapa 4a) -- `Project.name` via `project_id`, never `record.project_name`.
+
+    The single fallback Project (`FALLBACK_PROJECT_NAME`, for analyses saved
+    without an identifiable project) maps back to `None`, preserving the exact
+    "sem projeto" semantics the column previously carried as a null value.
+    """
+    project = record.project
+    if project is None:
+        return None
+    return None if project.name == FALLBACK_PROJECT_NAME else project.name
 
 
 class AnalysisRepository:
@@ -52,13 +78,17 @@ class AnalysisRepository:
         with self.SessionLocal() as session:
             # Same transaction: the analysis row and its Project resolution
             # commit (or roll back) together, so no orphan can be written.
+            # `project_name` is still the free-text the user informed; it is
+            # resolved to a real Project here (name -> project_id) and then
+            # discarded as a stored value -- TD-008 Fase 3b, Etapa 4a: the
+            # write path no longer materializes the legacy `project_name`
+            # column (it stays NULL for new rows, unread by any behavior).
             project = self.enterprise.get_or_create_project_for_name(
                 session, organization_id, project_name
             )
             record = AnalysisRecord(
                 kind=kind,
                 payload=payload,
-                project_name=project_name,
                 project_id=project.id,
                 organization_id=organization_id,
             )
@@ -66,19 +96,49 @@ class AnalysisRepository:
             session.commit()
             session.refresh(record)
             logger.info(
-                "Saved analysis id=%s kind=%s organization_id=%s project_name=%s project_id=%s",
+                "Saved analysis id=%s kind=%s organization_id=%s project_id=%s",
                 record.id,
                 kind,
                 organization_id,
-                project_name,
                 record.project_id,
             )
             return record.id
 
-    def list_analyses(
+    def resolve_scope_id(
         self,
         organization_id: int,
         project_name: str | None = None,
+        project_id: int | None = None,
+    ) -> tuple[int | None, bool]:
+        """Resolve a caller-supplied name/id to the `project_id` reads should
+        scope by (TD-008 Fase 3b, Etapa 4a). Returns `(scope_id, unmatched)`:
+
+        - `project_id` given            -> `(project_id, False)` (exact key).
+        - no name and no id             -> `(None, False)` (portfolio scope).
+        - name that resolves            -> `(project.id, False)`.
+        - name with no Project at all   -> `(None, True)` (empty scope: a
+          genuinely never-analyzed project has no analyses; callers return an
+          empty result instead of falling through to the portfolio scope).
+
+        Reuses `enterprise.resolve_project_reference` so name resolution lives
+        in one place; an ambiguous name still raises (never silently picks
+        one) -- routes map it to 409 before ever reaching here.
+        """
+        if project_id is not None:
+            return project_id, False
+        if project_name is None or project_name.strip() == "":
+            return None, False
+        try:
+            project = self.enterprise.resolve_project_reference(
+                organization_id, project_name=project_name
+            )
+        except ProjectNotFoundError:
+            return None, True
+        return (project.id if project is not None else None), False
+
+    def list_analyses(
+        self,
+        organization_id: int,
         kind: str | None = None,
         created_from: datetime | None = None,
         created_to: datetime | None = None,
@@ -92,14 +152,11 @@ class AnalysisRepository:
                 .filter(AnalysisRecord.organization_id == organization_id)
                 .order_by(AnalysisRecord.created_at.desc(), AnalysisRecord.id.desc())
             )
-            # TD-008 Phase 3b (Etapa 1): when a project_id is provided it is
-            # the exact key (the migration's whole point -- two projects can
-            # share a name but never an id); it takes precedence over the
-            # legacy name filter. Name-only callers are unchanged.
+            # TD-008 Fase 3b, Etapa 4a: `project_id` is the ONLY project scope
+            # key. The legacy `project_name` filter is gone -- callers resolve
+            # a name to an id (via `resolve_scope_id`) before scoping.
             if project_id is not None:
                 query = query.filter(AnalysisRecord.project_id == project_id)
-            elif project_name is not None:
-                query = query.filter(AnalysisRecord.project_name == project_name)
             if kind is not None:
                 query = query.filter(AnalysisRecord.kind == kind)
             if created_from is not None:
@@ -111,10 +168,10 @@ class AnalysisRepository:
                 query = query.limit(limit)
             records = query.all()
             logger.info(
-                "Listed %d analyses organization_id=%s project_name=%s kind=%s created_from=%s created_to=%s limit=%s offset=%d",
+                "Listed %d analyses organization_id=%s project_id=%s kind=%s created_from=%s created_to=%s limit=%s offset=%d",
                 len(records),
                 organization_id,
-                project_name,
+                project_id,
                 kind,
                 created_from,
                 created_to,

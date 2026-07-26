@@ -95,9 +95,14 @@ class TestDeterministicProjectResolution:
         with repo.SessionLocal() as session:
             r1 = session.get(AnalysisRecord, id1)
             r2 = session.get(AnalysisRecord, id2)
+            # Whitespace variants resolve to one Project (the identity key).
             assert r1.project_id == r2.project_id
-            # Original free text preserved untouched per record.
-            assert r2.project_name == "  Projeto Alfa  "
+            # TD-008 Fase 3b, Etapa 4a: the legacy project_name column is no
+            # longer written; the identity is the shared project_id above and
+            # the normalized display name lives on Project.name.
+            assert r2.project_name is None
+            project = session.get(Project, r2.project_id)
+            assert project.name == "Projeto Alfa"
 
     def test_capitalization_variants_stay_distinct(self, repo, org):
         id1 = repo.save_analysis("project_status", {}, org, "Projeto Alfa")

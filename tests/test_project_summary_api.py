@@ -47,6 +47,7 @@ class FakeService:
         organization_id: int,
         project_name: str | None = None,
         project_id: int | None = None,
+        display_name: str | None = None,
     ) -> dict:
         self.received_organization_id = organization_id
         self.received_project_name = project_name

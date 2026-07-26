@@ -31,7 +31,7 @@ from src.database.enterprise_repository import (
 from src.llm.providers.base import LLMProvider
 from src.llm.providers.factory import get_provider
 from src.prompts.registry import PromptRegistry
-from src.database.repository import AnalysisRepository
+from src.database.repository import AnalysisRepository, analysis_display_name
 from src.services.ai_foundation.audit_integration import AIFoundationAudit
 from src.services.ai_foundation.context_engine import AIContextEngine
 from src.services.ai_foundation.explanation_engine import ExplanationEngine
@@ -75,10 +75,13 @@ class ProjectStatusRequest(BaseModel):
 class AnalysisSummary(BaseModel):
     id: int
     kind: str
+    # Display attribute derived from Project.name via project_id (TD-008 Fase
+    # 3b, Etapa 4a); project_id is the identity key. Built explicitly by the
+    # routes (not `from_attributes`) so the display never reads the legacy
+    # analysis_records.project_name column.
+    project_id: int | None = None
     project_name: str | None
     created_at: datetime
-
-    model_config = {"from_attributes": True}
 
 
 class AnalysisDetail(AnalysisSummary):
@@ -95,6 +98,7 @@ class ProjectSummaryResponse(BaseModel):
 
 
 class ActionItemResponse(BaseModel):
+    project_id: int | None = None
     project_name: str | None
     description: str
     # due_date stays a plain string, never parsed to a date here -- it's
@@ -107,6 +111,7 @@ class ActionItemResponse(BaseModel):
 
 
 class LatestRiskItemResponse(BaseModel):
+    project_id: int | None = None
     project_name: str | None
     description: str
     probability: str | None
@@ -328,9 +333,13 @@ def list_analyses(
         limit,
         offset,
     )
-    return repository.list_analyses(
+    # A specific project that was never analyzed (name resolved to no Project)
+    # has no analyses -- return empty instead of falling through to portfolio
+    # scope. `project_id` is now the ONLY scope key (TD-008 Fase 3b, Etapa 4a).
+    if scope_id is None and scope_name is not None:
+        return []
+    records = repository.list_analyses(
         organization_id=organization_id,
-        project_name=scope_name,
         project_id=scope_id,
         kind=kind,
         created_from=created_from,
@@ -338,6 +347,18 @@ def list_analyses(
         limit=limit,
         offset=offset,
     )
+    # Display name derives from Project.name via project_id -- never from the
+    # legacy analysis_records.project_name column.
+    return [
+        AnalysisSummary(
+            id=record.id,
+            kind=record.kind,
+            project_id=record.project_id,
+            project_name=analysis_display_name(record),
+            created_at=record.created_at,
+        )
+        for record in records
+    ]
 
 
 @router.get("/analyses/{analysis_id}", response_model=AnalysisDetail)
@@ -351,7 +372,15 @@ def get_analysis(
     record = repository.get_analysis(analysis_id, context.organization.organization_id)
     if record is None:
         raise HTTPException(status_code=404, detail="Analysis not found")
-    return record
+    # Display name from Project.name via project_id (TD-008 Fase 3b, Etapa 4a).
+    return AnalysisDetail(
+        id=record.id,
+        kind=record.kind,
+        project_id=record.project_id,
+        project_name=analysis_display_name(record),
+        created_at=record.created_at,
+        payload=record.payload,
+    )
 
 
 @router.get("/action-items", response_model=list[ActionItemResponse])
@@ -423,8 +452,14 @@ def get_project_summary(
         repository, organization_id, project_id, project_name
     )
     logger.info("Summarizing project_id=%s project_name=%s", scope_id, scope_name)
+    # display_name echoes the name the caller informed for a never-analyzed /
+    # empty project; when the project has analyses, summarize derives the
+    # display name from Project.name (TD-008 Fase 3b, Etapa 4a).
     return service.summarize(
-        organization_id=organization_id, project_name=scope_name, project_id=scope_id
+        organization_id=organization_id,
+        project_name=scope_name,
+        project_id=scope_id,
+        display_name=project_name,
     )
 
 

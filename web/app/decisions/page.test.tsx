@@ -42,7 +42,7 @@ const MIXED_PORTFOLIO: ProjectIntelligenceSummary[] = [
   },
   {
     project_name: "Implantacao SAP S/4HANA",
-    project_id: 1,
+    project_id: 2,
     total_analyses: 3,
     open_risks: 1,
     pending_action_items: 1,
@@ -132,6 +132,7 @@ describe("DecisionsPage -- sinal de Risco (Incremento 2)", () => {
       hookState({
         data: [
           {
+            project_id: 1,
             project_name: "Aurora",
             description: "Atraso no fornecedor",
             probability: "high",

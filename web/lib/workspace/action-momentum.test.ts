@@ -15,6 +15,7 @@ const TODAY = new Date("2026-07-13T12:00:00Z");
 
 function item(overrides: Partial<ActionItemView>): ActionItemView {
   return {
+    project_id: 1,
     project_name: "Aurora",
     description: "Atualizar cronograma",
     owner: "Ana",

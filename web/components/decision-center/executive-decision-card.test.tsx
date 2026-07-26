@@ -5,6 +5,7 @@ import { ExecutiveDecisionCard } from "./executive-decision-card";
 import type { ExecutiveDecision } from "@/lib/decision-center/decision-queue";
 
 const DECISION: ExecutiveDecision = {
+  project_id: 2,
   project_name: "Implantacao SAP S/4HANA",
   source: "status",
   window: "hoje",
@@ -58,6 +59,7 @@ describe("ExecutiveDecisionCard", () => {
   // textos reais e distintos -- nenhum dos dois pode ficar de fora do card.
   it("shows 'Decisão sugerida' and 'Próximo passo' as separate real texts for a risk decision", () => {
     const riskDecision: ExecutiveDecision = {
+      project_id: 1,
       project_name: "Aurora",
       source: "risk",
       window: "hoje",

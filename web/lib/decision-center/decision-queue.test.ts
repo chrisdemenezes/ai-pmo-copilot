@@ -4,10 +4,25 @@ import { buildExecutiveDecisionQueue, groupLatestRisksByProject, windowLabel } f
 import type { ProjectIntelligenceSummary } from "@/lib/project/intelligence-summary";
 import type { LatestRiskItem } from "./types";
 
+// Stable project_name -> project_id registry so distinct display names get
+// distinct identity keys automatically (TD-008 Fase 3b, Etapa 4a: joins are
+// by project_id). A project and its risks sharing a name therefore share an
+// id, which is exactly what the id-join exercises.
+const PROJECT_IDS = new Map<string, number>();
+let nextProjectId = 1;
+function pidFor(name: string): number {
+  const existing = PROJECT_IDS.get(name);
+  if (existing !== undefined) return existing;
+  const id = nextProjectId++;
+  PROJECT_IDS.set(name, id);
+  return id;
+}
+
 function project(overrides: Partial<ProjectIntelligenceSummary>): ProjectIntelligenceSummary {
+  const project_name = overrides.project_name ?? "Aurora";
   return {
-    project_id: 1,
-    project_name: "Aurora",
+    project_id: pidFor(project_name),
+    project_name,
     total_analyses: 1,
     open_risks: 0,
     pending_action_items: 0,
@@ -17,8 +32,10 @@ function project(overrides: Partial<ProjectIntelligenceSummary>): ProjectIntelli
 }
 
 function risk(overrides: Partial<LatestRiskItem>): LatestRiskItem {
+  const project_name = overrides.project_name === undefined ? "Aurora" : overrides.project_name;
   return {
-    project_name: "Aurora",
+    project_id: project_name === null ? null : pidFor(project_name),
+    project_name,
     description: "Atraso no fornecedor",
     probability: "high",
     impact: "high",
@@ -180,19 +197,53 @@ describe("buildExecutiveDecisionQueue -- sinal de Risco (Incremento 2)", () => {
 });
 
 describe("groupLatestRisksByProject", () => {
-  it("groups risks by project_name", () => {
+  it("groups risks by project_id (identity), not by name", () => {
     const grouped = groupLatestRisksByProject([
       risk({ project_name: "Aurora", description: "a" }),
       risk({ project_name: "Aurora", description: "b" }),
       risk({ project_name: "Medlog", description: "c" }),
     ]);
 
-    expect(grouped.get("Aurora")).toHaveLength(2);
-    expect(grouped.get("Medlog")).toHaveLength(1);
+    expect(grouped.get(pidFor("Aurora"))).toHaveLength(2);
+    expect(grouped.get(pidFor("Medlog"))).toHaveLength(1);
   });
 
-  it("ignores risks without a project_name", () => {
-    const grouped = groupLatestRisksByProject([risk({ project_name: null })]);
+  it("groups two identically-named projects with different ids separately (id is the key)", () => {
+    const grouped = groupLatestRisksByProject([
+      risk({ project_id: 91, project_name: "Migração", description: "a" }),
+      risk({ project_id: 92, project_name: "Migração", description: "b" }),
+    ]);
+
+    expect(grouped.get(91)).toHaveLength(1);
+    expect(grouped.get(92)).toHaveLength(1);
+  });
+
+  it("ignores risks without a project_id", () => {
+    const grouped = groupLatestRisksByProject([risk({ project_id: null, project_name: null })]);
     expect(grouped.size).toBe(0);
+  });
+});
+
+describe("buildExecutiveDecisionQueue -- join por identidade (project_id)", () => {
+  it("joins risks to a project whose display name differs from the risk's, when the id matches", () => {
+    // Same identity (id 7), different display strings -> still joins. This is
+    // the whole point of keying on project_id, not on the name.
+    const portfolio = [project({ project_id: 7, project_name: "Projeto Aurora", latest_health_status: "green" })];
+    const risksByProject = groupLatestRisksByProject([
+      risk({ project_id: 7, project_name: "Aurora", probability: "high", impact: "high" }),
+    ]);
+
+    const [entry] = buildExecutiveDecisionQueue(portfolio, risksByProject);
+    expect(entry.source).toBe("risk");
+    expect(entry.project_id).toBe(7);
+  });
+
+  it("does not join a risk whose id differs, even if the display name is identical", () => {
+    const portfolio = [project({ project_id: 7, project_name: "Aurora", latest_health_status: "green" })];
+    const risksByProject = groupLatestRisksByProject([
+      risk({ project_id: 8, project_name: "Aurora", probability: "high", impact: "high" }),
+    ]);
+
+    expect(buildExecutiveDecisionQueue(portfolio, risksByProject)).toEqual([]);
   });
 });

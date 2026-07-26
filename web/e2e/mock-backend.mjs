@@ -36,6 +36,9 @@ let nextAnalysisId = 1000;
 
 const SAMPLE = [
   {
+    // project_id is the identity key the real ProjectSummaryResponse carries
+    // (TD-008 Fase 3b); the frontend joins decisions/risks by it, never by name.
+    project_id: 3,
     project_name: "Multilift",
     total_analyses: 5,
     open_risks: 3,
@@ -43,6 +46,7 @@ const SAMPLE = [
     latest_health_status: "red",
   },
   {
+    project_id: 1,
     project_name: "Aurora",
     total_analyses: 2,
     open_risks: 0,
@@ -54,6 +58,7 @@ const SAMPLE = [
   // Kept in the default portfolio so the Workspace's encodeURIComponent
   // chain has a real project to exercise end-to-end.
   {
+    project_id: 2,
     project_name: "Implantacao SAP S/4HANA",
     total_analyses: 2,
     open_risks: 1,
@@ -350,6 +355,16 @@ const WORKSPACE_SUMMARY = {
     latest_health_status: "yellow",
   },
 };
+
+// TD-008 Fase 3b, Etapa 4a: the real backend derives project_id from the
+// resolved Project and returns it on every analyses/action-items/risks row.
+// The mock mirrors that -- the display name maps back to the same identity
+// key the summaries carry, so the frontend's id-joins work end-to-end.
+function projectIdForName(name) {
+  if (name && WORKSPACE_SUMMARY[name]) return WORKSPACE_SUMMARY[name].project_id;
+  const inSample = SAMPLE.find((p) => p.project_name === name);
+  return inSample ? inSample.project_id : null;
+}
 
 const ANALYSES = [
   {
@@ -977,6 +992,7 @@ const server = http.createServer((req, res) => {
     const page = items.slice(offset, offset + limit).map(({ id, kind: k, project_name, created_at }) => ({
       id,
       kind: k,
+      project_id: projectIdForName(project_name),
       project_name,
       created_at,
     }));
@@ -1003,6 +1019,7 @@ const server = http.createServer((req, res) => {
       for (const item of modelOutput.action_items ?? []) {
         if (typeof item?.description !== "string") continue;
         items.push({
+          project_id: projectIdForName(record.project_name),
           project_name: record.project_name,
           description: item.description,
           owner: typeof item.owner === "string" ? item.owner : null,
@@ -1027,13 +1044,15 @@ const server = http.createServer((req, res) => {
       .slice()
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
+    // Dedup by project_id (identity), TD-008 Fase 3b, Etapa 4a.
     const seenProjects = new Set();
     const items = [];
     for (const record of risksAnalyses) {
-      if (seenProjects.has(record.project_name)) continue;
+      const projectId = projectIdForName(record.project_name);
+      if (seenProjects.has(projectId)) continue;
       const modelOutput = record.payload?.model_output;
       if (!modelOutput || modelOutput.structured !== true) continue;
-      seenProjects.add(record.project_name);
+      seenProjects.add(projectId);
       const escalationRecommendation =
         typeof modelOutput.escalation_recommendation === "string"
           ? modelOutput.escalation_recommendation
@@ -1041,6 +1060,7 @@ const server = http.createServer((req, res) => {
       for (const risk of modelOutput.risks ?? []) {
         if (typeof risk?.description !== "string") continue;
         items.push({
+          project_id: projectId,
           project_name: record.project_name,
           description: risk.description,
           probability: risk.probability ?? null,

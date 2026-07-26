@@ -477,6 +477,17 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-060 — TD-008 Fase 3b, Gate Final aprovado + Etapa 4a concluída: eliminação aditiva dos consumidores residuais de `project_name` como chave (item 8 do Wave Completion Review retrospectivo)
+
+- **Contexto:** o Founder aprovou o **Gate Final de Migração** (veredito NÃO-GO para a operação destrutiva estava correto e demonstrou a governança funcionando) e autorizou a **Etapa 4a — Eliminação Aditiva dos Consumidores Residuais**, resolvendo integralmente R1-R6. Diretrizes: integralmente aditiva e reversível; nenhuma coluna removida; `project_name` pode permanecer na tabela mas **sem participação em qualquer comportamento**; suíte completa verde a cada grupo; novos testes cobrindo os contratos com `project_id` e os joins por identidade.
+- **Decisão (código):** `project_id` passou a ser a **única chave de escopo de leitura**. (R1) `list_analyses` id-only — removido o parâmetro/filtro por `project_name`; novo `AnalysisRepository.resolve_scope_id` (reutilizado pelo serviço e pelo `AIContextEngine`) resolve nome→id via `resolve_project_reference`. (R2) `list_latest_risks` deduplica por `project_id`; `summarize_portfolio` agrupa por `project_id` e exclui o projeto-sentinela por identidade. (R3) `AnalysisSummary`/`ActionItemResponse`/`LatestRiskItemResponse` ganharam `project_id`; todo nome de exibição deriva de `Project.name` via o relacionamento `AnalysisRecord.project` (`analysis_display_name`, sentinela "(sem projeto)" → `None`), nunca da coluna. (R4/R5) `decision-queue` e `portfolio-view` juntam por `project_id` (`ExecutiveDecision.project_id`, `Map<number>`); tipos `LatestRiskItem`/`ActionItemView`/`AnalysisListItem` ganharam `project_id`. (R6) `save_analysis` deixou de gravar a coluna — mantém o link real via `get_or_create_project_for_name` (nome→`project_id`); a coluna fica `NULL` para linhas novas, sem leitor restante.
+- **Nomenclatura backend (Decisão 2 do Founder):** `ProjectSummaryResponse` e `ProjectSummaryService` **mantidos** e classificados explicitamente como **projeção de leitura** e **serviço de composição**, não modelos de domínio paralelos — renomeá-los alteraria o contrato OpenAPI sem ganho proporcional. Classificação registrada em `docs/architecture/DOMAIN-MODEL.md`.
+- **Migração 0015 (Etapa 4b, encenada, NÃO ativada):** definida em `alembic/versions_pending/0015_*.py` (fora de `version_locations`), com upgrade (`NOT NULL` em `project_id`, `DROP COLUMN project_name`) e downgrade reversíveis, **provados em PostgreSQL real** por `tests/test_migration_0015_drop_project_name.py`. O head ativo permanece `0014` — a coluna é preservada; ativar a 0015 é o ato da Etapa 4b, que exige **nova aprovação explícita do Founder**.
+- **Verificação:** `ruff check src tests` limpo; `pytest` 449 + teste da 0015; `tsc`/`eslint` limpos; `vitest` 491; Playwright E2E (lg/md/mobile) 292 passando (2 skipped). Novos testes de identidade: mesmo `project_id`/nomes diferentes → juntam; nomes iguais/ids diferentes → não juntam.
+- **Missão:** Etapa 4a — concluída. A **Etapa 4b permanece bloqueada** (`NOT NULL` definitivo, `DROP COLUMN`, remoção dos contratos temporários — qualquer alteração irreversível), condicionada a **novo Gate + nova aprovação explícita do Founder**.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.
