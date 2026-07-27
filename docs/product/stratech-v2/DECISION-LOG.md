@@ -537,6 +537,16 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-064 — AR-6 concluída: Architecture Review do Wave 3 Domain Blueprint aprovado sem ressalvas
+
+- **Contexto:** per o fluxo institucional obrigatório (Domain Blueprint → Revisão Arquitetural → Aprovação do Founder → Implementação incremental) e a exigência já registrada em `ENTERPRISE-MASTER-EXECUTION-PROGRAM.md` §5 de uma Architecture Review como pré-requisito antes de qualquer Technical Design de Knowledge Platform ou dos Advisors restantes, os 8 entregáveis do Wave 3 Domain Blueprint (D-063) foram auditados em `docs/architecture/AR-6-WAVE-3-DOMAIN-BLUEPRINT-REVIEW.md`.
+- **Decisão:** auditoria cobriu (1) consistência com as regras de CLAUDE.md (nenhuma arquitetura paralela, nenhuma duplicação, nenhum provider/registry novo — `EmbeddingProvider` avaliado como abstração de uma capacidade nova, não um segundo `LLMProvider`); (2) checagem item a item de todas as diretrizes verbatim do Founder sobre Vector Store e Framework de Orquestração; (3) consistência interna cruzada entre os 8 documentos; (4) grounding em consumidor real (Risk Advisor como padrão de referência, migração obrigatória na Fase 3 antes de qualquer Advisor novo); (5) risco de sobre-engenharia (nenhum Model Registry/Provider Router/Prompt Versioning/fila assíncrona antecipados); (6) impacto em código existente (nenhum — missão documental).
+- **Achado corrigido durante a revisão:** `ENTERPRISE-ADVISOR-CATALOG.md` (seção PMO Advisor) citava o plano executivo já superseded (`WAVE-3-EXECUTIVE-PLAN.md §3.4`) em vez do plano vigente — corrigido para `WAVE-3-EXECUTION-PLAN.md §2, Fase 4`. Sem impacto arquitetural, apenas precisão documental.
+- **Veredito:** aprovado para avançar à aprovação do Founder sobre `WAVE-3-EXECUTION-PLAN.md`, sem ressalvas. Nenhuma Decision Proposal adicional necessária.
+- **Missão:** AR-6 — concluída. Wave 3 aguarda apenas a aprovação explícita do Founder para iniciar a Fase 1 (Foundation da Enterprise Knowledge Platform).
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.

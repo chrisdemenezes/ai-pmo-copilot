@@ -57,7 +57,7 @@ Todos os 8 Advisors compartilham:
 - **Saídas:** `Recommendation`/`Explanation` sobre saúde de processo, citando os projetos reais envolvidos.
 - **Limites de atuação:** não avalia conteúdo de risco de projeto individual (isso é o Risk Advisor) — foco em processo e conformidade, não em conteúdo de risco.
 - **Integrações:** Portfolio, Program, Project, Actions, Governança (RBAC/conformidade já existente).
-- **Dependências:** Advisor Framework, Foundation; é o primeiro candidato à generalização de um segundo Advisor (recomendado em `WAVE-3-EXECUTIVE-PLAN.md` §3.4, por ser o mais próximo do domínio já implementado).
+- **Dependências:** Advisor Framework, Foundation; é o primeiro candidato à generalização de um segundo Advisor (recomendado em `WAVE-3-EXECUTION-PLAN.md` §2, Fase 4, por ser o mais próximo do domínio já implementado).
 - **Critérios de sucesso:** padrões identificados sempre referenciam projetos/dados reais; nenhuma generalização sem evidência de múltiplos projetos.
 
 ---

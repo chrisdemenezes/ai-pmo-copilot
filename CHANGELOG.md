@@ -619,3 +619,15 @@ Documentação de arquitetura apenas — **nenhum Epic implementado nesta missã
 **Próximo passo:** Architecture Review e aprovação explícita do Founder sobre `WAVE-3-EXECUTION-PLAN.md` antes do início da Fase 1.
 
 **Decision Log:** D-063.
+
+## Wave 3 — AR-6 (2026-07-27): Architecture Review do Domain Blueprint, aprovado sem ressalvas
+
+**Adicionado**
+- `docs/architecture/AR-6-WAVE-3-DOMAIN-BLUEPRINT-REVIEW.md` — auditoria dos 8 entregáveis do Blueprint contra as regras do CLAUDE.md, as diretrizes verbatim do Founder (Vector Store/Framework), consistência interna cruzada, grounding em consumidor real (Risk Advisor) e risco de sobre-engenharia.
+
+**Corrigido**
+- `docs/architecture/ENTERPRISE-ADVISOR-CATALOG.md` — referência cruzada desatualizada (PMO Advisor apontava ao plano executivo superseded) corrigida para `WAVE-3-EXECUTION-PLAN.md`.
+
+**Veredito:** aprovado para avançar à aprovação do Founder, sem ressalvas.
+
+**Decision Log:** D-064.
