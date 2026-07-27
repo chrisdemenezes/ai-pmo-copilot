@@ -597,3 +597,25 @@ Sete entregáveis produzidos, sem implementação de nenhum Epic da Wave 3.
 **Próximo passo:** `docs/product/WAVE-3-EXECUTIVE-PLAN.md` — plano executivo da Wave 3 (objetivos, entregáveis, ordem dos Epics, dependências, riscos, critérios de conclusão), aguardando aprovação do Founder antes de qualquer implementação.
 
 **Decision Log:** D-062.
+
+## Wave 3 — Domain Blueprint (2026-07-27): 2 Decision Proposals resolvidas + 8 entregáveis do Blueprint mestre produzidos
+
+Documentação de arquitetura apenas — **nenhum Epic implementado nesta missão**, conforme diretriz explícita do Founder.
+
+**Decidido**
+- **Enterprise Knowledge Platform:** adoção de Vector Store aprovada — implementação inicial `pgvector`, sempre atrás de uma abstração (`KnowledgeRepository`/`VectorRepository`); o domínio nunca depende diretamente da tecnologia.
+- **Enterprise Advisor Framework:** adoção de um Framework de Orquestração Multiagente aprovada — infraestrutura de execução apenas; os Enterprise Advisors permanecem conceitos do domínio, cada um com contrato próprio.
+
+**Adicionado**
+- `docs/architecture/WAVE-3-DOMAIN-BLUEPRINT.md` — documento mestre: arquitetura em camadas unidirecionais (Advisors → Advisor Framework + Digital PMO Intelligence Foundation → Knowledge Platform → Enterprise Domain), 8 princípios arquiteturais, 6 Bounded Contexts, fluxos de informação (ingestão assíncrona + resposta síncrona estendendo o fluxo já provado por `POST /risk-advisor/ask`).
+- `docs/architecture/DOMAIN-BLUEPRINT-ENTERPRISE-KNOWLEDGE-PLATFORM.md` — os 13 sub-componentes mandatados (Ingestion→Parsing→Chunking→Embeddings→Indexação→Vector Store/`pgvector`→Semantic Search→RAG Pipeline→Knowledge Repository), versionamento, atualização incremental, retenção, cache.
+- `docs/architecture/DOMAIN-BLUEPRINT-ENTERPRISE-MEMORY-MODEL.md` — 5 memórias (documental/operacional/decisões/aprendizados/organizacional), com checklist obrigatória de colisão contra Executive Memory (V1) em §0 — nenhuma alteração feita ao código de Executive Memory.
+- `docs/architecture/DOMAIN-BLUEPRINT-ENTERPRISE-ADVISOR-FRAMEWORK.md` — contratos, ciclo de vida, orquestração, isolamento, observabilidade e auditoria comuns a todo Advisor, generalizando o padrão já provado pelo `RiskAdvisorAgent`.
+- `docs/architecture/ENTERPRISE-ADVISOR-CATALOG.md` — os 8 Advisors (Risk — já existe — Executive, Strategy, PMO, Portfolio, Delivery, Governance, Document) catalogados; nenhum implementado.
+- `docs/architecture/DOMAIN-BLUEPRINT-RAG-ARCHITECTURE.md` — pipeline, recuperação semântica, ranking, contexto, grounding (extensão do anti-hallucination guard do Risk Advisor a citações documentais), qualidade das respostas.
+- `docs/architecture/WAVE-3-INTEGRATION-BLUEPRINT.md` — integração com Portfolio, Program, Project, Executive Dashboard, Decision Center, Actions, Risks, Lessons Learned, Workspace e a AI Intelligence Layer.
+- `docs/product/WAVE-3-EXECUTION-PLAN.md` — supersede `WAVE-3-EXECUTIVE-PLAN.md`; ordem mandatória de Fases (Foundation → Knowledge Services → Advisor Framework → Advisors individuais), dependências, riscos, Gates de aprovação entre Fases.
+
+**Próximo passo:** Architecture Review e aprovação explícita do Founder sobre `WAVE-3-EXECUTION-PLAN.md` antes do início da Fase 1.
+
+**Decision Log:** D-063.
