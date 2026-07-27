@@ -59,6 +59,16 @@ case "$ACTION" in
   create)
     echo "Ensuring role '$APP_USER' exists ..."
     _admin_psql "DO \$\$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$APP_USER') THEN CREATE ROLE $APP_USER LOGIN PASSWORD '$APP_PASSWORD' CREATEDB; END IF; END \$\$;" > /dev/null
+    # Enterprise Knowledge Platform Fase 1 (Wave 3): CREATE EXTENSION needs
+    # superuser on vanilla Postgres (pgvector isn't declared "trusted"), and
+    # $APP_USER deliberately isn't superuser. Installing it once in
+    # template1 -- as the superuser this admin connection already is --
+    # means every future `CREATE DATABASE` (the app database below, and
+    # every ephemeral per-test database in tests/db.py, which also defaults
+    # to template1) inherits it for free; migration 0016's own `CREATE
+    # EXTENSION IF NOT EXISTS` then just no-ops against it.
+    echo "Ensuring 'vector' extension is available (pgvector) ..."
+    PGDATABASE=template1 _admin_psql "CREATE EXTENSION IF NOT EXISTS vector" > /dev/null
     echo "Ensuring database '$APP_DB' exists ..."
     EXISTS="$(_admin_psql "SELECT 1 FROM pg_database WHERE datname='$APP_DB'")"
     if [ "$EXISTS" != "1" ]; then

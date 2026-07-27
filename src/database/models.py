@@ -25,8 +25,16 @@ from sqlalchemy import (
     UniqueConstraint,
     text,
 )
+from pgvector.sqlalchemy import Vector
 
 from src.database.base import Base
+
+# Wave 3, Enterprise Knowledge Platform Fase 1 (Foundation). Placeholder
+# dimension for the Mock embedding provider proving the pgvector wiring --
+# the real production dimension is chosen when a real embedding backend is
+# selected (Fase 2, deferred per DOMAIN-BLUEPRINT-ENTERPRISE-KNOWLEDGE-PLATFORM.md
+# §1.4), and this constant moves with it.
+KNOWLEDGE_EMBEDDING_DIM = 16
 
 
 def _utcnow() -> datetime:
@@ -367,3 +375,55 @@ class AuditLog(Base):
     entity_id = Column(Integer, nullable=True)
     details = Column(JSON, nullable=True)
     created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False, index=True)
+
+
+class Document(Base):
+    """Enterprise Knowledge Platform, Wave 3 Fase 1 (Foundation).
+
+    `project_id` is an optional metadata pointer, never a key -- the same
+    TD-008 discipline (`project_id`, never a name) already final for
+    `AnalysisRecord`."""
+
+    __tablename__ = "documents"
+
+    id = Column(Integer, primary_key=True, index=True)
+    organization_id = Column(
+        Integer, ForeignKey("organizations.id"), nullable=False, index=True
+    )
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
+    source_name = Column(String(255), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
+
+
+class DocumentVersion(Base):
+    """One row per (re)ingestion of a Document -- never overwritten, per
+    `DOMAIN-BLUEPRINT-ENTERPRISE-KNOWLEDGE-PLATFORM.md` §1.10
+    (Versionamento do conhecimento)."""
+
+    __tablename__ = "document_versions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    document_id = Column(Integer, ForeignKey("documents.id"), nullable=False, index=True)
+    content = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
+
+
+class Chunk(Base):
+    """A retrievable unit of a DocumentVersion, with its embedding vector.
+
+    `organization_id` is denormalized from the owning Document -- the same
+    technique already used by `AnalysisRecord.organization_id` -- so
+    similarity search filters by tenant directly, with no join required."""
+
+    __tablename__ = "chunks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    document_version_id = Column(
+        Integer, ForeignKey("document_versions.id"), nullable=False, index=True
+    )
+    organization_id = Column(
+        Integer, ForeignKey("organizations.id"), nullable=False, index=True
+    )
+    chunk_index = Column(Integer, nullable=False)
+    text = Column(String, nullable=False)
+    embedding = Column(Vector(KNOWLEDGE_EMBEDDING_DIM), nullable=False)

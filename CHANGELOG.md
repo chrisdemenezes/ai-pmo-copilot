@@ -631,3 +631,28 @@ Documentação de arquitetura apenas — **nenhum Epic implementado nesta missã
 **Veredito:** aprovado para avançar à aprovação do Founder, sem ressalvas.
 
 **Decision Log:** D-064.
+
+## Wave 3 — Fase 1 (2026-07-27): Enterprise Knowledge Platform (Foundation) implementada
+
+Founder autorizou o início da implementação após a AR-6. Primeiro código real desta Wave — nenhum Advisor consome a plataforma ainda.
+
+**Adicionado**
+- `docs/product/governance/WAVE-3-SUCCESS-CRITERIA.md` — Definition of Done por Fase (1-4 + W3-8) e critérios objetivos de encerramento da Wave, publicado antes do primeiro commit de implementação (precondição do Founder).
+- `docs/architecture/TECHNICAL-DESIGN-ENTERPRISE-KNOWLEDGE-PLATFORM-FASE1.md` — escopo, pré-requisito de infraestrutura (`pgvector`), modelo de dados, arquivos alterados.
+- `src/services/knowledge_platform/` (`types.py`, `embedding_provider.py`, `vector_repository.py`, `knowledge_repository.py`) — `KnowledgeRepository` (fachada), `PgVectorRepository` (única classe ciente de `pgvector`), `EmbeddingProvider`/`MockEmbeddingProvider` (determinístico; backend de produção deferido à Fase 2).
+- `Document`, `DocumentVersion`, `Chunk` em `src/database/models.py` — escopados por `organization_id`, `project_id` como metadado opcional (nunca chave, mesma disciplina de TD-008).
+- Migração `0016` — habilita a extensão `pgvector` + cria as 3 tabelas (aditiva; downgrade remove as tabelas sem remover a extensão compartilhada).
+- `pgvector>=0.5.0` (dependência Python) em `requirements.txt`.
+
+**Infraestrutura**
+- `scripts/rc2-db.sh` — novo passo idempotente instalando `pgvector` em `template1` (superusuário), para que todo banco novo (app + bancos efêmeros de teste) herde a extensão sem elevar o privilégio do papel `aipmo`.
+- `docker-compose.yml` / `.github/workflows/ci.yml` — imagem do serviço Postgres trocada de `postgres:16` para `pgvector/pgvector:pg16`.
+
+**Testes**
+- `tests/test_migration_0016_knowledge_platform.py` (upgrade/downgrade/re-upgrade em PostgreSQL real).
+- `tests/test_knowledge_platform.py` (14 testes: `MockEmbeddingProvider`, `PgVectorRepository` upsert + busca por similaridade + isolamento cross-tenant, `KnowledgeRepository` ingest→index→search, versionamento sem sobrescrita, escopo por organização).
+- Suíte completa: `ruff check src tests` limpo, `pytest` 464 passando, 97% de cobertura total.
+
+**Próximo passo:** Fase 2 (Knowledge Services — Semantic Search, RAG Pipeline, Enterprise Memory Model, Versionamento), per o Gate definido em `WAVE-3-EXECUTION-PLAN.md` §7.
+
+**Decision Log:** D-065.
