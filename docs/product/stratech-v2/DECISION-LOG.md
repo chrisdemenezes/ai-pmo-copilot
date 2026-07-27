@@ -596,6 +596,18 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-069 — Wave 3 Closure Review publicado
+
+- **Contexto:** o Founder aprovou a Fase 4 (D-068) e solicitou, em "Founder Decision — Encerramento da Wave 3", exatamente 5 elementos: comparação entre objetivos planejados e entregues; validação das principais decisões arquiteturais; lições aprendidas; débitos técnicos remanescentes; recomendação formal de Go/No-Go para a Wave 4.
+- **Decisão (publicação):** `docs/product/governance/WAVE-3-CLOSURE-REPORT.md` publicado, cobrindo os 5 elementos solicitados. Achado tratado com a disciplina da Wave Completion Policy (D-048): os 7 Enterprise Advisors restantes e o Executive Intelligence (W3-8) — parte do escopo original da Wave 3 per `WAVE-3-EXECUTION-PLAN.md` §2/§7 — **não foram entregues**. A própria mensagem do Founder que abre este Closure Review é a autorização formal que reclassifica esse gap: declara que a validação arquitetural entregue pela Fase 4 (um consumidor real exercitando toda a cadeia Foundation→Knowledge Services→Framework em produção) já é suficiente para encerrar a Wave, deferindo os 7 Advisors + W3-8 para uma Wave futura — não um descarte silencioso, uma reclassificação de escopo explicitamente autorizada e registrada.
+- **Achado de reconciliação de roadmap (não bloqueador):** `web/lib/mock/mission-control-data.ts` já nomeia "Wave 4" como Enterprise Operations (Integration Hub/Event Orchestration, Releases 0.4/0.5) — escopo distinto dos 7 Advisors restantes/W3-8, que ficam sem uma Wave nomeada no roadmap atual. Registrado no Closure Report §1.3 como item de reconciliação de nomenclatura a ser feito pelo Founder quando decidir retomar os Advisors restantes.
+- **Technical Debt Register:** nova seção "Classificação Final — Wave 3 Closure Review" em `TECHNICAL_DEBT.md` — TD-011/012/013 (abertos nas Fases 1/2 desta Wave) classificados como Postergados, cada um com gatilho explícito; TD-001/002/003/009 reconfirmados sem alteração; TD-004/005/006/007/008/010 seguem Resolvidos. Nenhum item permanece sem classificação.
+- **Recomendação formal:** GO para o início da Wave 4 — nenhum débito técnico bloqueante, nenhuma decisão arquitetural das Fases 1-4 invalidada pela validação em produção, escopo remanescente já reclassificado por decisão do Founder. Recomendação, não declaração — o encerramento formal da Wave 3 permanece com o Founder, mediante aprovação deste artefato.
+- **Verificação:** missão documental — nenhum arquivo de `src/`/`web/` tocado; `ruff check src tests` confirmado limpo (sem alteração de código nesta missão).
+- **Missão:** Wave 3 Closure Review — publicado. Aguarda aprovação do Founder para a Wave 3 ser considerada oficialmente encerrada e a Wave 4 iniciada.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.

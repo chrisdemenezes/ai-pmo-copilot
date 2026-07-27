@@ -66,6 +66,32 @@ Registro vivo de débitos arquiteturais conhecidos. Cada item tem origem, status
 
 ---
 
+## TD-011 — Backend de embeddings de produção não escolhido (Enterprise Knowledge Platform)
+
+- **Origem:** Wave 3, Fase 1 (`DOMAIN-BLUEPRINT-ENTERPRISE-KNOWLEDGE-PLATFORM.md` §1.4) — decisão explicitamente diferida à época, reafirmada nas Fases 2 e 4.
+- **Classificação:** Baixo (sem consumidor real ainda).
+- **Status:** Aberto.
+- **Descrição:** `EmbeddingProvider` (Protocol) só tem uma implementação, `MockEmbeddingProvider` (determinística, hash-based) — nenhum backend de produção (modelo de embeddings real) foi escolhido ou integrado. O Risk Advisor migrado (Fase 4) já chama `RagPipeline`/`KnowledgeRepository` em produção, mas sobre embeddings mock, já que nenhum documento real é ingerido para o domínio de risco hoje.
+- **Gatilho de resolução:** quando um Advisor real precisar de qualidade semântica de produção sobre conteúdo real ingerido — o candidato natural é o Document Advisor (Wave 4, Fase 4 do plano original de Advisors), o primeiro Advisor com dependência obrigatória de RAG.
+
+## TD-012 — Document Ingestion real (parsing de formatos binários) não implementado
+
+- **Origem:** Wave 3, Fase 1 (`DOMAIN-BLUEPRINT-ENTERPRISE-KNOWLEDGE-PLATFORM.md` §1.2) — escopo explicitamente reduzido a texto já normalizado (`str`).
+- **Classificação:** Baixo (sem consumidor real ainda).
+- **Status:** Aberto.
+- **Descrição:** `KnowledgeRepository.ingest()` aceita apenas texto já normalizado — não há parser de PDF/DOCX/outros formatos binários. Nenhum Advisor ou fluxo real ingere documentos hoje.
+- **Gatilho de resolução:** quando o Document Advisor (ou qualquer Advisor real) precisar ingerir um documento em formato binário real, não apenas texto.
+
+## TD-013 — Enterprise Memory Model: Consolidação e Expiração automática não implementadas
+
+- **Origem:** Wave 3, Fase 2 (`DOMAIN-BLUEPRINT-ENTERPRISE-MEMORY-MODEL.md` §4) — escopo explicitamente limitado a Captura+Classificação+Consulta.
+- **Classificação:** Baixo (sem consumidor real ainda).
+- **Status:** Aberto.
+- **Descrição:** `EnterpriseMemoryService` implementa `classify()`/`list_by_category()`; a promoção a memória organizacional ("Consolidação") e a expiração automática de memória operacional/documental não existem.
+- **Gatilho de resolução:** quando um Advisor real precisar consultar memória organizacional consolidada (padrões emergentes entre múltiplos projetos) ou depender de expiração automática para não reter memória operacional indefinidamente.
+
+---
+
 ## Baseline Defects — falhas E2E pré-existentes, não introduzidas por Épicos
 
 Categoria distinta de TD-001/002/003: não são débitos arquiteturais de uma decisão de design, mas defeitos de comportamento já presentes no baseline antes do Épico que os documenta, comprovados por reprodução contra esse baseline. Registrados aqui para que nunca sejam confundidos com uma regressão introduzida por um Épico subsequente, e para que não sejam silenciosamente esquecidos por não bloquearem o Regression Gate.
@@ -139,6 +165,26 @@ Toda a Wave Completion Policy (D-048) exige que nenhum item deste registro perma
 | TD-010 (sem armazenamento server-side de sessão) | ✅ **Resolvido** | D-053 (item 5 do Wave Completion Review retrospectivo). Tabela `sessions`, revogação real, enforcement em `require_permission`. |
 
 **Nenhum item permanece sem classificação.** 5 de 8 itens ativos estão **Resolvidos**; 3 (TD-001/002/003) são **Postergados** com gatilho explícito ainda não disparado (nenhum bloqueia a Wave 3); 1 (TD-009) é **Futuro Roadmap**, sem risco ativo. Nenhum item desta revisão é **Business Pending** — essa categoria se aplica aos itens de roadmap fora do TD Register (Tenant/System Settings, D-052) tratados no `WAVE-2-CLOSURE-REPORT.md`.
+
+---
+
+## Classificação Final — Wave 3 Closure Review (2026-07-27)
+
+A mesma disciplina da Wave Completion Policy (D-048) aplicada ao fechamento da Wave 2 é reaplicada aqui: nenhum item deste registro pode permanecer sem classificação ao encerrar a Wave 3. Os itens TD-001/002/003/009 são reconfirmados sem alteração (nenhuma decisão desta Wave mudou seu gatilho ou seu risco); TD-004/005/006/007/008/010 seguem **Resolvidos**, como já registrado. Os três itens novos, abertos durante as Fases 1 e 2 desta Wave, recebem classificação final abaixo:
+
+| TD | Classificação | Justificativa |
+|---|---|---|
+| TD-001 (FK não aplicadas em SQLite) | **Postergado** (reconfirmado) | Nenhum novo `DELETE` foi introduzido pela Wave 3 (Enterprise Knowledge Platform/Advisor Framework são exclusivamente `INSERT`/`SELECT`). Gatilho inalterado, não disparado. |
+| TD-002 (Delete Policy indefinida) | **Postergado** (reconfirmado) | Mesma auditoria de TD-001 — nenhuma entidade da Wave 3 introduz um `DELETE` de registro com filhos por FK. |
+| TD-003 (convenção de sessão do Repository) | **Postergado** (reconfirmado) | `KnowledgeRepository`/`EnterpriseMemoryService` (Wave 3) seguiram a convenção de sessão já estabelecida no `AnalysisRepository`/`EnterpriseRepository`, sem introduzir uma terceira convenção nem agravar a inconsistência existente. |
+| TD-009 (cobertura de frontend não instrumentada) | **Futuro Roadmap** (reconfirmado) | Nenhuma mudança de frontend nesta Wave (Wave 3 foi inteiramente backend). Sem alteração de risco. |
+| TD-011 (backend de embeddings de produção não escolhido) | **Postergado** | Gatilho explícito: primeiro Advisor real com dependência obrigatória de RAG sobre conteúdo semântico real (candidato natural: Document Advisor, Wave 4). Sem consumidor real hoje — `MockEmbeddingProvider` é suficiente para a validação arquitetural feita na Fase 4. Não bloqueia a Wave 4 em si, apenas a entrega de um Advisor que dependa de qualidade semântica de produção. |
+| TD-012 (Document Ingestion real não implementado) | **Postergado** | Gatilho explícito: quando o Document Advisor (ou qualquer Advisor real) precisar ingerir um documento binário real. Escopo foi deliberadamente reduzido a texto normalizado desde o Domain Blueprint da Fase 1 (`DOMAIN-BLUEPRINT-ENTERPRISE-KNOWLEDGE-PLATFORM.md` §1.2) — não é uma omissão, é um limite de escopo já documentado e agora reconfirmado no fechamento. |
+| TD-013 (Memory Model: Consolidação/Expiração não implementadas) | **Postergado** | Gatilho explícito: primeiro Advisor real que precise de memória organizacional consolidada entre projetos ou dependa de expiração automática. Escopo reduzido a Captura+Classificação+Consulta desde o Domain Blueprint da Fase 2 — decisão consciente para evitar construir capacidade sem consumidor real (mesma disciplina anti-sobre-engenharia aplicada em toda a Wave 3). |
+
+**Item avaliado e explicitamente descartado como débito técnico:** a suíte E2E (`web/e2e/*.spec.ts`) não foi re-executada contra a migração real do Risk Advisor (Fase 4). Isso **não** é registrado como débito porque é uma propriedade estrutural pré-existente e já aceita da arquitetura de testes: os testes E2E rodam contra um backend mockado em Node.js (`web/e2e/mock-backend.mjs`), nunca contra as rotas reais do FastAPI — logo, mudanças backend-only (como a migração da Fase 4) são estruturalmente invisíveis à regressão E2E por desenho, não uma lacuna nova introduzida por esta Wave. A prova de regressão funcional da Fase 4 veio da suíte de integração backend pré-existente e não modificada (`tests/test_intelligence_api.py::TestRiskAdvisor`), que é o mecanismo correto para essa camada.
+
+**Nenhum item deste registro permanece sem classificação.** Dos 13 itens ativos: 6 (TD-004/005/006/007/008/010) estão **Resolvidos**; 6 (TD-001/002/003/011/012/013) são **Postergados**, todos com gatilho explícito ainda não disparado, nenhum bloqueando o início da Wave 4; 1 (TD-009) é **Futuro Roadmap**. Nenhum item é **Business Pending** nesta revisão.
 
 ---
 
