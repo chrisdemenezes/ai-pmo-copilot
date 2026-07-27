@@ -427,3 +427,24 @@ class Chunk(Base):
     chunk_index = Column(Integer, nullable=False)
     text = Column(String, nullable=False)
     embedding = Column(Vector(KNOWLEDGE_EMBEDDING_DIM), nullable=False)
+
+
+class MemoryRecord(Base):
+    """Enterprise Memory Model, Wave 3 Fase 2 -- classifies a Document
+    already ingested by the Knowledge Platform into one of the 5 memory
+    categories (`DOMAIN-BLUEPRINT-ENTERPRISE-MEMORY-MODEL.md` §2). Never a
+    second storage of the document's content -- only a reference
+    (`document_id`) plus its classification. Distinct in every dimension
+    (layer, persistence, mechanism, consumer) from `Executive Memory`
+    (`web/lib/executive-memory/`, frontend-only, stateless) -- see that
+    Blueprint's §0 collision checklist."""
+
+    __tablename__ = "memory_records"
+
+    id = Column(Integer, primary_key=True, index=True)
+    organization_id = Column(
+        Integer, ForeignKey("organizations.id"), nullable=False, index=True
+    )
+    document_id = Column(Integer, ForeignKey("documents.id"), nullable=False, index=True)
+    category = Column(String(20), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)

@@ -656,3 +656,26 @@ Founder autorizou o início da implementação após a AR-6. Primeiro código re
 **Próximo passo:** Fase 2 (Knowledge Services — Semantic Search, RAG Pipeline, Enterprise Memory Model, Versionamento), per o Gate definido em `WAVE-3-EXECUTION-PLAN.md` §7.
 
 **Decision Log:** D-065.
+
+## Wave 3 — Fase 2 (2026-07-27): Enterprise Knowledge Platform (Knowledge Services) implementada
+
+Founder autorizou a Fase 2 após a Fase 1. Ainda nenhum Advisor implementado — os novos serviços são infraestrutura de plataforma pura.
+
+**Adicionado**
+- `docs/architecture/TECHNICAL-DESIGN-ENTERPRISE-KNOWLEDGE-PLATFORM-FASE2.md` — delimita onde a Fase 2 termina (RAG Pipeline entrega evidência, nunca compõe prompt nem chama `LLMProvider`).
+- `src/services/knowledge_platform/rag_pipeline.py` — `RagPipeline`/`RagContext`: recuperação via `KnowledgeRepository.search()` + ranking determinístico (score, depois recência) + `chunk_ids` rastreáveis para grounding futuro; toda chamada logada.
+- `src/services/knowledge_platform/enterprise_memory_service.py` — `EnterpriseMemoryService`/`MemoryCategory` (5 categorias): `classify()`/`list_by_category()` sobre documentos já ingeridos, sempre via `KnowledgeRepository`.
+- `MemoryRecord` em `src/database/models.py`; migração `0017` (aditiva).
+- `ScoredChunk` ganhou `document_version_created_at` (usado pelo ranking do RAG Pipeline).
+
+**Governança**
+- Checklist de colisão Enterprise Memory vs. Executive Memory (`DOMAIN-BLUEPRINT-ENTERPRISE-MEMORY-MODEL.md` §0) revalidada explicitamente antes do código — nenhuma sobreposição, nenhum arquivo de `web/lib/executive-memory/` tocado.
+- Escopo do ciclo de vida da memória limitado a Captura+Classificação+Consulta nesta Fase — Consolidação e Expiração automática explicitamente adiadas por falta de consumidor real.
+
+**Testes**
+- `tests/test_migration_0017_enterprise_memory_model.py`, `tests/test_rag_pipeline.py`, `tests/test_enterprise_memory_service.py` (13 testes novos: migração real, determinismo e ranking do RAG Pipeline, isolamento cross-tenant, classificação e consulta de memória).
+- Suíte completa: `ruff check src tests` limpo, `pytest` 477 passando, 97% de cobertura total.
+
+**Próximo passo:** Fase 3 (Enterprise Advisor Framework — contratos, orquestração, infraestrutura comum, observabilidade, auditoria), per o Gate definido em `WAVE-3-EXECUTION-PLAN.md` §7.
+
+**Decision Log:** D-066.

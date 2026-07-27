@@ -559,6 +559,17 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-066 — Wave 3 Fase 2 (Enterprise Knowledge Platform, Knowledge Services) implementada
+
+- **Contexto:** o Founder aprovou a Fase 1 (D-065) e autorizou a Fase 2 — Knowledge Services, com diretrizes: separação rigorosa infraestrutura/domínio; Semantic Search/RAG Pipeline/Enterprise Memory Model como serviços de plataforma sem lógica de Advisor; nenhum Advisor acessa `PgVectorRepository`/armazenamento vetorial diretamente; todo consumo via `KnowledgeRepository` e os serviços da plataforma; resolução de contexto determinística, auditável, documentada, com rastreabilidade de fontes; governança atualizada ao final.
+- **Technical Design:** `docs/architecture/TECHNICAL-DESIGN-ENTERPRISE-KNOWLEDGE-PLATFORM-FASE2.md` — delimita explicitamente onde a Fase 2 termina (o `RagPipeline` entrega evidência recuperada e ranqueada, nunca compõe prompt nem chama `LLMProvider` — isso é Fase 3/4). Versionamento/Atualização incremental já entregues na Fase 1, sem trabalho adicional.
+- **Decisão (implementação):** `RagPipeline` (`src/services/knowledge_platform/rag_pipeline.py`) — `retrieve()` compõe `KnowledgeRepository.search()` (nunca `VectorRepository`/`EmbeddingProvider` diretamente) com um ranking determinístico (score de similaridade como chave primária, recência da versão do documento como desempate — `ScoredChunk` ganhou `document_version_created_at`), retornando um `RagContext` com `chunk_ids` como o conjunto rastreável de fontes legítimas para uma citação futura, e logando toda chamada (`organization_id`, pergunta, chunks retornados). `EnterpriseMemoryService` (`enterprise_memory_service.py`) — `MemoryCategory` (5 categorias), `classify()`/`list_by_category()` sobre documentos já ingeridos (resolvidos via `KnowledgeRepository`, nunca leitura direta de tabela); nova entidade `MemoryRecord` (`src/database/models.py`) e migração `0017` (aditiva). Escopo do ciclo de vida limitado a Captura+Classificação+Consulta — Consolidação e Expiração automática explicitamente fora de escopo, sem consumidor real que as justifique.
+- **Checklist de colisão revalidada (`DOMAIN-BLUEPRINT-ENTERPRISE-MEMORY-MODEL.md` §0):** `EnterpriseMemoryService` é backend/persistido/classifica Documents da Knowledge Platform/consumido por futuros Advisors; `Executive Memory` continua frontend/stateless/consumida pela UI — nenhuma sobreposição, nenhum arquivo de `web/lib/executive-memory/` tocado.
+- **Verificação:** `ruff check src tests` limpo; `pytest` 477 passando (13 novos testes: migração 0017 upgrade/downgrade/re-upgrade em PostgreSQL real; `RagContext` rastreável; determinismo do `RagPipeline`; ranking por score e por recência em empate; isolamento cross-tenant; `EnterpriseMemoryService` classify/list_by_category, incluindo rejeição de documento de outra organização e múltiplas classificações por documento). Nenhum Advisor implementado ou consumido; nenhum arquivo de frontend, rota de API, ou `PgVectorRepository`/`EmbeddingProvider` acessado fora de `KnowledgeRepository`/serviços da plataforma.
+- **Missão:** Wave 3 Fase 2 (Knowledge Services) — concluída. Próximo passo: Fase 3 (Enterprise Advisor Framework — contratos, orquestração, infraestrutura comum, observabilidade, auditoria), Gate per `WAVE-3-EXECUTION-PLAN.md` §7.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.

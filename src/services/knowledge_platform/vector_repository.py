@@ -48,7 +48,7 @@ class PgVectorRepository:
         with self._session_factory() as session:
             distance = Chunk.embedding.cosine_distance(query_embedding).label("distance")
             rows = (
-                session.query(Chunk, DocumentVersion.document_id, distance)
+                session.query(Chunk, DocumentVersion.document_id, DocumentVersion.created_at, distance)
                 .join(DocumentVersion, Chunk.document_version_id == DocumentVersion.id)
                 # Tenant isolation: no similarity search ever crosses
                 # organization_id, same discipline as every other
@@ -64,6 +64,7 @@ class PgVectorRepository:
                     document_id=document_id,
                     text=chunk.text,
                     score=1.0 - float(distance_value),
+                    document_version_created_at=version_created_at,
                 )
-                for chunk, document_id, distance_value in rows
+                for chunk, document_id, version_created_at, distance_value in rows
             ]

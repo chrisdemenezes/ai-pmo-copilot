@@ -31,3 +31,13 @@ class ScoredChunk:
     document_id: int
     text: str
     score: float
+    document_version_created_at: datetime
+
+
+@dataclass(frozen=True)
+class MemoryRecordInfo:
+    id: int
+    organization_id: int
+    document_id: int
+    category: str
+    created_at: datetime

@@ -21,6 +21,7 @@
 | **W3-4 — Wave 3 Domain Blueprint (8 entregáveis)** | ✅ Concluído nesta missão | Este plano é o entregável 8 |
 | AR-6 — Architecture Review do Wave 3 Domain Blueprint | ✅ Aprovado sem ressalvas | D-064 |
 | **Fase 1 — Foundation (Enterprise Knowledge Platform)** | ✅ Concluído — `KnowledgeRepository`/`PgVectorRepository`/`EmbeddingProvider` funcionais e testados; nenhum Advisor consumidor ainda | D-065 |
+| **Fase 2 — Knowledge Services** | ✅ Concluído — `RagPipeline` (ranking determinístico + rastreabilidade) e `EnterpriseMemoryService` (5 categorias) como serviços de plataforma, sem lógica de Advisor; nenhum Advisor consumidor ainda | D-066 |
 
 Nenhuma pendência bloqueia o início da Fase 1 além da Architecture Review e aprovação explícita deste plano.
 
@@ -107,7 +108,7 @@ Cada Fase segue o mesmo padrão de entrega usado na Wave 2 e em TD-008: **aditiv
 | Gate | Critério de passagem |
 |---|---|
 | Fase 1 → Fase 2 | ✅ **Cumprido (D-065).** `KnowledgeRepository` funcional e testado (unitário + integração real com Postgres/`pgvector`); nenhum Advisor ainda necessário |
-| Fase 2 → Fase 3 | RAG Pipeline provado ponta a ponta por um Advisor de referência (Document Advisor); Enterprise Memory Model com checklist §0 revalidada |
+| Fase 2 → Fase 3 | ✅ **Cumprido parcialmente (D-066).** `RagPipeline` e `EnterpriseMemoryService` funcionais e testados como serviços de plataforma (ranking determinístico, checklist §0 revalidada). A prova ponta a ponta por um Advisor de referência (Document Advisor) fica para a Fase 4, após o Advisor Framework (Fase 3) existir — nenhum Advisor pode ser construído antes dele. |
 | Fase 3 → Fase 4 | `RiskAdvisorAgent` migrado ao novo contrato sem regressão (suíte E2E 100% verde); `AdvisorContract` documentado e estável |
 | Fase 4 → W3-8 | Todos os 7 Advisors restantes implementados, testados, catalogados como "implementado" (não mais "não implementado nesta etapa") em `ENTERPRISE-ADVISOR-CATALOG.md` |
 | W3-8 → Wave 3 Closure Review | Executive Intelligence funcional sobre Portfolio/Program/Project; nenhum item da Wave 3 pendente sem classificação |
