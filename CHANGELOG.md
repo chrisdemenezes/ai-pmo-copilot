@@ -679,3 +679,21 @@ Founder autorizou a Fase 2 após a Fase 1. Ainda nenhum Advisor implementado —
 **Próximo passo:** Fase 3 (Enterprise Advisor Framework — contratos, orquestração, infraestrutura comum, observabilidade, auditoria), per o Gate definido em `WAVE-3-EXECUTION-PLAN.md` §7.
 
 **Decision Log:** D-066.
+
+## Wave 3 — Fase 3 (2026-07-27): Enterprise Advisor Framework (Minimum Viable Framework) implementada
+
+Founder autorizou a Fase 3 após a Fase 2, exigindo auditoria obrigatória do Risk Advisor antes de qualquer código. Nenhum Advisor migrado nesta Fase — `RiskAdvisorAgent`/`ask_risk_advisor` permanecem intocados; validação arquitetural do Framework fica para a Fase 4.
+
+**Adicionado**
+- `docs/architecture/TECHNICAL-DESIGN-ENTERPRISE-ADVISOR-FRAMEWORK-FASE3.md` — auditoria linha a linha do fluxo real do Risk Advisor, mapeando o que já é compartilhado (Foundation), o boilerplate duplicável, e o que é mandato explícito do Founder sem uso hoje (RAG).
+- `src/services/advisor_framework/types.py` — `AdvisorContract` (Protocol, nomeia a forma já real de `RiskAdvisorAgent.advise()`, sem `input_schema`/`output_schema` genérico) + `AdvisorExecutionError`.
+- `src/services/advisor_framework/framework.py` — `AdvisorFramework`: `gather_context`/`gather_rag_context`/`render_prompt`/`call_llm`/`run` (executa exatamente um Advisor por chamada, audita incondicionalmente, retorna `no_evidence()` sem custo de LLM, levanta `AdvisorExecutionError` para saída malformada).
+- `docs/product/governance/W3-FASE3-ADVISOR-FRAMEWORK-REPORT.md` — relatório de governança de 8 pontos exigido pelo Founder (artefatos, responsabilidades extraídas, contratos, abstrações não criadas, testes, riscos residuais, confirmação de ausência de acesso direto à infraestrutura).
+
+**Testes**
+- `tests/test_advisor_framework.py` (8 testes contra um `_FakeAdvisor` mínimo, nunca o `RiskAdvisorAgent` real).
+- Suíte completa: `ruff check src tests` limpo, `pytest` 485 passando, 97% de cobertura total, 100% no novo pacote.
+
+**Próximo passo:** Fase 4 (migração do Risk Advisor ao novo contrato — único ponto em que o Framework é validado arquiteturalmente, ponta a ponta com RAG e LLM reais).
+
+**Decision Log:** D-067.
