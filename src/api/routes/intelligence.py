@@ -32,12 +32,14 @@ from src.llm.providers.base import LLMProvider
 from src.llm.providers.factory import get_provider
 from src.prompts.registry import PromptRegistry
 from src.database.repository import AnalysisRepository, analysis_display_name
-from src.services.ai_foundation.audit_integration import AIFoundationAudit
-from src.services.ai_foundation.context_engine import AIContextEngine
-from src.services.ai_foundation.explanation_engine import ExplanationEngine
-from src.services.ai_foundation.recommendation_engine import RecommendationEngine
+from src.services.advisor_framework.framework import AdvisorFramework
+from src.services.advisor_framework.types import AdvisorExecutionError
 from src.services.ai_foundation.types import SessionContext
 from src.services.identity.models import RequestContext
+from src.services.knowledge_platform.embedding_provider import get_embedding_provider
+from src.services.knowledge_platform.knowledge_repository import KnowledgeRepository
+from src.services.knowledge_platform.rag_pipeline import RagPipeline
+from src.services.knowledge_platform.vector_repository import PgVectorRepository
 from src.services.project_summary_service import ProjectSummaryService
 
 logger = logging.getLogger(__name__)
@@ -145,6 +147,19 @@ def build_prompt_registry() -> PromptRegistry:
 
 def build_provider() -> LLMProvider:
     return get_provider()
+
+
+def build_knowledge_repository(
+    repository: AnalysisRepository = Depends(build_repository),
+) -> KnowledgeRepository:
+    vector_repository = PgVectorRepository(repository.SessionLocal)
+    return KnowledgeRepository(repository.SessionLocal, get_embedding_provider(), vector_repository)
+
+
+def build_rag_pipeline(
+    knowledge_repository: KnowledgeRepository = Depends(build_knowledge_repository),
+) -> RagPipeline:
+    return RagPipeline(knowledge_repository)
 
 
 def build_project_summary_service(
@@ -480,50 +495,47 @@ def ask_risk_advisor(
     prompts: PromptRegistry = Depends(build_prompt_registry),
     provider: LLMProvider = Depends(build_provider),
     repository: AnalysisRepository = Depends(build_repository),
+    rag_pipeline: RagPipeline = Depends(build_rag_pipeline),
     # Read-only: reuses the same permission protecting GET /risks/latest,
     # its own data source (Technical Design §2 -- no dedicated permission,
     # this agent never creates/edits/triggers an analysis).
     _permission: None = Depends(require_permission("intelligence.read")),
 ):
+    # Wave 3 Fase 4: migrated onto AdvisorFramework -- see
+    # docs/architecture/TECHNICAL-DESIGN-RISK-ADVISOR-MIGRATION-FASE4.md.
+    # Risk Advisor -> Advisor Framework -> Gather Context -> RagPipeline ->
+    # KnowledgeRepository -> traceable context -> LLMProvider -> Response ->
+    # Audit -- the full chain the Founder mandated be exercised end to end.
     session = SessionContext(
         organization_id=context.organization.organization_id,
         user_id=context.user.user_id,
         session_id=context.session.session_id,
         project_name=request.project_name,
     )
+    framework = AdvisorFramework(repository, prompts, provider, rag_pipeline)
+
+    evidence = framework.gather_context(session.organization_id, session.project_name, kind="risk")
+    rag_context = framework.gather_rag_context(session.organization_id, request.question, top_k=5)
     logger.info(
-        "Risk Advisor question organization_id=%s project_name=%s",
+        "Risk Advisor question organization_id=%s project_name=%s rag_chunk_ids=%s",
         session.organization_id,
         session.project_name,
+        sorted(rag_context.chunk_ids),
     )
 
-    context_engine = AIContextEngine(repository)
-    evidence = context_engine.gather(session.organization_id, session.project_name, kind="risk")
-
-    # Every question is audited, regardless of outcome -- never the model's
-    # answer itself (Domain Blueprint §12).
-    AIFoundationAudit.record_question(repository, session, "risk_advisor", request.question)
-
-    if not evidence:
-        # No LLM call for a project with nothing to synthesize -- avoids
-        # cost and a hallucinated answer over non-existent data.
-        recommendation = RecommendationEngine.no_evidence(
-            "Nenhum risco identificado ainda para este projeto."
+    agent = RiskAdvisorAgent(framework)
+    try:
+        explanation = framework.run(
+            agent,
+            session,
+            request.question,
+            evidence,
+            rag_context=rag_context,
+            no_evidence_answer="Nenhum risco identificado ainda para este projeto.",
         )
-        explanation = ExplanationEngine.explain(recommendation)
-        return _risk_advisor_response(explanation)
+    except AdvisorExecutionError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
 
-    agent = RiskAdvisorAgent(model_client=provider, prompt_registry=prompts)
-    result = agent.advise(session=session, question=request.question, evidence=evidence)
-    model_output = result["model_output"]
-
-    if not model_output.get("structured") or not isinstance(model_output.get("answer"), str):
-        raise HTTPException(status_code=502, detail="Risk Advisor returned an invalid response")
-
-    recommendation = RecommendationEngine.build(
-        model_output["answer"], model_output.get("cited_analysis_ids") or [], evidence
-    )
-    explanation = ExplanationEngine.explain(recommendation)
     return _risk_advisor_response(explanation)
 
 

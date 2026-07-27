@@ -7,6 +7,9 @@ Question: $question
 Risks already identified (JSON array, newest first):
 $risks_json
 
+Supplementary context from indexed documents, if any (JSON array, may be empty -- use only to add supporting detail already implied by the risks above; never as the sole basis for a claim, and never to introduce a risk not already listed above):
+$additional_context_json
+
 Respond with a single JSON object only, no extra text before or after it, using exactly this schema:
 {
   "answer": "string",

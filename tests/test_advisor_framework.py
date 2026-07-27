@@ -33,8 +33,8 @@ class _FakeAdvisor:
         }
         self.called_with = None
 
-    def advise(self, session, question, evidence):
-        self.called_with = (session, question, evidence)
+    def advise(self, session, question, evidence, rag_context=None):
+        self.called_with = (session, question, evidence, rag_context)
         return self.response
 
 

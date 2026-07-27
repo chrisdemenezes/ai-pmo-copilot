@@ -697,3 +697,31 @@ Founder autorizou a Fase 3 após a Fase 2, exigindo auditoria obrigatória do Ri
 **Próximo passo:** Fase 4 (migração do Risk Advisor ao novo contrato — único ponto em que o Framework é validado arquiteturalmente, ponta a ponta com RAG e LLM reais).
 
 **Decision Log:** D-067.
+
+## Wave 3 — Fase 4 (2026-07-27): Risk Advisor migrado; Advisor Framework validado arquiteturalmente
+
+Founder autorizou a Fase 4 após a Fase 3. Nenhuma capacidade nova criada — apenas validação do que já existia.
+
+**Alterado**
+- `src/agents/risk_advisor/agent.py` — `RiskAdvisorAgent` migrado: construtor passa a receber um `AdvisorFramework`; composição de prompt e chamada ao LLM passam por `framework.render_prompt`/`framework.call_llm`; retorno achatado (`{"structured", "answer", "cited_analysis_ids"}`), removendo o wrapper legado `{"agent": ..., "model_output": ...}`.
+- `src/agents/risk_advisor/prompts/advise.md` — nova seção suplementar de contexto de documentos indexados (RAG), explicitamente subordinada ao guard-rail anti-alucinação já existente.
+- `src/api/routes/intelligence.py` — `ask_risk_advisor` reescrita para construir `AdvisorFramework` e delegar `gather_context`/`gather_rag_context`/`run`; 2 novos DI providers (`build_knowledge_repository`, `build_rag_pipeline`). `RiskAdvisorRequest`/`RiskAdvisorResponse` **inalterados**.
+- `src/services/advisor_framework/{types,framework}.py` — `AdvisorContract.advise()`/`AdvisorFramework.run()` ganham parâmetros opcionais `rag_context`/`no_evidence_answer` (default `None`, retrocompatíveis).
+
+**Corrigido (achados detectados pela suíte de regressão já existente, rodada sem alteração)**
+- `RiskAdvisorAgent.advise()` devolvia o wrapper legado em vez do dict achatado que `AdvisorContract` já exigia desde a Fase 3 — corrigido.
+- `AdvisorFramework.run()` perdia a mensagem de domínio "Nenhum risco identificado ainda para este projeto." — corrigido com `no_evidence_answer`.
+
+**Adicionado**
+- `docs/architecture/TECHNICAL-DESIGN-RISK-ADVISOR-MIGRATION-FASE4.md`.
+- `docs/product/governance/W3-FASE4-RISK-ADVISOR-MIGRATION-REPORT.md` — evidências das 6 exigências obrigatórias (rastreabilidade de chunk_ids, no_evidence sem LLM, ausência de acesso direto à infraestrutura, preservação funcional, isolamento entre organizações, cobertura de testes) + avaliação (não declaração) do critério de encerramento da Wave 3.
+- `tests/test_risk_advisor_migration.py` (6 testes, contra o Agent real).
+
+**Testes**
+- `tests/test_risk_advisor_agent.py` atualizado para a nova assinatura do construtor (+2 testes novos para RAG). Novo teste de regressão 502 em `tests/test_intelligence_api.py`.
+- **A suíte pré-existente `test_intelligence_api.py::TestRiskAdvisor` (6 casos) permanece 100% verde sem nenhuma alteração de asserção.**
+- Suíte completa: `ruff check src tests` limpo, `pytest` 494 passando, 97% de cobertura total.
+
+**Próximo passo:** decisão do Founder sobre um Wave 3 Closure Review formal antes de declarar a Wave encerrada.
+
+**Decision Log:** D-068.

@@ -71,15 +71,25 @@ class AdvisorFramework:
         session: SessionContext,
         question: str,
         evidence: list[Evidence],
+        rag_context: RagContext | None = None,
+        no_evidence_answer: str | None = None,
     ) -> Explanation:
         # Every question is audited, unconditionally, before any evidence
         # decision -- never the model's answer itself.
         AIFoundationAudit.record_question(self._repository, session, advisor.name, question)
 
+        # The no-evidence gate keys exclusively on AnalysisRecord-derived
+        # evidence, exactly as before Fase 4 -- RAG is supplementary and
+        # never triggers an LLM call on its own (Founder's fidelity
+        # requirement: this behavior must stay byte-for-byte unchanged).
+        # `no_evidence_answer` lets the caller preserve an Advisor's own
+        # domain wording (e.g. "Nenhum risco identificado...") -- the same
+        # override `RecommendationEngine.no_evidence()` already supported
+        # before this Framework existed, never a new capability.
         if not evidence:
-            return ExplanationEngine.explain(RecommendationEngine.no_evidence())
+            return ExplanationEngine.explain(RecommendationEngine.no_evidence(no_evidence_answer))
 
-        model_output = advisor.advise(session, question, evidence)
+        model_output = advisor.advise(session, question, evidence, rag_context)
 
         if not model_output.get("structured") or not isinstance(model_output.get("answer"), str):
             raise AdvisorExecutionError(f"{advisor.name} returned an invalid response")

@@ -576,6 +576,37 @@ class TestRiskAdvisor:
         assert response.status_code == 200
         assert response.json()["answer"] == "Nenhum risco identificado ainda para este projeto."
 
+    def test_returns_502_for_a_malformed_advisor_response(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = _actor(repo, org_id, "organization_admin")
+        repo.save_analysis(
+            kind="risk",
+            payload={
+                "model_output": {
+                    "structured": True,
+                    "risks": [{"description": "x", "probability": "high", "impact": "high", "mitigation": "y"}],
+                    "escalation_recommendation": None,
+                }
+            },
+            organization_id=org_id,
+            project_name="Multilift",
+        )
+
+        class NotJsonProvider:
+            def generate(self, prompt):
+                return "not json at all"
+
+        app.dependency_overrides[intelligence.build_provider] = lambda: NotJsonProvider()
+
+        response = test_client.post(
+            "/api/risk-advisor/ask",
+            headers=_headers(org_id, user_id),
+            json={"project_name": "Multilift", "question": "Qual o risco mais crítico?"},
+        )
+
+        assert response.status_code == 502
+
     def test_records_an_audit_entry_without_the_llm_answer(self, client):
         test_client, repo = client
         org_id = repo.enterprise.create_organization("Org A")
