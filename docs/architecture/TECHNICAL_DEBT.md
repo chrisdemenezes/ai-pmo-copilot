@@ -123,6 +123,25 @@ Classificação por dimensão (Arquitetural/Código/Performance/UX/Segurança/Do
 
 ---
 
+## Classificação Final — Wave 2 Closure Review (2026-07-27)
+
+Toda a Wave Completion Policy (D-048) exige que nenhum item deste registro permaneça sem classificação ao encerrar uma Wave. Classificação obrigatória em uma de quatro categorias — **Resolvido** / **Postergado** (gatilho definido, ainda não disparado) / **Business Pending** (aguarda decisão de negócio do Founder) / **Futuro Roadmap** (sem risco ativo, candidato a uma Wave futura):
+
+| TD | Classificação | Justificativa |
+|---|---|---|
+| TD-001 (FK não aplicadas em SQLite) | **Postergado** | Gatilho ("qualquer DELETE exposto") auditado nesta revisão: os 4 `DELETE` reais hoje (`remove_role`, `revoke_api_key`, `revoke_session`, `cancel_invitation`) são revogações/soft-deletes de registros-folha sem filhos por FK — nenhum dispara o cenário de órfãos que o TD descreve. Adicionalmente, o ambiente oficial (Postgres, desde RC-2/D-037) já aplica FK por padrão; o risco real está isolado ao fallback SQLite zero-dependência (instalações locais sem `DATABASE_URL`). Gatilho não disparado. |
+| TD-002 (Delete Policy indefinida) | **Postergado** | Mesma auditoria de TD-001: nenhum `DELETE` real de uma entidade com filhos por FK (Organization/User/Project) existe hoje. Decisão de produto (RESTRICT vs. CASCADE) continua pendente, mas sem urgência técnica. |
+| TD-003 (convenção de sessão do Repository) | **Postergado** | `EnterpriseRepository` cresceu substancialmente ao longo da Wave 2 (RBAC, Administration, API Keys, Sessões, Convites) sem que a inconsistência de convenção (`_in_session` vs. sessão própria) tenha causado um bug real — nenhum incidente registrado em nenhuma Decision Log. Baixo risco, baixo esforço; sem gatilho novo disparado nesta revisão. |
+| TD-004/005/006 (race de invalidação do React Query) | ✅ **Resolvido** | D-050 (item 2 do Wave Completion Review retrospectivo). `cancelQueries` antes de `invalidateQueries` nos 3 hooks de mutação. Verificado A/B, 3 breakpoints E2E. |
+| TD-007 (Portfolio/Program/Project sem persistência) | ✅ **Resolvido** | Wave 2, Sprint 1 (D-032). Migração `0005_domain_persistence`; `CrossTenantViolationError` em toda escrita. |
+| TD-008 (três conceitos "Project") | ✅ **Resolvido** | D-061. `project_id` é a única chave de acesso interno ao Project; coluna legada `analysis_records.project_name` removida (migração 0015); `Project.name` é a única fonte do nome de exibição. |
+| TD-009 (cobertura de frontend não instrumentada) | **Futuro Roadmap** | Nenhum risco ativo — lacuna de instrumentação, não um defeito. Candidato natural para quando a Wave 5 (Enterprise Analytics/Observabilidade) ou um gate de qualidade mais rigoroso exigir métricas de cobertura do frontend; instalar `@vitest/coverage-v8` é o único trabalho pendente. |
+| TD-010 (sem armazenamento server-side de sessão) | ✅ **Resolvido** | D-053 (item 5 do Wave Completion Review retrospectivo). Tabela `sessions`, revogação real, enforcement em `require_permission`. |
+
+**Nenhum item permanece sem classificação.** 5 de 8 itens ativos estão **Resolvidos**; 3 (TD-001/002/003) são **Postergados** com gatilho explícito ainda não disparado (nenhum bloqueia a Wave 3); 1 (TD-009) é **Futuro Roadmap**, sem risco ativo. Nenhum item desta revisão é **Business Pending** — essa categoria se aplica aos itens de roadmap fora do TD Register (Tenant/System Settings, D-052) tratados no `WAVE-2-CLOSURE-REPORT.md`.
+
+---
+
 ## Convenção de uso deste registro
 
 - Novo débito identificado por qualquer revisão (arquitetural, de segurança, de código) ganha um ID sequencial `TD-NNN` aqui, com origem (PR/commit), status (`Aberto` / `Planejado` / `Resolvido`) e o gatilho explícito de resolução.

@@ -4,6 +4,8 @@
 **Autor:** Claude / Tech Lead
 **Gatilho:** Decision Log D-048 ("Superseding Decision — Wave Completion Policy"), que revoga todas as decisões anteriores que permitiam adiar Epics/Enterprise Analysts/Capabilities previstos e determina um levantamento retrospectivo completo desde a Wave 1, corrigindo toda divergência encontrada.
 
+> **Encerramento (2026-07-27):** os 8 itens do §7 (fila de fechamento) estão todos concluídos — o último (item 8, TD-008 Fase 3b) fechou em D-061. A Wave 2 foi formalmente encerrada pelo **Wave Closure Review** (D-062): ver `WAVE-2-CLOSURE-REPORT.md`, `ARCHITECTURE-DELTA-WAVE-2.md`, `DOMAIN-EVOLUTION-REPORT-WAVE-2.md` e `WAVE-2-GOVERNANCE-REVIEW.md`. Este documento permanece como o registro histórico da auditoria retrospectiva; não é reescrito.
+
 ---
 
 ## 1. Método

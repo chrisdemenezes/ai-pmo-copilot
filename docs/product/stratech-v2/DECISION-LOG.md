@@ -501,6 +501,23 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-062 — Wave 2 Closure Review concluído: Wave 2 formalmente encerrada; "Wave 3 Ready" declarado
+
+- **Contexto:** com a conclusão de TD-008 (D-061, último item da fila do Wave Completion Review retrospectivo), o Founder determinou não iniciar a Wave 3 imediatamente e, antes disso, executar um Wave Closure Review completo da Wave 2 — auditoria final para garantir encerramento formal e servir de baseline para as próximas Waves.
+- **Decisão — sete entregáveis produzidos:**
+  1. `docs/product/governance/WAVE-2-CLOSURE-REPORT.md` — objetivos originais (`ENTERPRISE-MASTER-EXECUTION-PROGRAM.md` §4), 13 itens implementados, 2 itens reclassificados como Governança (Configurações da Organização, Workspaces), 3 itens em Business Pending (Tenant/System Settings, provedor de notificação, nomenclatura backend de `ProjectSummary*`), débitos técnicos encerrados (TD-004/005/006/007/008/010) e remanescentes (TD-001/002/003/009, todos sem gatilho disparado), decisões arquiteturais relevantes, riscos residuais, 5 lições aprendidas, e o Readiness Assessment com a declaração formal.
+  2. `docs/architecture/ARCHITECTURE-DELTA-WAVE-2.md` — o que mudou (persistência real, RBAC enforcement, Administration, Sessões, TD-008, Event Foundation, PostgreSQL oficial), o que permaneceu (RBAC relacional único, cadeia de consolidação, camada de repositório, padrão 404-nunca-403, E2E contra mock), simplificações, conceitos eliminados (`ProjectSummary`/`WorkspaceSummary`, coluna `project_name`, "Workspace" como possibilidade de entidade), novos padrões (migração dual-key aditiva-primeiro/destrutiva-por-último, seam-antes-de-infraestrutura, Wave Completion Policy).
+  3. `docs/architecture/DOMAIN-EVOLUTION-REPORT-WAVE-2.md` — Aggregates que mudaram (Portfolio/Program/Project: mesma forma, persistência real), entidades consolidadas (`ProjectSummary`+`WorkspaceSummary` → `ProjectIntelligenceSummary`; `ProjectSummaryService`/`Response` explicitamente **não** consolidados), conceitos extintos, 5 novos princípios de domínio.
+  4. `docs/architecture/TECHNICAL_DEBT.md` — nova seção "Classificação Final — Wave 2 Closure Review": todos os 8 itens ativos classificados (5 Resolvidos, 3 Postergados com gatilho não disparado, 1 Futuro Roadmap) — nenhum item sem classificação.
+  5. `docs/product/governance/WAVE-2-GOVERNANCE-REVIEW.md` — validação de Decision Log/Mission Control/CHANGELOG/Domain Model/Blueprints/Architecture Documents contra o código atual. **1 drift documental encontrado e corrigido:** `DOMAIN-MODEL.md` §6 descrevia o estado pré-Sprint-1 (sem persistência) muito depois de a persistência real e a migração do frontend para a API real já existirem (Sprints 1 e 5) — corrigido nesta revisão.
+  6. Readiness Assessment (dentro do Closure Report, §10): zero bloqueadores técnicos, arquiteturais, documentais ou de governança — **"Wave 3 Ready"** declarado formalmente.
+  7. `docs/product/WAVE-3-EXECUTIVE-PLAN.md` — plano executivo da Wave 3 (objetivos, entregáveis, ordem recomendada dos Epics, dependências, riscos, critérios de conclusão), produzido **somente após** a conclusão dos itens 1-6, sem nenhuma implementação de Epic.
+- **Correções aplicadas durante a revisão (não adiadas):** `DOMAIN-MODEL.md` §6 reescrito; `ENTERPRISE_PROGRAM_WAVES["Wave 2"].status` (`web/lib/mock/mission-control-data.ts`) atualizado de `"In Progress"` para `"Done"`.
+- **Nenhuma Wave é declarada concluída sem os critérios da Wave Completion Policy satisfeitos** (D-048): Wave 2 formalmente encerrada; arquitetura consolidada e documentada (Delta); documentação sincronizada (Governance Review); dívida técnica 100% classificada; baseline oficial estabelecida; plano executivo da Wave 3 produzido sem implementação antecipada.
+- **Missão:** Wave Closure Review (Wave 2) — concluído. Wave 3 aguarda aprovação do Founder sobre o plano executivo produzido antes de qualquer início de Epic.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.

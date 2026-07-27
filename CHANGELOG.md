@@ -576,3 +576,24 @@ Etapa destrutiva (autorizada pelo Founder). `project_id` é a única chave de ac
 **Encerramento** — todos os critérios do Founder satisfeitos: 0015 ativa; coluna removida; rollback íntegro comprovado; suíte verde; modelo de domínio e docs atualizados; sem compatibilidade temporária desnecessária. **TD-008 declarado RESOLVIDO.**
 
 **Decision Log:** D-061.
+
+## Wave 2 — Closure Review (2026-07-27): Wave 2 (Enterprise Platform) formalmente encerrada
+
+Sete entregáveis produzidos, sem implementação de nenhum Epic da Wave 3.
+
+**Adicionado**
+- `docs/product/governance/WAVE-2-CLOSURE-REPORT.md` — objetivos originais, 13 itens implementados, 2 reclassificados como Governança (Configurações da Organização, Workspaces), 3 em Business Pending (Tenant/System Settings, provedor de notificação, nomenclatura backend), débitos técnicos encerrados/remanescentes, decisões arquiteturais, riscos residuais, 5 lições aprendidas e o Readiness Assessment.
+- `docs/architecture/ARCHITECTURE-DELTA-WAVE-2.md` — o que mudou/permaneceu/foi simplificado/eliminado; novos padrões (migração dual-key aditiva-primeiro/destrutiva-por-último, seam-antes-de-infraestrutura).
+- `docs/architecture/DOMAIN-EVOLUTION-REPORT-WAVE-2.md` — Aggregates que mudaram, entidades consolidadas (`ProjectSummary`+`WorkspaceSummary` → `ProjectIntelligenceSummary`), conceitos extintos, 5 novos princípios de domínio.
+- `docs/product/governance/WAVE-2-GOVERNANCE-REVIEW.md` — validação de Decision Log/Mission Control/CHANGELOG/Domain Model/Blueprints/Architecture Documents contra o código atual.
+
+**Corrigido**
+- `docs/architecture/DOMAIN-MODEL.md` §6 — drift documental encontrado (descrevia o estado pré-persistência muito depois de a persistência real e a migração do frontend para a API real existirem desde a Sprint 1/5).
+- `docs/architecture/TECHNICAL_DEBT.md` — nova seção de classificação final: todos os 8 itens ativos classificados (Resolvido/Postergado/Futuro Roadmap), nenhum sem status.
+- `web/lib/mock/mission-control-data.ts` — `ENTERPRISE_PROGRAM_WAVES["Wave 2"]` atualizado de `"In Progress"` para `"Done"`.
+
+**Readiness Assessment:** zero bloqueadores técnicos, arquiteturais, documentais ou de governança. **"Wave 3 Ready"** declarado formalmente.
+
+**Próximo passo:** `docs/product/WAVE-3-EXECUTIVE-PLAN.md` — plano executivo da Wave 3 (objetivos, entregáveis, ordem dos Epics, dependências, riscos, critérios de conclusão), aguardando aprovação do Founder antes de qualquer implementação.
+
+**Decision Log:** D-062.

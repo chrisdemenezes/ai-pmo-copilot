@@ -98,9 +98,11 @@ Desde a Capability 03, a cadeia é **transitiva**: o Executive Cockpit primeiro 
 
 ## 6. Estado de implementação (o que é real hoje)
 
-- **Frontend (`web/lib/domain/`):** Portfolio, Program, Project existem como domínio real, com invariantes e comportamento, consumidos pelo Executive Cockpit, Program Management e Project Delivery.
-- **Backend (`src/`):** **nenhuma migração, model ou tabela nova.** CLAUDE.md ("nunca criar arquitetura paralela, nunca duplicar código, nunca novo provider/registry") permanece integralmente respeitado. Este domínio é preparação estrutural, não persistência.
-- **Quando o backend for wireado** (fora do escopo de qualquer Capability até aqui): os acessores `listPortfolios()`/`listPrograms()`/`listProjects()` são repository-shaped (assíncronos) exatamente para que só o corpo dessas 3 funções mude — nenhum hook, componente ou página precisa mudar.
+**Correção de drift documental (Wave 2 Closure Review, 2026-07-27):** esta seção descrevia o estado pré-Wave 2 (domínio de frontend sem persistência real). Isso deixou de ser verdade a partir da Wave 2, Sprint 1 (D-032) e, definitivamente, da Sprint 5 (D-036) — mantido aqui sem correção por várias revisões seguintes; identificado e corrigido nesta revisão de encerramento.
+
+- **Backend (`src/`):** Portfolio/Program persistidos em tabelas reais desde a migração `0005_domain_persistence` (Wave 2, Sprint 1); `Project` estende a tabela `projects` já existente do Épico 1 (sem uma `projects_delivery` separada, per `DOMAIN-BLUEPRINT-PROJECT.md` Opção A). `CrossTenantViolationError` aplicado em toda escrita (`src/database/domain_repository.py`). API REST completa (`GET`/`GET by id`/`POST`) desde a Sprint 2, com RBAC fino desde a Sprint 3.
+- **Frontend (`web/lib/domain/`):** Portfolio, Program, Project existem como domínio real (invariantes e comportamento), consumidos pelo Executive Cockpit, Program Management e Project Delivery. Desde a Wave 2, Sprint 5 (D-036), `listPortfolios()`/`listPrograms()`/`listProjects()` são chamadas reais à API real via BFF — os arrays semeados em memória foram deletados; nenhum hook, componente ou página precisou mudar além do corpo dessas 3 funções, exatamente o seam prometido em D-011.
+- **CLAUDE.md** ("nunca criar arquitetura paralela, nunca duplicar código, nunca novo provider/registry") permanece integralmente respeitado — a persistência estende as tabelas/repositórios já existentes, nenhum componente paralelo foi criado.
 
 ## 7. Preparação para Capabilities futuras
 
