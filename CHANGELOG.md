@@ -789,3 +789,17 @@ Founder aprovou formalmente a harmonização do roadmap em "Founder Decision —
 **Autorizado:** início do ciclo institucional da **Wave 4 — Enterprise Operations** (Domain Blueprint → Revisão Arquitetural → Aprovação do Founder → Implementação → Governança → Executive Review).
 
 **Decision Log:** D-072.
+
+## Wave 4 — Domain Blueprint (2026-07-27): Enterprise Operations, grounding obrigatório + modelo operacional
+
+Founder autorizou a Wave 4 em "Founder Kickoff — Wave 4 / Enterprise Operations", exigindo um levantamento (grounding) obrigatório antes de qualquer Blueprint. Missão documental — nenhum código produzido.
+
+**Adicionado**
+- `docs/architecture/WAVE-4-DOMAIN-BLUEPRINT.md` — levantamento obrigatório (§1): 5 sítios de emissão real de evento hoje (todos em `DomainService`, sem envelope de observabilidade completo); taxonomia aspiracional do `Event-Map.html` sem nenhum `.emit()` real; 2 workflows manuais síncronos sem evento (`KnowledgeRepository.ingest()`/`index()`, `AdministrationService.create_invitation()`); zero precedente de fila/retry/dead-letter em toda a base; achado crítico -- `src/workflows/pmo_workflow.py` (já reservado por CLAUDE.md, nunca conectado, instrução anterior de não remover) descreve orquestração multiagente já rejeitada pelo Founder e mistura workflow com lógica de negócio. Modelo operacional nascido do levantamento: Event Model (envelope com Event ID/Correlation ID/Timestamp/Tenant/Origin/Payload Version), 3 Event Contracts com produtor real (migração dos 5 existentes + `DocumentIndexed` + `InvitationCreated`), Event Publisher/Dispatcher in-process, Workflow Runtime mínimo (nunca substitui `AdvisorFramework.run()`), Execution Tracking, Retry/Dead Letter mínimos, Integration Gateway, Event Audit (extensão, não substituição, da auditoria de domínio). Epic Ledger W4-1 a W4-6.
+
+**Decision Proposal registrada**
+- Destino de `src/workflows/pmo_workflow.py`/`05-ai-orchestration-design.md` -- recomendação de reclassificar como superado sem remover o arquivo, decisão final do Founder antes da Architecture Review.
+
+**Próximo passo:** decisão do Founder sobre a Decision Proposal, em seguida Architecture Review do Blueprint.
+
+**Decision Log:** D-073.
