@@ -770,3 +770,22 @@ Founder resolveu a condição de D-070 em "Founder Decision — Wave 4 Authoriza
 **Preservação de histórico:** nenhum documento publicado sob o nome "Wave 3 — Enterprise Intelligence" foi reescrito ou renomeado.
 
 **Decision Log:** D-071.
+
+## Roadmap — Harmonização aprovada e concluída (2026-07-27): Enterprise Analytics e Productization resolvidos sem novas Waves
+
+Founder aprovou formalmente a harmonização do roadmap em "Founder Decision — D-072", resolvendo a pergunta em aberto de D-071 sobre onde ficam Enterprise Analytics e Productization na estrutura de 8 Waves. Missão exclusivamente de governança.
+
+**Decidido**
+- Roadmap oficial confirmado nas 8 Waves de D-071 — sem alteração à lista.
+- **Enterprise Analytics** deixa de ser uma Wave independente — passa a ser **capacidade transversal**, construída ao longo das Waves 4, 5 e 6.
+- **Productization** deixa de ser uma Wave independente — passa a compor o escopo da **Wave 8 — STRATECH Enterprise v1.0** (distribuição, documentação, empacotamento, instalação, licenciamento, lançamento oficial).
+- Nenhuma nova Wave será criada para absorver esses temas. Mission Control permanece a fonte oficial do roadmap vigente.
+
+**Alterado**
+- `web/lib/mock/mission-control-data.ts` — Waves 4/5/6 ganham nota sobre Enterprise Analytics como capacidade transversal; Wave 8 ganha o escopo explícito de Productization.
+- `docs/product/ENTERPRISE-MASTER-EXECUTION-PROGRAM.md` — addendum (D-071) atualizado, pergunta em aberto resolvida.
+- `docs/architecture/TECHNICAL_DEBT.md` — nota junto ao TD-009 esclarecendo que a referência histórica a "Wave 5 Enterprise Analytics" (estrutura de 6 Waves, superada) agora aponta à capacidade transversal, sem reescrever o texto original da Wave 2 Closure Review.
+
+**Autorizado:** início do ciclo institucional da **Wave 4 — Enterprise Operations** (Domain Blueprint → Revisão Arquitetural → Aprovação do Founder → Implementação → Governança → Executive Review).
+
+**Decision Log:** D-072.

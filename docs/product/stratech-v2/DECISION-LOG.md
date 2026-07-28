@@ -646,6 +646,22 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-072 — Harmonização do roadmap aprovada e concluída: Enterprise Analytics e Productization resolvidos sem novas Waves
+
+- **Contexto:** o D-071 (harmonização em 8 Waves) deixou uma pergunta explicitamente registrada no addendum de `ENTERPRISE-MASTER-EXECUTION-PROGRAM.md`: as antigas "Wave 5 — Enterprise Analytics" e "Wave 6 — Productization" (estrutura de 6 Waves, superada) não tinham mais um número de Wave correspondente na estrutura oficial de 8 — sinalizado para decisão futura do Founder. O Founder resolveu isso em "Founder Decision — D-072", aprovando formalmente a harmonização do roadmap e concluindo a reorganização institucional das Waves.
+- **Decisão:**
+  1. O roadmap oficial da STRATECH passa a ser composto pelas 8 Waves definidas em D-071 — nenhuma alteração à lista em si.
+  2. **Enterprise Analytics deixa de ser uma Wave independente** — passa a ser uma **capacidade transversal**, construída ao longo das Waves 4 (Enterprise Operations), 5 (Enterprise Advisors) e 6 (Executive Intelligence), não uma etapa isolada do roadmap.
+  3. **Productization deixa de ser uma Wave independente** — passa a compor o escopo da **Wave 8 — STRATECH Enterprise v1.0**, incluindo preparação para distribuição, documentação, empacotamento, instalação, licenciamento e lançamento oficial.
+  4. **Nenhuma nova Wave será criada** para absorver esses dois temas — encerra definitivamente a pergunta aberta em D-071.
+  5. **Mission Control permanece a fonte oficial do roadmap vigente** — `web/lib/mock/mission-control-data.ts` (`ENTERPRISE_PROGRAM_WAVES`) é atualizado nesta mesma entrada para refletir a resolução.
+- **Ação imediata:** `mission-control-data.ts` — Waves 4/5/6 ganham uma nota sobre Enterprise Analytics como capacidade transversal construída ao longo delas; Wave 8 ganha o escopo explícito de Productization (distribuição, documentação, empacotamento, instalação, licenciamento, lançamento). `ENTERPRISE-MASTER-EXECUTION-PROGRAM.md` — addendum (D-071) atualizado para remover a pergunta em aberto, registrando a resolução. `TECHNICAL_DEBT.md` — nota de atualização junto ao TD-009 (cuja justificativa histórica na "Classificação Final — Wave 2 Closure Review" cita "Wave 5 Enterprise Analytics/Observabilidade", nomenclatura da estrutura de 6 Waves já superada por D-071/D-072) esclarecendo que o candidato de resolução agora é a capacidade transversal de Analytics, não uma Wave isolada — texto histórico original preservado sem reescrita, mesma disciplina de D-034/D-035.
+- **Sem alteração estrutural adicional:** nenhuma nova Wave, nenhuma mudança às dependências declaradas em D-071.
+- **Verificação:** missão exclusivamente de governança — nenhum arquivo de `src/` alterado; `ruff check src tests` confirmado limpo; frontend `tsc`/`eslint` confirmados limpos.
+- **Missão:** harmonização do roadmap — **concluída e aprovada**. Autorizado o início do ciclo institucional da **Wave 4 — Enterprise Operations** (Domain Blueprint → Revisão Arquitetural → Aprovação do Founder → Implementação → Governança → Executive Review).
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.

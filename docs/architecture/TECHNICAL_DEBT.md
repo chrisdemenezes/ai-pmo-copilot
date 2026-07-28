@@ -186,6 +186,8 @@ A mesma disciplina da Wave Completion Policy (D-048) aplicada ao fechamento da W
 
 **Nenhum item deste registro permanece sem classificação.** Dos 13 itens ativos: 6 (TD-004/005/006/007/008/010) estão **Resolvidos**; 6 (TD-001/002/003/011/012/013) são **Postergados**, todos com gatilho explícito ainda não disparado, nenhum bloqueando o início da Wave 4; 1 (TD-009) é **Futuro Roadmap**. Nenhum item é **Business Pending** nesta revisão.
 
+**Nota de atualização (D-072):** a justificativa de TD-009 na "Classificação Final — Wave 2 Closure Review" acima cita "Wave 5 (Enterprise Analytics/Observabilidade)" — nomenclatura da estrutura de 6 Waves, já superada pela harmonização do roadmap (D-071/D-072). O texto original não foi reescrito (mesma disciplina de preservação de histórico já aplicada a D-034/D-035); para leitura corrente, o gatilho de TD-009 deve ser entendido como "quando Enterprise Analytics — hoje uma capacidade transversal construída ao longo das Waves 4, 5 e 6, per D-072 — ou um gate de qualidade mais rigoroso exigir métricas de cobertura do frontend", não uma Wave isolada.
+
 ---
 
 ## Convenção de uso deste registro
