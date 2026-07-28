@@ -702,6 +702,21 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-076 — AR-7 aprovada pelo Founder; Technical Design da Wave 4 produzido, 4 condições resolvidas
+
+- **Contexto:** o Founder aprovou formalmente a AR-7 em "Founder Decision — Wave 4 Architecture Review Approval" (veredito GO, sem ressalvas quanto a arquitetura paralela, duplicação de responsabilidades ou infraestrutura especulativa), autorizando o início do Technical Design da Wave 4, condicionado à resolução documental dos 4 riscos identificados em AR-7 antes de qualquer implementação.
+- **Decisão:** `docs/architecture/TECHNICAL-DESIGN-WAVE-4-ENTERPRISE-OPERATIONS.md` produzido, resolvendo as 4 condições obrigatórias:
+  1. **`EventPublisher`:** responsabilidades de `EventEmitter`(removido)/`EventPublisher`(novo, cunha o envelope completo e persiste-o) formalizadas; contrato público (`publish(event_type, payload, organization_id, correlation_id, origin) -> DomainEvent`) definido; estratégia de migração atômica (dentro do Epic W4-1, `EventEmitter`/`NoOpEventEmitter` removidos no mesmo commit, nunca coexistindo com o novo Publisher); compatibilidade confirmada — os 5 `event_type` já em uso permanecem idênticos, nenhuma renomeação.
+  2. **`correlation_id`:** origem única definida em `get_request_context` (`src/api/identity_context.py`) — o mesmo funil que já resolve `organization_id`/`actor_user_id`; gerado via `uuid4()` quando ausente, aceito via header `X-Correlation-Id` quando fornecido; propagado por parâmetro explícito, nunca por mecanismo implícito; workflows sempre herdam o `correlation_id` do evento que os disparou, nunca cunham um novo.
+  3. **Execution Tracking × Event Audit:** decididos como **componentes distintos** (`events` para o envelope de cada evento publicado; `workflow_executions` para cada execução de workflow), unidos apenas por `correlation_id` — justificado por cardinalidade não-1:1 entre eventos e execuções de workflow; fundir as duas aproximaria um esquema genérico "tudo em uma tabela", contrário ao princípio de simplicidade.
+  4. **Retry/Dead Letter:** mínimo fixo definido — `MAX_ATTEMPTS = 3`, qualquer exceção dispara retry síncrono e imediato (sem backoff, sem fila de retry agendado), `dead_letter_events` com estrutura mínima (`event_id`, `organization_id`, `correlation_id`, `attempts`, `last_error`, `created_at`), encaminhamento após a 3ª falha, sem reprocessamento automático nem interface de inspeção além de consulta direta ao banco.
+- **Restrições permanentes reafirmadas e confirmadas ausentes:** brokers distribuídos, filas externas, registries dinâmicos, engines genéricas, plugins, DSLs, infraestrutura baseada em hipóteses futuras — nenhum presente no Technical Design.
+- **Estrutura definida:** `src/services/events/` (interfaces, `InProcessEventPublisher`, `EventDispatcher`), `src/workflows/runtime.py`/`execution_tracking.py` (`pmo_workflow.py` intocado, D-074), `src/services/integrations/` (Integration Contracts + Gateway); 1 migração aditiva criando `events`/`workflow_executions`/`dead_letter_events`.
+- **Verificação:** missão documental — nenhum arquivo de `src/`/`web/` alterado; `ruff check src tests` confirmado limpo.
+- **Missão:** Technical Design da Wave 4 — concluído. Aguarda aprovação explícita do Founder antes de qualquer implementação do Epic W4-1.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.

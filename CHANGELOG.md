@@ -836,3 +836,16 @@ Founder autorizou a Architecture Review em "Founder Decision — Wave 4 Architec
 **Veredito:** GO. Autorizado avançar ao Technical Design da Wave 4, mediante aprovação explícita do Founder a esta Architecture Review.
 
 **Decision Log:** D-075.
+
+## Technical Design — Wave 4 (2026-07-27): Enterprise Operations, 4 condições da AR-7 resolvidas
+
+Founder aprovou a AR-7 ("Founder Decision — Wave 4 Architecture Review Approval") e autorizou o Technical Design, condicionado à resolução documental dos 4 riscos identificados.
+
+**Adicionado**
+- `docs/architecture/TECHNICAL-DESIGN-WAVE-4-ENTERPRISE-OPERATIONS.md` -- resolve as 4 condições: (1) `EventPublisher` -- responsabilidades, contrato público, migração atômica dentro do Epic W4-1 (`EventEmitter`/`NoOpEventEmitter` removidos, nunca coexistindo com o novo Publisher), compatibilidade com os 5 produtores existentes confirmada; (2) `correlation_id` -- origem única em `get_request_context`, propagação por parâmetro explícito, workflows sempre herdam do evento disparador; (3) Execution Tracking × Event Audit -- decididos como componentes distintos (`events`/`workflow_executions`), unidos só por `correlation_id`, justificado por cardinalidade não-1:1; (4) Retry/Dead Letter -- mínimo fixo (`MAX_ATTEMPTS=3`, sem backoff, `dead_letter_events` com estrutura mínima). Estrutura de diretórios, contratos públicos, migração de banco, sequência de chamadas ponta a ponta, estratégia de testes e critérios de aceite definidos.
+
+**Restrições permanentes reafirmadas:** brokers distribuídos, filas externas, registries dinâmicos, engines genéricas, plugins, DSLs, infraestrutura especulativa -- todas confirmadas ausentes.
+
+**Próximo passo:** aprovação explícita do Founder a este Technical Design antes de qualquer implementação do Epic W4-1.
+
+**Decision Log:** D-076.
