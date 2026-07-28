@@ -608,6 +608,15 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-070 — Wave 3 oficialmente encerrada (aprovação do Founder)
+
+- **Contexto:** o Founder revisou o `WAVE-3-CLOSURE-REPORT.md` (D-069) e aprovou formalmente o encerramento da Wave 3 em "Founder Decision — Wave 3 Closure", registrando 5 pontos: (1) todos os objetivos efetivamente autorizados para a Wave 3 foram entregues; (2) a reclassificação dos Enterprise Advisors remanescentes e da Executive Intelligence foi explícita, documentada e rastreável, não caracterizando omissão de escopo; (3) a arquitetura foi validada por implementação e migração reais, confirmando a eficácia do Knowledge Platform, Knowledge Services e Enterprise Advisor Framework; (4) os débitos técnicos remanescentes foram classificados com critérios claros e gatilhos objetivos; (5) a governança institucional foi atualizada de forma completa.
+- **Decisão:** Wave 3 (Enterprise Intelligence) **declarada oficialmente encerrada**. Início da Wave 4 autorizado, com uma única condição explícita do Founder: harmonizar a nomenclatura oficial da Wave no Mission Control e na documentação de planejamento **antes da publicação do primeiro Domain Blueprint** da próxima Wave — resolvendo o achado de reconciliação de roadmap já registrado em D-069/`WAVE-3-CLOSURE-REPORT.md` §1.3 (o "Wave 4" hoje nomeado em `mission-control-data.ts`/`ENTERPRISE-MASTER-EXECUTION-PROGRAM.md` §6 é Enterprise Operations, escopo distinto dos 7 Advisors restantes + Executive Intelligence/W3-8 deferidos).
+- **Ação imediata desta entrada:** `ENTERPRISE_PROGRAM_WAVES["Wave 3"].status` em `mission-control-data.ts` alterado de `"In Progress"` para `"Done"`; `RECENT_DECISIONS`/`PRODUCT_PULSE_TODAY` atualizados com a aprovação. A harmonização de nomenclatura da Wave 4 (a condição explícita do Founder) fica pendente de uma decisão de escopo — qual conteúdo é "Wave 4" — antes do primeiro Domain Blueprint, tratada como item em aberto desta mesma missão, não encerrada silenciosamente nesta entrada.
+- **Missão:** Wave 3 Closure Review — aprovado e encerrado oficialmente. Wave 4 autorizada a iniciar, condicionada à harmonização de nomenclatura pendente.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.

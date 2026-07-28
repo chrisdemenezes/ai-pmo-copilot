@@ -24,7 +24,7 @@
 | **Fase 2 — Knowledge Services** | ✅ Concluído — `RagPipeline` (ranking determinístico + rastreabilidade) e `EnterpriseMemoryService` (5 categorias) como serviços de plataforma, sem lógica de Advisor; nenhum Advisor consumidor ainda | D-066 |
 | **Fase 3 — Enterprise Advisor Framework (Minimum Viable Framework)** | ✅ Implementado tecnicamente e testado — `AdvisorContract`/`AdvisorFramework`, grounded na auditoria do Risk Advisor real; nenhum Advisor migrado. Validação arquitetural completa fica para a Fase 4 | D-067 |
 | **Fase 4 — Migração do Risk Advisor** | ✅ Concluído — Risk Advisor migrado ao `AdvisorFramework`; validação ponta a ponta demonstrada (chunk_ids rastreáveis, `no_evidence()` sem LLM, isolamento entre organizações) contra o Agent real; suíte pré-existente `TestRiskAdvisor` 100% verde sem alteração. Advisor Framework validado arquiteturalmente | D-068 |
-| **Wave 3 Closure Review** | ✅ Publicado — `WAVE-3-CLOSURE-REPORT.md`. Recomendação formal de GO para a Wave 4. Founder autorizou o encerramento com escopo redefinido a W3-1–Fase 4; W3-7b (7 Advisors restantes) e W3-8 (Executive Intelligence) formalmente deferidos, não descartados — ver nota abaixo da tabela de Gates (§7) | D-069 |
+| **Wave 3 Closure Review** | ✅ **Aprovado — Wave 3 oficialmente encerrada.** `WAVE-3-CLOSURE-REPORT.md`. Founder confirmou os 5 pontos do relatório e autorizou o início da Wave 4, condicionado à harmonização de nomenclatura (ver nota abaixo da tabela de Gates §7); W3-7b (7 Advisors restantes) e W3-8 (Executive Intelligence) formalmente deferidos, não descartados | D-069/D-070 |
 
 Nenhuma pendência bloqueia o início da Fase 1 além da Architecture Review e aprovação explícita deste plano.
 

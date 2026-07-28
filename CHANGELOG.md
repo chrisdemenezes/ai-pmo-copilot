@@ -740,3 +740,15 @@ Founder autorizou este Closure Review em "Founder Decision — Encerramento da W
 **Recomendação formal:** GO para o início da Wave 4 — nenhum débito técnico bloqueante, nenhuma decisão arquitetural invalidada, escopo remanescente já reclassificado. Encerramento formal da Wave 3 permanece com o Founder, mediante aprovação deste artefato.
 
 **Decision Log:** D-069.
+
+## Wave 3 — Encerramento oficial (2026-07-27): Founder aprova o Closure Review, Wave 4 autorizada
+
+Founder aprovou formalmente o `WAVE-3-CLOSURE-REPORT.md` em "Founder Decision — Wave 3 Closure", confirmando os 5 elementos do relatório e declarando a Wave 3 oficialmente encerrada.
+
+**Alterado**
+- `web/lib/mock/mission-control-data.ts` — `ENTERPRISE_PROGRAM_WAVES["Wave 3"].status` de `"In Progress"` para `"Done"`; `RECENT_DECISIONS`/`PRODUCT_PULSE_TODAY` atualizados com a aprovação formal.
+
+**Condição do Founder para a Wave 4 (pendente, não encerrada nesta entrada)**
+- Único condicionante explícito: harmonizar a nomenclatura oficial da Wave no Mission Control e na documentação de planejamento **antes da publicação do primeiro Domain Blueprint** da Wave 4 — resolvendo o achado já registrado em D-069 (o "Wave 4" hoje nomeado como Enterprise Operations é um escopo distinto dos 7 Advisors restantes + Executive Intelligence/W3-8 deferidos pela própria Wave 3).
+
+**Decision Log:** D-070.

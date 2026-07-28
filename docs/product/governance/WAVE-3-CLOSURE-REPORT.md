@@ -5,6 +5,8 @@
 
 Escopo deste artefato: exatamente os 5 elementos solicitados verbatim pelo Founder — comparação entre objetivos planejados e entregues; validação das principais decisões arquiteturais; lições aprendidas; débitos técnicos remanescentes; recomendação formal de Go/No-Go para a Wave 4.
 
+> **Aprovação do Founder (2026-07-27, D-070):** este relatório foi revisado e formalmente aprovado em "Founder Decision — Wave 3 Closure". **A Wave 3 está oficialmente encerrada.** O Founder confirmou os 5 pontos do relatório e autorizou o início da Wave 4, condicionado a uma única exigência: harmonizar a nomenclatura oficial da Wave no Mission Control e na documentação de planejamento antes da publicação do primeiro Domain Blueprint da Wave 4 (ver §1.3 acima — o "Wave 4" hoje nomeado como Enterprise Operations é um escopo distinto dos 7 Advisors restantes + Executive Intelligence deferidos por esta mesma revisão).
+
 ---
 
 ## 1. Comparação entre objetivos planejados e entregues
