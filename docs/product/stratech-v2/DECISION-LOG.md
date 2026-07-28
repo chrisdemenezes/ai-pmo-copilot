@@ -691,6 +691,17 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-075 — AR-7: Architecture Review do Wave 4 Domain Blueprint concluída, veredito GO
+
+- **Contexto:** o Founder autorizou o início da Architecture Review da Wave 4 em "Founder Decision — Wave 4 Architecture Review Authorization", com escopo mínimo obrigatório de 5 pontos (Event Envelope, Workflow Runtime, Event Publisher/Dispatcher, Integration Gateway, Conformidade arquitetural) e restrição explícita de não criar documentação redundante, catálogos adicionais ou artefatos fora do processo institucional.
+- **Decisão:** `docs/architecture/AR-7-WAVE-4-DOMAIN-BLUEPRINT-REVIEW.md` produzida, único artefato novo desta missão. Verificação item a item dos 5 pontos do escopo: (1) Event Envelope confirmado com os 6 campos exigidos (Event ID/Correlation ID/Timestamp/Tenant/Origin/Payload Version) mais payload, compartilhado por todos os eventos propostos; (2) Workflow Runtime confirmado como orquestração operacional pura — nunca regra de negócio, nunca substitui `AdvisorFramework.run()`, nunca decisão de domínio, apenas coordena execução; (3) Event Publisher/Dispatcher confirmado mínimo e in-process — nenhum broker, fila distribuída, registry genérico ou infraestrutura especulativa; (4) Integration Gateway confirmado como reaproveitamento do padrão já provado por `NotificationProvider`/`EmbeddingProvider`, nenhum mecanismo paralelo; (5) Conformidade arquitetural confirmada — aderência ao CLAUDE.md, ausência de arquitetura paralela (achado histórico de `pmo_workflow.py` já neutralizado por D-074), ausência de duplicação de responsabilidades, aderência integral a D-073/D-074, consistência com os padrões das Waves 1-3.
+- **Riscos identificados, não bloqueantes:** 4 pontos de precisão registrados para o Technical Design resolver — (a) descrever a transição `EventEmitter.emit()`→`EventPublisher.publish()` como promoção do seam, não extensão aditiva; (b) definir a origem do `correlation_id` para chamadas sem um já existente; (c) formalizar se Execution Tracking e Event Audit compartilham tabela ou são distintas; (d) definir a semântica exata de Retry/Dead Letter. Nenhum é uma inconsistência arquitetural.
+- **Veredito:** **GO**. Autorizado avançar ao Technical Design da Wave 4, mediante aprovação explícita do Founder a esta Architecture Review — nenhuma implementação de código inicia antes dessa aprovação.
+- **Verificação:** missão exclusivamente de revisão arquitetural — nenhum arquivo de `src/`/`web/` alterado nesta missão.
+- **Missão:** AR-7 — concluída. Rastreabilidade concentrada nos documentos oficiais já existentes (Domain Blueprint, este Decision Log, CHANGELOG, Mission Control), nenhum artefato adicional criado.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.

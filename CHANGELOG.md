@@ -822,3 +822,17 @@ Founder aprovou a Opção A (Wave 4 Domain Blueprint §6) em "Founder Decision �
 **Autorizado:** Wave 4 Domain Blueprint segue para Architecture Review.
 
 **Decision Log:** D-074.
+
+## AR-7 — Wave 4 Architecture Review (2026-07-27): veredito GO
+
+Founder autorizou a Architecture Review em "Founder Decision — Wave 4 Architecture Review Authorization", com escopo mínimo de 5 pontos e restrição explícita de não criar documentação redundante.
+
+**Adicionado**
+- `docs/architecture/AR-7-WAVE-4-DOMAIN-BLUEPRINT-REVIEW.md` -- único artefato desta missão. Verificação item a item: Event Envelope (6 campos exigidos confirmados em todos os eventos propostos), Workflow Runtime (confirmado como orquestração operacional pura, nunca substitui `AdvisorFramework.run()`, nunca regra de negócio ou decisão de domínio), Event Publisher/Dispatcher (confirmado mínimo, in-process, sem broker/fila/registry genérico/infraestrutura especulativa), Integration Gateway (confirmado como reaproveitamento do padrão `NotificationProvider`/`EmbeddingProvider`), Conformidade arquitetural (CLAUDE.md, ausência de arquitetura paralela, ausência de duplicação, aderência a D-073/D-074, consistência com Waves 1-3).
+
+**Riscos identificados (não bloqueantes, para o Technical Design)**
+- Precisão de linguagem na promoção `EventEmitter`→`EventPublisher`; origem do `correlation_id` em chamadas sem um existente; relação entre Execution Tracking e Event Audit; semântica de Retry/Dead Letter.
+
+**Veredito:** GO. Autorizado avançar ao Technical Design da Wave 4, mediante aprovação explícita do Founder a esta Architecture Review.
+
+**Decision Log:** D-075.
