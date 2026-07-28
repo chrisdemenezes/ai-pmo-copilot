@@ -13,6 +13,12 @@
 
 ---
 
+> **Addendum (2026-07-27, D-071 — "Founder Decision: Wave 4 Authorization"):** o roadmap oficial de Waves foi harmonizado e passa a ter **8 elementos**, substituindo a estrutura de 6 Waves descrita abaixo (§2 e §5–§8): 1 Enterprise Foundation, 2 Enterprise Platform, 3 **Enterprise Knowledge Platform** (renomeada de "Enterprise Intelligence" — o nome agora reflete o que foi de fato entregue na Wave 3, encerrada em D-070), 4 Enterprise Operations, 5 **Enterprise Advisors** (nova — os 7 Advisors restantes, antes descritos em §5.4 como parte da Wave 3), 6 **Executive Intelligence** (nova — antes descrita em §5.3 como parte da Wave 3), 7 **Enterprise Readiness** (nova, sem escopo definido ainda) e 8 **STRATECH Enterprise v1.0** (nova, sem escopo definido ainda). Cada Wave agora declara explicitamente de quais Waves anteriores depende.
+>
+> Por disciplina de preservação de histórico (mesmo padrão de correção de premissa já usado em D-034/D-035, sem reescrita retroativa), as seções abaixo **não foram alteradas** e permanecem como registro fiel do estado do repositório em 2026-07-18 (antes de qualquer Blueprint real da Wave 3 existir). A fonte viva e atual do roadmap é `web/lib/mock/mission-control-data.ts` (`ENTERPRISE_PROGRAM_WAVES`) e `docs/product/stratech-v2/DECISION-LOG.md` D-071. Em particular: a Wave 3 (§5) foi de fato entregue com escopo mais restrito que o especulado aqui (Fases 1–4: Foundation, Knowledge Services, Advisor Framework, migração do Risk Advisor — ver `WAVE-3-CLOSURE-REPORT.md`); os itens §5.3 (Executive Intelligence) e §5.4 (Enterprise Agents) tornaram-se Waves 6 e 5, respectivamente; e as antigas Wave 5 (Enterprise Analytics, §7) e Wave 6 (Productization, §8) não têm mais um número de Wave correspondente na estrutura oficial de 8 — se esses escopos permanecerem relevantes, cabe a uma decisão futura do Founder reintroduzi-los explicitamente (por exemplo, dentro de Wave 7 ou Wave 8, cujo escopo ainda não foi definido).
+
+---
+
 ## 0. Reconciliação — o que foi encontrado na revisão completa
 
 Revisão integral realizada nesta missão: Product Constitution, Foundation Architecture, Foundation Technical Design, Master Roadmap (11 seções), Mission Control, Product Pulse, Decision Log (D-001 a D-029, íntegro), Technical Debt Register (TD-001 a TD-009 + Baseline Defects, íntegro), os 6 Épicos do Release 0.1, as 3 Capabilities do Release 0.2, o Sprint 1, e a árvore de ADRs.

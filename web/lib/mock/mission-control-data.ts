@@ -113,6 +113,7 @@ export interface RecentDecisionEntry {
 }
 
 export const RECENT_DECISIONS: RecentDecisionEntry[] = [
+  { id: "D-071", summary: "Harmonizacao oficial do roadmap ('Founder Decision — Wave 4 Authorization'): a organizacao das Waves passa a ter 8 elementos -- 1 Enterprise Foundation, 2 Enterprise Platform, 3 Enterprise Knowledge Platform (renomeada de 'Enterprise Intelligence', reflete o que foi de fato entregue), 4 Enterprise Operations, 5 Enterprise Advisors (nova -- os 7 Advisors restantes, antes W3-7b), 6 Executive Intelligence (nova -- antes W3-8), 7 Enterprise Readiness (nova, escopo a definir) e 8 STRATECH Enterprise v1.0 (nova, escopo a definir). Cada Wave passa a declarar explicitamente suas dependencias de Waves anteriores (recomendacao do Founder, adotada). Missao exclusivamente de governanca -- nenhum codigo/arquitetura/dominio/API/teste alterado. Nenhum documento publicado sob o nome 'Wave 3 — Enterprise Intelligence' foi reescrito ou renomeado, preservando o historico da evolucao arquitetural. Ciclo institucional da Wave 4 autorizado a iniciar" },
   { id: "D-070", summary: "Founder aprovou formalmente o Wave 3 Closure Review ('Founder Decision — Wave 3 Closure') e declarou a Wave 3 (Enterprise Intelligence) oficialmente encerrada -- confirmando que todos os objetivos efetivamente autorizados foram entregues, que a reclassificacao dos 7 Advisors restantes + Executive Intelligence foi explicita/documentada/rastreavel (nao omissao de escopo), que a arquitetura foi validada por implementacao e migracao reais (Knowledge Platform, Knowledge Services, Advisor Framework), que os debitos tecnicos remanescentes tem criterios e gatilhos claros, e que a governanca institucional foi atualizada de forma completa. Wave 4 autorizada a iniciar, condicionada a uma unica exigencia: harmonizar a nomenclatura oficial da Wave no Mission Control e na documentacao de planejamento antes da publicacao do primeiro Domain Blueprint -- resolvendo o achado ja registrado em D-069 (o 'Wave 4' hoje nomeado como Enterprise Operations e um escopo distinto dos 7 Advisors restantes + Executive Intelligence deferidos)" },
   { id: "D-069", summary: "Wave 3 Closure Review publicado, atendendo aos 5 elementos solicitados pelo Founder: comparacao entre objetivos planejados e entregues (7 Fases entregues 100% -- W3-1 a Fase 4; os 7 Enterprise Advisors restantes + Executive Intelligence/W3-8 nao foram entregues, mas reclassificados como deferidos por decisao explicita do Founder, nao descartados silenciosamente); validacao das 5 principais decisoes arquiteturais (pgvector sempre atras de KnowledgeRepository, fronteira do RagPipeline antes da composicao de prompt, escopo limitado do Enterprise Memory Model, contrato flat-dict do AdvisorContract sem schema generico, disciplina de migracao fiel com suite nao modificada capturando 2 bugs reais); 5 licoes aprendidas (auditoria-antes-de-abstracao, suite pre-existente como oraculo, template1 como padrao reutilizavel de privilegio, adiar sem consumidor real e decisao de arquitetura, Framework minimo gera mudancas de contrato pequenas); debitos tecnicos remanescentes (TD-011/012/013, todos Postergados com gatilho explicito, Technical Debt Register 100% classificado); recomendacao formal de GO para a Wave 4. Achado de reconciliacao de roadmap registrado (Wave 4 ja nomeada como Enterprise Operations, escopo distinto dos Advisors restantes) -- nao bloqueador. Missao documental, ruff limpo. Decisao final de encerramento da Wave 3 permanece com o Founder" },
   { id: "D-068", summary: "Wave 3 Fase 4 (migracao do Risk Advisor) concluida -- Advisor Framework validado arquiteturalmente em producao de codigo real. RiskAdvisorAgent migrado para receber um AdvisorFramework (nao mais model_client/prompt_registry diretos); rota ask_risk_advisor reescrita delegando gather_context/gather_rag_context/run; RiskAdvisorRequest/RiskAdvisorResponse inalterados. 2 achados corrigidos, ambos detectados pela suite de regressao ja existente rodada sem alteracao: retorno do Agent nao estava achatado conforme o AdvisorContract exigia; no_evidence() perdia a mensagem especifica de dominio do risco. Validacao ponta a ponta demonstrada (chunk_ids rastreaveis, no_evidence sem chamada ao LLM, ausencia de acesso direto a infraestrutura, equivalencia funcional, isolamento entre organizacoes) contra o Agent real, nunca um Advisor de teste. Suite pre-existente TestRiskAdvisor permanece 100% verde sem nenhuma alteracao de asserção. ruff limpo, pytest 494 (12 novos testes), 97% cobertura. Nenhuma capacidade nova criada. Decisao de encerramento da Wave 3 fica com o Founder" },
@@ -171,6 +172,7 @@ export interface ProductPulseEntry {
 
 /** Release 0.2, Capability 03 -- Product Pulse (topo do Mission Control). */
 export const PRODUCT_PULSE_TODAY: ProductPulseEntry[] = [
+  { label: "Roadmap oficial harmonizado em 8 Waves (D-071): Wave 3 renomeada para Enterprise Knowledge Platform; Enterprise Advisors (Wave 5) e Executive Intelligence (Wave 6) destacadas como Waves próprias; Enterprise Readiness (Wave 7) e STRATECH Enterprise v1.0 (Wave 8) introduzidas. Cada Wave declara suas dependências explícitas. Missão de governança -- nenhum código alterado. Ciclo institucional da Wave 4 autorizado a iniciar", done: true },
   { label: "Wave 3 (Enterprise Intelligence) oficialmente encerrada (D-070): Founder aprovou o Wave 3 Closure Review, confirmando os 5 elementos do relatório -- objetivos entregues, reclassificação explícita dos 7 Advisors restantes + Executive Intelligence, arquitetura validada por implementação/migração reais, débitos técnicos classificados, governança atualizada. Wave 4 autorizada, condicionada à harmonização da nomenclatura oficial da Wave antes do primeiro Domain Blueprint", done: true },
   { label: "Wave 3 Closure Review publicado (D-069): 5 elementos solicitados pelo Founder entregues -- objetivos planejados vs. entregues (7 Fases 100%; 7 Advisors restantes + Executive Intelligence/W3-8 deferidos por decisão explícita do Founder), validação das 5 principais decisões arquiteturais, 5 lições aprendidas, débitos técnicos remanescentes (TD-011/012/013, Technical Debt Register 100% classificado), recomendação formal de GO para a Wave 4. Encerramento formal da Wave 3 aguarda aprovação do Founder", done: true },
   { label: "Wave 3 Fase 4 concluída (D-068): Risk Advisor migrado para o AdvisorFramework -- validação ponta a ponta demonstrada (chunk_ids rastreáveis, no_evidence sem LLM, isolamento entre organizações) contra o Agent real; suíte pré-existente TestRiskAdvisor 100% verde sem alteração. pytest 494 passando, ruff limpo. Nenhuma capacidade nova criada -- decisão de encerramento da Wave 3 fica com o Founder", done: true },
@@ -227,6 +229,8 @@ export interface WaveEntry {
   name: string;
   status: "Not Started" | "In Progress" | "Done";
   detail: string;
+  /** Wave codes this Wave depends on (D-071 -- explicit roadmap dependency map, Founder recommendation). */
+  dependsOn: string[];
 }
 
 /**
@@ -235,43 +239,72 @@ export interface WaveEntry {
  * and every Capability below (PROGRAM_PHASES, CAPABILITY_PROGRESS) is a
  * historical label reclassified into exactly one Wave; neither is a
  * parallel evolution track anymore (Decision Log D-030).
+ *
+ * Official 8-Wave roadmap harmonized by the Founder in D-071 ("Founder
+ * Decision -- Wave 4 Authorization"), superseding the earlier 6-Wave
+ * structure: the Enterprise Advisors and Executive Intelligence, previously
+ * conceived as part of Wave 3, are now their own Waves (5 and 6). Historical
+ * documents published under the earlier structure (WAVE-3-DOMAIN-BLUEPRINT.md,
+ * WAVE-3-EXECUTION-PLAN.md, ENTERPRISE-MASTER-EXECUTION-PROGRAM.md §2/§5/§7/§8)
+ * are preserved unrewritten as point-in-time record; this array is the current,
+ * authoritative roadmap.
  */
 export const ENTERPRISE_PROGRAM_WAVES: WaveEntry[] = [
   {
     code: "Wave 1",
     name: "Enterprise Foundation",
     status: "Done",
+    dependsOn: [],
     detail: "Schema + Identity 100% (Épicos 1-2). Persistence (Sprint 1), API Foundation (Sprint 2), RBAC seam (Sprint 3, migração 0006 + SqlPermissionChecker) e Event Foundation (D-049 -- EventEmitter Protocol + NoOpEventEmitter, 5 eventos emitidos por DomainService) implementados. Fechada pelo Wave Completion Review retrospectivo (D-048/D-049).",
   },
   {
     code: "Wave 2",
     name: "Enterprise Platform",
     status: "Done",
+    dependsOn: ["Wave 1"],
     detail: "Wave 2 formalmente encerrada (D-062, Wave 2 Closure Review). Enterprise Domain completo de ponta a ponta (Sprints 1-2-5), RBAC fino (Sprint 3), Administration completo com User Management (Sprint 4 Nível 1+2 + Capability User Management -- D-038), API Keys (D-051), Sessões server-side (D-053, resolve TD-010), Convites (D-054 -- domínio desacoplado do e-mail, entrega em NotificationProvider/NoOp) e TD-008 Fase 3b completa (D-056 a D-061 -- project_id é a única chave de acesso ao Project, coluna project_name removida). Workspace reclassificado como View/UI (D-055) e Tenant/System Settings como Business Pending (D-052) -- ambos Governança Concluída, todos os 8 itens do Wave Completion Review retrospectivo fechados (ver WAVE-2-CLOSURE-REPORT.md). Nenhum bloqueador para a Wave 3 -- \"Wave 3 Ready\" declarado.",
   },
   {
     code: "Wave 3",
-    name: "Enterprise Intelligence",
+    name: "Enterprise Knowledge Platform",
     status: "Done",
-    detail: "Wave 3 formalmente encerrada (D-070, aprovação do Founder ao Wave 3 Closure Review). W3-1 (D-040), W3-2 Digital PMO Intelligence Foundation (D-041/D-047) e W3-3 Risk Advisor (D-046/D-047) concluídos; Security Hardening Gate (C-1/C-2) concluído (D-045). As 2 Decision Proposals pendentes (Vector Store, Framework de Orquestração) foram resolvidas, o Wave 3 Domain Blueprint (8 entregáveis, D-063) e a AR-6 (D-064) concluídos. Fase 1 (Foundation, D-065), Fase 2 (Knowledge Services, D-066), Fase 3 (Enterprise Advisor Framework, D-067) e Fase 4 (migração do Risk Advisor, D-068) implementadas e testadas -- o Advisor Framework está validado arquiteturalmente em produção de código real (D-069, Wave 3 Closure Review). Os 7 Enterprise Advisors restantes + Executive Intelligence (W3-8), parte do escopo original, ficam formalmente deferidos por decisão do Founder -- reclassificação explícita, documentada e rastreável, não omissão de escopo (ver TECHNICAL_DEBT.md e WAVE-3-CLOSURE-REPORT.md). Nenhuma capacidade nova criada em nenhuma Fase.",
+    dependsOn: ["Wave 1", "Wave 2"],
+    detail: "Wave 3 formalmente encerrada (D-070, aprovação do Founder ao Wave 3 Closure Review) e renomeada de \"Enterprise Intelligence\" para \"Enterprise Knowledge Platform\" (D-071 -- o nome agora reflete o que foi de fato entregue). W3-1 (D-040), W3-2 Digital PMO Intelligence Foundation (D-041/D-047) e W3-3 Risk Advisor (D-046/D-047) concluídos; Security Hardening Gate (C-1/C-2) concluído (D-045). As 2 Decision Proposals pendentes (Vector Store, Framework de Orquestração) foram resolvidas, o Wave 3 Domain Blueprint (8 entregáveis, D-063) e a AR-6 (D-064) concluídos. Fase 1 (Foundation, D-065), Fase 2 (Knowledge Services, D-066), Fase 3 (Enterprise Advisor Framework, D-067) e Fase 4 (migração do Risk Advisor, D-068) implementadas e testadas -- o Advisor Framework está validado arquiteturalmente em produção de código real (D-069, Wave 3 Closure Review). Os 7 Enterprise Advisors restantes e a Executive Intelligence, antes W3-7b/W3-8, agora são Waves próprias (5 e 6 -- D-071), não mais parte do escopo desta Wave.",
   },
   {
     code: "Wave 4",
     name: "Enterprise Operations",
     status: "Not Started",
-    detail: "Corresponde às Releases 0.4/0.5 já aprovadas (Integration Hub, Event Orchestration) -- não implementado. Founder autorizou o início da Wave 4 (D-070), condicionado a uma harmonização de nomenclatura pendente: os 7 Enterprise Advisors restantes + Executive Intelligence (W3-8), deferidos ao encerrar a Wave 3, ainda não têm uma Wave nomeada no roadmap que os contenha -- a ser resolvido antes da publicação do primeiro Domain Blueprint desta Wave.",
+    dependsOn: ["Wave 1", "Wave 2", "Wave 3"],
+    detail: "Corresponde às Releases 0.4/0.5 já aprovadas (Integration Hub, Event Orchestration) -- não implementado. Founder autorizou o início da Wave 4 (D-070); nomenclatura oficial do roadmap harmonizada (D-071) antes da publicação do primeiro Domain Blueprint desta Wave.",
   },
   {
     code: "Wave 5",
-    name: "Enterprise Analytics",
+    name: "Enterprise Advisors",
     status: "Not Started",
-    detail: "Executive Cockpit já cobre uma fatia (~15-20%); Operational/AI/Audit Analytics não existem.",
+    dependsOn: ["Wave 3", "Wave 4"],
+    detail: "Os 7 Enterprise Advisors restantes (Executive, Strategy, PMO, Portfolio, Delivery, Governance, Document -- `ENTERPRISE-ADVISOR-CATALOG.md`), destacados formalmente da Wave 3 em D-071. Infraestrutura já pronta e validada em produção real (Wave 3): `KnowledgeRepository`/`RagPipeline`/`EnterpriseMemoryService`/`AdvisorFramework`. Nenhum dos 7 Advisors implementado ainda -- cada um exige seu próprio Domain Blueprint, seguindo o mesmo padrão de auditoria-antes-de-abstração usado na migração do Risk Advisor.",
   },
   {
     code: "Wave 6",
-    name: "Productization",
+    name: "Executive Intelligence",
     status: "Not Started",
-    detail: "Sem nenhuma base aprovada -- requer decisão de modelo de negócio do Founder antes de qualquer planejamento técnico.",
+    dependsOn: ["Wave 3", "Wave 4", "Wave 5"],
+    detail: "Executive Intelligence (antes W3-8), destacada formalmente da Wave 3 em D-071 -- consome os 8 Enterprise Advisors (Wave 5) e a Knowledge Platform (Wave 3) sobre Portfolio/Program/Project (`WAVE-3-INTEGRATION-BLUEPRINT.md` §5/§11). Não implementada -- depende estruturalmente da Wave 5 estar completa.",
+  },
+  {
+    code: "Wave 7",
+    name: "Enterprise Readiness",
+    status: "Not Started",
+    dependsOn: ["Wave 1", "Wave 2", "Wave 3", "Wave 4", "Wave 5", "Wave 6"],
+    detail: "Wave inteiramente nova, introduzida em D-071 -- sem escopo definido ainda. Exige seu próprio Domain Blueprint e Architecture Review antes de qualquer Technical Design, mesmo padrão institucional já em uso em todas as Waves anteriores.",
+  },
+  {
+    code: "Wave 8",
+    name: "STRATECH Enterprise v1.0",
+    status: "Not Started",
+    dependsOn: ["Wave 1", "Wave 2", "Wave 3", "Wave 4", "Wave 5", "Wave 6", "Wave 7"],
+    detail: "Wave inteiramente nova, introduzida em D-071 -- sem escopo definido ainda. Exige seu próprio Domain Blueprint e Architecture Review antes de qualquer Technical Design.",
   },
 ];
 

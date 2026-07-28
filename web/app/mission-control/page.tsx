@@ -102,6 +102,10 @@ export default function MissionControlPage() {
               <CardContent>
                 <Badge variant={waveVariant(wave.status)}>{wave.status}</Badge>
                 <p className="mt-2 text-xs text-ink-muted">{wave.detail}</p>
+                <p className="mt-2 text-xs text-ink-muted">
+                  <span className="font-medium text-ink">Depende de:</span>{" "}
+                  {wave.dependsOn.length > 0 ? wave.dependsOn.join(", ") : "—"}
+                </p>
               </CardContent>
             </Card>
           ))}

@@ -6,6 +6,8 @@
 Escopo deste artefato: exatamente os 5 elementos solicitados verbatim pelo Founder — comparação entre objetivos planejados e entregues; validação das principais decisões arquiteturais; lições aprendidas; débitos técnicos remanescentes; recomendação formal de Go/No-Go para a Wave 4.
 
 > **Aprovação do Founder (2026-07-27, D-070):** este relatório foi revisado e formalmente aprovado em "Founder Decision — Wave 3 Closure". **A Wave 3 está oficialmente encerrada.** O Founder confirmou os 5 pontos do relatório e autorizou o início da Wave 4, condicionado a uma única exigência: harmonizar a nomenclatura oficial da Wave no Mission Control e na documentação de planejamento antes da publicação do primeiro Domain Blueprint da Wave 4 (ver §1.3 acima — o "Wave 4" hoje nomeado como Enterprise Operations é um escopo distinto dos 7 Advisors restantes + Executive Intelligence deferidos por esta mesma revisão).
+>
+> **Harmonização de nomenclatura concluída (2026-07-27, D-071):** em "Founder Decision — Wave 4 Authorization", o Founder resolveu definitivamente a exigência acima. O roadmap oficial passa a ter 8 Waves; esta Wave (Enterprise Intelligence, per o plano original) é renomeada **"Wave 3 — Enterprise Knowledge Platform"**, refletindo o que foi de fato entregue. Os 7 Advisors restantes (§1.3 abaixo) agora compõem oficialmente a **Wave 5 — Enterprise Advisors**; a Executive Intelligence é a **Wave 6 — Executive Intelligence**. Ver `web/lib/mock/mission-control-data.ts` (`ENTERPRISE_PROGRAM_WAVES`) para o roadmap vivo e atual.
 
 ---
 

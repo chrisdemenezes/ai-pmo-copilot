@@ -617,6 +617,35 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-071 — Harmonização oficial do roadmap: 8 Waves, Enterprise Advisors e Executive Intelligence destacados da Wave 3
+
+- **Contexto:** per a condição registrada em D-070, o Founder resolveu a harmonização de nomenclatura pendente em "Founder Decision — Wave 4 Authorization", antes de qualquer implementação da Wave 4. Missão exclusivamente de governança — nenhuma arquitetura, código, modelo, API, domínio ou teste alterado.
+- **Decisão:** a organização oficial das Waves passa a ser, substituindo qualquer interpretação anterior onde os Enterprise Advisors permaneciam como parte da Wave 3:
+
+  | Wave | Nome | Depende de |
+  |---|---|---|
+  | 1 | Enterprise Foundation | — |
+  | 2 | Enterprise Platform | Wave 1 |
+  | 3 | Enterprise Knowledge Platform | Wave 1, Wave 2 |
+  | 4 | Enterprise Operations | Wave 1, Wave 2, Wave 3 |
+  | 5 | Enterprise Advisors | Wave 3, Wave 4 |
+  | 6 | Executive Intelligence | Wave 3, Wave 4, Wave 5 |
+  | 7 | Enterprise Readiness | Wave 1–6 |
+  | 8 | STRATECH Enterprise v1.0 | Wave 1–7 |
+
+- **Reclassificações específicas:**
+  - **Wave 3** é renomeada de "Enterprise Intelligence" para **"Enterprise Knowledge Platform"** — o nome passa a refletir com precisão o que foi de fato entregue (Fases 1-4: Foundation, Knowledge Services, Advisor Framework, migração do Risk Advisor), não mais o espaço mais amplo originalmente especulado (que incluía os 8 Advisors e a Executive Intelligence).
+  - Os **7 Enterprise Advisors restantes** (Executive, Strategy, PMO, Portfolio, Delivery, Governance, Document — antes W3-7b) passam a compor oficialmente a **Wave 5 — Enterprise Advisors**.
+  - A **Executive Intelligence** (antes W3-8) permanece como uma Wave própria: **Wave 6 — Executive Intelligence**.
+  - **Wave 7 — Enterprise Readiness** e **Wave 8 — STRATECH Enterprise v1.0** são Waves inteiramente novas, sem escopo definido ainda — cada uma exigirá seu próprio Domain Blueprint e Architecture Review antes de qualquer Technical Design, mesmo padrão institucional já em uso.
+  - **Dependências explícitas adotadas** (recomendação do Founder, incorporada nesta decisão): cada Wave declara de quais Waves anteriores depende, tornando o roadmap um mapa de evolução arquitetural explícito — reduz o risco de inversão de dependências em decisões futuras.
+- **Preservação de histórico:** nenhum documento historicamente publicado sob o nome "Wave 3 — Enterprise Intelligence" foi reescrito ou renomeado (`WAVE-3-DOMAIN-BLUEPRINT.md`, `WAVE-3-EXECUTION-PLAN.md`, `WAVE-3-CLOSURE-REPORT.md`, `ENTERPRISE-MASTER-EXECUTION-PROGRAM.md` §5/§7/§8 permanecem como registro histórico do que foi escrito e decidido em cada momento) — mesma disciplina já usada em D-034/D-035/D-041 para correção de premissa sem reescrita retroativa. `ENTERPRISE-MASTER-EXECUTION-PROGRAM.md` ganha um addendum no topo apontando para esta decisão e para o Mission Control como a fonte viva e atual do roadmap oficial.
+- **Ação imediata:** `web/lib/mock/mission-control-data.ts` (`ENTERPRISE_PROGRAM_WAVES`) reescrito para as 8 Waves oficiais, cada uma com sua lista de dependências; `docs/architecture/TECHNICAL_DEBT.md` (TD-011/012) corrigido para referenciar "Wave 5 — Enterprise Advisors" em vez de "Wave 4" (a menção anterior antecedia esta reclassificação); `docs/product/WAVE-3-EXECUTION-PLAN.md` e `docs/product/governance/WAVE-3-CLOSURE-REPORT.md` ganham nota de atualização apontando para os números de Wave definitivos.
+- **Verificação:** missão documental — nenhum arquivo de `src/` alterado; `ruff check src tests` confirmado limpo; frontend `tsc`/`eslint` confirmados limpos.
+- **Missão:** harmonização de nomenclatura — concluída. Ciclo institucional da Wave 4 (Domain Blueprint → Revisão Arquitetural → Aprovação do Founder → Implementação → Governança → Executive Review) autorizado a iniciar.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.

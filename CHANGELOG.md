@@ -752,3 +752,21 @@ Founder aprovou formalmente o `WAVE-3-CLOSURE-REPORT.md` em "Founder Decision �
 - Único condicionante explícito: harmonizar a nomenclatura oficial da Wave no Mission Control e na documentação de planejamento **antes da publicação do primeiro Domain Blueprint** da Wave 4 — resolvendo o achado já registrado em D-069 (o "Wave 4" hoje nomeado como Enterprise Operations é um escopo distinto dos 7 Advisors restantes + Executive Intelligence/W3-8 deferidos pela própria Wave 3).
 
 **Decision Log:** D-070.
+
+## Roadmap — Harmonização oficial (2026-07-27): 8 Waves, Enterprise Advisors e Executive Intelligence destacados da Wave 3
+
+Founder resolveu a condição de D-070 em "Founder Decision — Wave 4 Authorization", antes de qualquer implementação da Wave 4. Missão exclusivamente de governança — nenhum código/arquitetura/domínio/API/teste alterado.
+
+**Decidido**
+- Roadmap oficial passa a ter 8 Waves: 1 Enterprise Foundation, 2 Enterprise Platform, 3 **Enterprise Knowledge Platform** (renomeada de "Enterprise Intelligence" -- nome agora reflete o que foi de fato entregue), 4 Enterprise Operations, 5 **Enterprise Advisors** (nova -- os 7 Advisors restantes, antes W3-7b), 6 **Executive Intelligence** (nova -- antes W3-8), 7 **Enterprise Readiness** (nova, sem escopo definido ainda) e 8 **STRATECH Enterprise v1.0** (nova, sem escopo definido ainda).
+- Cada Wave passa a declarar explicitamente de quais Waves anteriores depende (recomendação do Founder, adotada) -- reduz risco de inversão de dependências em decisões futuras.
+
+**Alterado**
+- `web/lib/mock/mission-control-data.ts` — `ENTERPRISE_PROGRAM_WAVES` reescrito para as 8 Waves oficiais com dependências explícitas.
+- `docs/product/ENTERPRISE-MASTER-EXECUTION-PROGRAM.md` — addendum no topo apontando para D-071 e para o Mission Control como fonte viva do roadmap; seções históricas (§2/§5/§7/§8) preservadas sem reescrita, mesma disciplina já usada em D-034/D-035.
+- `docs/architecture/TECHNICAL_DEBT.md` — TD-011/012 corrigidos para referenciar "Wave 5 — Enterprise Advisors" em vez de "Wave 4".
+- `docs/product/WAVE-3-EXECUTION-PLAN.md`, `docs/product/governance/WAVE-3-CLOSURE-REPORT.md` — nota de atualização apontando para os números de Wave definitivos.
+
+**Preservação de histórico:** nenhum documento publicado sob o nome "Wave 3 — Enterprise Intelligence" foi reescrito ou renomeado.
+
+**Decision Log:** D-071.
