@@ -674,6 +674,23 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-074 — `src/workflows/pmo_workflow.py` classificado como Historical Superseded Architecture
+
+- **Contexto:** o Founder resolveu a Decision Proposal registrada no Wave 4 Domain Blueprint (§6, D-073) em "Founder Decision — Wave 4 Decision Proposal: pmo_workflow.py", aprovando a Opção A recomendada.
+- **Decisão:** `src/workflows/pmo_workflow.py` classificado formalmente como **Historical Superseded Architecture — non-production, non-reference implementation**. Não removido nesta missão (valor de rastreabilidade histórica, referências no CLAUDE.md); não pode mais ser interpretado como arquitetura oficial, componente futuro ou base válida para a Wave 4.
+- **Ações executadas (6 diretrizes do Founder):**
+  1. Aviso explícito adicionado ao topo do arquivo (classificação, proibição de import/extensão/uso, substituição da orquestração de Advisors pelo `AdvisorFramework`, orquestração operacional pertence ao Workflow Runtime da Wave 4, preservado só por rastreabilidade) — texto histórico original preservado abaixo, não substituído.
+  2. `CLAUDE.md` atualizado: nota após a árvore de "Arquitetura oficial" esclarecendo que `workflows/` é reservado ao Workflow Runtime da Wave 4 (não a orquestração multiagente) e que `pmo_workflow.py` não é a arquitetura vigente. A árvore de diretórios em si permanece inalterada.
+  3. Busca global executada e documentada (`docs/architecture/WAVE-4-DOMAIN-BLUEPRINT.md` §6.1): zero imports, zero rotas dependentes, zero testes dependentes, zero uso em produção — confirmado por `grep` direto em `src/`/`tests/`/`web/`/`main.py`/`dependencies.py`.
+  4. Nenhuma reutilização/adaptação/refatoração/extração de componentes deste arquivo para a Wave 4 — confirmado, o modelo operacional da Seção 2 nasce inteiramente do levantamento da Seção 1.
+  5. Registrado neste Decision Log e no CHANGELOG.
+  6. Gatilho de remoção futura registrado: missão específica de limpeza arquitetural, com ausência de dependências reconfirmada, referências históricas atualizadas, remoção tratada isoladamente (nunca acoplada a uma entrega funcional nova).
+- **Restrição permanente confirmada:** proibida a coexistência de duas arquiteturas de workflow — o `WorkflowRuntime` da Wave 4 é a única arquitetura de workflow ativa em `src/workflows/`.
+- **Verificação:** missão documental — nenhum comportamento de código alterado (apenas comentário/docstring); `ruff check src tests` confirmado limpo.
+- **Missão:** Decision Proposal resolvida. Wave 4 Domain Blueprint autorizado a seguir para Architecture Review.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.

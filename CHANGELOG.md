@@ -803,3 +803,22 @@ Founder autorizou a Wave 4 em "Founder Kickoff — Wave 4 / Enterprise Operation
 **Próximo passo:** decisão do Founder sobre a Decision Proposal, em seguida Architecture Review do Blueprint.
 
 **Decision Log:** D-073.
+
+## Wave 4 — Decision Proposal resolvida (2026-07-27): pmo_workflow.py classificado como Historical Superseded Architecture
+
+Founder aprovou a Opção A (Wave 4 Domain Blueprint §6) em "Founder Decision — Wave 4 Decision Proposal: pmo_workflow.py".
+
+**Alterado**
+- `src/workflows/pmo_workflow.py` — aviso explícito adicionado ao topo (classificação Historical Superseded Architecture; proibição de import/extensão/uso; orquestração de Advisors substituída pelo `AdvisorFramework`; orquestração operacional pertence ao Workflow Runtime da Wave 4). Docstring histórico original preservado, não substituído. Arquivo não removido.
+- `CLAUDE.md` — nota adicionada após a árvore de "Arquitetura oficial" esclarecendo que `workflows/` é reservado ao Workflow Runtime da Wave 4, e que `pmo_workflow.py` não representa a arquitetura vigente. Árvore de diretórios inalterada.
+- `docs/architecture/WAVE-4-DOMAIN-BLUEPRINT.md` §6.1 — decisão do Founder registrada, com evidência de busca global documentada (zero imports, zero rotas, zero testes, zero uso em produção).
+
+**Registrado:** gatilho de remoção futura (missão específica de limpeza arquitetural, ausência de dependências reconfirmada, referências históricas atualizadas, remoção isolada). Nenhuma reutilização/adaptação de `pmo_workflow.py` para a Wave 4.
+
+**Restrição permanente:** proibida a coexistência de duas arquiteturas de workflow.
+
+**Verificação:** nenhum comportamento de código alterado (apenas docstring/comentário); `ruff check src tests` limpo.
+
+**Autorizado:** Wave 4 Domain Blueprint segue para Architecture Review.
+
+**Decision Log:** D-074.

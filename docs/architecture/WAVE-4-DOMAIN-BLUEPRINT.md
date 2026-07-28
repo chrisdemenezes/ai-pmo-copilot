@@ -232,6 +232,28 @@ Nenhum destes exige alteração estrutural em `DomainService`, `KnowledgeReposit
 
 **Recomendação deste documento:** Opção A. Nenhuma das 3 é aplicada unilateralmente — decisão do Founder antes da Architecture Review.
 
+### 6.1 Decisão do Founder (2026-07-27, D-074 — "Founder Decision: Wave 4 Decision Proposal — pmo_workflow.py")
+
+**Aprovada a Opção A**, com classificação formal: **Historical Superseded Architecture — non-production, non-reference implementation**. O arquivo não é removido nesta missão (valor de rastreabilidade histórica, referências no CLAUDE.md), mas não pode mais ser interpretado como arquitetura oficial, componente futuro, ou base válida para a Wave 4.
+
+**Ações executadas em resposta às 6 diretrizes obrigatórias do Founder:**
+
+1. **Aviso explícito adicionado ao topo de `src/workflows/pmo_workflow.py`** — declara a classificação Historical Superseded Architecture; que o arquivo não deve ser importado/estendido/usado; que a orquestração de Advisors foi substituída pelo `AdvisorFramework`; que a orquestração operacional é responsabilidade do Workflow Runtime desta Wave; que é preservado apenas por rastreabilidade histórica. O texto histórico original do docstring foi preservado abaixo do novo aviso, não substituído.
+2. **`CLAUDE.md` atualizado** — nota adicionada imediatamente após a árvore de "Arquitetura oficial", esclarecendo que `workflows/` é reservado para o Workflow Runtime da Wave 4 (não para orquestração multiagente) e que `pmo_workflow.py` é Historical Superseded Architecture, não a arquitetura vigente. A árvore de diretórios em si não foi alterada — `workflows/` continua reservado, agora com seu propósito correto explícito.
+3. **Evidência de busca global (executada, não apenas afirmada):**
+   - `grep -rn "pmo_workflow\|PMOWorkflow" --include="*.py" src/ tests/` → único resultado: a própria definição da classe em `src/workflows/pmo_workflow.py:10`. **Nenhum import em nenhum outro arquivo Python.**
+   - `grep -rn "from src.workflows\|import.*workflows" --include="*.py" src/ tests/` → **zero resultados.**
+   - `grep -n "workflow" src/main.py` e `grep -n "workflows" src/api/dependencies.py` → **zero resultados** — nenhuma rota, nenhuma injeção de dependência referencia este módulo.
+   - `grep -rln "pmo_workflow\|PMOWorkflow" web/` (excluindo `node_modules`) → apenas as próprias entradas de Mission Control desta missão de governança (documentais, não código).
+   - **Conclusão:** confirmado que não existem imports, não existem rotas dependentes, não existem testes dependentes, e não existe nenhum uso em produção — o arquivo está genuinamente isolado, exatamente como o Blueprint original já indicava.
+4. **Nenhuma reutilização/adaptação/refatoração/extração de componentes deste arquivo para a Wave 4** — confirmado: o `EventPublisher`/`WorkflowRuntime` propostos na Seção 2 não referenciam `PMOWorkflow` em nenhum ponto; nascem inteiramente do levantamento da Seção 1, não deste arquivo.
+5. **Registrado no Decision Log (D-074) e no CHANGELOG.**
+6. **Gatilho de remoção futura registrado:** uma missão específica de limpeza arquitetural, com (a) ausência comprovada de dependências reconfirmada no momento da missão, (b) referências históricas (CLAUDE.md, Decision Log, este Blueprint) atualizadas para refletir a remoção, e (c) a remoção tratada como isolada — nunca acoplada à entrega de uma implementação funcional nova.
+
+**Restrição permanente confirmada:** proibida a coexistência de duas arquiteturas de workflow. O `WorkflowRuntime` desta Wave é a única arquitetura de workflow ativa em `src/workflows/`; `PMOWorkflow` é histórico, não ativo, não estendido.
+
+**Com esta decisão, o Wave 4 Domain Blueprint está autorizado a seguir para Architecture Review.**
+
 ---
 
 ## 7. Epic Ledger (sequenciamento, ciclo institucional completo por Epic)
