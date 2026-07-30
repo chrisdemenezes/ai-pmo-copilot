@@ -260,14 +260,41 @@ Nenhum destes exige alteração estrutural em `DomainService`, `KnowledgeReposit
 
 Cada Epic abaixo segue obrigatoriamente: Domain Blueprint (este documento cobre todos) → Architecture Review → Founder Approval → Technical Design → Implementation → Governance → Executive Review. Nenhum código inicia antes da aprovação explícita do Founder a este Blueprint e à Architecture Review subsequente.
 
+> **Nota de replanejamento (D-079, "Founder Decision — Wave 4 Epic Replanning"):** a tabela abaixo reflete o Ledger **após** o replanejamento decidido pelo Founder ao final da Executive Review do Epic W4-1. O Ledger original (vigente entre a aprovação deste Blueprint e a Executive Review do W4-1) atribuía a W4-2 "Event Dispatcher + Event Audit + Event Metrics" e a W4-5 "Retry Policies + Dead Letter Strategy" — texto preservado em §7.1 para rastreabilidade histórica, nunca reescrito silenciosamente.
+
+| Epic | Escopo | Depende de | Status |
+|---|---|---|---|
+| **W4-1** | Event Model (envelope) + Event Publisher + migração dos 5 eventos existentes de `DomainService` + **Event Dispatcher (pub/sub in-process) + Event Audit + Retry/Dead Letter mínimo** — escopo consolidado por replanejamento (D-079, §7.1) | Nenhum — primeiro Epic | **Concluído** (D-077; Executive Review aprovada, D-078) |
+| ~~W4-2~~ | ~~Event Dispatcher + Event Audit + Event Metrics~~ — **dissolvido como Epic independente** (D-079). Event Dispatcher e Event Audit consolidados no W4-1. Event Metrics classificado **Deferred — Awaiting First Consumer** (nenhuma rota, painel, Workflow Runtime ou Advisor o consome hoje) | — | **Dissolvido / Event Metrics Deferred** |
+| **W4-3** | `document.indexed` (Knowledge Platform) + `invitation.created` (Administration) — primeiros novos produtores reais | W4-1 | **Próximo Epic** (promovido por D-079) |
+| **W4-4** | Workflow Runtime + Workflow Context + Execution Tracking + workflow de exemplo mínimo (consumindo `document.indexed`) | W4-1, W4-3 | Not Started |
+| **W4-5** | Retry Policies + Dead Letter Strategy | W4-4 | Ver nota de sobreposição em §7.1 — não dissolvido nesta decisão, escopo a confirmar quando alcançado na sequência |
+| **W4-6** | Integration Contracts + Integration Gateway | W4-1 | Not Started |
+
+### 7.1 Replanejamento do Epic Ledger (2026-07-30, D-079 — "Founder Decision: Wave 4 Epic Replanning")
+
+**Achado que motivou o replanejamento:** a autorização do Founder à implementação do Epic W4-1 ("Founder Decision — Wave 4 Technical Design Approval") exigiu, como evidência obrigatória dentro do próprio W4-1, Retry e Dead Letter demonstrados com um handler real registrado no Dispatcher — o que exigiu construir o `EventDispatcher` e a persistência de Event Audit (tabela `events`) dentro do W4-1, ainda que o Epic Ledger original os tivesse atribuído a W4-2, e o Retry/Dead Letter a W4-5. O próprio sucesso da implementação do W4-1 tornou esses três itens entregues antes do Epic ao qual haviam sido originalmente atribuídos.
+
+**Decisão do Founder:** registrada como **replanejamento da Wave, não como alteração arquitetural** — nenhum componente novo foi introduzido por esta decisão, apenas a reclassificação de onde, no Ledger, um trabalho já concluído é contabilizado.
+
+1. Considerados oficialmente concluídos dentro do W4-1: Event Dispatcher; Event Audit; Retry Policies (mínimas); Dead Letter (mínimo).
+2. Escopo consolidado no Epic W4-1; Epic Ledger atualizado para refletir a realidade da plataforma (tabela acima).
+3. O Epic W4-2 deixa de existir como Epic independente.
+4. Event Metrics não implementado neste momento — classificado **Deferred — Awaiting First Consumer**: nenhum consumidor real identificado (nenhuma rota, nenhum painel, nenhum Workflow Runtime, nenhum Advisor, nenhuma necessidade operacional atual). Alinhado ao princípio institucional "implementar apenas capacidades sustentadas por casos reais de uso."
+5. W4-3 promovido a próximo Epic da Wave 4.
+
+**Nota de sobreposição não resolvida nesta decisão (registrada para transparência, não decidida unilateralmente):** o Epic Ledger original também atribuía "Retry Policies + Dead Letter Strategy" a W4-5, dependente de W4-4 (Workflow Runtime) — o mesmo texto agora listado como concluído dentro do W4-1 pela decisão do Founder acima. A decisão do Founder não se pronunciou explicitamente sobre a existência ou dissolução de W4-5; W4-5 permanece no Ledger, sem dissolução presumida por este documento. Quando a sequência alcançar W4-5, a confirmação de escopo desse Epic deverá esclarecer explicitamente se resta algum trabalho de Retry/Dead Letter específico do Workflow Runtime (ex.: retry de passo de workflow, distinto do retry de despacho de evento já implementado) ou se W4-5 também deve ser dissolvido/consolidado — decisão que cabe ao Founder no momento apropriado, não antecipada aqui.
+
+**Texto original do Ledger (preservado para rastreabilidade histórica, vigente entre D-076 e D-079):**
+
 | Epic | Escopo | Depende de |
 |---|---|---|
-| **W4-1** | Event Model (envelope) + Event Publisher + migração dos 5 eventos existentes de `DomainService` | Nenhum — primeiro Epic |
-| **W4-2** | Event Dispatcher (pub/sub in-process) + Event Audit + Event Metrics | W4-1 |
-| **W4-3** | `document.indexed` (Knowledge Platform) + `invitation.created` (Administration) — primeiros novos produtores reais | W4-1, W4-2 |
-| **W4-4** | Workflow Runtime + Workflow Context + Execution Tracking + workflow de exemplo mínimo (consumindo `document.indexed`) | W4-2, W4-3 |
-| **W4-5** | Retry Policies + Dead Letter Strategy | W4-4 |
-| **W4-6** | Integration Contracts + Integration Gateway | W4-1 (independente de W4-3/4/5, pode paralelizar após W4-2) |
+| W4-1 | Event Model (envelope) + Event Publisher + migração dos 5 eventos existentes de `DomainService` | Nenhum — primeiro Epic |
+| W4-2 | Event Dispatcher (pub/sub in-process) + Event Audit + Event Metrics | W4-1 |
+| W4-3 | `document.indexed` (Knowledge Platform) + `invitation.created` (Administration) — primeiros novos produtores reais | W4-1, W4-2 |
+| W4-4 | Workflow Runtime + Workflow Context + Execution Tracking + workflow de exemplo mínimo (consumindo `document.indexed`) | W4-2, W4-3 |
+| W4-5 | Retry Policies + Dead Letter Strategy | W4-4 |
+| W4-6 | Integration Contracts + Integration Gateway | W4-1 (independente de W4-3/4/5, pode paralelizar após W4-2) |
 
 ---
 
@@ -276,7 +303,7 @@ Cada Epic abaixo segue obrigatoriamente: Domain Blueprint (este documento cobre 
 | Critério do Founder | Onde é provado |
 |---|---|
 | Publicar eventos | W4-1 (Event Publisher) |
-| Consumir eventos | W4-2 (Event Dispatcher) |
+| Consumir eventos | W4-1 (Event Dispatcher, consolidado por replanejamento D-079) |
 | Executar workflows simples | W4-4 (Workflow Runtime, exemplo mínimo) |
 | Integrar módulos internos | W4-3 (Knowledge Platform + Administration como primeiros produtores reais fora de `DomainService`) |
 | Preservar rastreabilidade completa | 2.1 (envelope) + 2.6 (Execution Tracking) + 2.9 (Event Audit) |

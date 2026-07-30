@@ -898,3 +898,23 @@ Founder analisou o pacote de evidências do Epic W4-1 ("Founder Decision — Epi
 **Autorizado:** início do ciclo institucional do Epic W4-2 (confirmação do escopo → Technical Design, se exigido → Implementação → Testes → Governança → Executive Review). Nenhum Epic posterior antecipado.
 
 **Decision Log:** D-078.
+
+## Wave 4 Epic Replanning (2026-07-30): W4-2 dissolvido, escopo consolidado no W4-1, Event Metrics deferido, W4-3 promovido
+
+Founder decidiu o replanejamento do Epic Ledger da Wave 4 ("Founder Decision — Wave 4 Epic Replanning"), em resposta ao achado de reconciliação de escopo apresentado na Executive Review do W4-1. **Registrado como replanejamento da Wave, não como alteração arquitetural.**
+
+**Alterado**
+- `docs/architecture/WAVE-4-DOMAIN-BLUEPRINT.md` §7 (Epic Ledger) — atualizado para refletir a realidade da plataforma: Event Dispatcher, Event Audit e Retry/Dead Letter mínimo (originalmente atribuídos a W4-2/W4-5) reclassificados como concluídos dentro do W4-1; texto original do Ledger preservado em nova §7.1 para rastreabilidade histórica.
+
+**Decisão**
+- Epic W4-2 dissolvido como Epic independente.
+- Event Metrics classificado **Deferred — Awaiting First Consumer** (nenhum consumidor real: sem rota, painel, Workflow Runtime ou Advisor).
+- W4-3 (`document.indexed` + `invitation.created`) promovido a próximo Epic da Wave 4, dependendo apenas de W4-1.
+
+**Nota de sobreposição registrada, não resolvida nesta decisão:** o Ledger original também atribuía Retry/Dead Letter a W4-5 — mesmo texto agora consolidado no W4-1. O Founder não se pronunciou sobre a existência/dissolução de W4-5; permanece no Ledger, escopo a confirmar quando a sequência o alcançar.
+
+**Verificação:** missão de governança/documentação — nenhum código de produção alterado; `ruff check src tests`/`tsc`/`eslint` seguem limpos.
+
+**Próximo passo:** ciclo institucional do Epic W4-3 autorizado a iniciar, começando pela apresentação de escopo.
+
+**Decision Log:** D-079.

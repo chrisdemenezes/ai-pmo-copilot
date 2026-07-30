@@ -744,6 +744,21 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-079 — Wave 4 Epic Replanning: W4-2 dissolvido, escopo consolidado no W4-1, Event Metrics deferido, W4-3 promovido
+
+- **Contexto:** em resposta ao achado de reconciliação de escopo apresentado ao final da Executive Review do Epic W4-1 (D-078) — Event Dispatcher, Event Audit e Retry/Dead Letter, originalmente atribuídos pelo Epic Ledger a W4-2/W4-5, já entregues dentro do W4-1 por exigência textual da própria autorização do Founder — o Founder decidiu replanejar o Epic Ledger da Wave 4 ("Founder Decision — Wave 4 Epic Replanning"). **Registrada explicitamente como um replanejamento da Wave, não como alteração arquitetural** — nenhum componente novo foi introduzido, apenas a reclassificação de onde um trabalho já concluído é contabilizado no Ledger.
+- **Decisão:**
+  1. Considerados oficialmente concluídos dentro do W4-1: Event Dispatcher; Event Audit; Retry Policies (mínimas); Dead Letter (mínimo).
+  2. Escopo consolidado no Epic W4-1; `WAVE-4-DOMAIN-BLUEPRINT.md` §7 (Epic Ledger) atualizado para refletir a realidade da plataforma — texto original preservado em §7.1 para rastreabilidade histórica, nunca reescrito silenciosamente.
+  3. O Epic W4-2 deixa de existir como Epic independente.
+  4. Event Metrics não implementado neste momento — classificado **Deferred — Awaiting First Consumer**: nenhum consumidor real identificado (nenhuma rota, nenhum painel, nenhum Workflow Runtime, nenhum Advisor, nenhuma necessidade operacional atual). Alinhado ao princípio institucional "implementar apenas capacidades sustentadas por casos reais de uso."
+  5. W4-3 (`document.indexed` + `invitation.created`) promovido a próximo Epic da Wave 4, dependendo apenas de W4-1 (a dependência anterior de W4-2 é removida, já que o Dispatcher que W4-3 precisaria consumir já existe dentro do W4-1).
+- **Nota de sobreposição não resolvida nesta decisão (transparência, não decidida unilateralmente):** o Epic Ledger original também atribuía "Retry Policies + Dead Letter Strategy" a W4-5 (dependente de W4-4/Workflow Runtime) — o mesmo texto agora consolidado no W4-1 por esta decisão. O Founder não se pronunciou explicitamente sobre a existência/dissolução de W4-5; W4-5 permanece no Ledger sem dissolução presumida. Quando a sequência alcançar W4-5, a confirmação de escopo desse Epic deverá esclarecer se resta trabalho de Retry/Dead Letter específico do Workflow Runtime (retry de passo de workflow, distinto do retry de despacho de evento já implementado) ou se W4-5 também deve ser dissolvido — decisão do Founder no momento apropriado, não antecipada aqui.
+- **Verificação:** missão de governança/documentação — nenhum código de produção alterado; `ruff check src tests` e `tsc`/`eslint` do frontend seguem limpos (nenhum arquivo de código tocado nesta missão).
+- **Missão:** Wave 4 Epic Replanning — concluído. Ciclo institucional do Epic W4-3 autorizado a iniciar, começando pela apresentação de escopo (objetivo, problema real, produtores/consumidores, escopo autorizado, fora de escopo, critérios de sucesso, riscos, plano de implementação).
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.
