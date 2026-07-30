@@ -885,3 +885,16 @@ Founder aprovou o Technical Design ("Founder Decision — Wave 4 Technical Desig
 **Próximo passo:** ciclo institucional retorna para Executive Review antes da autorização do Epic W4-2, per determinação explícita do Founder.
 
 **Decision Log:** D-077.
+
+## Executive Review — Epic W4-1 (2026-07-30): aprovado (GO), harmonização documental, ciclo do Epic W4-2 aberto
+
+Founder analisou o pacote de evidências do Epic W4-1 ("Founder Decision — Epic W4-1 Executive Review") e emitiu veredito **APPROVED — GO**. Epic W4-1 formalmente encerrado.
+
+**Alterado**
+- `docs/architecture/TECHNICAL-DESIGN-WAVE-4-ENTERPRISE-OPERATIONS.md` §2 — harmonizado com o comportamento efetivamente implementado (reaproveitamento de `RequestIDMiddleware`/`request_id_var`/`RequestContext.request_id`, em vez do campo/gerador `RequestContext.correlation_id` descrito no documento original). Correção documental, sem nova decisão arquitetural e sem alteração de código.
+
+**Achado de reconciliação de escopo, apresentado ao Founder antes do Technical Design do Epic W4-2:** o Epic Ledger original (`WAVE-4-DOMAIN-BLUEPRINT.md` §7) atribuía Event Dispatcher + Event Audit a W4-2 e Retry/Dead Letter a W4-5 — mas a própria autorização do Founder ao W4-1 exigiu Retry/Dead Letter como evidência obrigatória já dentro do W4-1. Os três componentes já foram entregues no W4-1; o escopo remanescente de W4-2 é apenas Event Metrics.
+
+**Autorizado:** início do ciclo institucional do Epic W4-2 (confirmação do escopo → Technical Design, se exigido → Implementação → Testes → Governança → Executive Review). Nenhum Epic posterior antecipado.
+
+**Decision Log:** D-078.

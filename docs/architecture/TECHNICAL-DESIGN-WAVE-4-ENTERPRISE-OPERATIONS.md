@@ -53,17 +53,19 @@ Os 5 eventos hoje emitidos por `DomainService` continuam sendo os únicos produt
 
 ## 2. Condição 2 — Origem do `correlation_id` (regra única para toda a plataforma)
 
+> **Nota de harmonização documental (pós-Implementação, Executive Review do Epic W4-1, D-078):** as subseções 2.1-2.3 abaixo descreviam, no momento da aprovação deste Technical Design, um novo campo `RequestContext.correlation_id` e um novo ponto de geração de `uuid4()`/header `X-Correlation-Id`. A auditoria de implementação (D-077) encontrou que a plataforma **já possuía**, desde antes desta Wave, exatamente o mecanismo de origem única aqui exigido — `RequestIDMiddleware`/`request_id_var` (`src/api/request_context.py`), já propagado em `RequestContext.request_id` (gerado via `uuid4()` ou aceito via header `X-Request-ID`). Introduzir um segundo campo/gerador teria violado a própria exigência de origem única. O texto abaixo foi atualizado para refletir o comportamento efetivamente implementado; nenhuma nova decisão arquitetural foi criada por esta atualização — apenas a harmonização do documento com D-077.
+
 ### 2.1 Onde é criado
 
-No único funil já usado por toda rota para resolver identidade/sessão/organização: `get_request_context` (`src/api/identity_context.py`). Nenhum novo ponto de entrada é criado — reaproveita a mesma dependência que já injeta `organization_id`/`actor_user_id` em toda rota protegida.
+No único funil já usado por toda rota para resolver identidade/sessão/organização/correlação: `RequestIDMiddleware` (`src/api/request_context.py`), que roda para toda requisição HTTP, anterior e independente desta Wave. Nenhum novo ponto de entrada foi criado.
 
 ### 2.2 Quem é responsável pela criação
 
-`RequestContext` ganha um campo `correlation_id: str`. `get_request_context` gera um `uuid4()` sempre que a requisição não traz um `X-Correlation-Id` (header opcional, aceito para permitir que um chamador externo já correlacionado propague o próprio identificador — nunca obrigatório). Esta é a **única** regra de origem de `correlation_id` em toda a STRATECH: nenhum outro componente (serviço, repositório, Advisor) gera um `correlation_id` por conta própria.
+`RequestIDMiddleware` gera um `uuid4()` sempre que a requisição não traz um `X-Request-ID` (header já existente, aceito desde antes desta Wave para permitir que um chamador externo já correlacionado propague o próprio identificador — nunca obrigatório), armazenando o valor no `request_id_var` (`contextvars.ContextVar`) e ecoando-o no header de resposta. `RequestContext.request_id` (campo já existente, não um novo campo `correlation_id`) expõe esse valor a toda rota via `get_request_context`. Esta é a **única** regra de origem de identificador de correlação em toda a STRATECH: nenhum outro componente (serviço, repositório, Advisor) gera um identificador equivalente por conta própria.
 
 ### 2.3 Como é propagado durante toda a execução
 
-Por parâmetro explícito, exatamente como `organization_id`/`actor_user_id` já são propagados hoje — nenhum mecanismo novo (nenhum `contextvar`, nenhum thread-local, nenhuma "mágica" implícita). A rota extrai `correlation_id` de `RequestContext` e o passa para o método de serviço (`DomainService.create_portfolio(..., correlation_id=context.correlation_id)`), que o repassa ao `EventPublisher.publish(...)`.
+Por parâmetro explícito, exatamente como `organization_id`/`actor_user_id` já são propagados hoje — nenhum mecanismo novo além do `request_id_var` já existente. A rota extrai `request_id` de `RequestContext` e o passa como `correlation_id` para o método de serviço (`DomainService.create_portfolio(..., correlation_id=context.request_id)`), que o repassa ao `EventPublisher.publish(...)`.
 
 **Caso do Workflow Runtime (Epic W4-4):** todo workflow desta Wave é disparado por um evento (per Blueprint §2.5/§4 — nenhum trigger manual ou agendado existe no escopo atual). `WorkflowContext.correlation_id` é sempre herdado do `DomainEvent.correlation_id` que disparou o workflow — nunca cunhado de novo. Isso preserva a regra única (a fronteira da API é a única origem) sem exceção dentro do escopo real desta Wave.
 
@@ -156,7 +158,7 @@ Uma única migração Alembic aditiva (numeração sequencial seguindo `0017`), 
 
 ```
 POST /portfolios
-  → get_request_context() gera correlation_id (Condição 2)
+  → RequestIDMiddleware/request_id_var resolve o correlation_id (Condição 2, atualizada pós-implementação -- D-077/D-078)
   → DomainService.create_portfolio(..., correlation_id=...)
        → repository write
        → EventPublisher.publish("portfolio.created", ..., correlation_id, origin="domain_service")
