@@ -849,3 +849,39 @@ Founder aprovou a AR-7 ("Founder Decision — Wave 4 Architecture Review Approva
 **Próximo passo:** aprovação explícita do Founder a este Technical Design antes de qualquer implementação do Epic W4-1.
 
 **Decision Log:** D-076.
+
+## Wave 4 — Epic W4-1 (2026-07-30): Event Model + Event Publisher, migração atômica concluída
+
+Founder aprovou o Technical Design ("Founder Decision — Wave 4 Technical Design Approval") e autorizou a implementação do Epic W4-1, com 6 critérios obrigatórios e lista de evidências ao final.
+
+**Removido**
+- `src/services/events/interfaces.py::EventEmitter` (Protocol, Wave 1, D-049) e `src/services/events/noop_emitter.py::NoOpEventEmitter` — removidos definitivamente, sem período de coexistência com a nova abstração.
+
+**Adicionado**
+- `src/services/events/interfaces.py::DomainEvent` — envelope único (frozen dataclass) com os 6 campos exigidos (event_id, event_type, correlation_id, timestamp, organization_id-como-tenant, origin, payload_version) mais payload; `EventPublisher` Protocol (`publish(...) -> DomainEvent`).
+- `src/services/events/in_process_publisher.py::InProcessEventPublisher` — implementação real: persiste o envelope em `events` (Event Audit) e despacha via `EventDispatcher`.
+- `src/services/events/dispatcher.py::EventDispatcher` — pub/sub in-process, tabela de despacho fixa por `event_type`; Retry/Dead Letter mínimo (`MAX_ATTEMPTS = 3`, síncrono, sem backoff, sem fila; `dead_letter_events` gravado só após a 3ª falha; falha de despacho nunca propaga ao chamador).
+- `alembic/versions/0018_wave4_event_publisher.py` — migração aditiva: cria `events` e `dead_letter_events`. `workflow_executions` (Execution Tracking) deliberadamente não criado — pertence ao Workflow Runtime, Epic W4-4, ainda inexistente.
+- `tests/test_events_in_process_publisher.py` (3 casos), `tests/test_events_dispatcher.py` (5 casos), `tests/test_migration_0018_wave4_event_publisher.py` (upgrade/downgrade/re-upgrade em PostgreSQL real).
+
+**Alterado**
+- `src/services/domain_service.py` — construtor recebe `publisher: EventPublisher`; `create_portfolio`/`create_program`/`create_project` recebem `correlation_id: str` explícito e publicam via `.publish(...)` em vez de `.emit(...)`.
+- `src/api/dependencies.py` — `build_event_publisher()` substitui `build_event_emitter()`.
+- `src/api/routes/portfolio.py`, `program.py`, `project_delivery.py` — rotas de criação passam `correlation_id=context.request_id`.
+- `tests/test_domain_service.py`, `tests/test_portfolio_api.py`, `tests/test_program_api.py`, `tests/test_project_delivery_api.py`, `tests/test_administration_api.py` — migrados para `InProcessEventPublisher`/`EventDispatcher`.
+
+**Achado de implementação (refinamento do Technical Design, não um desvio de escopo):** a plataforma já possui, desde antes desta Wave, um mecanismo de origem única de correlação — `RequestIDMiddleware`/`request_id_var`, já propagado em `RequestContext.request_id`. Em vez de introduzir um segundo gerador de `correlation_id` (o que violaria "nunca duplicar código" e o próprio critério do Founder de "única origem"), a implementação reusa `context.request_id` diretamente. `DomainService` nunca cunha um `correlation_id` — apenas propaga o que recebe.
+
+**Compatibilidade funcional confirmada:** os 5 `event_type` existentes (`portfolio.created`, `program.created`, `program.linked_to_portfolio`, `project_delivery.created`, `project_delivery.linked_to_program`) permanecem idênticos; suíte de API pré-existente (69 casos) roda sem alteração de asserção de comportamento.
+
+**Busca global confirmando remoção completa:** zero `.emit(` em `src/`/`tests/`; zero `import EventEmitter`; zero `from src.services.events.noop_emitter`. Únicas menções restantes são comentários/docstrings históricos.
+
+**Restrições permanentes confirmadas ausentes:** nenhum broker, fila externa, registry dinâmico, engine genérica, plugin, DSL ou infraestrutura baseada em hipótese futura.
+
+**Verificação:** `ruff check src tests` limpo; suíte de testes backend completa (503 testes) passando.
+
+**Recomendação Go/No-Go para o Epic W4-2:** GO.
+
+**Próximo passo:** ciclo institucional retorna para Executive Review antes da autorização do Epic W4-2, per determinação explícita do Founder.
+
+**Decision Log:** D-077.

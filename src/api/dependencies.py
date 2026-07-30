@@ -11,8 +11,9 @@ via `@lru_cache`.
 from functools import lru_cache
 
 from src.database.repository import AnalysisRepository
-from src.services.events.interfaces import EventEmitter
-from src.services.events.noop_emitter import NoOpEventEmitter
+from src.services.events.dispatcher import EventDispatcher
+from src.services.events.in_process_publisher import InProcessEventPublisher
+from src.services.events.interfaces import EventPublisher
 from src.services.notifications.interfaces import NotificationProvider
 from src.services.notifications.noop_provider import NoOpNotificationProvider
 
@@ -23,13 +24,18 @@ def build_repository() -> AnalysisRepository:
 
 
 @lru_cache
-def build_event_emitter() -> EventEmitter:
-    return NoOpEventEmitter()
+def build_event_publisher() -> EventPublisher:
+    # Wave 4, Enterprise Operations, Epic W4-1 (D-076): the platform's sole
+    # event publishing infrastructure -- replaces EventEmitter/
+    # NoOpEventEmitter (Wave 1, D-049), migrated atomically, never
+    # coexisting with it.
+    repository = build_repository()
+    return InProcessEventPublisher(repository.SessionLocal, EventDispatcher(repository.SessionLocal))
 
 
 @lru_cache
 def build_notification_provider() -> NotificationProvider:
     # Item 6 (Convites, D-054): the delivery seam. NoOp today -- no concrete
     # SMTP/SES provider is chosen; the invitation token is returned once at
-    # creation for manual delivery. Same pattern as build_event_emitter.
+    # creation for manual delivery. Same pattern as build_event_publisher.
     return NoOpNotificationProvider()

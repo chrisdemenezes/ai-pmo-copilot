@@ -121,6 +121,7 @@ def create_program(
         request.name,
         request.code,
         actor_user_id=context.user.user_id,
+        correlation_id=context.request_id,
         **fields,
     )
     if program is None:

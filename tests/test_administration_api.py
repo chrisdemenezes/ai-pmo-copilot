@@ -545,10 +545,11 @@ class TestAuditLog:
 
         from src.api.routes import portfolio as portfolio_routes
         from src.services.domain_service import DomainService
-        from src.services.events.noop_emitter import NoOpEventEmitter
+        from src.services.events.dispatcher import EventDispatcher
+        from src.services.events.in_process_publisher import InProcessEventPublisher
 
         app.dependency_overrides[portfolio_routes.build_domain_service] = (
-            lambda: DomainService(repo, NoOpEventEmitter())
+            lambda: DomainService(repo, InProcessEventPublisher(repo.SessionLocal, EventDispatcher(repo.SessionLocal)))
         )
         try:
             create_response = test_client.post(

@@ -448,3 +448,47 @@ class MemoryRecord(Base):
     document_id = Column(Integer, ForeignKey("documents.id"), nullable=False, index=True)
     category = Column(String(20), nullable=False)
     created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
+
+
+class EventRecord(Base):
+    """Wave 4, Enterprise Operations, Epic W4-1 -- Event Audit: the durable
+    envelope of every event published via `EventPublisher`
+    (`docs/architecture/TECHNICAL-DESIGN-WAVE-4-ENTERPRISE-OPERATIONS.md`
+    §5.3). Distinct from `AuditLog` (domain mutation audit, Wave 2) --
+    this table answers "what facts were published", never a replacement
+    for domain auditing. `event_id` is the envelope's own identifier
+    (UUID), not the table's primary key surrogate."""
+
+    __tablename__ = "events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    event_id = Column(String(36), nullable=False, unique=True, index=True)
+    event_type = Column(String(100), nullable=False, index=True)
+    correlation_id = Column(String(64), nullable=False, index=True)
+    timestamp = Column(DateTime(timezone=True), nullable=False)
+    organization_id = Column(
+        Integer, ForeignKey("organizations.id"), nullable=False, index=True
+    )
+    origin = Column(String(100), nullable=False)
+    payload_version = Column(Integer, nullable=False)
+    payload = Column(JSON, nullable=False)
+
+
+class DeadLetterEvent(Base):
+    """Wave 4, Enterprise Operations, Epic W4-1 -- minimal Dead Letter
+    Strategy (Technical Design §4): a published event whose dispatch to a
+    registered handler failed `MAX_ATTEMPTS` times. No automatic
+    reprocessing, no administrative interface -- inspection is direct
+    database query only, per the Founder's explicit restriction."""
+
+    __tablename__ = "dead_letter_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    event_id = Column(String(36), ForeignKey("events.event_id"), nullable=False, index=True)
+    organization_id = Column(
+        Integer, ForeignKey("organizations.id"), nullable=False, index=True
+    )
+    correlation_id = Column(String(64), nullable=False, index=True)
+    attempts = Column(Integer, nullable=False)
+    last_error = Column(String(2000), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
