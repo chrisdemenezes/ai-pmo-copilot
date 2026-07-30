@@ -16,6 +16,9 @@ from src.services.events.in_process_publisher import InProcessEventPublisher
 from src.services.events.interfaces import EventPublisher
 from src.services.notifications.interfaces import NotificationProvider
 from src.services.notifications.noop_provider import NoOpNotificationProvider
+from src.workflows import document_indexed_workflow
+from src.workflows.execution_tracking import ExecutionTracker
+from src.workflows.runtime import WorkflowRuntime
 
 
 @lru_cache
@@ -30,7 +33,14 @@ def build_event_publisher() -> EventPublisher:
     # NoOpEventEmitter (Wave 1, D-049), migrated atomically, never
     # coexisting with it.
     repository = build_repository()
-    return InProcessEventPublisher(repository.SessionLocal, EventDispatcher(repository.SessionLocal))
+    dispatcher = EventDispatcher(repository.SessionLocal)
+    # Epic W4-4: the single authorized example workflow, registered as an
+    # ordinary handler -- the Dispatcher above is never modified to know
+    # about it. WorkflowRuntime/ExecutionTracker own the workflow_executions
+    # lifecycle entirely on their own.
+    runtime = WorkflowRuntime(ExecutionTracker(repository.SessionLocal))
+    document_indexed_workflow.register(dispatcher, runtime)
+    return InProcessEventPublisher(repository.SessionLocal, dispatcher)
 
 
 @lru_cache

@@ -492,3 +492,34 @@ class DeadLetterEvent(Base):
     attempts = Column(Integer, nullable=False)
     last_error = Column(String(2000), nullable=False)
     created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
+
+
+class WorkflowExecution(Base):
+    """Wave 4, Enterprise Operations, Epic W4-4 -- Execution Tracking
+    (Technical Design §3/§12). Answers "what processes ran, and how" --
+    distinct from `EventRecord` (Event Audit, "what facts were published").
+    `WorkflowRuntime` is the only component aware of this table
+    (`src/workflows/execution_tracking.py::ExecutionTracker`); `EventDispatcher`
+    never reads or writes it (Founder's explicit separation principle).
+
+    `UNIQUE(event_id, workflow_name)` is the idempotency key (§12.4): the
+    same event redispatched by `EventDispatcher`'s own synchronous retry
+    reuses this row (upsert) instead of inserting a second one -- enforced
+    at the database, not only in application code."""
+
+    __tablename__ = "workflow_executions"
+    __table_args__ = (
+        UniqueConstraint("event_id", "workflow_name", name="uq_workflow_executions_event_workflow"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    event_id = Column(String(36), ForeignKey("events.event_id"), nullable=False, index=True)
+    workflow_name = Column(String(200), nullable=False)
+    organization_id = Column(
+        Integer, ForeignKey("organizations.id"), nullable=False, index=True
+    )
+    correlation_id = Column(String(64), nullable=False, index=True)
+    status = Column(String(20), nullable=False)
+    started_at = Column(DateTime(timezone=True), nullable=False)
+    finished_at = Column(DateTime(timezone=True), nullable=True)
+    error = Column(String(500), nullable=True)

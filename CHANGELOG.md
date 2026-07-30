@@ -962,3 +962,32 @@ Founder aprovou a apresentação de escopo do Epic W4-4 e autorizou o Technical 
 **Próximo passo:** nenhuma implementação iniciada — aguarda aprovação do Founder a este Technical Design.
 
 **Decision Log:** D-081.
+
+## Wave 4 — Epic W4-4 (2026-07-30): Workflow Runtime + Execution Tracking
+
+Founder submeteu o Technical Design à Executive Review e aprovou a implementação ("Founder Decision — Epic W4-4 Technical Design Approval"), reafirmando 14 decisões arquiteturais e exigindo evidências específicas.
+
+**Adicionado**
+- `src/database/models.py::WorkflowExecution` (`workflow_executions`) — `UNIQUE(event_id, workflow_name)` como constraint de banco.
+- `alembic/versions/0019_wave4_workflow_executions.py` — migração aditiva.
+- `src/workflows/execution_tracking.py::ExecutionTracker` — único componente ciente de `workflow_executions`; upsert atômico (`INSERT ... ON CONFLICT DO UPDATE`, nunca SELECT-then-INSERT); `sanitize_error()` (tipo+mensagem truncados, nunca stack trace/payload).
+- `src/workflows/runtime.py::WorkflowRuntime`/`WorkflowContext`/`WorkflowStep` — `WorkflowContext` só construído a partir do `DomainEvent` recebido (correlation_id herdado de forma estrutural); em falha, registra `failed` e relança a exceção original sem mascarar.
+- `src/workflows/document_indexed_workflow.py` — o único workflow autorizado (`document.indexed` → 1 passo no-op → Execution Tracking), registrado como handler comum no `EventDispatcher`.
+- Testes: `test_workflow_runtime.py` (9 casos), `test_document_indexed_workflow.py` (2 casos, cadeia completa + Dead Letter), `test_migration_0019_wave4_workflow_executions.py` (round-trip + constraint única).
+
+**Alterado**
+- `src/api/dependencies.py::build_event_publisher()` — constrói `WorkflowRuntime`/`ExecutionTracker`, registra o workflow no `EventDispatcher` compartilhado, antes de retornar o `InProcessEventPublisher`.
+
+**Confirmado — `src/services/events/dispatcher.py` com zero linhas alteradas** (`git diff` vazio): o `EventDispatcher` do W4-1 nunca conhece `workflow_executions`, nunca conhece estados de workflow, apenas despacha. `WorkflowRuntime` é o único dono de `running`/`completed`/`failed`.
+
+**Comportamento observado (per especificação do Founder):** falha total produz dois registros independentes — `dead_letter_events` (Dispatcher, W4-1) e `workflow_executions.status="failed"` (Runtime, W4-4) — nenhum lê/escreve a tabela do outro. Reexecução (retry síncrono do Dispatcher) reutiliza a mesma linha de execução, nunca duplica.
+
+**Restrições permanentes confirmadas ausentes:** Event Metrics, Advisors, Integration Gateway, filas/brokers, DSL, Workflow Designer, automação genérica, workflows multi-passo, compensações, reprocessamento posterior, histórico de tentativas, nova política de Retry/Dead Letter.
+
+**Verificação:** `ruff check src tests` limpo; suíte de testes backend completa verde (520 passed).
+
+**Recomendação Go/No-Go:** GO para o encerramento do Epic.
+
+**Próximo passo:** ciclo institucional retorna para Executive Review antes de qualquer Epic posterior.
+
+**Decision Log:** D-082.
