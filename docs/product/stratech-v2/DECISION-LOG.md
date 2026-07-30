@@ -777,6 +777,23 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-081 — Technical Design do Epic W4-4 produzido: Workflow Runtime + Execution Tracking, política de idempotência definida
+
+- **Contexto:** o Founder aprovou a apresentação de escopo do Epic W4-4 ("Founder Decision — Epic W4-4 Scope Approval") e autorizou o Technical Design, com 4 exigências: (1) confirmar D-079 — o workflow mínimo de exemplo é apenas `document.indexed → Workflow Runtime → Execution Tracking`, sem métrica/analytics; (2) fixar como princípio arquitetural que `EventDispatcher` permanece completamente agnóstico ao Workflow Runtime (não conhece `workflow_executions`, não conhece estados, não atualiza status — apenas despacha); o `WorkflowRuntime` é o único responsável por registrar `running`/`completed`/`failed`; (3) documentar (sem implementar) a política de idempotência do Workflow Runtime; (4) reafirmar as restrições permanentes. **Nenhum código foi escrito nesta missão.**
+- **Decisão (documental):** `docs/architecture/TECHNICAL-DESIGN-WAVE-4-ENTERPRISE-OPERATIONS.md` §12 produzido, cobrindo:
+  - **Escopo confirmado:** `document.indexed → WorkflowRuntime → Execution Tracking`, um único passo, sem métrica.
+  - **Separação Dispatcher/Runtime:** `EventDispatcher` (W4-1) permanece byte-a-byte inalterado — é invocado como handler comum, sem qualquer conhecimento de `workflow_executions`. Falha total produz dois registros independentes de dois donos diferentes (`dead_letter_events` pelo Dispatcher; `workflow_executions.status="failed"` pelo Runtime) — nenhum lê/escreve na tabela do outro.
+  - **Contratos públicos:** `WorkflowContext` (frozen dataclass), `WorkflowStep` (Protocol), `WorkflowRuntime.run(workflow_name, steps, triggering_event: DomainEvent) -> WorkflowContext` — `WorkflowContext` só pode ser construído a partir do `DomainEvent` disparador dentro de `run()`, tornando a herança de `correlation_id` estrutural, não apenas convencionada.
+  - **Política de idempotência:** chave de identificação = par `(event_id, workflow_name)` (não `correlation_id` isolado — `event_id` é o UUID cunhado uma única vez por evento no W4-1). Reexecução (o próprio retry síncrono do `EventDispatcher`, até `MAX_ATTEMPTS=3`, nunca reprocessamento posterior) faz upsert na mesma linha por essa chave — nunca insere uma segunda linha; seguro porque os passos são funções puras sem efeito colateral externo (Blueprint §2.5). Constraint única `(event_id, workflow_name)` como garantia de última linha no banco. Um novo evento (mesmo `event_type`) sempre gera `event_id` novo, logo sempre gera nova execução, corretamente distinta.
+  - **Migração:** reaproveita `workflow_executions` já definida na Condição 3 (§3), adicionando a constraint única `(event_id, workflow_name)` exigida pela idempotência.
+  - **Restrições permanentes reafirmadas:** nenhuma regra de negócio em passo de workflow, nenhuma métrica/analytics, nenhum Advisor, nenhum Integration Gateway, nenhuma infraestrutura distribuída, nenhuma abstração além de `WorkflowRuntime`/`WorkflowContext`/`ExecutionTracker`, nenhuma alteração ao `EventDispatcher`.
+  - **Riscos residuais registrados:** dependência direta de `WorkflowRuntime` ao contrato público `DomainEvent` (reuso, não abstração nova); ausência de consumidor de produção para `document.indexed` (achado já registrado em D-080, prova continuará sendo por teste); a política de idempotência não foi validada contra um workflow futuro de múltiplos passos com efeito colateral real — fora do escopo autorizado deste Epic.
+- **Verificação:** missão documental — nenhum arquivo de `src/`/`tests/` alterado; `ruff check src tests` confirmado limpo.
+- **Recomendação Go/No-Go para a implementação:** GO, condicionado à aprovação explícita do Founder a este Technical Design (Executive Review).
+- **Missão:** Technical Design do Epic W4-4 — concluído. Nenhuma implementação iniciada. Aguarda aprovação explícita do Founder antes de qualquer código.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.

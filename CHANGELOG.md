@@ -947,3 +947,18 @@ Founder aprovou a apresentação de escopo do Epic W4-3 e autorizou implementaç
 **Próximo passo:** ciclo institucional retorna para Executive Review antes da autorização do próximo Epic.
 
 **Decision Log:** D-080.
+
+## Wave 4 — Technical Design do Epic W4-4 (2026-07-30): Workflow Runtime + Execution Tracking, idempotência definida
+
+Founder aprovou a apresentação de escopo do Epic W4-4 e autorizou o Technical Design, com 4 exigências: confirmar D-079 (workflow sem métrica), fixar a separação Dispatcher/Runtime como princípio arquitetural, documentar a política de idempotência, reafirmar restrições permanentes. **Missão documental — nenhum código escrito.**
+
+**Adicionado**
+- `docs/architecture/TECHNICAL-DESIGN-WAVE-4-ENTERPRISE-OPERATIONS.md` §12 — escopo confirmado (`document.indexed → WorkflowRuntime → Execution Tracking`, um único passo, sem métrica); princípio de separação (`EventDispatcher` permanece agnóstico e byte-a-byte inalterado, `WorkflowRuntime` é o único dono de `running`/`completed`/`failed`); contratos públicos (`WorkflowContext`, `WorkflowStep`, `WorkflowRuntime.run(workflow_name, steps, triggering_event) -> WorkflowContext`); política de idempotência (chave `(event_id, workflow_name)`, upsert seguro porque os passos são funções puras, constraint única no banco); migração (constraint adicional em `workflow_executions`); restrições permanentes reafirmadas; riscos residuais.
+
+**Verificação:** `ruff check src tests` limpo; nenhum arquivo de código alterado.
+
+**Recomendação Go/No-Go:** GO para a implementação, condicionado à aprovação explícita do Founder (Executive Review).
+
+**Próximo passo:** nenhuma implementação iniciada — aguarda aprovação do Founder a este Technical Design.
+
+**Decision Log:** D-081.

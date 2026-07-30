@@ -236,3 +236,96 @@ Founder aprovou implementação direta (sem Technical Design específico) — re
 - `invitation.created`: `{invitation_id: int, email: str, role_name: str}` — nunca o token, seu hash, ou qualquer URL de aceite.
 
 **6. Comportamento em caso de falha de publicação:** inalterado em relação à política já implementada no W4-1 — `EventDispatcher._dispatch_to_handler` já absorve falha de handler (retry até `MAX_ATTEMPTS=3`, depois `dead_letter_events`), e uma falha de despacho nunca propaga ao chamador (o write da operação principal já teve sucesso). Nenhum tratamento paralelo foi criado para este Epic.
+
+---
+
+## 12. Technical Design — Epic W4-4 (Workflow Runtime + Execution Tracking)
+
+**Escopo:** detalhamento de implementação do Epic W4-4, autorizado pelo Founder em "Founder Decision — Epic W4-4 Scope Approval", que confirmou D-079 (workflow mínimo sem métrica), fixou a separação de responsabilidade Dispatcher/Runtime como princípio arquitetural, e exigiu que este documento resolva a política de idempotência antes de qualquer implementação. **Nenhum código é escrito nesta missão.**
+
+### 12.1 Escopo confirmado (per aprovação do Founder)
+
+`document.indexed` → `WorkflowRuntime` → Execution Tracking. Um único passo, sem métrica, sem analytics, sem regra de negócio. Nenhum handler adicional, nenhum segundo workflow.
+
+### 12.2 Princípio arquitetural: separação Dispatcher/Runtime (fixado pelo Founder)
+
+`EventDispatcher` permanece exatamente como implementado no W4-1 — **nenhuma alteração de código está prevista neste Epic**. O Dispatcher:
+- não conhece `workflow_executions`;
+- não conhece estados de workflow (`running`/`completed`/`failed`);
+- não escreve em nenhuma tabela de execução;
+- apenas invoca o handler registrado para o `event_type`, com seu próprio retry (`MAX_ATTEMPTS=3`) e seu próprio `dead_letter_events` — exatamente como já faz hoje para qualquer handler, sem saber que este handler específico é um Workflow Runtime.
+
+`WorkflowRuntime` é registrado como **um handler comum** de `EventDispatcher` para `document.indexed` (`dispatcher.register("document.indexed", <função que invoca WorkflowRuntime.run(...)>)`) — do ponto de vista do Dispatcher, é indistinguível de qualquer outro handler. Toda a responsabilidade de registrar `running`/`completed`/`failed` em `workflow_executions` pertence exclusivamente ao `WorkflowRuntime`. Se o `WorkflowRuntime` levanta uma exceção (falha de um passo), o Dispatcher a captura como faria com qualquer handler — reage com seu próprio retry, sem jamais escrever ou ler `workflow_executions`.
+
+Consequência observável: uma falha total (3 tentativas do Dispatcher esgotadas) produz **dois registros independentes, de dois donos diferentes** — `dead_letter_events` (escrito pelo Dispatcher, per política do W4-1, inalterada) e `workflow_executions.status = "failed"` (escrito pelo `WorkflowRuntime`, per §12.4 abaixo). Nenhum dos dois componentes lê ou escreve na tabela do outro.
+
+### 12.3 Contratos públicos
+
+```python
+@dataclass(frozen=True)
+class WorkflowContext:
+    correlation_id: str      # sempre herdado do DomainEvent -- nunca construído fora de WorkflowRuntime.run()
+    organization_id: int     # herdado do DomainEvent
+    payload: dict            # o payload do DomainEvent (ex.: document.indexed -> {document_id, version_id, chunk_count})
+
+
+class WorkflowStep(Protocol):
+    def __call__(self, context: WorkflowContext) -> WorkflowContext: ...
+
+
+class WorkflowRuntime:
+    def __init__(self, session_factory: sessionmaker, execution_tracker: ExecutionTracker): ...
+
+    def run(
+        self,
+        workflow_name: str,
+        steps: list[WorkflowStep],
+        triggering_event: DomainEvent,
+    ) -> WorkflowContext:
+        """`WorkflowContext` é construído aqui, exclusivamente a partir de
+        `triggering_event` -- nenhum outro ponto de entrada existe para
+        criar um WorkflowContext, o que torna a herança de correlation_id
+        estrutural (impossível de contornar por engano), não apenas uma
+        convenção documentada."""
+```
+
+`ExecutionTracker` (`src/workflows/execution_tracking.py`, per estrutura de diretórios já definida em §5.1) é a única classe ciente de `workflow_executions` — mesmo padrão de fachada única já usado por `KnowledgeRepository`/`IntegrationGateway`. `WorkflowRuntime` nunca escreve SQL diretamente.
+
+### 12.4 Política de idempotência (exigência explícita do Founder)
+
+**Identificação de execuções:** chave de idempotência é o par **(`triggering_event.event_id`, `workflow_name`)** — não o `correlation_id` isoladamente. Justificativa: `event_id` é um UUID cunhado uma única vez por `InProcessEventPublisher.publish()` no momento da publicação (W4-1) — é o identificador mais preciso de "esta ocorrência específica do evento", enquanto `correlation_id` identifica a cadeia de correlação mais ampla (poderia, em tese, ser compartilhado por múltiplos eventos de uma mesma requisição). Constraint única em `workflow_executions` sobre `(event_id, workflow_name)`.
+
+**Comportamento diante de reexecução:** a única reexecução possível hoje é o próprio retry síncrono do `EventDispatcher` (até `MAX_ATTEMPTS=3`, dentro da mesma chamada a `dispatch()`) — nunca um reprocessamento posterior ou assíncrono (proibido desde o W4-1). Quando o Dispatcher chama o handler do workflow uma segunda ou terceira vez para o mesmo evento, `WorkflowRuntime.run()` executa um **upsert** por `(event_id, workflow_name)`:
+- Se não existe linha: insere com `status="running"`, `started_at=now()`.
+- Se já existe linha (criada pela tentativa anterior): **reutiliza a mesma linha** — atualiza `status="running"` novamente, sem inserir uma segunda linha.
+
+Isso é seguro porque os passos do workflow são funções puras sem efeito colateral externo (Blueprint §2.5, princípio já vigente) — o único efeito colateral é o próprio registro em `workflow_executions`, que o `WorkflowRuntime` controla integralmente. Reexecutar do zero nunca duplica um efeito de negócio, porque não há nenhum.
+
+**Prevenção de duplicidade:** a constraint única `(event_id, workflow_name)` no banco é a garantia de última linha — mesmo que uma falha de lógica na aplicação tentasse inserir uma segunda linha para o mesmo par, o banco rejeitaria.
+
+**Critérios para reutilização vs. criação de nova execução:** reutiliza-se a linha exclusivamente quando `event_id` e `workflow_name` coincidem (i.e., o mesmo evento publicado está sendo redespachado pelo próprio retry do Dispatcher). Um novo `DomainEvent` publicado (ainda que do mesmo `event_type`, ex.: indexação de um segundo documento) sempre carrega um `event_id` novo — portanto sempre gera uma nova linha de execução, corretamente distinta.
+
+**Ao final (sucesso ou esgotamento das 3 tentativas):** `WorkflowRuntime` atualiza a mesma linha para `status="completed"` (sucesso, `finished_at=now()`) ou `status="failed"` (exceção, `error=str(exc)`, `finished_at=now()`) antes de repropagar a exceção ao Dispatcher (que então decide, por conta própria, se tenta de novo ou grava em `dead_letter_events` — sem qualquer conhecimento do estado do workflow).
+
+### 12.5 Migração de banco
+
+Reaproveita a tabela `workflow_executions` já definida (mas não criada) na Condição 3 (§3) — colunas `id` (PK), `organization_id`, `correlation_id`, `event_id`, `workflow_name`, `status`, `started_at`, `finished_at`, `error`, mais a constraint única `(event_id, workflow_name)` (adição em relação ao desenho original de §3, necessária para a política de idempotência). Migração aditiva, mesma numeração sequencial já reservada.
+
+### 12.6 Restrições permanentes reafirmadas
+
+Nenhuma regra de negócio em nenhum passo de workflow; nenhuma métrica/analytics; nenhum Advisor; nenhum Integration Gateway (permanece W4-6, independente); nenhuma infraestrutura distribuída; nenhuma abstração além de `WorkflowRuntime`/`WorkflowContext`/`ExecutionTracker` já previstas desde §5.1; nenhuma alteração ao `EventDispatcher` (§12.2); nenhum reprocessamento automático além do retry síncrono já existente no Dispatcher.
+
+### 12.7 Riscos residuais
+
+- **Acoplamento pelo tipo, não pela tabela:** `WorkflowRuntime.run()` precisa do `DomainEvent` completo (não apenas `correlation_id`) para extrair `event_id`/`payload`/`organization_id` — uma dependência direta de `src.services.events.interfaces.DomainEvent`. Isso é reuso de um contrato já público (não uma abstração nova), mas registra-se como dependência explícita entre `src/workflows/` e `src/services/events/`.
+- **Ausência de consumidor de produção:** `document.indexed` continua sem nenhuma rota chamadora real (achado de W4-3, D-080) — a prova ponta a ponta deste Epic também será demonstrada por teste, não por tráfego real, até que a Wave 5 (Document Advisor) exista.
+- **Granularidade única do passo:** como o exemplo mínimo tem exatamente um passo sem efeito colateral de negócio, a política de idempotência aqui descrita não foi testada contra um workflow de múltiplos passos com efeitos colaterais reais (ex.: uma chamada a um `NotificationProvider` dentro de um passo) — cenário fora do escopo autorizado deste Epic, a ser reavaliado quando (e se) um workflow futuro precisar disso.
+
+### 12.8 Critérios de aceite
+
+- `WorkflowRuntime`/`WorkflowContext`/`ExecutionTracker` implementados exatamente per §12.3.
+- Um único workflow de exemplo, registrado no `EventDispatcher` para `document.indexed`, cujo único passo não contém regra de negócio.
+- `EventDispatcher` (código) permanece byte-a-byte inalterado — confirmado por diff nulo em `src/services/events/dispatcher.py` ao final da implementação.
+- Idempotência provada por teste: despachar o mesmo `DomainEvent` duas vezes produz uma única linha em `workflow_executions`.
+- `WorkflowContext.correlation_id` idêntico ao do `DomainEvent` disparador, em todo teste.
+- Retry/Dead Letter do Dispatcher continuam funcionando sem nenhuma alteração de comportamento para os produtores já existentes (W4-1/W4-3).
