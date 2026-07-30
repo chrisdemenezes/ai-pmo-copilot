@@ -23,11 +23,15 @@ from src.llm.providers.mock_provider import MockLLMProvider
 from src.prompts.registry import PromptRegistry
 from src.services.advisor_framework.framework import AdvisorFramework
 from src.services.ai_foundation.types import SessionContext
+from src.services.events.dispatcher import EventDispatcher
+from src.services.events.in_process_publisher import InProcessEventPublisher
 from src.services.knowledge_platform.embedding_provider import MockEmbeddingProvider
 from src.services.knowledge_platform.knowledge_repository import KnowledgeRepository
 from src.services.knowledge_platform.rag_pipeline import RagPipeline
 from src.services.knowledge_platform.vector_repository import PgVectorRepository
 from tests.db import temp_database_url
+
+CORRELATION_ID = "test-correlation-id"
 
 
 class _ScriptedProvider:
@@ -57,7 +61,8 @@ def repo():
 @pytest.fixture()
 def knowledge_repository(repo):
     vector_repository = PgVectorRepository(repo.SessionLocal)
-    return KnowledgeRepository(repo.SessionLocal, MockEmbeddingProvider(), vector_repository)
+    event_publisher = InProcessEventPublisher(repo.SessionLocal, EventDispatcher(repo.SessionLocal))
+    return KnowledgeRepository(repo.SessionLocal, MockEmbeddingProvider(), vector_repository, event_publisher)
 
 
 def _framework(repo, knowledge_repository, provider):
@@ -156,7 +161,7 @@ class TestChunkIdTraceability:
         document = knowledge_repository.ingest(
             org_id, "middleware-runbook.md", "the middleware vendor has a history of delayed delivery"
         )
-        knowledge_repository.index(document.id)
+        knowledge_repository.index(document.id, CORRELATION_ID)
 
         framework = _framework(repo, knowledge_repository, MockLLMProvider())
         rag_context = framework.gather_rag_context(org_id, "middleware vendor delay", top_k=5)
@@ -173,7 +178,7 @@ class TestChunkIdTraceability:
         document = knowledge_repository.ingest(
             org_id, "middleware-runbook.md", "the middleware vendor has a history of delayed delivery"
         )
-        knowledge_repository.index(document.id)
+        knowledge_repository.index(document.id, CORRELATION_ID)
         repo.save_analysis(
             kind="risk",
             payload={
@@ -226,7 +231,7 @@ class TestOrganizationIsolation:
             project_name="Multilift",
         )
         doc_b = knowledge_repository.ingest(org_b, "notes-b.md", "org b confidential delay notes")
-        knowledge_repository.index(doc_b.id)
+        knowledge_repository.index(doc_b.id, CORRELATION_ID)
 
         framework = _framework(repo, knowledge_repository, _ExplodingProvider())
         agent = RiskAdvisorAgent(framework)

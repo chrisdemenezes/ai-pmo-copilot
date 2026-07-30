@@ -9,6 +9,7 @@ import logging
 from sqlalchemy.orm import sessionmaker
 
 from src.database.models import Chunk, Document, DocumentVersion
+from src.services.events.interfaces import EventPublisher
 from src.services.knowledge_platform.embedding_provider import EmbeddingProvider
 from src.services.knowledge_platform.types import DocumentVersionInfo, IngestedDocument, ScoredChunk
 from src.services.knowledge_platform.vector_repository import VectorRepository
@@ -47,10 +48,12 @@ class KnowledgeRepository:
         session_factory: sessionmaker,
         embedding_provider: EmbeddingProvider,
         vector_repository: VectorRepository,
+        event_publisher: EventPublisher,
     ):
         self._session_factory = session_factory
         self._embedding_provider = embedding_provider
         self._vector_repository = vector_repository
+        self._event_publisher = event_publisher
 
     def ingest(
         self,
@@ -100,10 +103,17 @@ class KnowledgeRepository:
                 version_id=version.id,
             )
 
-    def index(self, document_id: int) -> None:
+    def index(self, document_id: int, correlation_id: str) -> None:
         """Chunks the latest DocumentVersion of a Document, embeds each
         chunk, and persists the resulting Chunk rows -- Parsing (Fase 1:
-        already-normalized text) -> Chunking -> Embeddings -> Indexação."""
+        already-normalized text) -> Chunking -> Embeddings -> Indexação.
+
+        Wave 4 (Enterprise Operations, Epic W4-3): publishes `document.indexed`
+        via `EventPublisher` only after the chunks are committed -- if this
+        method raises before that point, no event is published. `correlation_id`
+        is never minted here, exactly like `DomainService` (W4-1) -- it is
+        supplied by the caller (today, only tests; a future route/pipeline
+        would pass its own `context.request_id`)."""
         with self._session_factory() as session:
             document = session.get(Document, document_id)
             if document is None:
@@ -118,7 +128,8 @@ class KnowledgeRepository:
             if version is None:
                 raise ValueError(f"Document {document_id} has no version to index")
 
-            for chunk_index, chunk_text in enumerate(_chunk_text(version.content)):
+            chunks = _chunk_text(version.content)
+            for chunk_index, chunk_text in enumerate(chunks):
                 session.add(
                     Chunk(
                         document_version_id=version.id,
@@ -130,6 +141,17 @@ class KnowledgeRepository:
                 )
             session.commit()
             logger.info("Indexed document_id=%s version_id=%s", document_id, version.id)
+            organization_id = document.organization_id
+            version_id = version.id
+            chunk_count = len(chunks)
+
+        self._event_publisher.publish(
+            "document.indexed",
+            {"document_id": document_id, "version_id": version_id, "chunk_count": chunk_count},
+            organization_id,
+            correlation_id=correlation_id,
+            origin="knowledge_repository",
+        )
 
     def search(self, organization_id: int, query: str, top_k: int = 5) -> list[ScoredChunk]:
         query_embedding = self._embedding_provider.embed(query)

@@ -212,3 +212,27 @@ POST /portfolios
 ## 10. Próximos passos
 
 Após aprovação explícita do Founder a este Technical Design, a Implementação do Epic W4-1 pode iniciar. Ao final da implementação: Technical Design (este documento, sem alteração retroativa — correções viram Decision Log), Executive Review, Decision Log, riscos residuais e recomendação Go/No-Go serão apresentados, per o ciclo institucional.
+
+---
+
+## 11. Implementation Note — Epic W4-3 (2026-07-30, "Founder Decision — Epic W4-3 Scope Approval")
+
+Founder aprovou implementação direta (sem Technical Design específico) — reuso estrito do contrato já estabelecido no W4-1. Nota registrada no artefato oficial existente, per instrução explícita, sem novo documento.
+
+**1. Pontos exatos de publicação:**
+- `KnowledgeRepository.index()` (`src/services/knowledge_platform/knowledge_repository.py`) — após `session.commit()` dos `Chunk` gerados, fora do bloco `with self._session_factory()`.
+- `AdministrationService.create_invitation()` (`src/services/administration_service.py`) — após `self._repository.administration.create_invitation(...)` e o registro de auditoria de domínio (`record_audit`), antes do `return`.
+
+**2. Dependências injetadas:**
+- `KnowledgeRepository.__init__` ganha `event_publisher: EventPublisher` (parâmetro obrigatório, sem default — quase todo call site já chama `.index()`, mesmo padrão do `DomainService` no W4-1). DI de produção: `src/api/routes/intelligence.py::build_knowledge_repository` injeta `Depends(build_event_publisher)` (o singleton `@lru_cache` já compartilhado com `DomainService`/`AdministrationService`).
+- `AdministrationService.__init__` ganha `event_publisher: EventPublisher | None = None` (parâmetro **opcional**, default real — `InProcessEventPublisher(repository.SessionLocal, EventDispatcher(repository.SessionLocal))` — mesma convenção já usada por `password_hasher`/`notification_provider` nesta classe). Assimetria deliberada: das ~12 construções de `AdministrationService` no código, só a rota de convites (`invitations.py::build_invitation_service`) chama `create_invitation`; tornar o parâmetro obrigatório forçaria toda rota/teste de API Keys, Sessões e Admin CRUD a injetar um publisher que nunca usam. `build_invitation_service` sempre injeta explicitamente o singleton `Depends(build_event_publisher)`, garantindo que a rota de produção compartilhe a mesma tabela de despacho do `EventDispatcher` usada por `DomainService`.
+
+**3. Origem e propagação do correlation_id:** inalterada em relação ao W4-1 — `RequestIDMiddleware`/`request_id_var`, exposta em `RequestContext.request_id`. A rota `POST /admin/invitations` passa `correlation_id=context.request_id` a `create_invitation`. `KnowledgeRepository.index()` não tem hoje nenhuma rota chamadora (achado já registrado no Blueprint §4 item 2 — produtor real sem consumidor real ainda); `correlation_id` é um parâmetro obrigatório do método, suprido por quem quer que o chame (hoje, só testes; o futuro caller real herdará `context.request_id` da mesma forma). Nenhum novo `correlation_id` é cunhado em nenhum dos dois serviços.
+
+**4. Momento da publicação em relação à persistência:** ambos os eventos são publicados **depois** que a operação principal já foi persistida com sucesso (commit da sessão) — nunca antes, nunca dentro da mesma transação. Se a operação principal levantar uma exceção antes do commit (documento inexistente, `role_name` desconhecido), o método retorna/propaga o erro antes de alcançar a chamada a `.publish(...)` — nenhum evento é publicado.
+
+**5. Payload definitivo (estrito, per autorização do Founder):**
+- `document.indexed`: `{document_id: int, version_id: int, chunk_count: int}`.
+- `invitation.created`: `{invitation_id: int, email: str, role_name: str}` — nunca o token, seu hash, ou qualquer URL de aceite.
+
+**6. Comportamento em caso de falha de publicação:** inalterado em relação à política já implementada no W4-1 — `EventDispatcher._dispatch_to_handler` já absorve falha de handler (retry até `MAX_ATTEMPTS=3`, depois `dead_letter_events`), e uma falha de despacho nunca propaga ao chamador (o write da operação principal já teve sucesso). Nenhum tratamento paralelo foi criado para este Epic.

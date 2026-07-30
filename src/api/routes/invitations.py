@@ -21,13 +21,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, field_validator
 
 from src.api.authorization import require_permission
-from src.api.dependencies import build_notification_provider, build_repository
+from src.api.dependencies import build_event_publisher, build_notification_provider, build_repository
 from src.api.identity_context import get_request_context
 from src.api.rate_limiter import enforce_rate_limit
 from src.api.security import verify_api_key
 from src.database.enterprise_repository import EmailConflictError
 from src.database.repository import AnalysisRepository
 from src.services.administration_service import AdministrationService
+from src.services.events.interfaces import EventPublisher
 from src.services.identity.models import RequestContext
 from src.services.notifications.interfaces import NotificationProvider
 
@@ -39,9 +40,12 @@ router = APIRouter(dependencies=[Depends(verify_api_key), Depends(enforce_rate_l
 def build_invitation_service(
     repository: AnalysisRepository = Depends(build_repository),
     notification_provider: NotificationProvider = Depends(build_notification_provider),
+    event_publisher: EventPublisher = Depends(build_event_publisher),
 ) -> AdministrationService:
     return AdministrationService(
-        repository=repository, notification_provider=notification_provider
+        repository=repository,
+        notification_provider=notification_provider,
+        event_publisher=event_publisher,
     )
 
 
@@ -153,6 +157,7 @@ def create_invitation(
             request.email,
             request.role_name,
             actor_user_id=context.user.user_id,
+            correlation_id=context.request_id,
         )
     except ValueError as exc:
         # Unknown role_name -- a typo must 400, never create a role.

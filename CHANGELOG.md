@@ -918,3 +918,32 @@ Founder decidiu o replanejamento do Epic Ledger da Wave 4 ("Founder Decision —
 **Próximo passo:** ciclo institucional do Epic W4-3 autorizado a iniciar, começando pela apresentação de escopo.
 
 **Decision Log:** D-079.
+
+## Wave 4 — Epic W4-3 (2026-07-30): `document.indexed` e `invitation.created` conectados ao padrão do W4-1
+
+Founder aprovou a apresentação de escopo do Epic W4-3 e autorizou implementação direta, sem Technical Design específico — reuso estrito do contrato do W4-1.
+
+**Adicionado**
+- `docs/architecture/TECHNICAL-DESIGN-WAVE-4-ENTERPRISE-OPERATIONS.md` §11 — Implementation Note (pontos de publicação, dependências injetadas, correlation_id, momento da publicação, payload definitivo, comportamento em falha), per instrução do Founder de registrar no artefato existente sem criar novo documento.
+- Testes: `test_index_publishes_document_indexed_with_full_envelope`, `test_index_does_not_publish_when_the_document_does_not_exist` (`test_knowledge_platform.py`); `test_publishes_invitation_created_with_full_envelope_and_no_secrets`, `test_does_not_publish_when_role_name_is_unknown` (`test_invitations.py`); `test_create_publishes_invitation_created_with_the_requests_correlation_id` (`test_invitations_api.py`, ponta a ponta via HTTP real).
+
+**Alterado**
+- `src/services/knowledge_platform/knowledge_repository.py` — `index()` publica `document.indexed` (`{document_id, version_id, chunk_count}`) após commit; ganhou `correlation_id: str` obrigatório; construtor ganhou `event_publisher: EventPublisher` obrigatório.
+- `src/services/administration_service.py` — `create_invitation()` publica `invitation.created` (`{invitation_id, email, role_name}`, nunca token/hash) após a criação e a auditoria de domínio; ganhou `correlation_id: str` obrigatório; construtor ganhou `event_publisher: EventPublisher | None = None` opcional, com default real (mesma convenção de `password_hasher`/`notification_provider`).
+- `src/api/routes/intelligence.py` — `build_knowledge_repository` injeta o singleton `build_event_publisher`.
+- `src/api/routes/invitations.py` — `build_invitation_service` injeta o singleton `build_event_publisher`; rota `create_invitation` passa `correlation_id=context.request_id`.
+- Todos os call sites pré-existentes de `KnowledgeRepository`/`.index()`/`AdministrationService` atualizados para as novas assinaturas, sem alteração de asserção de comportamento.
+
+**Achado grounded, não desvio:** `KnowledgeRepository.index()` não tem nenhuma rota chamadora em produção hoje (confirmado por busca global) — exatamente o cenário já identificado e autorizado pelo Blueprint §4 item 2 (produtor real disponível para a Wave 5 sem exigir mudança estrutural futura).
+
+**Compatibilidade funcional confirmada:** nenhuma mudança de retorno/persistência/regra de negócio; nenhum evento publicado quando a operação principal falha.
+
+**Restrições permanentes confirmadas respeitadas:** nenhuma abstração nova, nenhum handler, nenhum Workflow Runtime, nenhum Event Metrics, nenhum Advisor, nenhum correlation_id gerado nos serviços, token/hash/URL nunca no payload.
+
+**Verificação:** `ruff check src tests` limpo; suíte de testes backend completa verde.
+
+**Recomendação Go/No-Go:** GO.
+
+**Próximo passo:** ciclo institucional retorna para Executive Review antes da autorização do próximo Epic.
+
+**Decision Log:** D-080.

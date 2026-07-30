@@ -19,6 +19,9 @@ from src.database.models import (
     UserSession,
 )
 from src.database.repository import AnalysisRepository
+from src.services.events.dispatcher import EventDispatcher
+from src.services.events.in_process_publisher import InProcessEventPublisher
+from src.services.events.interfaces import EventPublisher
 from src.services.identity.password_hashing import Argon2PasswordHasher
 from src.services.notifications.interfaces import NotificationProvider
 from src.services.notifications.noop_provider import NoOpNotificationProvider
@@ -46,6 +49,7 @@ class AdministrationService:
         repository: AnalysisRepository,
         password_hasher: Argon2PasswordHasher | None = None,
         notification_provider: NotificationProvider | None = None,
+        event_publisher: EventPublisher | None = None,
     ) -> None:
         self._repository = repository
         # Only User Management's create_user needs this -- the plaintext
@@ -57,6 +61,17 @@ class AdministrationService:
         # creation for manual delivery. A real provider implements the same
         # Protocol without this class changing.
         self._notifications = notification_provider or NoOpNotificationProvider()
+        # Only create_invitation (Wave 4, Epic W4-3) publishes an event --
+        # every other call site of this constructor (API key auth, session
+        # revocation, admin CRUD) never touches it. Same "always a real
+        # default, never a bare None" convention as the two providers above;
+        # the API layer (build_invitation_service) always passes the shared
+        # platform-wide EventPublisher singleton explicitly instead of
+        # relying on this default, so the Dispatcher's handler table stays
+        # a single shared instance across every producer.
+        self._event_publisher = event_publisher or InProcessEventPublisher(
+            repository.SessionLocal, EventDispatcher(repository.SessionLocal)
+        )
 
     # -- Organization ------------------------------------------------------
 
@@ -309,14 +324,28 @@ class AdministrationService:
     # -- Invitations (item 6, Convites -- D-054) ------------------------
 
     def create_invitation(
-        self, organization_id: int, email: str, role_name: str, actor_user_id: int
+        self,
+        organization_id: int,
+        email: str,
+        role_name: str,
+        actor_user_id: int,
+        correlation_id: str,
     ) -> tuple[Invitation, str]:
         """Returns (Invitation, plaintext_token). The plaintext token is
         never stored -- this is the only place it exists outside the
         caller's response, delivered to the admin exactly once for manual
         (or, later, provider-automated) delivery. The NotificationProvider
         is invoked here; today it is a NoOp, so nothing is sent -- the
-        returned token is the delivery path."""
+        returned token is the delivery path.
+
+        Wave 4 (Enterprise Operations, Epic W4-3): publishes `invitation.created`
+        via `EventPublisher` only after the invitation is committed -- if
+        creation fails (e.g. the role_name lookup raises), no event is
+        published. `correlation_id` is never minted here -- it is the same
+        identifier the calling route already resolved (`context.request_id`).
+        The event payload is strictly `{invitation_id, email, role_name}` --
+        the plaintext token, its hash, and any acceptance URL are never
+        included (per the Founder's explicit restriction on this Epic)."""
         plaintext_token = INVITATION_TOKEN_PREFIX + secrets.token_urlsafe(32)
         hashed_token = self._password_hasher.hash(plaintext_token)
         expires_at = datetime.now(timezone.utc) + INVITATION_TTL
@@ -338,6 +367,17 @@ class AdministrationService:
             {"email": invitation.email, "role_name": role_name},
         )
         self._notifications.notify_invitation_created(invitation, plaintext_token)
+        self._event_publisher.publish(
+            "invitation.created",
+            {
+                "invitation_id": invitation.id,
+                "email": invitation.email,
+                "role_name": invitation.role_name,
+            },
+            organization_id,
+            correlation_id=correlation_id,
+            origin="administration_service",
+        )
         return invitation, plaintext_token
 
     def list_invitations(self, organization_id: int) -> list[Invitation]:

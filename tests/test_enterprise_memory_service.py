@@ -5,6 +5,8 @@ documents, on real PostgreSQL (`tests/db.py`).
 import pytest
 
 from src.database.repository import AnalysisRepository
+from src.services.events.dispatcher import EventDispatcher
+from src.services.events.in_process_publisher import InProcessEventPublisher
 from src.services.knowledge_platform.embedding_provider import MockEmbeddingProvider
 from src.services.knowledge_platform.enterprise_memory_service import (
     EnterpriseMemoryService,
@@ -24,7 +26,8 @@ def repo():
 @pytest.fixture()
 def knowledge_repository(repo):
     vector_repository = PgVectorRepository(repo.SessionLocal)
-    return KnowledgeRepository(repo.SessionLocal, MockEmbeddingProvider(), vector_repository)
+    event_publisher = InProcessEventPublisher(repo.SessionLocal, EventDispatcher(repo.SessionLocal))
+    return KnowledgeRepository(repo.SessionLocal, MockEmbeddingProvider(), vector_repository, event_publisher)
 
 
 @pytest.fixture()

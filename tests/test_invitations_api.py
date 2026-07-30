@@ -11,10 +11,13 @@ from fastapi.testclient import TestClient
 
 from src.api import authorization as authorization_module
 from src.api.routes import invitations as invitations_routes
+from src.database.models import EventRecord
 from src.database.repository import AnalysisRepository
 from src.main import app
 from src.services.administration_service import AdministrationService
 from src.services.authorization.checker import SqlPermissionChecker
+from src.services.events.dispatcher import EventDispatcher
+from src.services.events.in_process_publisher import InProcessEventPublisher
 from src.services.notifications.noop_provider import NoOpNotificationProvider
 
 from tests.db import temp_database_url
@@ -47,8 +50,11 @@ def client():
         _alembic(env, "upgrade", "head")
 
         repo = AnalysisRepository(database_url=database_url)
+        event_publisher = InProcessEventPublisher(repo.SessionLocal, EventDispatcher(repo.SessionLocal))
         app.dependency_overrides[invitations_routes.build_invitation_service] = (
-            lambda: AdministrationService(repo, notification_provider=NoOpNotificationProvider())
+            lambda: AdministrationService(
+                repo, notification_provider=NoOpNotificationProvider(), event_publisher=event_publisher
+            )
         )
         app.dependency_overrides[authorization_module.build_permission_checker] = (
             lambda: SqlPermissionChecker(repo.SessionLocal)
@@ -84,6 +90,36 @@ class TestAdminManagement:
         assert body["plaintext_token"].startswith("inv_")
         assert body["status"] == "pending"
         assert body["email"] == "invitee@example.com"
+
+    def test_create_publishes_invitation_created_with_the_requests_correlation_id(self, client):
+        """Wave 4, Epic W4-3 (D-080): correlation_id has a single origin --
+        RequestIDMiddleware/request_id_var, echoed as X-Request-ID -- and
+        the invitation.created event carries exactly that value, never a
+        new one minted by AdministrationService."""
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        admin_id = _actor(repo, org_id)
+        headers = _headers(org_id, admin_id)
+        headers["X-Request-ID"] = "corr-from-caller"
+
+        response = test_client.post(
+            "/api/admin/invitations",
+            headers=headers,
+            json={"email": "invitee@example.com", "role_name": "viewer"},
+        )
+        assert response.status_code == 201
+        assert response.headers["x-request-id"] == "corr-from-caller"
+
+        with repo.SessionLocal() as session:
+            records = (
+                session.query(EventRecord)
+                .filter(EventRecord.event_type == "invitation.created")
+                .all()
+            )
+        assert len(records) == 1
+        assert records[0].correlation_id == "corr-from-caller"
+        assert set(records[0].payload.keys()) == {"invitation_id", "email", "role_name"}
+        assert "token" not in str(records[0].payload)
 
     def test_create_with_unknown_role_is_400(self, client):
         test_client, repo = client

@@ -12,11 +12,15 @@ from src.prompts.registry import PromptRegistry
 from src.services.advisor_framework.framework import AdvisorFramework
 from src.services.advisor_framework.types import AdvisorExecutionError
 from src.services.ai_foundation.types import SessionContext
+from src.services.events.dispatcher import EventDispatcher
+from src.services.events.in_process_publisher import InProcessEventPublisher
 from src.services.knowledge_platform.embedding_provider import MockEmbeddingProvider
 from src.services.knowledge_platform.knowledge_repository import KnowledgeRepository
 from src.services.knowledge_platform.rag_pipeline import RagPipeline
 from src.services.knowledge_platform.vector_repository import PgVectorRepository
 from tests.db import temp_database_url
+
+CORRELATION_ID = "test-correlation-id"
 
 
 class _FakeAdvisor:
@@ -47,7 +51,8 @@ def repo():
 @pytest.fixture()
 def knowledge_repository(repo):
     vector_repository = PgVectorRepository(repo.SessionLocal)
-    return KnowledgeRepository(repo.SessionLocal, MockEmbeddingProvider(), vector_repository)
+    event_publisher = InProcessEventPublisher(repo.SessionLocal, EventDispatcher(repo.SessionLocal))
+    return KnowledgeRepository(repo.SessionLocal, MockEmbeddingProvider(), vector_repository, event_publisher)
 
 
 @pytest.fixture()
@@ -152,7 +157,7 @@ class TestControlledRagAccess:
     ):
         org_id = repo.enterprise.create_organization("Org A")
         document = knowledge_repository.ingest(org_id, "runbook.md", "the rollback procedure is documented here")
-        knowledge_repository.index(document.id)
+        knowledge_repository.index(document.id, CORRELATION_ID)
 
         context = framework.gather_rag_context(org_id, "rollback procedure", top_k=3)
 

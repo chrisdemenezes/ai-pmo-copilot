@@ -19,7 +19,7 @@ from src.agents.project_status.agent import ProjectStatusAgent
 from src.agents.risk_advisor.agent import RiskAdvisorAgent
 from src.agents.risk_review.agent import RiskReviewAgent
 from src.api.authorization import require_permission
-from src.api.dependencies import build_repository
+from src.api.dependencies import build_event_publisher, build_repository
 from src.api.identity_context import get_request_context
 from src.api.rate_limiter import enforce_rate_limit
 from src.api.security import verify_api_key
@@ -35,6 +35,7 @@ from src.database.repository import AnalysisRepository, analysis_display_name
 from src.services.advisor_framework.framework import AdvisorFramework
 from src.services.advisor_framework.types import AdvisorExecutionError
 from src.services.ai_foundation.types import SessionContext
+from src.services.events.interfaces import EventPublisher
 from src.services.identity.models import RequestContext
 from src.services.knowledge_platform.embedding_provider import get_embedding_provider
 from src.services.knowledge_platform.knowledge_repository import KnowledgeRepository
@@ -151,9 +152,12 @@ def build_provider() -> LLMProvider:
 
 def build_knowledge_repository(
     repository: AnalysisRepository = Depends(build_repository),
+    publisher: EventPublisher = Depends(build_event_publisher),
 ) -> KnowledgeRepository:
     vector_repository = PgVectorRepository(repository.SessionLocal)
-    return KnowledgeRepository(repository.SessionLocal, get_embedding_provider(), vector_repository)
+    return KnowledgeRepository(
+        repository.SessionLocal, get_embedding_provider(), vector_repository, publisher
+    )
 
 
 def build_rag_pipeline(
