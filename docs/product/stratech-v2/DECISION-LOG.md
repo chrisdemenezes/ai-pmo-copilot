@@ -829,6 +829,21 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-084 — Wave 4 declarada oficialmente encerrada; Wave 5 Architecture Kickoff produzido
+
+- **Contexto:** o Founder declarou oficialmente encerrada a Wave 4 — Enterprise Operations e autorizou a preparação do Architecture Kickoff da Wave 5 — Enterprise Advisors, como documento orientador para toda a próxima etapa da evolução da STRATECH ("Founder Decision", 2026-07-30). Mandato explícito: "até aqui vocês construíram a infraestrutura operacional; a partir da Wave 5, o desafio passa a ser demonstrar inteligência executiva utilizando essa infraestrutura, sem comprometer os princípios arquiteturais consolidados." **Nenhum código foi escrito nesta missão.**
+- **Decisão (documental):** `docs/architecture/WAVE-5-ARCHITECTURE-KICKOFF.md` produzido, grounded exclusivamente em código real e documentação vigente — nunca hipótese:
+  - **Grounding do Advisor Framework real** (Fase 3/4, Wave 3): `AdvisorContract.advise(session, question, evidence, rag_context)`, `AdvisorFramework.run()` executando exatamente um Advisor por chamada. Nota de reconciliação registrada: o `DOMAIN-BLUEPRINT-ENTERPRISE-ADVISOR-FRAMEWORK.md` pré-Fase 3 descrevia um contrato `input_schema`/`output_schema` genérico e uma superfície `handle(request, context)` — especulação já rejeitada pela implementação real (D-067); o Kickoff usa o contrato de produção, não o documento superado.
+  - **Achado arquitetural central:** `AIContextEngine.gather(organization_id, project_name, kind)` foi desenhado e provado apenas para a forma exata do Risk Advisor (um projeto, um `kind`). Dos 7 Advisors restantes, só o Delivery Advisor se encaixa diretamente; Portfolio/PMO/Executive precisam de extensão de escopo/agregação; Strategy pode legitimamente não ter evidência hoje; Governance e Document têm fontes de evidência inteiramente diferentes (RAG sobre documentos, não `AnalysisRecord`). Achado registrado para resolução grounded no primeiro Domain Blueprint de Advisor que o encontrar — não resolvido neste documento.
+  - **Consumo real disponível da Wave 4:** `document.indexed` (W4-3) já tem produtor real esperando pelo Document Advisor, sem nenhuma mudança estrutural necessária em `KnowledgeRepository`. Workflow Runtime explicitamente delimitado como não-mecanismo de invocação de Advisor (Advisors permanecem síncronos via `AdvisorFramework.run()`).
+  - **Sequenciamento proposto (não decidido, para confirmação em Architecture Review):** Delivery Advisor (encaixe direto, menor risco) e Document Advisor (único com consumidor de evento real já disponível) como candidatos ao primeiro Epic da Wave 5.
+  - **Princípios permanentes reafirmados:** reuso máximo sem arquitetura paralela, um Advisor por chamada, anti-hallucination guard obrigatório, tenant isolation sem exceção, correlation_id de origem única, Workflow Runtime nunca decide/nunca executa inteligência, "Grounded before Generalized" (mesmo princípio que já resolveu D-079/D-083).
+  - **Itens fora de escopo reafirmados:** filas distribuídas, DSLs, orquestração multiagente autônoma (`pmo_workflow.py` permanece Historical Superseded Architecture), roteamento automático entre Advisors, Event Metrics, Integration Gateway, novos dashboards, Workflow Runtime executando lógica de Advisor.
+- **Verificação:** missão exclusivamente de governança/documentação — nenhum arquivo de `src/`/`tests/` alterado; `ruff check src tests` confirmado limpo.
+- **Missão:** Wave 4 — Enterprise Operations formalmente declarada encerrada pelo Founder. Wave 5 Architecture Kickoff produzido. Próximo passo do ciclo institucional: Architecture Review da Wave 5 sobre este Kickoff, seguida de aprovação explícita do Founder antes de qualquer Domain Blueprint individual de Advisor.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.

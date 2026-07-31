@@ -1008,3 +1008,16 @@ Founder autorizou o Grounding Audit do Epic W4-6 e, em Executive Review, aprovou
 **Missão:** Governança da Wave 4 oficialmente encerrada. Executive Summary de encerramento apresentada, com recomendação Go/No-Go para a abertura institucional da Wave 5 — Enterprise Advisors.
 
 **Decision Log:** D-083.
+
+## Wave 5 — Architecture Kickoff (2026-07-30)
+
+Founder declarou oficialmente encerrada a Wave 4 e autorizou a preparação do Architecture Kickoff da Wave 5 — Enterprise Advisors, como documento orientador para a próxima etapa da STRATECH. **Missão documental — nenhum código escrito.**
+
+**Adicionado**
+- `docs/architecture/WAVE-5-ARCHITECTURE-KICKOFF.md` — grounded no `AdvisorContract`/`AdvisorFramework` real (não no `DOMAIN-BLUEPRINT-ENTERPRISE-ADVISOR-FRAMEWORK.md` pré-Fase 3, especulação já superada); achado central de que `AIContextEngine.gather(project_name, kind)` só se encaixa diretamente no Delivery Advisor entre os 7 restantes (Portfolio/PMO/Executive precisam de extensão, Strategy pode não ter evidência hoje, Governance/Document têm fonte de evidência inteiramente diferente); `document.indexed` (W4-3) identificado como o único evento com produtor real já disponível para o Document Advisor; sequenciamento proposto (Delivery e Document Advisor como candidatos ao primeiro Epic, não decidido); princípios permanentes e itens fora de escopo reafirmados.
+
+**Verificação:** `ruff check src tests` limpo; nenhum arquivo de código alterado.
+
+**Próximo passo:** Architecture Review da Wave 5 sobre o Kickoff, seguida de aprovação explícita do Founder antes de qualquer Domain Blueprint individual de Advisor.
+
+**Decision Log:** D-084.
