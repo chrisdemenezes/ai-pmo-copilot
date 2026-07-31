@@ -816,6 +816,19 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-083 — Epic W4-6 (Integration Gateway) deferido; Epic W4-5 consolidado no W4-1; Epic Ledger da Wave 4 oficialmente encerrado
+
+- **Contexto:** o Founder autorizou o ciclo institucional do Epic W4-6 exigindo, antes de qualquer código/Technical Design, um Grounding Audit completo para determinar se existe necessidade real e imediata de um Integration Gateway ("Founder Authorization — Epic W4-6 Institutional Opening"). Apresentação de escopo produzida e submetida a Executive Review; veredito **APPROVED — NO GO para implementação** ("Founder Decision — Executive Review of Epic W4-6").
+- **Grounding Audit (evidências de código, não hipóteses):** busca global confirmou zero bibliotecas de cliente HTTP em `src/` (exceto o SDK `anthropic` já usado por `ProductionLLMProvider`), zero classes de adaptador/gateway, zero webhooks (entrada ou saída), zero `fetch` externo no frontend (`web/`), e que `IntegrationGateway`/`IntegrationContract` nunca existiram no código — apenas como diretório reservado no Technical Design §5.1, nunca criado. As três integrações reais da plataforma (`LLMProvider`→Anthropic, em produção; `NotificationProvider`→NoOp; `EmbeddingProvider`→Mock) já são fachadas únicas isoladas, cada uma com exatamente um consumidor direto, sem duplicação de lógica de acesso externo e sem nenhum ponto de acoplamento cruzado entre elas. O catálogo dos 7 Enterprise Advisors (Wave 5) não menciona nenhuma necessidade de integração externa.
+- **Decisão do Founder:**
+  1. **Epic W4-6 não implementado neste momento** — classificado **Deferred — Awaiting First Real External Integration Need**. Justificativa: não existe consumidor real, não existe duplicação de integração, não existe acoplamento a resolver; as abstrações atuais (`LLMProvider`, `NotificationProvider`, `EmbeddingProvider`) já atendem plenamente às necessidades da plataforma. Implementar agora violaria o princípio arquitetural "Grounded before Generalized".
+  2. **Epic W4-5 formalmente encerrado** — classificado **Consolidated into W4-1**, resolvendo a nota de sobreposição registrada em D-079/§7.1 do Blueprint: o mecanismo de Retry/Dead Letter do W4-1 (`EventDispatcher`, `MAX_ATTEMPTS=3`, `dead_letter_events`) já é reutilizado sem alteração por qualquer handler registrado, incluindo o Workflow Runtime (W4-4, D-082) — nenhum trabalho adicional de Retry/Dead Letter específico de workflow foi identificado como necessário. Removido da lista de Epics pendentes.
+  3. **Epic Ledger oficial da Wave 4 atualizado** (`WAVE-4-DOMAIN-BLUEPRINT.md` §7/§7.2) para o estado final: W4-1 Concluído; W4-2 Deferred; W4-3 Concluído; W4-4 Concluído; W4-5 Consolidated into W4-1; W4-6 Deferred. **Nenhum Epic permanece em aberto — o Ledger da Wave 4 está oficialmente encerrado.**
+- **Verificação:** missão exclusivamente de governança — nenhum código escrito, nenhuma implementação iniciada; `ruff check src tests` confirmado limpo (nenhum arquivo de `src/`/`tests/` tocado).
+- **Missão:** Epic W4-6 — encerrado (Deferred). Epic W4-5 — encerrado (Consolidated into W4-1). **Governança da Wave 4 oficialmente encerrada.** Executive Summary de encerramento da Wave 4 apresentada ao Founder, incluindo recomendação Go/No-Go para a abertura institucional da Wave 5 — Enterprise Advisors.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.

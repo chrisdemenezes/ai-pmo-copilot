@@ -261,15 +261,17 @@ Nenhum destes exige alteração estrutural em `DomainService`, `KnowledgeReposit
 Cada Epic abaixo segue obrigatoriamente: Domain Blueprint (este documento cobre todos) → Architecture Review → Founder Approval → Technical Design → Implementation → Governance → Executive Review. Nenhum código inicia antes da aprovação explícita do Founder a este Blueprint e à Architecture Review subsequente.
 
 > **Nota de replanejamento (D-079, "Founder Decision — Wave 4 Epic Replanning"):** a tabela abaixo reflete o Ledger **após** o replanejamento decidido pelo Founder ao final da Executive Review do Epic W4-1. O Ledger original (vigente entre a aprovação deste Blueprint e a Executive Review do W4-1) atribuía a W4-2 "Event Dispatcher + Event Audit + Event Metrics" e a W4-5 "Retry Policies + Dead Letter Strategy" — texto preservado em §7.1 para rastreabilidade histórica, nunca reescrito silenciosamente.
+>
+> **Estado final (D-083, "Founder Decision — Executive Review of Epic W4-6"):** o Epic Ledger da Wave 4 está oficialmente encerrado — todo item foi resolvido (Concluído, Deferido ou Consolidado); nenhum Epic permanece em aberto. Ver §7.2.
 
 | Epic | Escopo | Depende de | Status |
 |---|---|---|---|
 | **W4-1** | Event Model (envelope) + Event Publisher + migração dos 5 eventos existentes de `DomainService` + **Event Dispatcher (pub/sub in-process) + Event Audit + Retry/Dead Letter mínimo** — escopo consolidado por replanejamento (D-079, §7.1) | Nenhum — primeiro Epic | **Concluído** (D-077; Executive Review aprovada, D-078) |
-| ~~W4-2~~ | ~~Event Dispatcher + Event Audit + Event Metrics~~ — **dissolvido como Epic independente** (D-079). Event Dispatcher e Event Audit consolidados no W4-1. Event Metrics classificado **Deferred — Awaiting First Consumer** (nenhuma rota, painel, Workflow Runtime ou Advisor o consome hoje) | — | **Dissolvido / Event Metrics Deferred** |
-| **W4-3** | `document.indexed` (Knowledge Platform) + `invitation.created` (Administration) — primeiros novos produtores reais | W4-1 | **Próximo Epic** (promovido por D-079) |
-| **W4-4** | Workflow Runtime + Workflow Context + Execution Tracking + workflow de exemplo mínimo (consumindo `document.indexed`) | W4-1, W4-3 | Not Started |
-| **W4-5** | Retry Policies + Dead Letter Strategy | W4-4 | Ver nota de sobreposição em §7.1 — não dissolvido nesta decisão, escopo a confirmar quando alcançado na sequência |
-| **W4-6** | Integration Contracts + Integration Gateway | W4-1 | Not Started |
+| ~~W4-2~~ | ~~Event Dispatcher + Event Audit + Event Metrics~~ — **dissolvido como Epic independente** (D-079). Event Dispatcher e Event Audit consolidados no W4-1. Event Metrics classificado **Deferred — Awaiting First Consumer** (nenhuma rota, painel, Workflow Runtime ou Advisor o consome hoje) | — | **Deferred** |
+| **W4-3** | `document.indexed` (Knowledge Platform) + `invitation.created` (Administration) — primeiros novos produtores reais | W4-1 | **Concluído** (D-080) |
+| **W4-4** | Workflow Runtime + Workflow Context + Execution Tracking + workflow de exemplo mínimo (consumindo `document.indexed`) | W4-1, W4-3 | **Concluído** (D-081 Technical Design; D-082 implementação; Executive Review aprovada) |
+| ~~W4-5~~ | ~~Retry Policies + Dead Letter Strategy~~ — **consolidado no W4-1** (D-083): o mesmo mecanismo de Retry/Dead Letter (`EventDispatcher`, `MAX_ATTEMPTS=3`, `dead_letter_events`) já implementado no W4-1 é reutilizado sem alteração por qualquer handler registrado, incluindo o Workflow Runtime (W4-4) — nenhum trabalho adicional de Retry/Dead Letter específico do Workflow Runtime foi identificado como necessário. Resolve a nota de sobreposição registrada em §7.1. | — | **Consolidated into W4-1** |
+| ~~W4-6~~ | ~~Integration Contracts + Integration Gateway~~ — Grounding Audit (D-083) não encontrou consumidor real, duplicação de integração ou acoplamento a resolver; `LLMProvider`/`NotificationProvider`/`EmbeddingProvider` já atendem plenamente às necessidades da plataforma. Implementar agora violaria "Grounded before Generalized". | — | **Deferred — Awaiting First Real External Integration Need** |
 
 ### 7.1 Replanejamento do Epic Ledger (2026-07-30, D-079 — "Founder Decision: Wave 4 Epic Replanning")
 
@@ -295,6 +297,17 @@ Cada Epic abaixo segue obrigatoriamente: Domain Blueprint (este documento cobre 
 | W4-4 | Workflow Runtime + Workflow Context + Execution Tracking + workflow de exemplo mínimo (consumindo `document.indexed`) | W4-2, W4-3 |
 | W4-5 | Retry Policies + Dead Letter Strategy | W4-4 |
 | W4-6 | Integration Contracts + Integration Gateway | W4-1 (independente de W4-3/4/5, pode paralelizar após W4-2) |
+
+### 7.2 Encerramento do Epic Ledger (2026-07-30, D-083 — "Founder Decision: Executive Review of Epic W4-6")
+
+**Grounding Audit do Epic W4-6 (Integration Gateway):** busca global confirmou zero bibliotecas de cliente HTTP em `src/` (exceto o SDK `anthropic` já usado por `ProductionLLMProvider`), zero classes de adaptador/gateway, zero webhooks, zero `fetch` externo no frontend, e que `IntegrationGateway`/`IntegrationContract` nunca existiram no código — apenas como diretório reservado no Technical Design §5.1. As três integrações reais da plataforma (`LLMProvider`→Anthropic, produção; `NotificationProvider`→NoOp; `EmbeddingProvider`→Mock) já são fachadas únicas isoladas, cada uma com exatamente um consumidor, sem duplicação e sem acoplamento cruzado a resolver. Nenhum consumidor real, nenhuma duplicação de integração, nenhum acoplamento identificado — o Epic permanece exclusivamente previsto pelo Blueprint, nunca fundamentado em um problema observado.
+
+**Decisão do Founder:**
+1. Epic W4-6 não implementado — classificado **Deferred — Awaiting First Real External Integration Need**. Implementar agora violaria "Grounded before Generalized".
+2. Epic W4-5 formalmente encerrado — classificado **Consolidated into W4-1**, resolvendo a nota de sobreposição registrada em §7.1: o mecanismo de Retry/Dead Letter do W4-1 (`EventDispatcher`, `MAX_ATTEMPTS=3`, `dead_letter_events`) já é reutilizado sem alteração por qualquer handler, incluindo o Workflow Runtime (W4-4) — nenhum trabalho adicional de Retry/Dead Letter específico de workflow foi identificado como necessário.
+3. Epic Ledger da Wave 4 atualizado para o estado final (tabela acima): W4-1 Concluído; W4-2 Deferred; W4-3 Concluído; W4-4 Concluído; W4-5 Consolidated into W4-1; W4-6 Deferred. **Nenhum Epic permanece em aberto — o Ledger da Wave 4 está oficialmente encerrado.**
+
+**Missão exclusivamente de governança:** nenhum código escrito, nenhuma implementação iniciada.
 
 ---
 

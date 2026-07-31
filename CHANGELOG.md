@@ -991,3 +991,20 @@ Founder submeteu o Technical Design à Executive Review e aprovou a implementaç
 **Próximo passo:** ciclo institucional retorna para Executive Review antes de qualquer Epic posterior.
 
 **Decision Log:** D-082.
+
+## Wave 4 — Encerramento oficial (2026-07-30): Epic W4-6 deferido, Epic W4-5 consolidado, Epic Ledger encerrado
+
+Founder autorizou o Grounding Audit do Epic W4-6 e, em Executive Review, aprovou **NO GO para implementação** ("Founder Decision — Executive Review of Epic W4-6"). **Missão exclusivamente de governança — nenhum código escrito.**
+
+**Grounding Audit:** zero clientes HTTP externos em `src/` (exceto o SDK `anthropic` já usado por `ProductionLLMProvider`), zero adaptadores/gateways, zero webhooks, zero `fetch` externo no frontend, `IntegrationGateway`/`IntegrationContract` nunca existiram no código. `LLMProvider`/`NotificationProvider`/`EmbeddingProvider` já atendem plenamente às necessidades da plataforma, cada um com exatamente um consumidor, sem duplicação nem acoplamento a resolver.
+
+**Decisão:**
+- Epic W4-6 classificado **Deferred — Awaiting First Real External Integration Need**.
+- Epic W4-5 classificado **Consolidated into W4-1** — o Retry/Dead Letter do W4-1 já cobre qualquer handler, incluindo o Workflow Runtime; nenhum trabalho adicional necessário.
+- Epic Ledger da Wave 4 (`WAVE-4-DOMAIN-BLUEPRINT.md` §7/§7.2) atualizado ao estado final: W4-1 Concluído, W4-2 Deferred, W4-3 Concluído, W4-4 Concluído, W4-5 Consolidated into W4-1, W4-6 Deferred. **Nenhum Epic em aberto.**
+
+**Verificação:** `ruff check src tests` limpo; nenhum arquivo de código alterado.
+
+**Missão:** Governança da Wave 4 oficialmente encerrada. Executive Summary de encerramento apresentada, com recomendação Go/No-Go para a abertura institucional da Wave 5 — Enterprise Advisors.
+
+**Decision Log:** D-083.
