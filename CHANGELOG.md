@@ -1047,3 +1047,16 @@ Founder aprovou o AR-8 mantendo inalteradas todas as demais decisões, com um aj
 **Verificação:** `ruff check src tests` limpo; nenhum arquivo de código alterado.
 
 **Decision Log:** D-086.
+
+## Wave 5 — Domain Blueprint do Document Advisor (2026-07-30)
+
+Etapa 1 de 8 do primeiro Epic da Wave 5. Missão exclusivamente documental — nenhum código, migração ou Technical Design produzido.
+
+**Adicionado**
+- `docs/architecture/DOMAIN-BLUEPRINT-DOCUMENT-ADVISOR.md` — grounded na Knowledge Platform (Wave 3) e no Event Pipeline (Wave 4), já prontos e testados. Achado crítico: `RecommendationEngine.build()` filtra citações exclusivamente por `Evidence.source_analysis_id`, tornando estruturalmente necessário que a Montagem de Contexto do Document Advisor popule esse campo com o `chunk_id` real (refina o risco residual #1 do AR-8). Modelo aplicado: Framework-Mediated Evidence Assembly, Classe D. Achado que exige decisão do Founder: `KnowledgeRepository.ingest()`/`.index()` não têm rota HTTP chamadora em produção hoje — duas opções de escopo apresentadas (incluir rota mínima de ingestão no Epic, ou cobrir apenas o Advisor) para a Architecture Review resolver.
+
+**Verificação:** `ruff check src tests` limpo; nenhum arquivo de código alterado.
+
+**Próximo passo:** Architecture Review do Domain Blueprint, resolvendo o gap de Document Ingestion antes de qualquer Technical Design.
+
+**Decision Log:** D-087.
