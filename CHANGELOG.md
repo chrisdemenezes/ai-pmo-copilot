@@ -1021,3 +1021,16 @@ Founder declarou oficialmente encerrada a Wave 4 e autorizou a preparação do A
 **Próximo passo:** Architecture Review da Wave 5 sobre o Kickoff, seguida de aprovação explícita do Founder antes de qualquer Domain Blueprint individual de Advisor.
 
 **Decision Log:** D-084.
+
+## Wave 5 — Architecture Review: modelo definitivo dos Enterprise Advisors (AR-8, 2026-07-30)
+
+Founder autorizou a Wave 5 Architecture Review, declarando a decisão resultante **permanente** até a STRATECH Enterprise v1.0. **Missão exclusivamente arquitetural — nenhum código, Domain Blueprint, Technical Design ou PoC produzido.**
+
+**Adicionado**
+- `docs/architecture/AR-8-WAVE-5-ENTERPRISE-ADVISOR-MODEL-REVIEW.md` — resolve a questão central do Kickoff (D-084): **Opção B decidida** (Advisor recebe evidência previamente coletada por uma camada comum) — estruturalmente exigida pelo portão anti-alucinação já em produção em `AdvisorFramework.run()`. `AIContextEngine` confirmado como coletor de evidências, nunca organizador de contexto. Classificação dos 7 Advisors em 4 classes (A: escopo único — Risk/Delivery; B: agregada — PMO/Portfolio/Executive; C: declarativa — Strategy; D: RAG primário — Document/Governance). Modelo definitivo nomeado **"Framework-Mediated Evidence Assembly"** (Rota → Montagem de Contexto por Advisor → `AdvisorFramework.run()` compartilhado → `Advisor.advise()`). Separações Workflow/Event/Domain reconfirmadas como definitivas e permanentes. 4 riscos residuais registrados, nenhum bloqueante.
+
+**Verificação:** `ruff check src tests` limpo; nenhum arquivo de código alterado.
+
+**Recomendação:** GO para a abertura do primeiro Domain Blueprint da Wave 5 — escolha do primeiro Advisor (Delivery ou Document) permanece decisão do Founder.
+
+**Decision Log:** D-085.
