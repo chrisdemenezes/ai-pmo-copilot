@@ -1034,3 +1034,16 @@ Founder autorizou a Wave 5 Architecture Review, declarando a decisão resultante
 **Recomendação:** GO para a abertura do primeiro Domain Blueprint da Wave 5 — escolha do primeiro Advisor (Delivery ou Document) permanece decisão do Founder.
 
 **Decision Log:** D-085.
+
+## Wave 5 — AR-8 aprovado com emenda; Document Advisor escolhido como primeiro Domain Blueprint (2026-07-30)
+
+Founder aprovou o AR-8 mantendo inalteradas todas as demais decisões, com um ajuste na definição do `AIContextEngine`, e escolheu o Document Advisor como primeiro Domain Blueprint da Wave 5.
+
+**Alterado**
+- `docs/architecture/AR-8-WAVE-5-ENTERPRISE-ADVISOR-MODEL-REVIEW.md` §3/§11 — definição do `AIContextEngine` substituída pela redação institucional oficial: "responsável pela preparação do contexto de IA... coletar, normalizar, consolidar e estruturar evidências para consumo dos Enterprise Advisors, sem executar regras de negócio nem interpretar domínio." A fronteira contra interpretação de domínio permanece intacta; o restante do AR-8 permanece inalterado.
+
+**Decisão:** primeiro Domain Blueprint da Wave 5 = **Document Advisor** (único Advisor com produtor real de evento, Knowledge Platform, RAG Pipeline, Event Pipeline e Workflow Runtime já validados). Autorizada a abertura do Domain Blueprint, seguindo o ciclo institucional completo de 8 etapas, nenhuma etapa antecipada.
+
+**Verificação:** `ruff check src tests` limpo; nenhum arquivo de código alterado.
+
+**Decision Log:** D-086.
