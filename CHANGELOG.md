@@ -1086,3 +1086,38 @@ Founder aprovou o AR-9 ("Founder Decision — AR-9 Approved", GO para Technical 
 **Recomendação:** GO para implementação, condicionado à confirmação do Founder sobre postergação de `confidence`, política de versionamento e naming das permissões. Nenhum código será escrito antes dessa aprovação.
 
 **Decision Log:** D-089.
+
+## Wave 5 — Founder Decision: Technical Design W5-0 aprovado, GO para implementação (2026-07-30)
+
+Founder aprovou o Technical Design do W5-0, veredito **APPROVED — GO para implementação**.
+
+**Adicionado**
+- `docs/architecture/TECHNICAL_DEBT.md` -- **TD-014 (Evidence Confidence, Deferred)** registrado oficialmente, gatilho: primeiro produtor real capaz de calcular confiança de maneira objetiva.
+- Decision Log -- **Decision Proposal "Knowledge Version Resolution"** registrada (não decidida silenciosamente): trigger é a primeira UI de reingestão documental ou primeiro caso real de múltiplas versões.
+
+**Decisões oficiais:** `knowledge.read`/`knowledge.write` aprovados como nomes definitivos. Dois testes obrigatórios adicionados: Teste A (isolamento organizacional completo) e Teste B (fluxo ponta a ponta upload→ingest→index→`document.indexed`→Workflow Runtime→Execution Tracking sem intervenção manual). Nenhuma outra expansão de escopo autorizada.
+
+**Decision Log:** D-090.
+
+## Wave 5 — Epic W5-0 (Document Ingestion) implementado (2026-07-30)
+
+Implementação completa per Technical Design e as 5 decisões de D-090. Missão exclusivamente Knowledge Platform -- nenhum arquivo toca `Evidence`/`AIContextEngine`/`AdvisorFramework`/`RecommendationEngine`/`src.agents`.
+
+**Adicionado**
+- Migração `0020` -- `knowledge.read`/`knowledge.write`, zero tabela nova (aditiva).
+- `src/services/knowledge_platform/document_ingestion_service.py` -- composição fina de `KnowledgeRepository` + auditoria (`AdministrationRepository.record_audit()`/`list_audit_log()`, filtro por entidade aditivo) + `sanitize_error()` reaproveitado de W4-4.
+- `src/api/routes/knowledge.py` -- `POST /documents`, `POST /documents/{id}/reindex`, `GET /documents`, `GET /documents/{id}`.
+- `chunk_count`/`created_at` aditivos em `IngestedDocument`/`DocumentVersionInfo`; novo `KnowledgeRepository.list_documents()`.
+- Interface administrativa mínima (`/administracao/documentos`): upload, lista com status, reindexação.
+- `docs/product/governance/W5-0-EXECUTIVE-EVIDENCE.md` -- Teste A (isolamento organizacional completo) e Teste B (fluxo ponta a ponta upload→ingest→index→`document.indexed`→Workflow Runtime→Execution Tracking, sem intervenção manual), ambos verdes na camada de serviço e na camada HTTP real.
+
+**Corrigido**
+- Duas asserções pré-existentes (`test_administration_api.py`/`test_administration_repository.py`) atualizadas para refletir que `viewer` agora também tem `knowledge.read` -- consequência correta e prevista da migração aprovada, não uma regressão.
+
+**Verificação:** suíte backend completa 539 passed, 0 failed; suíte frontend completa 503 passed (69 arquivos); `ruff`/`tsc`/`eslint` limpos.
+
+**Riscos residuais (nenhum bloqueante):** TD-014 (`confidence`, Deferred); Decision Proposal "Knowledge Version Resolution" (não resolvida nesta Epic); TD-012 reconfirmado.
+
+**Recomendação:** GO para o encerramento do Epic W5-0. Retorno obrigatório para Executive Review antes de qualquer trabalho do W5-1.
+
+**Decision Log:** D-091.

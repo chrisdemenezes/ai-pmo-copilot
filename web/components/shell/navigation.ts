@@ -1,4 +1,4 @@
-import { ClipboardList, Folder, Gavel, KeyRound, LayoutDashboard, Lightbulb, ListOrdered, Mail, MonitorSmartphone, Network, Radar, Rocket, Users } from "lucide-react";
+import { ClipboardList, FileText, Folder, Gavel, KeyRound, LayoutDashboard, Lightbulb, ListOrdered, Mail, MonitorSmartphone, Network, Radar, Rocket, Users } from "lucide-react";
 
 import type { NavItem } from "./types";
 
@@ -49,6 +49,11 @@ export const NAV_ITEMS: NavItem[] = [
   // painel real de emissão/cancelamento de convites de onboarding, mesma
   // regra de entrada da navegação (rota, dado, estados, testes).
   { label: "Convites", href: "/administracao/convites", icon: Mail },
+  // Document Ingestion (Wave 5, Epic W5-0, D-089/D-090): fluxo funcional
+  // real de upload/status da Knowledge Platform, mesma regra de entrada da
+  // navegação. Exclusivamente Knowledge Platform -- não é o Document
+  // Advisor (W5-1, ainda não autorizado).
+  { label: "Documentos", href: "/administracao/documentos", icon: FileText },
   // Mission Control (Sprint 1, Diretriz Complementar) -- painel do Founder.
   // Acesso hoje é apenas "autenticado" (proxy.ts), não "Founder" de fato --
   // RBAC funcional (Épico 3) ainda não existe. Limitação documentada, não

@@ -6,6 +6,7 @@ persistence -- no caller sees those three pieces separately.
 """
 import logging
 
+from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker
 
 from src.database.models import Chunk, Document, DocumentVersion
@@ -101,6 +102,11 @@ class KnowledgeRepository:
                 project_id=document.project_id,
                 source_name=document.source_name,
                 version_id=version.id,
+                # A version just created by ingest() never has chunks yet --
+                # index() runs strictly after (Technical Design W5-0 §3.1) --
+                # deterministic, no query needed.
+                chunk_count=0,
+                created_at=document.created_at,
             )
 
     def index(self, document_id: int, correlation_id: str) -> None:
@@ -168,13 +174,57 @@ class KnowledgeRepository:
                 .order_by(DocumentVersion.id.desc())
                 .first()
             )
+            chunk_count = (
+                session.query(func.count(Chunk.id))
+                .filter(Chunk.document_version_id == latest_version.id)
+                .scalar()
+            )
             return IngestedDocument(
                 id=document.id,
                 organization_id=document.organization_id,
                 project_id=document.project_id,
                 source_name=document.source_name,
                 version_id=latest_version.id,
+                chunk_count=chunk_count,
+                created_at=document.created_at,
             )
+
+    def list_documents(
+        self, organization_id: int, project_id: int | None = None
+    ) -> list[IngestedDocument]:
+        with self._session_factory() as session:
+            query = session.query(Document).filter(Document.organization_id == organization_id)
+            if project_id is not None:
+                query = query.filter(Document.project_id == project_id)
+            documents = query.order_by(Document.id.asc()).all()
+
+            results: list[IngestedDocument] = []
+            for document in documents:
+                latest_version = (
+                    session.query(DocumentVersion)
+                    .filter(DocumentVersion.document_id == document.id)
+                    .order_by(DocumentVersion.id.desc())
+                    .first()
+                )
+                if latest_version is None:
+                    continue
+                chunk_count = (
+                    session.query(func.count(Chunk.id))
+                    .filter(Chunk.document_version_id == latest_version.id)
+                    .scalar()
+                )
+                results.append(
+                    IngestedDocument(
+                        id=document.id,
+                        organization_id=document.organization_id,
+                        project_id=document.project_id,
+                        source_name=document.source_name,
+                        version_id=latest_version.id,
+                        chunk_count=chunk_count,
+                        created_at=document.created_at,
+                    )
+                )
+            return results
 
     def list_versions(self, organization_id: int, document_id: int) -> list[DocumentVersionInfo]:
         with self._session_factory() as session:
@@ -187,7 +237,18 @@ class KnowledgeRepository:
                 .order_by(DocumentVersion.id.asc())
                 .all()
             )
+            counts_by_version_id = dict(
+                session.query(Chunk.document_version_id, func.count(Chunk.id))
+                .filter(Chunk.document_version_id.in_([v.id for v in versions]))
+                .group_by(Chunk.document_version_id)
+                .all()
+            )
             return [
-                DocumentVersionInfo(id=v.id, document_id=v.document_id, created_at=v.created_at)
+                DocumentVersionInfo(
+                    id=v.id,
+                    document_id=v.document_id,
+                    created_at=v.created_at,
+                    chunk_count=counts_by_version_id.get(v.id, 0),
+                )
                 for v in versions
             ]

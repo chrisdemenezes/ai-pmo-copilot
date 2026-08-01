@@ -386,11 +386,21 @@ class AdministrationRepository:
             )
             return entry.id
 
-    def list_audit_log(self, organization_id: int, limit: int = 50) -> list[AuditLog]:
+    def list_audit_log(
+        self,
+        organization_id: int,
+        limit: int = 50,
+        entity_type: str | None = None,
+        entity_id: int | None = None,
+    ) -> list[AuditLog]:
         with self._session_factory() as session:
+            query = session.query(AuditLog).filter(AuditLog.organization_id == organization_id)
+            if entity_type is not None:
+                query = query.filter(AuditLog.entity_type == entity_type)
+            if entity_id is not None:
+                query = query.filter(AuditLog.entity_id == entity_id)
             return (
-                session.query(AuditLog)
-                .filter(AuditLog.organization_id == organization_id)
+                query
                 .order_by(AuditLog.created_at.desc())
                 .limit(limit)
                 .all()

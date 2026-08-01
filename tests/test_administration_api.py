@@ -190,6 +190,7 @@ class TestRoles:
             "program.read",
             "project_delivery.read",
             "intelligence.read",
+            "knowledge.read",
         }
 
     def test_assign_role(self, client):

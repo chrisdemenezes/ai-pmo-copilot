@@ -79,8 +79,17 @@ Registro vivo de débitos arquiteturais conhecidos. Cada item tem origem, status
 - **Origem:** Wave 3, Fase 1 (`DOMAIN-BLUEPRINT-ENTERPRISE-KNOWLEDGE-PLATFORM.md` §1.2) — escopo explicitamente reduzido a texto já normalizado (`str`).
 - **Classificação:** Baixo (sem consumidor real ainda).
 - **Status:** Aberto.
-- **Descrição:** `KnowledgeRepository.ingest()` aceita apenas texto já normalizado — não há parser de PDF/DOCX/outros formatos binários. Nenhum Advisor ou fluxo real ingere documentos hoje.
+- **Descrição:** `KnowledgeRepository.ingest()` aceita apenas texto já normalizado — não há parser de PDF/DOCX/outros formatos binários.
 - **Gatilho de resolução:** quando o Document Advisor (ou qualquer Advisor real) precisar ingerir um documento em formato binário real, não apenas texto.
+- **Nota de atualização (D-090, Epic W5-0):** o Epic W5-0 (Document Ingestion) entregou um fluxo HTTP real (`POST /documents`) para texto/markdown já normalizado, exatamente o limite de escopo que este TD sempre documentou — não resolve TD-012, apenas confirma que o caminho de texto (já suportado por `ingest()`) agora tem um chamador real além dos testes. Gatilho de PDF/binário permanece não disparado.
+
+## TD-014 — Evidence Confidence (campo `confidence`) não implementado
+
+- **Origem:** AR-9 (`AR-9-DOCUMENT-ADVISOR-ARCHITECTURE-REVIEW.md` §8), Technical Design W5-0 (§8), Founder Decision — Technical Design W5-0 (D-090): postergação oficializada.
+- **Classificação:** Baixo (sem consumidor real, semanticamente indefinido para `source_type="analysis_record"`).
+- **Status:** Deferred.
+- **Descrição:** o contrato definitivo de `Evidence` (`source_type`/`source_id`/`source_label`/`content`/`metadata`, aprovado em AR-9/D-088) não inclui um campo `confidence`. Tecnicamente aditivo e barato de adicionar (`confidence: float | None = None`), mas sem nenhum consumidor real hoje em `RecommendationEngine`/`ExplanationEngine`/qualquer Advisor, e seria semanticamente falso para evidência de `AnalysisRecord` (sem sinal de confiança natural equivalente ao `score` de similaridade do RAG).
+- **Gatilho de resolução:** primeiro produtor real capaz de calcular confiança de maneira objetiva (ex.: Document Advisor filtrando/exibindo citações por `score` de similaridade do RAG) — nesse momento, extensão aditiva trivial ao dataclass já aprovado, populado a partir de `chunk.score` apenas para `source_type="document_chunk"`, permanecendo `None` para `analysis_record` até essa fonte também ganhar um sinal real.
 
 ## TD-013 — Enterprise Memory Model: Consolidação e Expiração automática não implementadas
 

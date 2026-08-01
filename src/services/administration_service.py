@@ -224,8 +224,16 @@ class AdministrationService:
 
     # -- Audit Log (also serves as "Logs") ----------------------------------
 
-    def list_audit_log(self, organization_id: int, limit: int = 50) -> list[AuditLog]:
-        return self._repository.administration.list_audit_log(organization_id, limit)
+    def list_audit_log(
+        self,
+        organization_id: int,
+        limit: int = 50,
+        entity_type: str | None = None,
+        entity_id: int | None = None,
+    ) -> list[AuditLog]:
+        return self._repository.administration.list_audit_log(
+            organization_id, limit, entity_type=entity_type, entity_id=entity_id
+        )
 
     # -- API Keys (D-051) ----------------------------------------------
     #

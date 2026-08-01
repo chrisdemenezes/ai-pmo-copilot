@@ -145,6 +145,46 @@ class TestKnowledgeRepository:
         assert len(knowledge_repository.list_versions(org_a, document.id)) == 1
         assert knowledge_repository.list_versions(org_b, document.id) == []
 
+    def test_chunk_count_zero_right_after_ingest(self, repo, knowledge_repository):
+        """W5-0 (D-089/D-090): a version just ingested never has chunks yet
+        -- index() runs strictly after."""
+        org_id = repo.enterprise.create_organization("Org A")
+        document = knowledge_repository.ingest(org_id, "notes.md", "hello world")
+        assert document.chunk_count == 0
+
+    def test_chunk_count_after_index(self, repo, knowledge_repository):
+        org_id = repo.enterprise.create_organization("Org A")
+        document = knowledge_repository.ingest(org_id, "notes.md", "hello world")
+        knowledge_repository.index(document.id, CORRELATION_ID)
+
+        refreshed = knowledge_repository.get_document(org_id, document.id)
+        assert refreshed.chunk_count == 1
+
+        versions = knowledge_repository.list_versions(org_id, document.id)
+        assert versions[0].chunk_count == 1
+
+    def test_list_documents_scoped_by_organization(self, repo, knowledge_repository):
+        org_a = repo.enterprise.create_organization("Org A")
+        org_b = repo.enterprise.create_organization("Org B")
+        knowledge_repository.ingest(org_a, "notes.md", "hello")
+        knowledge_repository.ingest(org_b, "other.md", "world")
+
+        docs_a = knowledge_repository.list_documents(org_a)
+        assert len(docs_a) == 1
+        assert docs_a[0].source_name == "notes.md"
+        assert knowledge_repository.list_documents(org_b)[0].source_name == "other.md"
+
+    def test_list_documents_filters_by_project_id(self, repo, knowledge_repository):
+        org_id = repo.enterprise.create_organization("Org A")
+        project_id = repo.enterprise.create_project(org_id, "Project")
+        knowledge_repository.ingest(org_id, "scoped.md", "hello", project_id=project_id)
+        knowledge_repository.ingest(org_id, "unscoped.md", "world")
+
+        scoped = knowledge_repository.list_documents(org_id, project_id=project_id)
+        assert len(scoped) == 1
+        assert scoped[0].source_name == "scoped.md"
+        assert len(knowledge_repository.list_documents(org_id)) == 2
+
     def test_index_publishes_document_indexed_with_full_envelope(self, repo, knowledge_repository):
         """Wave 4, Epic W4-3 (D-080): document.indexed carries the full
         envelope, the propagated correlation_id, and the strict payload

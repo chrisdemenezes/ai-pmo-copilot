@@ -16,6 +16,8 @@ class IngestedDocument:
     project_id: int | None
     source_name: str
     version_id: int
+    chunk_count: int
+    created_at: datetime
 
 
 @dataclass(frozen=True)
@@ -23,6 +25,7 @@ class DocumentVersionInfo:
     id: int
     document_id: int
     created_at: datetime
+    chunk_count: int
 
 
 @dataclass(frozen=True)
