@@ -1060,3 +1060,16 @@ Etapa 1 de 8 do primeiro Epic da Wave 5. Missão exclusivamente documental — n
 **Próximo passo:** Architecture Review do Domain Blueprint, resolvendo o gap de Document Ingestion antes de qualquer Technical Design.
 
 **Decision Log:** D-087.
+
+## Wave 5 — AR-9: Architecture Review do Document Advisor (2026-07-30)
+
+Founder emitiu veredito APPROVED CONDITIONALLY sobre o Domain Blueprint do Document Advisor, exigindo resolução de dois pontos antes de qualquer Technical Design. Missão exclusivamente arquitetural — nenhum código, migração ou Technical Design produzido.
+
+**Adicionado**
+- `docs/architecture/AR-9-DOCUMENT-ADVISOR-ARCHITECTURE-REVIEW.md` — Decisão 1: Document Ingestion vira **W5-0**, Epic habilitador separado do Document Advisor (W5-1), com fluxo funcional completo (upload → ingest → index → document.indexed já conectado ao Event/Workflow Pipeline → RAG), status/auditoria/tratamento de erro reaproveitando mecanismos já existentes (`get_document()`/`list_versions()`, `AuditLog`, `sanitize_error()`), sem nenhum mecanismo novo. Decisão 2: `Evidence` evolui para um contrato genérico e aditivo (`source_type`/`source_id`/`source_label`/`content`/`metadata`), resolvendo a objeção do Founder contra `chunk_id` em `source_analysis_id` -- compatibilidade com o Risk Advisor preservada (apenas rename de campo em 4 arquivos, zero mudança de lógica), `RecommendationEngine`/portão anti-alucinação/`ExplanationEngine` inalterados. Único impacto estrutural identificado e divulgado: `AIContextEngine`/`AdvisorFramework` ganham um método fino novo (`normalize_rag_evidence`), aplicando concretamente a definição oficial do `AIContextEngine` (D-086) e evitando duplicação entre Document e Governance Advisor (ambos Classe D).
+
+**Verificação:** `ruff check src tests` limpo; nenhum arquivo de código alterado.
+
+**Recomendação:** GO para Technical Design de W5-0, seguido pela evolução do contrato `Evidence`, seguido pelo Technical Design do Document Advisor (W5-1).
+
+**Decision Log:** D-088.
