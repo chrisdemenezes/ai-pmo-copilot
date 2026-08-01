@@ -1144,3 +1144,17 @@ Primeiro uso do novo ciclo de 6 etapas (Advisor Specification → Domain Bluepri
 **Verificação:** `ruff check src tests` limpo.
 
 **Decision Log:** D-093.
+
+## Governança — regra institucional permanente de aplicação prospectiva; GO para o Technical Design do Document Advisor (2026-08-01)
+
+Founder respondeu ao achado de sequenciamento do §0 da Advisor Specification (D-093): decisão de **não reescrever** o Domain Blueprint (D-087) e a Architecture Review (D-088) do Document Advisor.
+
+**Nova regra institucional permanente (toda a STRATECH):** a evolução dos processos de governança aplica-se prospectivamente -- artefatos produzidos sob um processo anteriormente aprovado permanecem válidos desde que continuem tecnicamente corretos, consistentes com as decisões vigentes, sem conflito arquitetural, e não revogados explicitamente. Nenhum documento é reescrito apenas por adequação de formato.
+
+**Aplicação ao Document Advisor:** Etapa 1 (Advisor Specification, D-093) concluída; Etapa 2 (Domain Blueprint, D-087) e Etapa 3 (Architecture Review, D-088) consideradas atendidas. Ciclo avança direto para a Etapa 4 -- Technical Design do Document Advisor.
+
+**Regra permanente para os próximos Advisors:** os 6 Advisors restantes da Wave 5 seguem integralmente o novo ciclo de 6 etapas, sem isenção de nenhuma etapa.
+
+**Verificação:** `ruff check src tests` limpo.
+
+**Decision Log:** D-094.

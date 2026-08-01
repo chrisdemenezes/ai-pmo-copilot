@@ -945,6 +945,16 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Verificação:** missão de documentação — nenhum código de `src/`/`tests/` alterado; `ruff check src tests` confirmado limpo.
 - **Missão:** Advisor Specification do Document Advisor concluída. Aguarda confirmação explícita do Founder sobre o achado de sequenciamento do §0 antes de prosseguir para o Technical Design do Document Advisor (etapa 4) ou reabrir Domain Blueprint/Architecture Review no novo formato (etapas 2/3).
 
+### D-094 — Founder Decision: regra institucional permanente de aplicação prospectiva da governança; Domain Blueprint/Architecture Review do Document Advisor considerados atendidos; GO para o Technical Design
+
+- **Contexto:** Founder respondeu ao achado de sequenciamento do §0 da Advisor Specification (D-093) — "Founder Decision — Advisor Specification Governance". Veredito: **não reescrever os documentos existentes**.
+- **Nova regra institucional permanente, aplicável a toda a STRATECH:** *"A evolução dos processos de governança aplica-se prospectivamente. Artefatos produzidos sob um processo anteriormente aprovado permanecem válidos desde que: continuem tecnicamente corretos; permaneçam consistentes com as decisões vigentes; não apresentem conflitos arquiteturais; não tenham sido explicitamente revogados pelo Founder."* Nenhum documento anterior deve ser reescrito apenas por adequação de formato.
+- **Aplicação ao Document Advisor:** Etapa 1 — Advisor Specification (D-093) — ✅ Concluída. Etapa 2 — Domain Blueprint (D-087) — ✅ Considerada atendida (produzida sob o ciclo de 8 etapas, permanece tecnicamente correta e consistente com as decisões vigentes, sem conflito arquitetural, não revogada). Etapa 3 — Architecture Review (D-088/AR-9) — ✅ Considerada atendida (mesmo fundamento).
+- **Autorização:** ciclo institucional do Document Advisor avança diretamente para a **Etapa 4 — Technical Design do Document Advisor**.
+- **Regra permanente para os próximos Advisors:** os 6 Advisors restantes da Wave 5 (Executive, Strategy, PMO, Portfolio, Delivery, Governance) devem seguir **integralmente** o novo ciclo de 6 etapas (Advisor Specification → Domain Blueprint → Architecture Review → Technical Design → Implementação → Executive Review) — a regra de aplicação prospectiva não os isenta de nenhuma etapa, aplica-se apenas a artefatos já produzidos sob o processo anterior.
+- **Verificação:** missão de governança — nenhum código de `src/`/`tests/` alterado; `ruff check src tests` confirmado limpo.
+- **Missão:** regra institucional registrada como permanente. Autorizado o início do Technical Design do Document Advisor (etapa 4 do ciclo do W5-1).
+
 ---
 
 ## Convenção
