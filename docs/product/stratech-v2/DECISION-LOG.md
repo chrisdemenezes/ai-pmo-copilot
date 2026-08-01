@@ -928,6 +928,13 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Recomendação Go/No-Go:** **GO** para o encerramento do Epic W5-0. Todos os critérios de aceite do Technical Design §8 atendidos; nenhuma expansão de escopo além do autorizado.
 - **Missão:** implementação do W5-0 concluída. Retorno obrigatório para Executive Review antes de qualquer trabalho do W5-1 (Document Advisor) — nenhum código desse Epic foi iniciado ou antecipado.
 
+### D-092 — Epic W5-0 (Document Ingestion) oficialmente encerrado; ciclo institucional do W5-1 (Document Advisor) autorizado a abrir, iniciando por Advisor Specification
+
+- **Contexto:** Founder Decision declarando o Executive Review do Epic W5-0 concluído e o Epic oficialmente encerrado, reconhecendo: fluxo funcional entregue; Knowledge Platform operacional; Event Pipeline reutilizado sem alterações; Workflow Runtime revalidado; isolamento organizacional comprovado; ciclo ponta a ponta demonstrado; governança e suíte de testes confirmando estabilidade.
+- **Decisão:** Epic W5-0 — **Encerrado**. Nenhum item residual pendente que bloqueie a Wave 5.
+- **Próximo passo autorizado:** abertura do ciclo institucional do Epic W5-1 (Document Advisor), com uma mudança de processo recomendada pelo Founder para toda a Wave 5 — o ciclo passa a ter 6 etapas em vez de 8, inserindo uma etapa nova antes do Domain Blueprint: **1. Advisor Specification** (nova); 2. Domain Blueprint; 3. Architecture Review; 4. Technical Design; 5. Implementação; 6. Executive Review. Objetivo explícito do Founder: tornar a construção dos próximos Advisors mais consistente e previsível, reduzindo retrabalho e consolidando um padrão reutilizável para toda a Wave 5.
+- **Missão:** Epic W5-0 encerrado. Ciclo institucional do W5-1 autorizado a abrir, começando pela Advisor Specification do Document Advisor.
+
 ---
 
 ## Convenção

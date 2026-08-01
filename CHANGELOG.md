@@ -1121,3 +1121,13 @@ Implementação completa per Technical Design e as 5 decisões de D-090. Missão
 **Recomendação:** GO para o encerramento do Epic W5-0. Retorno obrigatório para Executive Review antes de qualquer trabalho do W5-1.
 
 **Decision Log:** D-091.
+
+## Wave 5 — Epic W5-0 oficialmente encerrado; ciclo institucional do W5-1 autorizado (2026-07-30)
+
+Founder declarou o Executive Review do Epic W5-0 concluído e o Epic oficialmente encerrado, reconhecendo fluxo funcional entregue, Knowledge Platform operacional, Event Pipeline reutilizado sem alterações, Workflow Runtime revalidado, isolamento organizacional comprovado, ciclo ponta a ponta demonstrado, governança e suíte de testes confirmando estabilidade.
+
+**Mudança de processo para a Wave 5:** ciclo institucional de Advisors passa a ter 6 etapas (antes 8), com uma etapa nova antes do Domain Blueprint: Advisor Specification → Domain Blueprint → Architecture Review → Technical Design → Implementação → Executive Review -- objetivo: consistência e menos retrabalho entre os 7 Advisors.
+
+**Autorizado:** abertura do ciclo institucional do Epic W5-1 (Document Advisor), começando pela Advisor Specification.
+
+**Decision Log:** D-092.
