@@ -1073,3 +1073,16 @@ Founder emitiu veredito APPROVED CONDITIONALLY sobre o Domain Blueprint do Docum
 **Recomendação:** GO para Technical Design de W5-0, seguido pela evolução do contrato `Evidence`, seguido pelo Technical Design do Document Advisor (W5-1).
 
 **Decision Log:** D-088.
+
+## Wave 5 — Technical Design do Epic W5-0: Document Ingestion (2026-07-30)
+
+Founder aprovou o AR-9 ("Founder Decision — AR-9 Approved", GO para Technical Design do W5-0), oficializando 6 decisões. Missão de documentação -- nenhum código, nenhuma migração escrita.
+
+**Adicionado**
+- `docs/architecture/TECHNICAL-DESIGN-W5-0-DOCUMENT-INGESTION.md` -- API Contract completo (`POST /documents`, `POST /documents/{id}/reindex`, `GET /documents`/`GET /documents/{id}`), extensões aditivas apenas (`chunk_count`, filtro de auditoria por entidade, duas novas permissões `knowledge.write`/`knowledge.read`), zero tabela nova. Fluxo oficial (Upload -> Document -> Version -> Chunks -> `document.indexed` -> Workflow Runtime) verificado contra código real -- `document.indexed` já integralmente conectado ao Event/Workflow Pipeline em produção, zero código novo necessário nesse trecho. Achado crítico registrado: `VectorRepository.similarity_search()` não filtra por versão mais recente -- chunks obsoletos de um documento reingerido permanecem pesquisáveis via RAG; risco residual explicitamente aceito, não resolvido especulativamente. Campo `confidence` em `Evidence` avaliado e recomendada a postergação (sem consumidor real, semanticamente falso para `AnalysisRecord`). `normalize_rag_evidence()` confirmado como puramente mecânico, implementação permanece de W5-1.
+
+**Verificação:** `ruff check src tests` limpo; nenhum arquivo de código alterado.
+
+**Recomendação:** GO para implementação, condicionado à confirmação do Founder sobre postergação de `confidence`, política de versionamento e naming das permissões. Nenhum código será escrito antes dessa aprovação.
+
+**Decision Log:** D-089.
