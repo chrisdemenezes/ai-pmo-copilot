@@ -1131,3 +1131,16 @@ Founder declarou o Executive Review do Epic W5-0 concluído e o Epic oficialment
 **Autorizado:** abertura do ciclo institucional do Epic W5-1 (Document Advisor), começando pela Advisor Specification.
 
 **Decision Log:** D-092.
+
+## Wave 5 — Advisor Specification do Document Advisor produzida (2026-07-30)
+
+Primeiro uso do novo ciclo de 6 etapas (Advisor Specification → Domain Blueprint → Architecture Review → Technical Design → Implementação → Executive Review). Missão de documentação -- nenhum código de `src/`/`tests/` alterado.
+
+**Adicionado**
+- `docs/architecture/ADVISOR-SPECIFICATION-DOCUMENT-ADVISOR.md` -- consolida, no novo formato, decisões já tomadas em D-087/D-088 (identidade, objetivo, contrato, fonte de evidência, dependências, limites, critérios de sucesso); registra também o template reutilizável de 8 campos para os 6 Advisors restantes da Wave 5.
+
+**Achado apresentado ao Founder, não decidido unilateralmente:** Domain Blueprint (D-087) e Architecture Review (D-088) do Document Advisor já existem, produzidos antes do novo ciclo ser anunciado -- documento pergunta explicitamente se essas etapas já estão satisfeitas (avançar direto para o Technical Design) ou se devem ser reescritas no novo formato.
+
+**Verificação:** `ruff check src tests` limpo.
+
+**Decision Log:** D-093.
