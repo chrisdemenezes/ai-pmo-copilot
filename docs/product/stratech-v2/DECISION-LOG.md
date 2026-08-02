@@ -955,6 +955,23 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Verificação:** missão de governança — nenhum código de `src/`/`tests/` alterado; `ruff check src tests` confirmado limpo.
 - **Missão:** regra institucional registrada como permanente. Autorizado o início do Technical Design do Document Advisor (etapa 4 do ciclo do W5-1).
 
+### D-095 — Technical Design do Document Advisor produzido (etapa 4 de 6 do ciclo do W5-1)
+
+- **Contexto:** em cumprimento a "Founder Authorization — Technical Design do Document Advisor" (veredito **APPROVED — GO para a Etapa 4**), produzido `docs/architecture/TECHNICAL-DESIGN-DOCUMENT-ADVISOR.md`. Missão exclusivamente de documentação técnica — nenhum código escrito; todo o desenho verificado por leitura direta do código real (`framework.py`, `context_engine.py`, `recommendation_engine.py`, `risk_advisor/agent.py`, `rag_pipeline.py`, `knowledge_repository.py`, `intelligence.py`).
+- **Conteúdo, per os 6 pontos exigidos pelo Founder:**
+  1. **Reuso integral do `AdvisorFramework`:** confirmado sem nenhuma mudança de assinatura pública além do passthrough `normalize_rag_evidence()` já divulgado em D-088; `DocumentAdvisorAgent` implementa `AdvisorContract` sem alteração ao Protocol.
+  2. **`normalize_rag_evidence()`:** implementação detalhada em `AIContextEngine`, puramente mecânica — reempacota `ScoredChunk` em `Evidence`, nunca interpreta `chunk.text`, nunca decide relevância.
+  3. **Integração do novo contrato `Evidence`:** rename confinado a `types.py`/`context_engine.py`/`recommendation_engine.py`/`risk_advisor/agent.py` (per D-088) **mais um 5º ponto de leitura identificado por esta Technical Design** — `intelligence.py::_risk_advisor_response()`, que também lê `item.source_analysis_id`/`item.source_created_at` diretamente; achado de completude, não uma mudança de escopo, adicionado à lista de arquivos afetados.
+  4. **Fluxo completo** documentado ponta a ponta: Knowledge Platform → RAG Pipeline → `normalize_rag_evidence()` → `AdvisorFramework.run()` → Document Advisor → LLM → resposta fundamentada, cada seta rastreada a uma função real existente.
+  5. **Garantias:** rastreabilidade de citação via `RecommendationEngine.build()` (descarta citação inventada); isolamento organizacional estrutural (dois pontos de construção já `organization_id`-scoped); portão anti-alucinação preservado (`if not evidence:` inalterado); ausência de regra de negócio em `AIContextEngine` (reempacotamento puro).
+  6. **Confirmações explícitas:** `AdvisorFramework.run()` inalterado; Workflow Runtime inalterado (Advisor nunca invocado por workflow/evento); Event Pipeline inalterado (Document Advisor não publica/consome eventos); `RecommendationEngine` compatível (rename de campo apenas, prova operacional = suíte do Risk Advisor passando inalterada).
+- **Decisões adicionais tomadas nesta Technical Design (não especulativas, resolvendo riscos já registrados em AR-9 §5):** RBAC reutiliza `knowledge.read` (nenhuma migração nova); request HTTP do Document Advisor não tem `project_name`/`project_id` (RAG search filtra apenas por `organization_id`, achado confirmado por leitura de `KnowledgeRepository.search()`/`PgVectorRepository.similarity_search()`); `top_k` mantido em `5` (default já usado pelo Risk Advisor, sem dado real de uso para justificar outro valor).
+- **Achado de nomenclatura registrado como débito técnico (TD-015, não bloqueante):** a chave literal `"cited_analysis_ids"` em `AdvisorFramework.run()` permanece com vocabulário do Risk Advisor mesmo após o rename de `Evidence`; corrigi-la exigiria alterar `run()`, que esta Technical Design confirma inalterado por exigência do Founder — registrado para resolução futura, não bloqueante.
+- **Riscos residuais reafirmados, nenhum bloqueante:** `top_k` não validado com uso real; ausência de filtro por `project_id` no RAG (herdado de D-087/D-088); Knowledge Version Resolution (D-090, ainda não resolvida).
+- **Verificação:** missão de documentação — nenhum código de `src/`/`tests/` alterado; `ruff check src tests` confirmado limpo.
+- **Recomendação:** GO para iniciar a implementação, seguindo a estratégia incremental de 4 passos (evolução do contrato `Evidence` → `normalize_rag_evidence()` → `DocumentAdvisorAgent` + rota → verificação final).
+- **Missão:** Technical Design do Document Advisor concluído. Nenhuma implementação iniciada. Retorno obrigatório para Executive Review ao final da implementação, per instrução explícita do Founder.
+
 ---
 
 ## Convenção

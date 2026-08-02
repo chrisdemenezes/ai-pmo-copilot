@@ -91,6 +91,14 @@ Registro vivo de débitos arquiteturais conhecidos. Cada item tem origem, status
 - **Descrição:** o contrato definitivo de `Evidence` (`source_type`/`source_id`/`source_label`/`content`/`metadata`, aprovado em AR-9/D-088) não inclui um campo `confidence`. Tecnicamente aditivo e barato de adicionar (`confidence: float | None = None`), mas sem nenhum consumidor real hoje em `RecommendationEngine`/`ExplanationEngine`/qualquer Advisor, e seria semanticamente falso para evidência de `AnalysisRecord` (sem sinal de confiança natural equivalente ao `score` de similaridade do RAG).
 - **Gatilho de resolução:** primeiro produtor real capaz de calcular confiança de maneira objetiva (ex.: Document Advisor filtrando/exibindo citações por `score` de similaridade do RAG) — nesse momento, extensão aditiva trivial ao dataclass já aprovado, populado a partir de `chunk.score` apenas para `source_type="document_chunk"`, permanecendo `None` para `analysis_record` até essa fonte também ganhar um sinal real.
 
+## TD-015 — Chave literal `"cited_analysis_ids"` em `AdvisorFramework.run()` carrega vocabulário do Risk Advisor, não genérico
+
+- **Origem:** Technical Design — Document Advisor (`TECHNICAL-DESIGN-DOCUMENT-ADVISOR.md` §5.2/§8.4), achado durante o desenho do prompt do `DocumentAdvisorAgent`.
+- **Classificação:** Baixo (cosmético — nenhum impacto funcional).
+- **Status:** Aberto.
+- **Descrição:** `AdvisorFramework.run()` lê `model_output.get("cited_analysis_ids")` literalmente (`framework.py:98`) para popular `RecommendationEngine.build()` — nome herdado do Risk Advisor, anterior ao rename de `Evidence.source_analysis_id` → `source_id` (D-088). Para o Document Advisor, os valores retornados por essa chave são `chunk_id`, não `analysis_id` — funcionalmente correto (ambos `int`, compatíveis com `source_id`), mas o nome da chave é enganoso para quem lê o prompt/código sem o contexto histórico. Corrigir exigiria alterar `AdvisorFramework.run()`, que a Technical Design do Document Advisor confirma explicitamente **inalterado** por exigência do Founder — corrigir agora estaria fora do escopo autorizado desta Epic.
+- **Gatilho de resolução:** quando um terceiro Advisor (além de Risk e Document) tornar o padrão maduro o suficiente para justificar renomear essa chave para algo genérico (ex.: `"cited_source_ids"`) em uma mudança isolada a `AdvisorFramework.run()`, sem risco de "Generalized before Grounded".
+
 ## TD-013 — Enterprise Memory Model: Consolidação e Expiração automática não implementadas
 
 - **Origem:** Wave 3, Fase 2 (`DOMAIN-BLUEPRINT-ENTERPRISE-MEMORY-MODEL.md` §4) — escopo explicitamente limitado a Captura+Classificação+Consulta.

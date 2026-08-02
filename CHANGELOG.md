@@ -1158,3 +1158,17 @@ Founder respondeu ao achado de sequenciamento do §0 da Advisor Specification (D
 **Verificação:** `ruff check src tests` limpo.
 
 **Decision Log:** D-094.
+
+## Wave 5 — Technical Design do Document Advisor produzido (2026-08-02)
+
+Etapa 4 de 6 do ciclo institucional do W5-1, autorizada por "Founder Authorization — Technical Design do Document Advisor" (GO). Missão de documentação técnica -- nenhum código escrito; todo o desenho verificado por leitura direta do código real.
+
+**Adicionado**
+- `docs/architecture/TECHNICAL-DESIGN-DOCUMENT-ADVISOR.md` -- reuso integral do `AdvisorFramework` (`run()` inalterado); implementação de `normalize_rag_evidence()` (mecânica, em `AIContextEngine`); integração do contrato `Evidence` (`source_type`/`source_id`/`source_label`/`content`/`metadata`) confinada a 4 arquivos + 1 ponto de leitura adicional identificado (`intelligence.py::_risk_advisor_response()`); fluxo completo Knowledge Platform → RAG Pipeline → `normalize_rag_evidence()` → `AdvisorFramework.run()` → Document Advisor → LLM → resposta; garantias de rastreabilidade de citação, isolamento organizacional, portão anti-alucinação e ausência de regra de negócio em `AIContextEngine`; confirmações explícitas de que `AdvisorFramework.run()`, Workflow Runtime, Event Pipeline e `RecommendationEngine` permanecem inalterados/compatíveis. RBAC reutiliza `knowledge.read` (nenhuma migração nova). Request HTTP sem `project_name`/`project_id` (RAG search filtra só por `organization_id`).
+- `docs/architecture/TECHNICAL_DEBT.md` -- **TD-015** (chave literal `"cited_analysis_ids"` em `AdvisorFramework.run()`, cosmético, não bloqueante).
+
+**Verificação:** `ruff check src tests` limpo.
+
+**Recomendação:** GO para iniciar a implementação (estratégia incremental de 4 passos). Nenhuma implementação iniciada; retorno obrigatório para Executive Review ao final.
+
+**Decision Log:** D-095.
