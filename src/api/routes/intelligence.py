@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field, field_validator
 from fastapi import APIRouter, Depends, HTTPException
 
 from src.agents.document_advisor.agent import DocumentAdvisorAgent
+from src.agents.governance_advisor.agent import GovernanceAdvisorAgent
 from src.agents.meeting_intelligence.agent import MeetingIntelligenceAgent
 from src.agents.project_status.agent import ProjectStatusAgent
 from src.agents.risk_advisor.agent import RiskAdvisorAgent
@@ -163,6 +164,39 @@ class CitedChunk(BaseModel):
 class DocumentAdvisorResponse(BaseModel):
     answer: str
     cited_chunks: list[CitedChunk]
+
+
+class GovernanceAdvisorRequest(BaseModel):
+    # Same absence of project_name/project_id as DocumentAdvisorRequest --
+    # RAG search() filters exclusively by organization_id.
+    question: str = Field(..., min_length=3, max_length=2000)
+
+    _validate_question = field_validator("question")(_ensure_has_content)
+
+
+_GOVERNANCE_CLASSIFICATIONS = ("CONFORME", "INCONSISTENTE", "DESATUALIZADO", "CONFLITANTE", "SEM EVIDÊNCIA")
+_GOVERNANCE_UNCLASSIFIED = "NÃO CLASSIFICADO"
+
+
+class GovernanceAdvisorResponse(BaseModel):
+    answer: str
+    classification: str
+    cited_chunks: list[CitedChunk]
+
+
+def _parse_governance_classification(answer: str) -> tuple[str, str]:
+    """HTTP-layer only (Technical Design §4/§5, Founder Decision — AR-10):
+    the classification is transmitted exclusively via the first line of
+    `answer` -- never a field threaded through `AdvisorFramework.run()`/
+    `Recommendation`/`Explanation`, all of which remain untouched. The
+    first line must contain nothing but one of the 5 official bracketed
+    labels; anything else yields the explicit `NÃO CLASSIFICADO` sentinel,
+    never a guessed/invented classification."""
+    first_line, _, rest = answer.partition("\n")
+    for label in _GOVERNANCE_CLASSIFICATIONS:
+        if first_line.strip() == f"[{label}]":
+            return label, rest.strip()
+    return _GOVERNANCE_UNCLASSIFIED, answer
 
 
 def build_prompt_registry() -> PromptRegistry:
@@ -631,6 +665,71 @@ def ask_document_advisor(
 def _document_advisor_response(explanation) -> DocumentAdvisorResponse:
     return DocumentAdvisorResponse(
         answer=explanation.recommendation.answer,
+        cited_chunks=[
+            CitedChunk(
+                document_id=item.metadata["document_id"],
+                chunk_id=item.source_id,
+                source_label=item.source_label,
+            )
+            for item in explanation.recommendation.cited_evidence
+        ],
+    )
+
+
+@router.post("/governance-advisor/ask", response_model=GovernanceAdvisorResponse)
+def ask_governance_advisor(
+    request: GovernanceAdvisorRequest,
+    context: RequestContext = Depends(get_request_context),
+    prompts: PromptRegistry = Depends(build_prompt_registry),
+    provider: LLMProvider = Depends(build_provider),
+    repository: AnalysisRepository = Depends(build_repository),
+    rag_pipeline: RagPipeline = Depends(build_rag_pipeline),
+    # Read-only: reuses knowledge.read, same justification as the Document
+    # Advisor (Technical Design §6) -- never creates/edits a document.
+    _permission: None = Depends(require_permission("knowledge.read")),
+):
+    # Epic seguinte da Wave 5 (Governance Advisor) -- see
+    # docs/architecture/TECHNICAL-DESIGN-GOVERNANCE-ADVISOR.md.
+    # Knowledge Platform -> RAG Pipeline -> normalize_rag_evidence() ->
+    # AdvisorFramework.run() (byte-for-byte unchanged) -> Governance Advisor
+    # -> LLM -> resposta fundamentada, com classificação institucional
+    # (§4/§5 do Technical Design) extraída aqui, na rota, nunca no Framework.
+    session = SessionContext(
+        organization_id=context.organization.organization_id,
+        user_id=context.user.user_id,
+        session_id=context.session.session_id,
+    )
+    framework = AdvisorFramework(repository, prompts, provider, rag_pipeline)
+
+    rag_context = framework.gather_rag_context(session.organization_id, request.question, top_k=5)
+    evidence = framework.normalize_rag_evidence(rag_context)
+    logger.info(
+        "Governance Advisor question organization_id=%s rag_chunk_ids=%s",
+        session.organization_id,
+        sorted(rag_context.chunk_ids),
+    )
+
+    agent = GovernanceAdvisorAgent(framework)
+    try:
+        explanation = framework.run(
+            agent,
+            session,
+            request.question,
+            evidence,
+            rag_context=rag_context,
+            no_evidence_answer="[SEM EVIDÊNCIA]\nNenhuma referência de governança relevante foi encontrada para responder a esta pergunta.",
+        )
+    except AdvisorExecutionError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    return _governance_advisor_response(explanation)
+
+
+def _governance_advisor_response(explanation) -> GovernanceAdvisorResponse:
+    classification, answer = _parse_governance_classification(explanation.recommendation.answer)
+    return GovernanceAdvisorResponse(
+        answer=answer,
+        classification=classification,
         cited_chunks=[
             CitedChunk(
                 document_id=item.metadata["document_id"],

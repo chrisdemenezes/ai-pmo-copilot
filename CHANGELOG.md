@@ -1259,3 +1259,20 @@ Founder aprovou AR-10 (GO para o Technical Design), exigindo classificação exp
 **Recomendação:** GO para a implementação.
 
 **Decision Log:** D-101.
+
+## Wave 5 — Governance Advisor implementado (2026-08-03)
+
+Implementação completa per a estratégia incremental de 4 passos da Technical Design (D-101), autorizada por "Founder Decision — Technical Design do Governance Advisor" (GO). Inclui a evidência obrigatória de conflito Decision Log × Technical Debt Register exigida pelo Founder.
+
+**Adicionado**
+- `src/agents/governance_advisor/agent.py` + `prompts/advise.md` -- novo `GovernanceAdvisorAgent`, prompt codificando a hierarquia institucional de AR-10 e os 5 rótulos oficiais de classificação (primeira linha de `answer`, nada mais).
+- `src/api/routes/intelligence.py` -- `POST /governance-advisor/ask` (RBAC `knowledge.read` reutilizada, nenhuma migração nova); `_parse_governance_classification()` exclusivamente na camada HTTP -- `AdvisorFramework`/`RecommendationEngine`/`ExplanationEngine` confirmados inalterados (`git diff` vazio). Fallback explícito `"NÃO CLASSIFICADO"` quando o LLM não segue o formato.
+- `tests/test_governance_advisor_agent.py`, `test_governance_advisor.py`, `test_governance_advisor_api.py` (novos) -- incluindo `TestMandatoryConflictEvidence` (Decision Log × Technical Debt Register em conflito real, classificado CONFLITANTE, ambos citados).
+
+**Confirmado inalterado:** `AdvisorFramework.run()`; `RecommendationEngine`; `ExplanationEngine`; `AIContextEngine`; Workflow Runtime; Event Pipeline. TD-015 mantido, sem incidência.
+
+**Verificação:** suíte backend completa 580 passed, 0 failed (19 novos); suíte frontend completa 503 passed; `ruff`/`tsc`/`eslint` limpos.
+
+**Recomendação:** GO para o encerramento do Epic. Retorno obrigatório para Executive Review antes de qualquer trabalho do próximo Advisor.
+
+**Decision Log:** D-102.
