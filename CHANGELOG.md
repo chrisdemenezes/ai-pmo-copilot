@@ -1230,3 +1230,19 @@ Founder aprovou a Advisor Specification (GO para o Domain Blueprint), exigindo q
 **Recomendação:** GO para a Architecture Review do Governance Advisor.
 
 **Decision Log:** D-099.
+
+## Wave 5 — AR-10: Architecture Review do Governance Advisor concluída (2026-08-03)
+
+Founder aprovou o Domain Blueprint (GO para a Architecture Review), exigindo avaliação da hierarquia de autoridade entre documentos institucionais (definida apenas arquiteturalmente) e decisão explícita sobre TD-015 nesta etapa, preservando integralmente `AdvisorFramework`, `AIContextEngine`, Event Pipeline e Workflow Runtime.
+
+**Adicionado**
+- `docs/architecture/AR-10-GOVERNANCE-ADVISOR-ARCHITECTURE-REVIEW.md` -- hierarquia documental definida: Decision Log > Technical Debt Register > Mission Control/CHANGELOG > documentos de Epic, generalizando o princípio já estabelecido em D-094. Aplicação é conhecimento de domínio no prompt do Advisor, nunca um comparador no Framework -- nenhuma mudança a `Evidence`/`normalize_rag_evidence()` necessária.
+
+**Alterado**
+- `docs/architecture/TECHNICAL_DEBT.md` -- TD-015: decisão explícita de permanecer Deferred (resolver exigiria alterar `AdvisorFramework.run()`, que esta mesma revisão preserva integralmente); gatilho revisado para uma mudança de manutenção isolada, nunca bundlada à entrega de um Advisor.
+
+**Verificação:** `ruff check src tests` limpo.
+
+**Recomendação:** GO para o Technical Design do Governance Advisor.
+
+**Decision Log:** D-100.
