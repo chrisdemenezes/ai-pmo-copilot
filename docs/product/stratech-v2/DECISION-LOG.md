@@ -1053,6 +1053,17 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Governança:** `docs/product/governance/GOVERNANCE-ADVISOR-EXECUTIVE-EVIDENCE.md` produzida com demonstração funcional completa.
 - **Missão:** Governance Advisor implementado. Recomendação GO para o encerramento do Epic. Retorno obrigatório para Executive Review do Founder antes de qualquer trabalho do próximo Advisor — nenhum código de outro Advisor foi iniciado ou antecipado.
 
+### D-103 — Governance Advisor oficialmente encerrado; Delivery Advisor definido como próximo Enterprise Advisor; Advisor Specification produzida (etapa 1 de 6)
+
+- **Contexto:** "Founder Decision" declarando o Governance Advisor oficialmente concluído, reconhecendo: arquitetura íntegra; reutilização comprovada; hierarquia documental aplicada corretamente; classificação de governança implementada sem alterar o Framework; rastreabilidade documental revalidada; suíte completa confirmando estabilidade. **Terceiro Advisor da Wave 5 concluído** (após Risk Advisor — referência de padrão — e Document Advisor, W5-1).
+- **Autorização:** abertura do ciclo institucional do **Delivery Advisor**, seguindo integralmente o processo de 6 etapas (D-092). Founder nomeou o Advisor diretamente nesta decisão.
+- **Advisor Specification produzida** (`docs/architecture/ADVISOR-SPECIFICATION-DELIVERY-ADVISOR.md`): Delivery Advisor é **Classe A** (escopo único, per AR-8 §4) — mesma forma do Risk Advisor, diferente estruturalmente dos dois últimos (Document/Governance, Classe D). Reutiliza `AIContextEngine.gather(organization_id, project_name, kind)` sem nenhuma extensão — confirmado suficiente pelo próprio achado da Architecture Kickoff (D-084): "dos 7 Advisors restantes, só o Delivery Advisor se encaixa diretamente" nesse método. Nenhum método novo de Framework esperado nesta Epic (diferente de `normalize_rag_evidence()`, necessário para os dois Advisors de Classe D anteriores).
+- **Achado grounded, explicitamente não resolvido nesta etapa:** o catálogo descreve a responsabilidade do Delivery Advisor como abrangendo três conceitos (ações, riscos, histórico de análise/status) — uma síntese literal dos três exigiria mais de uma chamada a `gather_context()`, reclassificando o Advisor para Classe B e contradizendo a classificação Classe A já decidida em AR-8/D-085. Interpretação proposta, não decisão final: `kind="status"` como fonte primária e única, preservando a Classe A — decisão reservada para o Domain Blueprint.
+- **Riscos identificados, nenhum bloqueante:** definição exata do `kind`/possível reclassificação (Domain Blueprint); `no_evidence_answer`/`top_k` de domínio (Technical Design); RAG suplementar sem validação de uso real (Technical Design). TD-015 não incide neste Advisor (Classe A não usa `normalize_rag_evidence()`).
+- **Verificação:** missão de documentação — nenhum código de `src/`/`tests/` alterado; `ruff check src tests` confirmado limpo.
+- **Recomendação:** GO para o Domain Blueprint do Delivery Advisor.
+- **Missão:** Advisor Specification do Delivery Advisor concluída. Retorno obrigatório para Executive Review do Founder antes de prosseguir ao Domain Blueprint (etapa 2).
+
 ---
 
 ## Convenção

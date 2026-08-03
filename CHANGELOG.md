@@ -1276,3 +1276,18 @@ Implementação completa per a estratégia incremental de 4 passos da Technical 
 **Recomendação:** GO para o encerramento do Epic. Retorno obrigatório para Executive Review antes de qualquer trabalho do próximo Advisor.
 
 **Decision Log:** D-102.
+
+## Wave 5 — Governance Advisor oficialmente encerrado; Delivery Advisor definido como próximo Advisor; Advisor Specification produzida (2026-08-03)
+
+Founder declarou o Governance Advisor oficialmente concluído (arquitetura íntegra, reutilização comprovada, hierarquia documental aplicada corretamente, classificação sem alterar o Framework, rastreabilidade revalidada, suíte completa confirmando estabilidade). Terceiro Advisor da Wave 5 concluído.
+
+**Autorizado:** abertura do ciclo institucional do Delivery Advisor.
+
+**Adicionado**
+- `docs/architecture/ADVISOR-SPECIFICATION-DELIVERY-ADVISOR.md` -- etapa 1 de 6. Delivery Advisor classificado Classe A (escopo único, mesma forma do Risk Advisor) -- reutiliza `AIContextEngine.gather()` sem nenhuma extensão, confirmado pelo achado de D-084. Achado grounded, não resolvido: qual `kind` exato (ou composição) de `AnalysisRecord` satisfaz "ações, riscos e histórico de análise" sem reclassificar o Advisor para Classe B -- reservado para o Domain Blueprint.
+
+**Verificação:** `ruff check src tests` limpo.
+
+**Recomendação:** GO para o Domain Blueprint do Delivery Advisor.
+
+**Decision Log:** D-103.
