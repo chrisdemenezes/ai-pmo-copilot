@@ -1204,3 +1204,16 @@ Founder declarou o Executive Review do Epic W5-1 concluído e o Epic oficialment
 **Autorizado:** abertura do ciclo institucional do próximo Enterprise Advisor, seguindo integralmente o processo de 6 etapas (Advisor Specification → Domain Blueprint → Architecture Review → Technical Design → Implementação → Executive Review). Escolha do Advisor específico (entre os 6 restantes do catálogo) aguarda confirmação do Founder.
 
 **Decision Log:** D-097.
+
+## Wave 5 — Governance Advisor definido como próximo Advisor; Advisor Specification produzida (2026-08-03)
+
+Founder definiu oficialmente o Governance Advisor (segundo Advisor de Classe D, mesma infraestrutura RAG do Document Advisor) como o próximo Enterprise Advisor da Wave 5, priorizando reutilização arquitetural e redução de risco.
+
+**Adicionado**
+- `docs/architecture/ADVISOR-SPECIFICATION-GOVERNANCE-ADVISOR.md` -- etapa 1 de 6 do ciclo institucional. Contrato/fluxo idênticos ao Document Advisor, reaproveitando `normalize_rag_evidence()` sem alteração. Achado grounded (não resolvido): documentos de governança (Decision Log/TD Register) ainda não ingeridos na Knowledge Platform -- decisão de processo do Domain Blueprint, não lacuna arquitetural. Achado sinalizado: o gatilho de TD-015 ("segundo Advisor baseado em RAG") chegou -- avaliação reservada para a Architecture Review.
+
+**Verificação:** `ruff check src tests` limpo.
+
+**Recomendação:** GO para o Domain Blueprint do Governance Advisor.
+
+**Decision Log:** D-098.
