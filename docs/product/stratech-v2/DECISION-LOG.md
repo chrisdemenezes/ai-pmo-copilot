@@ -1003,6 +1003,18 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Recomendação:** GO para o Domain Blueprint do Governance Advisor.
 - **Missão:** Advisor Specification do Governance Advisor concluída. Retorno obrigatório para Executive Review do Founder antes de prosseguir ao Domain Blueprint (etapa 2).
 
+### D-099 — Domain Blueprint do Governance Advisor produzido (etapa 2 de 6); 4 cenários de governança caracterizados sem arquitetura nova
+
+- **Contexto:** "Founder Decision — Governance Advisor Specification" (veredito **APPROVED — GO para o Domain Blueprint**), exigindo que este documento considere explicitamente 4 cenários de governança, sem criar novas regras: (1) ausência de evidência documental; (2) documento existente porém inconsistente com outra decisão oficial; (3) documento existente porém desatualizado em relação ao Decision Log; (4) documentos conflitantes entre si. Determinou também: não resolver TD-015 nesta etapa (mantido para a Architecture Review); preservar integralmente a arquitetura validada pelo Document Advisor. Produzido `docs/architecture/DOMAIN-BLUEPRINT-GOVERNANCE-ADVISOR.md`. Nenhum código escrito.
+- **Grounding Audit:** confirmado por leitura direta do código já implementado no W5-1 que nenhum dos 4 cenários exige mudança de Framework — `normalize_rag_evidence()` já devolve `Evidence` de múltiplos documentos na mesma `RagContext`; `RecommendationEngine.build()` já suporta citar múltiplos `chunk_id` de documentos diferentes simultaneamente; o portão anti-alucinação (`if not evidence:`) já cobre o cenário 1 sem mudança.
+- **Caracterização dos 4 cenários (conceitual, implementação reservada para o Technical Design, per instrução do Founder):** (1) ausência de evidência — mecanismo idêntico ao já provado (`no_evidence()`); (2)/(4) inconsistência/conflito entre documentos — identificação é interpretação de domínio do próprio `GovernanceAdvisorAgent` sobre múltiplos chunks já entregues juntos, nunca um comparador determinístico novo no Framework; (3) desatualização em relação ao Decision Log — caso específico de (2)/(4), distinto e não confundido com a Decision Proposal "Knowledge Version Resolution" (D-090, que trata de versões do mesmo documento, não de documentos diferentes).
+- **Corpus documental definido (decisão mínima para avançar):** Decision Log + Technical Debt Register — os dois documentos formais e estruturados citados pelo catálogo; ampliação (ex.: Mission Control) fica para a Architecture Review, se justificada.
+- **Achado operacional confirmado, não uma automação nova:** os documentos de governança ainda não foram ingeridos na Knowledge Platform; ingestão via `POST /documents` (W5-0), manual, mesma interface administrativa já existente — nenhuma sincronização Git↔Knowledge Platform criada.
+- **Riscos reservados, nenhum bloqueante:** TD-015 (Architecture Review, per instrução explícita do Founder); wording de `no_evidence_answer`/`top_k` (Technical Design); Knowledge Version Resolution (D-090, já registrada).
+- **Verificação:** missão de documentação — nenhum código de `src/`/`tests/` alterado; `ruff check src tests` confirmado limpo.
+- **Recomendação:** GO para a Architecture Review do Governance Advisor.
+- **Missão:** Domain Blueprint do Governance Advisor concluído. Retorno obrigatório para Executive Review do Founder antes de prosseguir à Architecture Review (etapa 3).
+
 ---
 
 ## Convenção

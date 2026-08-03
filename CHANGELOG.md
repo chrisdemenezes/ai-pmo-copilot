@@ -1217,3 +1217,16 @@ Founder definiu oficialmente o Governance Advisor (segundo Advisor de Classe D, 
 **Recomendação:** GO para o Domain Blueprint do Governance Advisor.
 
 **Decision Log:** D-098.
+
+## Wave 5 — Domain Blueprint do Governance Advisor produzido (2026-08-03)
+
+Founder aprovou a Advisor Specification (GO para o Domain Blueprint), exigindo que este documento considere explicitamente 4 cenários de governança sem criar novas regras: ausência de evidência documental; documento inconsistente com outra decisão oficial; documento desatualizado em relação ao Decision Log; documentos conflitantes entre si.
+
+**Adicionado**
+- `docs/architecture/DOMAIN-BLUEPRINT-GOVERNANCE-ADVISOR.md` -- etapa 2 de 6. Confirma que nenhum dos 4 cenários exige mudança de Framework: `normalize_rag_evidence()`/`RecommendationEngine.build()` já suportam citação de múltiplos chunks de múltiplos documentos; identificação de inconsistência/conflito é interpretação de domínio do `GovernanceAdvisorAgent`, nunca um comparador novo no Framework. Corpus documental definido (Decision Log + Technical Debt Register). TD-015 explicitamente reservado para a Architecture Review, não resolvido aqui.
+
+**Verificação:** `ruff check src tests` limpo.
+
+**Recomendação:** GO para a Architecture Review do Governance Advisor.
+
+**Decision Log:** D-099.
