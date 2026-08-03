@@ -1028,6 +1028,19 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Recomendação:** GO para o Technical Design do Governance Advisor.
 - **Missão:** Architecture Review do Governance Advisor concluída. Retorno obrigatório para Executive Review do Founder antes de prosseguir ao Technical Design (etapa 4).
 
+### D-101 — Technical Design do Governance Advisor produzido (etapa 4 de 6); classificação de 5 estados resolvida sem tocar o Framework
+
+- **Contexto:** "Founder Decision — AR-10 Governance Advisor" (veredito **APPROVED — GO para o Technical Design**), oficializando: hierarquia de AR-10 definitiva; precedência permanece conhecimento de domínio (zero lógica em `AdvisorFramework`/`AIContextEngine`/Workflow Runtime/Event Pipeline); TD-015 permanece Deferred com gatilho definitivo ("manutenção arquitetural isolada explicitamente autorizada pelo Founder", nenhum Advisor pode carregá-la incidentalmente); definir nesta etapa uma classificação explícita de estados de governança (`CONFORME`/`INCONSISTENTE`/`DESATUALIZADO`/`CONFLITANTE`/`SEM EVIDÊNCIA`), comportamento exclusivo do Advisor, sem alterar o Framework. Produzido `docs/architecture/TECHNICAL-DESIGN-GOVERNANCE-ADVISOR.md`. Nenhum código escrito.
+- **Achado arquitetural central, resolvido:** `AdvisorFramework.run()` só propaga `answer`/`cited_analysis_ids` de `model_output` para `Recommendation`/`Explanation` — nenhum campo de classificação pode atravessar sem alterar esses tipos compartilhados. Decisão de design: a classificação é embutida como prefixo fixo dentro do próprio `answer` (`"[CONFORME] "`, etc.), que atravessa `RecommendationEngine.build()`/`ExplanationEngine.explain()` intacto (confirmado por leitura de código); extraído de volta por uma função nova **de rota** (`_parse_governance_classification`, em `intelligence.py`, mesmo padrão de `_risk_advisor_response`/`_document_advisor_response`) — nunca no Framework.
+- **`SEM EVIDÊNCIA` mapeado ao mecanismo já existente:** `no_evidence_answer` prefixado com o mesmo rótulo, cobrindo o estado sem nenhum mecanismo novo — parsing uniforme entre o caminho de evidência vazia e o caminho real do LLM.
+- **Robustez do parsing:** se o LLM não seguir o formato, fallback explícito `"NÃO CLASSIFICADO"` (deliberadamente fora dos 5 rótulos oficiais) — nunca uma classificação inventada.
+- **Reuso confirmado, não duplicado:** `CitedChunk` (já definido para o Document Advisor) reaproveitado sem alteração.
+- **TD-015 confirmado sem incidência:** `GovernanceAdvisorAgent` usa a mesma chave `"cited_analysis_ids"`, nenhuma tentativa de renomeá-la nesta Epic.
+- **Fluxo completo, modelo de resposta (`GovernanceAdvisorResponse{answer, classification, cited_chunks}`), riscos residuais e estratégia incremental de 4 passos** detalhados no documento.
+- **Verificação:** missão de documentação — nenhum código de `src/`/`tests/` alterado; `ruff check src tests` confirmado limpo.
+- **Recomendação:** GO para a implementação.
+- **Missão:** Technical Design do Governance Advisor concluído. Retorno obrigatório para Executive Review do Founder antes de qualquer implementação.
+
 ---
 
 ## Convenção

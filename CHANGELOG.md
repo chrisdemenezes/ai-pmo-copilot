@@ -1246,3 +1246,16 @@ Founder aprovou o Domain Blueprint (GO para a Architecture Review), exigindo ava
 **Recomendação:** GO para o Technical Design do Governance Advisor.
 
 **Decision Log:** D-100.
+
+## Wave 5 — Technical Design do Governance Advisor produzido (2026-08-03)
+
+Founder aprovou AR-10 (GO para o Technical Design), exigindo classificação explícita de 5 estados de governança (`CONFORME`/`INCONSISTENTE`/`DESATUALIZADO`/`CONFLITANTE`/`SEM EVIDÊNCIA`) como comportamento exclusivo do Advisor, sem alterar o Framework.
+
+**Adicionado**
+- `docs/architecture/TECHNICAL-DESIGN-GOVERNANCE-ADVISOR.md` -- resolve o achado central de como a classificação sobrevive até a resposta HTTP sem tocar `AdvisorFramework.run()`/`Recommendation`/`Explanation`: embutida como prefixo fixo em `answer`, extraída por uma função de rota (não de Framework). `SEM EVIDÊNCIA` mapeado ao portão anti-alucinação já existente. Fallback explícito (`"NÃO CLASSIFICADO"`) se o LLM não seguir o formato -- nunca uma classificação inventada. Reaproveita `CitedChunk` do Document Advisor sem duplicação. TD-015 confirmado sem incidência.
+
+**Verificação:** `ruff check src tests` limpo.
+
+**Recomendação:** GO para a implementação.
+
+**Decision Log:** D-101.
