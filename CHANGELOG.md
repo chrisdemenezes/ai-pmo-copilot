@@ -1196,3 +1196,11 @@ Implementação completa per a estratégia incremental de 4 passos da Technical 
 **Recomendação:** GO para o encerramento do Epic W5-1. Retorno obrigatório para Executive Review antes de qualquer trabalho do próximo Advisor da Wave 5.
 
 **Decision Log:** D-096.
+
+## Wave 5 — Epic W5-1 (Document Advisor) oficialmente encerrado; próximo Advisor autorizado a abrir (2026-08-03)
+
+Founder declarou o Executive Review do Epic W5-1 concluído e o Epic oficialmente encerrado, reconhecendo: reuso integral da arquitetura existente, evolução do contrato `Evidence` sem regressões, rastreabilidade documental comprovada, portão anti-alucinação íntegro, infraestrutura das Waves 3/4 validada em produção funcional, suíte de testes confirmando estabilidade.
+
+**Autorizado:** abertura do ciclo institucional do próximo Enterprise Advisor, seguindo integralmente o processo de 6 etapas (Advisor Specification → Domain Blueprint → Architecture Review → Technical Design → Implementação → Executive Review). Escolha do Advisor específico (entre os 6 restantes do catálogo) aguarda confirmação do Founder.
+
+**Decision Log:** D-097.

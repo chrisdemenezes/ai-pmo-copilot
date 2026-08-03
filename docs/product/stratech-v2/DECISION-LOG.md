@@ -984,6 +984,13 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Governança:** TD-015 atualizado para Status Deferred com gatilho oficializado; `docs/product/governance/W5-1-EXECUTIVE-EVIDENCE.md` produzida com demonstração funcional completa.
 - **Missão:** Epic W5-1 (Document Advisor) implementado. Recomendação GO para o encerramento do Epic. Retorno obrigatório para Executive Review do Founder antes de qualquer trabalho do próximo Advisor da Wave 5 — nenhum código de outro Advisor foi iniciado ou antecipado.
 
+### D-097 — Epic W5-1 (Document Advisor) oficialmente encerrado; ciclo institucional do próximo Enterprise Advisor autorizado a abrir
+
+- **Contexto:** "Founder Decision" — Executive Review do Epic W5-1 concluída. Founder reconhece explicitamente: o Advisor reutiliza integralmente a arquitetura existente; o contrato `Evidence` evoluiu sem regressões; a rastreabilidade documental foi comprovada; o portão anti-alucinação permaneceu íntegro; a infraestrutura das Waves 3 e 4 foi validada em produção funcional; a suíte de testes confirma estabilidade da plataforma.
+- **Encerramento:** Epic W5-1 — Document Advisor **oficialmente encerrado**. Segundo Advisor da Wave 5 concluído (após o Risk Advisor, referência de padrão).
+- **Autorizado:** abertura do ciclo institucional do **próximo Enterprise Advisor**, seguindo integralmente o processo consolidado de 6 etapas (D-092): 1. Advisor Specification; 2. Domain Blueprint; 3. Architecture Review; 4. Technical Design; 5. Implementação; 6. Executive Review. Founder não nomeou o Advisor específico nesta decisão — escolha entre os 6 Advisors restantes do catálogo (`ENTERPRISE-ADVISOR-CATALOG.md`: Executive, Strategy, PMO, Portfolio, Delivery, Governance) permanece decisão do Founder, apresentada para confirmação em resposta a este documento (mesmo padrão de D-086, onde a escolha do primeiro Advisor foi decisão explícita do Founder, não presumida).
+- **Missão:** Epic W5-1 oficialmente encerrado. Aguarda confirmação do Founder sobre qual dos 6 Advisors restantes será o próximo, antes de iniciar a Advisor Specification.
+
 ---
 
 ## Convenção
