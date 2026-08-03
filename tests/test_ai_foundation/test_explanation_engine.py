@@ -6,8 +6,20 @@ from src.services.ai_foundation.types import Evidence, Recommendation
 
 def test_explain_includes_the_evidence_count_in_the_rationale():
     evidence = [
-        Evidence(source_analysis_id=1, source_created_at=datetime(2026, 1, 1, tzinfo=timezone.utc), kind="risk", summary={}),
-        Evidence(source_analysis_id=2, source_created_at=datetime(2026, 1, 2, tzinfo=timezone.utc), kind="risk", summary={}),
+        Evidence(
+            source_type="analysis_record",
+            source_id=1,
+            source_label="AnalysisRecord#1 (risk)",
+            content={},
+            metadata={"created_at": datetime(2026, 1, 1, tzinfo=timezone.utc), "kind": "risk"},
+        ),
+        Evidence(
+            source_type="analysis_record",
+            source_id=2,
+            source_label="AnalysisRecord#2 (risk)",
+            content={},
+            metadata={"created_at": datetime(2026, 1, 2, tzinfo=timezone.utc), "kind": "risk"},
+        ),
     ]
     recommendation = Recommendation(answer="resposta", cited_evidence=evidence)
 

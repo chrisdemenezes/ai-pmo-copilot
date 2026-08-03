@@ -4,8 +4,20 @@ from src.services.ai_foundation.recommendation_engine import RecommendationEngin
 from src.services.ai_foundation.types import Evidence
 
 EVIDENCE = [
-    Evidence(source_analysis_id=1, source_created_at=datetime(2026, 1, 1, tzinfo=timezone.utc), kind="risk", summary={}),
-    Evidence(source_analysis_id=2, source_created_at=datetime(2026, 1, 2, tzinfo=timezone.utc), kind="risk", summary={}),
+    Evidence(
+        source_type="analysis_record",
+        source_id=1,
+        source_label="AnalysisRecord#1 (risk)",
+        content={},
+        metadata={"created_at": datetime(2026, 1, 1, tzinfo=timezone.utc), "kind": "risk"},
+    ),
+    Evidence(
+        source_type="analysis_record",
+        source_id=2,
+        source_label="AnalysisRecord#2 (risk)",
+        content={},
+        metadata={"created_at": datetime(2026, 1, 2, tzinfo=timezone.utc), "kind": "risk"},
+    ),
 ]
 
 
@@ -26,7 +38,7 @@ def test_build_keeps_only_citations_that_match_real_evidence():
     recommendation = RecommendationEngine.build("resposta", [1, 2], EVIDENCE)
 
     assert recommendation.answer == "resposta"
-    assert [e.source_analysis_id for e in recommendation.cited_evidence] == [1, 2]
+    assert [e.source_id for e in recommendation.cited_evidence] == [1, 2]
 
 
 def test_build_discards_a_citation_the_model_invented():
@@ -34,7 +46,7 @@ def test_build_discards_a_citation_the_model_invented():
     # trusted, no matter what the model claims it cited.
     recommendation = RecommendationEngine.build("resposta", [1, 999], EVIDENCE)
 
-    assert [e.source_analysis_id for e in recommendation.cited_evidence] == [1]
+    assert [e.source_id for e in recommendation.cited_evidence] == [1]
 
 
 def test_build_with_no_cited_ids_returns_no_evidence():

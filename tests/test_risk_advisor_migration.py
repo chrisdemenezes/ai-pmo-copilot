@@ -147,7 +147,7 @@ class TestFunctionalEquivalence:
         assert explanation.recommendation.answer == "O risco mais crítico é o atraso no fornecedor de middleware."
         # Only the real citation survives -- the invented id is discarded,
         # exactly the guard the pre-migration Agent already enforced.
-        assert [e.source_analysis_id for e in explanation.recommendation.cited_evidence] == [analysis_id]
+        assert [e.source_id for e in explanation.recommendation.cited_evidence] == [analysis_id]
         assert provider.calls == 1
 
 

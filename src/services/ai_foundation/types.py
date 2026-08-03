@@ -1,19 +1,26 @@
 from dataclasses import dataclass, field
-from datetime import datetime
 
 
 @dataclass(frozen=True)
 class Evidence:
-    """One already-persisted, verifiable fact an Enterprise Analyst can cite.
+    """One already-persisted, verifiable fact an Enterprise Advisor can cite.
 
-    ``summary`` is opaque to the Foundation on purpose (Domain Blueprint §6):
-    only the Analyst that requested this ``kind`` knows how to interpret it.
+    Generic across source systems (AR-9/D-088): ``source_type`` identifies
+    which repository produced this fact (e.g. ``"analysis_record"``,
+    ``"document_chunk"``), ``source_id`` is that source's own primary key --
+    never reinterpreted across types. ``content`` remains opaque to the
+    Foundation on purpose (Domain Blueprint §6): only the Advisor that
+    requested this evidence knows how to interpret it. ``metadata`` carries
+    auxiliary, source-specific facts (``created_at``, ``document_id``,
+    ``score``, ...) without inventing a new top-level field per future
+    ``source_type``.
     """
 
-    source_analysis_id: int
-    source_created_at: datetime
-    kind: str
-    summary: dict
+    source_type: str
+    source_id: int
+    source_label: str
+    content: dict
+    metadata: dict = field(default_factory=dict)
 
 
 @dataclass(frozen=True)

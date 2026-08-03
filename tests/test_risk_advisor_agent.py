@@ -41,10 +41,10 @@ SESSION = SessionContext(organization_id=1, user_id=1, session_id="session-1", p
 
 SAMPLE_EVIDENCE = [
     Evidence(
-        source_analysis_id=7,
-        source_created_at=datetime(2026, 7, 10, 14, 0, tzinfo=timezone.utc),
-        kind="risk",
-        summary={
+        source_type="analysis_record",
+        source_id=7,
+        source_label="AnalysisRecord#7 (risk)",
+        content={
             "structured": True,
             "risks": [
                 {
@@ -56,6 +56,7 @@ SAMPLE_EVIDENCE = [
             ],
             "escalation_recommendation": "Escalar ao comitê executivo",
         },
+        metadata={"created_at": datetime(2026, 7, 10, 14, 0, tzinfo=timezone.utc), "kind": "risk"},
     )
 ]
 

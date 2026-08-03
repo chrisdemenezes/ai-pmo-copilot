@@ -45,12 +45,12 @@ class RiskAdvisorAgent:
                     "probability": risk.get("probability"),
                     "impact": risk.get("impact"),
                     "mitigation": risk.get("mitigation"),
-                    "escalation_recommendation": item.summary.get("escalation_recommendation"),
-                    "source_analysis_id": item.source_analysis_id,
-                    "source_created_at": str(item.source_created_at),
+                    "escalation_recommendation": item.content.get("escalation_recommendation"),
+                    "source_analysis_id": item.source_id,
+                    "source_created_at": str(item.metadata["created_at"]),
                 }
                 for item in evidence
-                for risk in (item.summary.get("risks") or [])
+                for risk in (item.content.get("risks") or [])
                 if isinstance(risk, dict)
             ],
             ensure_ascii=False,

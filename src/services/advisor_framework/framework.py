@@ -55,6 +55,9 @@ class AdvisorFramework:
     ) -> RagContext:
         return self._rag_pipeline.retrieve(organization_id, query, top_k=top_k)
 
+    def normalize_rag_evidence(self, rag_context: RagContext) -> list[Evidence]:
+        return self._context_engine.normalize_rag_evidence(rag_context)
+
     # -- controlled LLM access (audit §1, steps 5b/5c) ---------------------
 
     def render_prompt(self, advisor_name: str, prompt_name: str, **variables: str) -> str:

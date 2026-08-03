@@ -92,7 +92,7 @@ class TestRunAuditsUnconditionally:
         )
         evidence = framework.gather_context(org_id, "Aurora", kind="risk")
         assert len(evidence) == 1
-        assert evidence[0].source_analysis_id == analysis_id
+        assert evidence[0].source_id == analysis_id
 
         framework.run(_FakeAdvisor(), _session(repo, org_id), "any question?", evidence=evidence)
 
@@ -121,7 +121,7 @@ class TestRunWithEvidence:
             project_name="Aurora",
         )
         evidence = framework.gather_context(org_id, "Aurora", kind="risk")
-        analysis_id = evidence[0].source_analysis_id
+        analysis_id = evidence[0].source_id
 
         advisor = _FakeAdvisor(
             response={
@@ -134,7 +134,7 @@ class TestRunWithEvidence:
 
         assert explanation.recommendation.answer == "here is the synthesis"
         # Only the real, present citation survives -- never an invented one.
-        assert [e.source_analysis_id for e in explanation.recommendation.cited_evidence] == [analysis_id]
+        assert [e.source_id for e in explanation.recommendation.cited_evidence] == [analysis_id]
 
     def test_raises_for_malformed_advisor_output(self, repo, framework):
         org_id = repo.enterprise.create_organization("Org A")
@@ -164,6 +164,45 @@ class TestControlledRagAccess:
         assert len(context.chunks) == 1
         assert context.chunks[0].document_id == document.id
         assert context.chunk_ids == {context.chunks[0].chunk_id}
+
+
+class TestNormalizeRagEvidence:
+    """D-088/AR-9 §3, D-095: `AdvisorFramework.normalize_rag_evidence()` is a
+    thin passthrough to `AIContextEngine.normalize_rag_evidence()` -- same
+    pattern as `gather_context()`/`gather_rag_context()`."""
+
+    def test_normalizes_a_real_ingested_chunk_into_document_chunk_evidence(
+        self, repo, knowledge_repository, framework
+    ):
+        org_id = repo.enterprise.create_organization("Org A")
+        document = knowledge_repository.ingest(
+            org_id, "runbook.md", "the rollback procedure is documented here"
+        )
+        knowledge_repository.index(document.id, CORRELATION_ID)
+
+        rag_context = framework.gather_rag_context(org_id, "rollback procedure", top_k=3)
+        evidence = framework.normalize_rag_evidence(rag_context)
+
+        assert len(evidence) == 1
+        assert evidence[0].source_type == "document_chunk"
+        assert evidence[0].source_id == rag_context.chunks[0].chunk_id
+        assert evidence[0].metadata["document_id"] == document.id
+
+    def test_never_normalizes_a_chunk_from_another_organization(
+        self, repo, knowledge_repository, framework
+    ):
+        org_a = repo.enterprise.create_organization("Org A")
+        org_b = repo.enterprise.create_organization("Org B")
+        document = knowledge_repository.ingest(
+            org_a, "confidential.md", "Org A's confidential rollback procedure"
+        )
+        knowledge_repository.index(document.id, CORRELATION_ID)
+
+        rag_context = framework.gather_rag_context(org_b, "rollback procedure", top_k=5)
+        evidence = framework.normalize_rag_evidence(rag_context)
+
+        assert rag_context.chunks == []
+        assert evidence == []
 
 
 class TestControlledLlmAccess:

@@ -1,12 +1,17 @@
 from src.database.repository import AnalysisRepository
 from src.services.ai_foundation.types import Evidence
+from src.services.knowledge_platform.rag_pipeline import RagContext
 
 
 class AIContextEngine:
     """Resolves the institutional data (already persisted AnalysisRecords)
     relevant to an Enterprise Analyst's question -- one implementation shared
     by every Analyst, instead of each one re-querying and re-filtering on
-    its own (Domain Blueprint §4.1)."""
+    its own (Domain Blueprint §4.1).
+
+    D-086: also the single place that normalizes RAG evidence
+    (`normalize_rag_evidence()`) for every Class D Advisor (Document,
+    Governance) -- preparing context, never interpreting domain."""
 
     def __init__(self, repository: AnalysisRepository) -> None:
         self._repository = repository
@@ -36,10 +41,32 @@ class AIContextEngine:
                 continue
             evidence.append(
                 Evidence(
-                    source_analysis_id=record.id,
-                    source_created_at=record.created_at,
-                    kind=kind,
-                    summary=model_output,
+                    source_type="analysis_record",
+                    source_id=record.id,
+                    source_label=f"AnalysisRecord#{record.id} ({kind})",
+                    content=model_output,
+                    metadata={"created_at": record.created_at, "kind": kind},
                 )
             )
         return evidence
+
+    def normalize_rag_evidence(self, rag_context: RagContext) -> list[Evidence]:
+        """Mechanical envelope only (D-086/AR-9 §3): never interprets
+        `chunk.text`, never decides relevance -- ranking/relevance is
+        already `RagPipeline`'s responsibility (Fase 2). One `Evidence` per
+        `ScoredChunk`, in the same order `RagContext.chunks` already
+        provides."""
+        return [
+            Evidence(
+                source_type="document_chunk",
+                source_id=chunk.chunk_id,
+                source_label=f"Document {chunk.document_id} / Chunk {chunk.chunk_id}",
+                content={"text": chunk.text},
+                metadata={
+                    "document_id": chunk.document_id,
+                    "score": chunk.score,
+                    "created_at": chunk.document_version_created_at,
+                },
+            )
+            for chunk in rag_context.chunks
+        ]

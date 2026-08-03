@@ -1172,3 +1172,27 @@ Etapa 4 de 6 do ciclo institucional do W5-1, autorizada por "Founder Authorizati
 **Recomendação:** GO para iniciar a implementação (estratégia incremental de 4 passos). Nenhuma implementação iniciada; retorno obrigatório para Executive Review ao final.
 
 **Decision Log:** D-095.
+
+## Wave 5 — Epic W5-1 (Document Advisor) implementado (2026-08-03)
+
+Implementação completa per a estratégia incremental de 4 passos da Technical Design (D-095), autorizada por "Founder Decision — Technical Design do Document Advisor" (GO). Inclui a evidência obrigatória de rastreabilidade multi-chunk exigida pelo Founder.
+
+**Adicionado**
+- `src/agents/document_advisor/agent.py` + `prompts/advise.md` -- novo `DocumentAdvisorAgent`, reaproveitando `parse_structured_output`/`render_analyst_prompt`/`ObservabilityRecorder` sem duplicação.
+- `src/services/ai_foundation/context_engine.py` -- `normalize_rag_evidence()` (novo, mecânico) + passthrough em `AdvisorFramework`.
+- `src/api/routes/intelligence.py` -- `POST /document-advisor/ask` (RBAC `knowledge.read` reutilizada, nenhuma migração nova).
+- `tests/test_document_advisor_agent.py`, `test_document_advisor.py`, `test_document_advisor_api.py` (novos) -- incluindo `TestMultiChunkTraceability` (documento com múltiplos chunks, LLM cita apenas parte, resposta rastreável chunk→documento→versão→resposta).
+
+**Alterado (aditivo, contrato `Evidence`)**
+- `src/services/ai_foundation/types.py` -- `Evidence` evolui para `source_type`/`source_id`/`source_label`/`content`/`metadata`, per D-088.
+- `src/services/ai_foundation/recommendation_engine.py`, `src/agents/risk_advisor/agent.py`, `src/api/routes/intelligence.py::_risk_advisor_response()` -- migrados para o novo contrato, zero mudança de lógica. Suíte completa do Risk Advisor passa sem nenhuma alteração de expectativa.
+
+**Confirmado inalterado:** `AdvisorFramework.run()`; Workflow Runtime; Event Pipeline; `RecommendationEngine` (apenas rename de campo).
+
+**Débito técnico:** TD-015 (chave `"cited_analysis_ids"` em `AdvisorFramework.run()`) atualizado para Deferred, gatilho oficializado: segundo Advisor baseado em RAG (Governance Advisor ou equivalente).
+
+**Verificação:** suíte backend completa 561 passed, 0 failed (22 novos); suíte frontend completa 503 passed; `ruff`/`tsc`/`eslint` limpos.
+
+**Recomendação:** GO para o encerramento do Epic W5-1. Retorno obrigatório para Executive Review antes de qualquer trabalho do próximo Advisor da Wave 5.
+
+**Decision Log:** D-096.

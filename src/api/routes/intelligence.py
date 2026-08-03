@@ -14,6 +14,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field, field_validator
 from fastapi import APIRouter, Depends, HTTPException
 
+from src.agents.document_advisor.agent import DocumentAdvisorAgent
 from src.agents.meeting_intelligence.agent import MeetingIntelligenceAgent
 from src.agents.project_status.agent import ProjectStatusAgent
 from src.agents.risk_advisor.agent import RiskAdvisorAgent
@@ -140,6 +141,28 @@ class CitedAnalysis(BaseModel):
 class RiskAdvisorResponse(BaseModel):
     answer: str
     cited_analyses: list[CitedAnalysis]
+
+
+class DocumentAdvisorRequest(BaseModel):
+    # No project_name/project_id: KnowledgeRepository.search() (and, by
+    # extension, RagPipeline.retrieve()) filters exclusively by
+    # organization_id -- never project_id -- confirmed by direct code
+    # reading (Technical Design §6). Unlike the Risk Advisor, this Advisor
+    # never calls gather_context(), so there is no project scope to receive.
+    question: str = Field(..., min_length=3, max_length=2000)
+
+    _validate_question = field_validator("question")(_ensure_has_content)
+
+
+class CitedChunk(BaseModel):
+    document_id: int
+    chunk_id: int
+    source_label: str
+
+
+class DocumentAdvisorResponse(BaseModel):
+    answer: str
+    cited_chunks: list[CitedChunk]
 
 
 def build_prompt_registry() -> PromptRegistry:
@@ -548,8 +571,71 @@ def _risk_advisor_response(explanation) -> RiskAdvisorResponse:
         answer=explanation.recommendation.answer,
         cited_analyses=[
             CitedAnalysis(
-                source_analysis_id=item.source_analysis_id,
-                source_created_at=item.source_created_at,
+                source_analysis_id=item.source_id,
+                source_created_at=item.metadata["created_at"],
+            )
+            for item in explanation.recommendation.cited_evidence
+        ],
+    )
+
+
+@router.post("/document-advisor/ask", response_model=DocumentAdvisorResponse)
+def ask_document_advisor(
+    request: DocumentAdvisorRequest,
+    context: RequestContext = Depends(get_request_context),
+    prompts: PromptRegistry = Depends(build_prompt_registry),
+    provider: LLMProvider = Depends(build_provider),
+    repository: AnalysisRepository = Depends(build_repository),
+    rag_pipeline: RagPipeline = Depends(build_rag_pipeline),
+    # Read-only: reuses knowledge.read (already granted since W5-0), the
+    # permission that already protects reading indexed documents -- this
+    # Advisor never creates/edits a document (Technical Design §7).
+    _permission: None = Depends(require_permission("knowledge.read")),
+):
+    # Epic W5-1 (Document Advisor) -- see
+    # docs/architecture/TECHNICAL-DESIGN-DOCUMENT-ADVISOR.md.
+    # Knowledge Platform -> RAG Pipeline -> normalize_rag_evidence() ->
+    # AdvisorFramework.run() -> Document Advisor -> LLM -> resposta
+    # fundamentada, citando document_id/chunk_id reais.
+    session = SessionContext(
+        organization_id=context.organization.organization_id,
+        user_id=context.user.user_id,
+        session_id=context.session.session_id,
+    )
+    framework = AdvisorFramework(repository, prompts, provider, rag_pipeline)
+
+    rag_context = framework.gather_rag_context(session.organization_id, request.question, top_k=5)
+    evidence = framework.normalize_rag_evidence(rag_context)
+    logger.info(
+        "Document Advisor question organization_id=%s rag_chunk_ids=%s",
+        session.organization_id,
+        sorted(rag_context.chunk_ids),
+    )
+
+    agent = DocumentAdvisorAgent(framework)
+    try:
+        explanation = framework.run(
+            agent,
+            session,
+            request.question,
+            evidence,
+            rag_context=rag_context,
+            no_evidence_answer="Nenhum documento relevante foi encontrado para responder a esta pergunta.",
+        )
+    except AdvisorExecutionError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    return _document_advisor_response(explanation)
+
+
+def _document_advisor_response(explanation) -> DocumentAdvisorResponse:
+    return DocumentAdvisorResponse(
+        answer=explanation.recommendation.answer,
+        cited_chunks=[
+            CitedChunk(
+                document_id=item.metadata["document_id"],
+                chunk_id=item.source_id,
+                source_label=item.source_label,
             )
             for item in explanation.recommendation.cited_evidence
         ],

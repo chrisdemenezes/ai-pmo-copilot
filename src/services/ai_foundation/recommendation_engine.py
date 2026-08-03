@@ -18,6 +18,6 @@ class RecommendationEngine:
     def build(answer: str, cited_ids: list[int], evidence: list[Evidence]) -> Recommendation:
         # Never trusts a citation the model invented -- only ids present in
         # the evidence actually handed to it survive.
-        by_id = {item.source_analysis_id: item for item in evidence}
+        by_id = {item.source_id: item for item in evidence}
         cited = [by_id[cited_id] for cited_id in cited_ids if cited_id in by_id]
         return Recommendation(answer=answer, cited_evidence=cited)
