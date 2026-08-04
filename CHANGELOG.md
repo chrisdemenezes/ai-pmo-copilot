@@ -1400,3 +1400,21 @@ Founder exigiu um modelo de resposta com cobertura estrutural (total/com/sem evi
 **Recomendação:** GO para a implementação.
 
 **Decision Log:** D-111.
+
+## Wave 5 — Portfolio Advisor implementado (2026-08-04)
+
+Implementacao completa per as 8 diretrizes obrigatorias de "Founder Decision -- Technical Design do Portfolio Advisor" (GO). Primeiro Advisor Classe B. Inclui os 11 cenarios obrigatorios (A-K) e a prova de ausencia de segunda fonte (RAG incluido).
+
+**Adicionado**
+- `src/agents/portfolio_advisor/evidence_assembler.py` -- `PortfolioEvidenceAssembler`/`PortfolioAssemblyResult`, exclusivamente dentro do pacote do Advisor. Resolve Portfolio via `DomainService.get_portfolio()`, lista Programs/Projects, chama `gather_context(kind="status")` por Project, seleciona `evidence[0]` mecanicamente (nunca interpreta/compara/pondera/aplica regra adicional -- confirmado por leitura de codigo), enriquece `Evidence.metadata`, conta cobertura estruturalmente.
+- `src/agents/portfolio_advisor/agent.py` + `prompts/advise.md` -- `PortfolioAdvisorAgent`, mesma forma do `DeliveryAdvisorAgent`.
+- `src/api/routes/intelligence.py` -- `POST /portfolio-advisor/ask` (RBAC `intelligence.read` reutilizada, `build_domain_service` reaproveitado de `portfolio.py` sem duplicacao). `PortfolioAdvisorResponse{answer, total_projects, projects_with_evidence, projects_without_evidence, cited_projects}` -- contagens sempre calculadas em codigo, nunca pelo LLM.
+- `tests/test_portfolio_advisor_evidence_assembler.py`, `test_portfolio_advisor_agent.py`, `test_portfolio_advisor.py`, `test_portfolio_advisor_api.py` (novos, 35 testes) -- cobrindo os 11 cenarios obrigatorios (A-K) em duas camadas.
+
+**Confirmado inalterado:** `AdvisorFramework`; `AIContextEngine`; `RecommendationEngine`; `ExplanationEngine`; Workflow Runtime; Event Pipeline; `DomainService`/`DomainRepository`; contrato `Evidence`. `git diff --stat` vazio.
+
+**Verificação:** suíte backend completa 638 passed, 0 failed (35 novos); suíte frontend completa 503 passed; `ruff`/`tsc`/`eslint` limpos.
+
+**Recomendação:** GO para o encerramento do Epic. Retorno obrigatório para Executive Review antes de qualquer trabalho do próximo Advisor.
+
+**Decision Log:** D-112.

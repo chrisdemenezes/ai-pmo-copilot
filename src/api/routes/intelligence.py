@@ -17,12 +17,18 @@ from fastapi import APIRouter, Depends, HTTPException
 from src.agents.delivery_advisor.agent import DeliveryAdvisorAgent
 from src.agents.document_advisor.agent import DocumentAdvisorAgent
 from src.agents.governance_advisor.agent import GovernanceAdvisorAgent
+from src.agents.portfolio_advisor.agent import PortfolioAdvisorAgent
+from src.agents.portfolio_advisor.evidence_assembler import (
+    PortfolioAssemblyResult,
+    PortfolioEvidenceAssembler,
+)
 from src.agents.meeting_intelligence.agent import MeetingIntelligenceAgent
 from src.agents.project_status.agent import ProjectStatusAgent
 from src.agents.risk_advisor.agent import RiskAdvisorAgent
 from src.agents.risk_review.agent import RiskReviewAgent
 from src.api.authorization import require_permission
 from src.api.dependencies import build_event_publisher, build_repository
+from src.api.routes.portfolio import build_domain_service
 from src.api.identity_context import get_request_context
 from src.api.rate_limiter import enforce_rate_limit
 from src.api.security import verify_api_key
@@ -37,6 +43,7 @@ from src.prompts.registry import PromptRegistry
 from src.database.repository import AnalysisRepository, analysis_display_name
 from src.services.advisor_framework.framework import AdvisorFramework
 from src.services.advisor_framework.types import AdvisorExecutionError
+from src.services.domain_service import DomainService
 from src.services.ai_foundation.types import SessionContext
 from src.services.events.interfaces import EventPublisher
 from src.services.identity.models import RequestContext
@@ -155,6 +162,28 @@ class DeliveryAdvisorRequest(BaseModel):
 class DeliveryAdvisorResponse(BaseModel):
     answer: str
     cited_analyses: list[CitedAnalysis]  # reaproveitado do Risk Advisor -- mesmo shape exato
+
+
+class PortfolioAdvisorRequest(BaseModel):
+    portfolio_id: int
+    question: str = Field(..., min_length=3, max_length=2000)
+
+    _validate_question = field_validator("question")(_ensure_has_content)
+
+
+class CitedProject(BaseModel):
+    project_id: int
+    project_name: str
+    source_analysis_id: int
+    source_created_at: datetime
+
+
+class PortfolioAdvisorResponse(BaseModel):
+    answer: str
+    total_projects: int
+    projects_with_evidence: int
+    projects_without_evidence: int
+    cited_projects: list[CitedProject]
 
 
 class DocumentAdvisorRequest(BaseModel):
@@ -672,6 +701,70 @@ def _delivery_advisor_response(explanation) -> DeliveryAdvisorResponse:
         answer=explanation.recommendation.answer,
         cited_analyses=[
             CitedAnalysis(
+                source_analysis_id=item.source_id,
+                source_created_at=item.metadata["created_at"],
+            )
+            for item in explanation.recommendation.cited_evidence
+        ],
+    )
+
+
+@router.post("/portfolio-advisor/ask", response_model=PortfolioAdvisorResponse)
+def ask_portfolio_advisor(
+    request: PortfolioAdvisorRequest,
+    context: RequestContext = Depends(get_request_context),
+    prompts: PromptRegistry = Depends(build_prompt_registry),
+    provider: LLMProvider = Depends(build_provider),
+    repository: AnalysisRepository = Depends(build_repository),
+    rag_pipeline: RagPipeline = Depends(build_rag_pipeline),
+    domain_service: DomainService = Depends(build_domain_service),
+    # Read-only, same permission already protecting Risk/Delivery Advisor --
+    # this agent never creates/edits/triggers an analysis.
+    _permission: None = Depends(require_permission("intelligence.read")),
+):
+    # Classe B, first of its kind (AR-8 §4.2/D-104): composition of N
+    # independent gather_context(kind="status") calls, one per Project of
+    # the Portfolio, happens entirely inside PortfolioEvidenceAssembler --
+    # never inside AdvisorFramework/AIContextEngine.
+    session = SessionContext(
+        organization_id=context.organization.organization_id,
+        user_id=context.user.user_id,
+        session_id=context.session.session_id,
+    )
+    framework = AdvisorFramework(repository, prompts, provider, rag_pipeline)
+    assembler = PortfolioEvidenceAssembler(domain_service, framework)
+
+    result = assembler.assemble(session.organization_id, request.portfolio_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Portfolio not found")
+
+    agent = PortfolioAdvisorAgent(framework)
+    try:
+        explanation = framework.run(
+            agent,
+            session,
+            request.question,
+            result.evidence,
+            no_evidence_answer="Nenhuma análise de status registrada para os projetos deste portfólio.",
+        )
+    except AdvisorExecutionError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    return _portfolio_advisor_response(explanation, result)
+
+
+def _portfolio_advisor_response(
+    explanation, result: PortfolioAssemblyResult
+) -> PortfolioAdvisorResponse:
+    return PortfolioAdvisorResponse(
+        answer=explanation.recommendation.answer,
+        total_projects=result.total_projects,
+        projects_with_evidence=result.projects_with_evidence,
+        projects_without_evidence=result.total_projects - result.projects_with_evidence,
+        cited_projects=[
+            CitedProject(
+                project_id=item.metadata["project_id"],
+                project_name=item.metadata["project_name"],
                 source_analysis_id=item.source_id,
                 source_created_at=item.metadata["created_at"],
             )

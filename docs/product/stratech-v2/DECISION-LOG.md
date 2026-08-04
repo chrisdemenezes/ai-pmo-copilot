@@ -1160,6 +1160,19 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Recomendação:** GO para a implementação.
 - **Missão:** Technical Design do Portfolio Advisor concluído. Retorno obrigatório para Executive Review do Founder antes de qualquer implementação.
 
+### D-112 — Portfolio Advisor implementado; Executive Evidence produzida; GO para o encerramento do Epic
+
+- **Contexto:** "Founder Decision — Technical Design do Portfolio Advisor" (veredito **APPROVED — GO para implementação, Etapa 5 de 6**), com 8 diretrizes: (1) `PortfolioEvidenceAssembler` exclusivamente dentro do pacote do Advisor; (2) preservação integral de `AdvisorFramework`/`AIContextEngine`/Workflow Runtime/Event Pipeline/`RecommendationEngine`/`ExplanationEngine`/contrato `Evidence`; (3) um `Evidence` por Project via `evidence[0]` mecânico; (4) 5 proibições explícitas ao Assembler; (5) modelo de resposta com contagens estruturais; (6) 11 cenários de teste obrigatórios (A-K); (7) gatilho de performance mantido, nenhuma otimização antecipada; (8) apresentação final completa.
+- **Implementado:** `PortfolioEvidenceAssembler`/`PortfolioAssemblyResult` (novo, `src/agents/portfolio_advisor/evidence_assembler.py`) — resolve Portfolio via `DomainService.get_portfolio()`, lista Programs/Projects, chama `framework.gather_context(kind="status")` por Project, seleciona `evidence[0]`, enriquece metadata, conta cobertura estruturalmente. `PortfolioAdvisorAgent` (mesma forma de `DeliveryAdvisorAgent`). Rota `POST /portfolio-advisor/ask` (RBAC `intelligence.read` reutilizada, nenhuma migração nova), reaproveitando `build_domain_service` já existente em `portfolio.py`, sem duplicação.
+- **5 proibições ao Assembler confirmadas por leitura de código (item 4):** nenhuma linha lê `content`, compara `health_status`, calcula tendência, atribui peso, ou aplica regra adicional de seleção — apenas `evidence[0]` de uma lista já ordenada pelo Framework.
+- **11 cenários obrigatórios (item 6) comprovados em duas camadas (Framework: 12 testes; HTTP: 11 testes):** A. cobertura completa; B. cobertura parcial; C. cobertura zero (sem chamada ao LLM); D. Portfolio sem Programs/Projects; E. Portfolio inexistente (404); F. Portfolio de outra organização (mesmo 404, sem distinção); G. apenas o status mais recente por Project; H. histórico extenso não pesa mais que registro único; I. ordem não implica prioridade (filtragem de citação por `RecommendationEngine.build()` comprovadamente indiferente à posição); J. `cited_projects` contém apenas Projects efetivamente citados; K. nenhuma chamada ao LLM sem evidência.
+- **Ausência de tendência histórica do Portfolio garantida estruturalmente:** nenhuma sequência temporal por projeto está presente em `projects_json` — a proibição é impossível de violar por acidente, não apenas uma instrução de prompt.
+- **Ausência de RAG confirmada com evidência concreta:** busca de código sem nenhuma ocorrência de `gather_rag_context()`; prova estrutural em teste (`rag_pipeline=None`/dublê que lança exceção).
+- **Preservação confirmada, não apenas alegada:** `git diff --stat` vazio em `framework.py`, `context_engine.py`, `recommendation_engine.py`, `explanation_engine.py`, `types.py`, `src/workflows/`, `src/services/events/`, `domain_service.py`, `domain_repository.py`.
+- **Verificação:** suíte backend completa **638 passed**, 0 failed (603 pré-existentes + 35 novos: 7 unitários Assembler + 5 unitários Agent + 12 integração Framework + 11 HTTP); suíte frontend completa 503 passed (69 arquivos, nenhum tocado); `ruff`/`tsc`/`eslint` limpos.
+- **Governança:** `docs/product/governance/PORTFOLIO-ADVISOR-EXECUTIVE-EVIDENCE.md` produzida com demonstração funcional completa.
+- **Missão:** Portfolio Advisor implementado. Recomendação GO para o encerramento do Epic. Retorno obrigatório para Executive Review do Founder antes de qualquer trabalho do próximo Advisor.
+
 ---
 
 ## Convenção
