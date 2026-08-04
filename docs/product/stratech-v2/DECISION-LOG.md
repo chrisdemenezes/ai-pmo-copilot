@@ -1147,6 +1147,19 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Recomendação:** GO para o Technical Design do Portfolio Advisor.
 - **Missão:** Architecture Review do Portfolio Advisor concluída. Retorno obrigatório para Executive Review do Founder antes de prosseguir ao Technical Design (etapa 4).
 
+### D-111 — Technical Design do Portfolio Advisor produzido; modelo de resposta com cobertura estrutural definido
+
+- **Contexto:** "Founder Decision — AR-12 Portfolio Advisor" (veredito **APPROVED — GO para o Technical Design**), com 8 diretrizes: (1) `evidence[0]` mecânico, `PortfolioEvidenceAssembler` proibido de interpretar/comparar/ponderar/selecionar por regra adicional; (2) consistência Delivery/Portfolio reafirmada; (3) prompt deve instruir explicitamente ausência de prioridade por posição; (4) modelo de resposta deve informar total/com/sem evidência, nunca generalizar cobertura parcial; (5) rastreabilidade de 6 campos, nenhuma alteração ao contrato `Evidence`; (6) limites funcionais — 5 avaliações permitidas, tendência histórica do Portfolio proibida; (7) gatilho de performance mantido, nenhuma otimização antecipada; (8) preservação integral da infraestrutura compartilhada. Produzido `docs/architecture/TECHNICAL-DESIGN-PORTFOLIO-ADVISOR.md`. Nenhum código escrito.
+- **`PortfolioEvidenceAssembler` — contrato definitivo:** resolve o Portfolio (`DomainService.get_portfolio()`, `None` → 404), lista Programs/Projects (`DomainService.list_programs()`/`list_projects()`), chama `framework.gather_context(kind="status")` por Project, seleciona `evidence[0]` (mecânico, confirmado por leitura de código: nunca lê `content`, nunca compara `health_status`, nunca calcula, nunca pondera, nunca aplica regra adicional), enriquece `Evidence.metadata` com `portfolio_id`/`program_id`/`project_id`/`project_name`, retorna também `total_projects`/`projects_with_evidence` (contagem estrutural).
+- **Modelo de resposta com cobertura estrutural (item 4):** `PortfolioAdvisorResponse{answer, total_projects, projects_with_evidence, projects_without_evidence, cited_projects}` — as contagens de cobertura são calculadas inteiramente pelo `PortfolioEvidenceAssembler`, **nunca pelo LLM**; o prompt reforça a mesma disciplina em texto, mas o cliente da API nunca depende da honestidade do modelo para saber quantos projetos foram avaliados.
+- **Rastreabilidade dos 6 campos confirmada sem alterar `Evidence` (item 5):** `source_id` já é campo de topo do contrato (desde AR-9), `created_at` já vem de `AIContextEngine.gather()`; apenas `portfolio_id`/`program_id`/`project_id`/`project_name` são adicionados por enriquecimento aditivo em `metadata`, exclusivamente pelo Assembler.
+- **Limites funcionais (item 6) estruturalmente garantidos, não apenas por prompt:** nenhuma sequência temporal por projeto está presente em `projects_json` — a proibição de tendência histórica do Portfolio é impossível de violar por acidente, porque a informação necessária simplesmente não chega ao modelo.
+- **Ordem sem prioridade (item 3):** reafirmado de AR-12 — a ordem de iteração é alfabética/incidental, nenhuma mudança de ordenação introduzida; garantia é textual (prompt), nunca estrutural.
+- **Riscos residuais, nenhum bloqueante:** wording de prompt (mitigado por teste de equivalência sob reordenação); volume de histórico descartado por projeto (já aceito em AR-12); gatilho de performance (registrado, não agravado). TD-015 não incide.
+- **Verificação:** missão de documentação — nenhum código de `src/`/`tests/` alterado; `ruff check src tests` confirmado limpo.
+- **Recomendação:** GO para a implementação.
+- **Missão:** Technical Design do Portfolio Advisor concluído. Retorno obrigatório para Executive Review do Founder antes de qualquer implementação.
+
 ---
 
 ## Convenção

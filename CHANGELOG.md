@@ -1387,3 +1387,16 @@ Founder exigiu analise explicita de dois pontos: peso da evidencia (um Evidence 
 **Recomendação:** GO para o Technical Design do Portfolio Advisor.
 
 **Decision Log:** D-110.
+
+## Wave 5 — Technical Design do Portfolio Advisor produzido (2026-08-04)
+
+Founder exigiu um modelo de resposta com cobertura estrutural (total/com/sem evidencia) nunca calculada pelo LLM, e confirmou as proibicoes explicitas ao PortfolioEvidenceAssembler (nunca interpretar, comparar, ponderar, ou selecionar por regra adicional).
+
+**Adicionado**
+- `docs/architecture/TECHNICAL-DESIGN-PORTFOLIO-ADVISOR.md` -- define o contrato definitivo do `PortfolioEvidenceAssembler` (selecao mecanica de evidence[0], enriquecimento de metadata com portfolio_id/program_id/project_id/project_name, contagem estrutural de cobertura) e do `PortfolioAdvisorResponse` (answer + total_projects + projects_with_evidence + projects_without_evidence + cited_projects, cobertura sempre calculada em codigo, nunca pelo LLM). Limites funcionais (tendencia historica do Portfolio proibida) garantidos estruturalmente -- nenhuma sequencia temporal por projeto chega ao prompt.
+
+**Verificação:** `ruff check src tests` limpo.
+
+**Recomendação:** GO para a implementação.
+
+**Decision Log:** D-111.
