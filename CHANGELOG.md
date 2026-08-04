@@ -1348,3 +1348,16 @@ Implementacao completa per as 7 diretrizes obrigatorias de "Founder Decision -- 
 **Recomendação:** GO para o encerramento do Epic. Retorno obrigatório para Executive Review antes de qualquer trabalho do próximo Advisor.
 
 **Decision Log:** D-107.
+
+## Wave 5 — Delivery Advisor oficialmente encerrado; Portfolio Advisor definido como proximo Advisor, primeiro Classe B (2026-08-04)
+
+Founder declarou o Delivery Advisor oficialmente concluido (etapa 6 de 6) e autorizou a abertura do ciclo institucional do Portfolio Advisor -- primeiro Advisor Classe B (D-104), que deve validar a composicao de duas ou mais fontes independentes sem transferir essa responsabilidade para o AdvisorFramework.
+
+**Adicionado**
+- `docs/architecture/ADVISOR-SPECIFICATION-PORTFOLIO-ADVISOR.md` -- etapa 1 de 6. Proposta grounded (nao decisao final): resolver projetos-membro do portfolio reutilizando DomainService.list_programs()/list_projects() (Wave 2, ja em producao, ja org-scoped), entao chamar framework.gather_context(kind="status") uma vez por projeto, concatenando na rota antes de framework.run() -- nenhum metodo novo de Framework. Achados reservados para o Domain Blueprint: confirmacao do padrao de composicao, kind definitivo, volume de chamadas por portfolio.
+
+**Verificação:** `ruff check src tests` limpo.
+
+**Recomendação:** GO para o Domain Blueprint do Portfolio Advisor.
+
+**Decision Log:** D-108.

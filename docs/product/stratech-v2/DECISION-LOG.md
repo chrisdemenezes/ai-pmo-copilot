@@ -1112,6 +1112,17 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Governança:** `docs/product/governance/DELIVERY-ADVISOR-EXECUTIVE-EVIDENCE.md` produzida com demonstração funcional completa.
 - **Missão:** Delivery Advisor implementado. Recomendação GO para o encerramento do Epic. Retorno obrigatório para Executive Review do Founder antes de qualquer trabalho do próximo Advisor.
 
+### D-108 — Delivery Advisor oficialmente encerrado; Portfolio Advisor definido como próximo Enterprise Advisor (primeiro Classe B); Advisor Specification produzida (etapa 1 de 6)
+
+- **Contexto:** "Founder Decision" declarando o Delivery Advisor oficialmente concluído (etapa 6 de 6), reconhecendo: permanece Classe A; utiliza exclusivamente `AnalysisRecord`/`kind="status"`; a interpretação temporal pertence ao domínio do Advisor; o Framework compartilhado permaneceu inalterado; os cenários de melhora, deterioração e histórico insuficiente foram comprovados; a suíte completa permanece verde. **Quarto Advisor da Wave 5 concluído** (após Risk Advisor — referência; Document Advisor — W5-1; Governance Advisor).
+- **Autorização:** abertura do ciclo institucional do **Portfolio Advisor**, seguindo integralmente o processo de 6 etapas (D-092). Founder nomeou o Advisor diretamente nesta decisão, caracterizando-o explicitamente como o **primeiro Advisor Classe B** (D-104), que deve "validar a composição de duas ou mais fontes independentes sem transferir essa responsabilidade para o `AdvisorFramework`".
+- **Advisor Specification produzida** (`docs/architecture/ADVISOR-SPECIFICATION-PORTFOLIO-ADVISOR.md`): Portfolio Advisor é Classe B (agregada, `AR-8` §4) — primeiro Advisor desta classe a ser implementado, cujo padrão de composição servirá de referência para PMO/Executive Advisor (risco já nomeado em AR-8 §7.3). **Proposta grounded, não decisão final:** resolver os projetos-membro do portfólio reutilizando `DomainService.list_programs()`/`list_projects()` (Wave 2, já em produção, já org-scoped com segurança), então chamar `framework.gather_context(organization_id, project_name, kind="status")` uma vez por projeto, concatenando os resultados na rota antes de `framework.run()` — nenhum método novo de `AdvisorFramework`/`AIContextEngine`, composição inteiramente fora do Framework, per exigência explícita do Founder.
+- **Achados explicitamente reservados para o Domain Blueprint, não decididos aqui:** confirmação do padrão de composição acima (ou variação); `kind` definitivo por chamada (`"status"` proposto, `"risk"` possivelmente adicional); volume esperado de chamadas por portfólio (risco de performance a avaliar); se este padrão deve ser formalmente documentado como referência obrigatória para os próximos Advisors de Classe B.
+- **Riscos identificados, nenhum bloqueante:** padrão de composição não confirmado (Domain Blueprint); `kind` definitivo (Domain Blueprint); volume de chamadas (Technical Design); `no_evidence_answer`/nome de rota (Technical Design). TD-015 não incide (nenhum uso de RAG previsto).
+- **Verificação:** missão de documentação — nenhum código de `src/`/`tests/` alterado; `ruff check src tests` confirmado limpo.
+- **Recomendação:** GO para o Domain Blueprint do Portfolio Advisor.
+- **Missão:** Advisor Specification do Portfolio Advisor concluída. Retorno obrigatório para Executive Review do Founder antes de prosseguir ao Domain Blueprint (etapa 2).
+
 ---
 
 ## Convenção
