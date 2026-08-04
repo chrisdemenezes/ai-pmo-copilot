@@ -1075,6 +1075,18 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Recomendação:** GO para a Architecture Review do Delivery Advisor.
 - **Missão:** Domain Blueprint do Delivery Advisor concluído. Retorno obrigatório para Executive Review do Founder antes de prosseguir à Architecture Review (etapa 3).
 
+### D-105 — AR-11: Architecture Review do Delivery Advisor concluída; recência de `AnalysisRecord` decidida como conhecimento de domínio
+
+- **Contexto:** "Founder Decision — Domain Blueprint do Delivery Advisor" (veredito **APPROVED — GO para a Architecture Review**), reafirmando como definitivas a classificação Classe A (D-104) e a fonte única `kind="status"`, e exigindo que esta revisão analise explicitamente um único ponto adicional: se a recência do `AnalysisRecord` deve influenciar a interpretação do Delivery Advisor. Produzido `docs/architecture/AR-11-DELIVERY-ADVISOR-ARCHITECTURE-REVIEW.md`. Nenhum código escrito.
+- **Grounding confirmado por leitura de código:** `AnalysisRepository.list_analyses()` (`src/database/repository.py`) já ordena por `created_at.desc()` para qualquer `kind`, sem exceção — `AIContextEngine.gather()` preserva essa ordem; o `AnalysisRecord` de status mais recente já chega como primeiro item de `evidence`, sem nenhuma mudança de código. `Evidence.metadata["created_at"]` já carrega o timestamp de cada registro. Precedente direto: `RiskAdvisorAgent` já inclui `source_created_at` por item no JSON do prompt, deixando a síntese de recência ao LLM.
+- **Decisão sobre recência (o ponto mandatado):** **Opção B adotada** — recência tratada como conhecimento de domínio no prompt do `DeliveryAdvisorAgent` (Technical Design), nunca como lógica nova em `AIContextEngine`/`AdvisorFramework`. O `AnalysisRecord` de status mais recente representa o estado atual do projeto; registros mais antigos permanecem citáveis apenas como contexto histórico/tendência, nunca substituindo o mais recente na resposta sobre o estado presente. Mesmo princípio já validado pela hierarquia documental do Governance Advisor (AR-10/D-100): precedência como prompt, nunca comparador determinístico no Framework.
+- **Preservação confirmada, não apenas alegada:** nenhuma mudança necessária a `AdvisorFramework`, `AIContextEngine`, Workflow Runtime, Event Pipeline — a ordenação e o timestamp necessários já existem em produção para todo `kind`, sem exceção.
+- **Critério de sucesso novo desta revisão:** nenhuma resposta apresenta um `AnalysisRecord` de status desatualizado como se fosse o estado atual do projeto, quando um registro mais recente existe.
+- **Riscos residuais, nenhum bloqueante:** wording exato da instrução de recência (Technical Design, mitigado por teste explícito com status divergentes antigo/recente); volume de `AnalysisRecord`s de status sem `limit` (baixo impacto, mesmo padrão já aceito pelo Risk Advisor, avaliação reservada ao Technical Design). TD-015 não incide (Classe A via `gather_context()`).
+- **Verificação:** missão de documentação — nenhum código de `src/`/`tests/` alterado; `ruff check src tests` confirmado limpo.
+- **Recomendação:** GO para o Technical Design do Delivery Advisor.
+- **Missão:** Architecture Review do Delivery Advisor concluída. Retorno obrigatório para Executive Review do Founder antes de prosseguir ao Technical Design (etapa 4).
+
 ---
 
 ## Convenção

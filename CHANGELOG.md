@@ -1305,3 +1305,16 @@ Founder resolveu o achado grounded deixado em aberto pela Advisor Specification 
 **Recomendação:** GO para a Architecture Review do Delivery Advisor.
 
 **Decision Log:** D-104.
+
+## Wave 5 — AR-11: Architecture Review do Delivery Advisor concluída (2026-08-04)
+
+Founder exigiu que esta revisão analisasse um unico ponto adicional: se a recencia do AnalysisRecord deve influenciar a interpretacao do Delivery Advisor.
+
+**Adicionado**
+- `docs/architecture/AR-11-DELIVERY-ADVISOR-ARCHITECTURE-REVIEW.md` -- confirma por leitura de codigo que `AnalysisRepository.list_analyses()` ja ordena por `created_at.desc()` para qualquer `kind`, sem excecao; `AIContextEngine.gather()` preserva essa ordem, nenhuma mudanca necessaria. Decisao: recencia tratada como conhecimento de dominio no prompt do `DeliveryAdvisorAgent` (Technical Design) -- o `AnalysisRecord` de status mais recente representa o estado atual, registros mais antigos citaveis apenas como historico -- mesmo principio ja validado pela hierarquia documental do Governance Advisor (AR-10). Nenhuma mudanca a `AdvisorFramework`/`AIContextEngine`/Workflow Runtime/Event Pipeline.
+
+**Verificação:** `ruff check src tests` limpo.
+
+**Recomendação:** GO para o Technical Design do Delivery Advisor.
+
+**Decision Log:** D-105.
