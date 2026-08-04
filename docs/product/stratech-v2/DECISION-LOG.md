@@ -1087,6 +1087,19 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Recomendação:** GO para o Technical Design do Delivery Advisor.
 - **Missão:** Architecture Review do Delivery Advisor concluída. Retorno obrigatório para Executive Review do Founder antes de prosseguir ao Technical Design (etapa 4).
 
+### D-106 — Technical Design do Delivery Advisor produzido (etapa 4 de 6); interpretação de tendência temporal resolvida sem tocar o Framework
+
+- **Contexto:** "Founder Decision — AR-11 Delivery Advisor" (veredito **APPROVED — GO para o Technical Design**), oficializando: (1) recência do `AnalysisRecord` permanece conhecimento de domínio, zero lógica em `AdvisorFramework`/`AIContextEngine`/Workflow Runtime/Event Pipeline; (2) `AnalysisRecord` mais recente representa o estado atual, registros anteriores utilizáveis apenas como contexto histórico/tendência; (3) acrescentar nesta etapa uma orientação de tendência temporal (melhora/estabilidade/deterioração) quando múltiplos `AnalysisRecord`s de status existirem, exclusivamente no prompt do `DeliveryAdvisorAgent`, nenhum algoritmo adicional; (4) preservar integralmente a infraestrutura compartilhada. Produzido `docs/architecture/TECHNICAL-DESIGN-DELIVERY-ADVISOR.md`. Nenhum código escrito.
+- **Reuso confirmado:** fluxo idêntico ao Risk Advisor (`gather_context(kind="status")` → `AdvisorFramework.run()` byte-for-byte inalterado → `DeliveryAdvisorAgent.advise()`); `CitedAnalysis` (já definido para o Risk Advisor) reaproveitado sem alteração; RBAC `intelligence.read` reutilizada, nenhuma migração nova.
+- **Interpretação de tendência temporal (o ponto mandatado):** `DeliveryAdvisorAgent.advise()` serializa a lista de `AnalysisRecord`s de status já ordenada do mais recente para o mais antigo (garantia estrutural confirmada em AR-11, zero código de ordenação nesta Epic) para JSON; o prompt instrui o modelo a tratar o primeiro item como o estado atual e, quando houver 2+ entradas, descrever a tendência (melhorando/estável/deteriorando) grounded exclusivamente nos registros fornecidos. **Confirmado por leitura de código: nenhuma função de comparação de datas ou de `health_status` é implementada** — a interpretação é inteiramente do modelo, mesmo princípio já aplicado à hierarquia documental do Governance Advisor (AR-10/D-101).
+- **Confirmação de que a Classe A permanece intacta (D-104):** múltiplos registros do mesmo `kind="status"` continuam sendo uma única fonte primária — nenhuma segunda chamada estrutural introduzida por esta interpretação temporal.
+- **`no_evidence_answer` de domínio definido:** "Nenhuma análise de status registrada ainda para este projeto."
+- **Evidência obrigatória planejada para a implementação (análoga à evidência CONFLITANTE do Governance Advisor):** cenário real de melhora (red→yellow→green) e cenário real de deterioração (green→yellow→red), em duas camadas (Framework e HTTP), comprovando que o registro mais recente sempre determina o estado atual reportado.
+- **Riscos residuais, nenhum bloqueante:** qualidade da interpretação de tendência pelo LLM (mitigado por testes dedicados); volume de `AnalysisRecord`s sem `limit` (já registrado, não agravado); `top_k` de RAG suplementar (mesmo risco já registrado para os demais Advisors). TD-015 não incide (Classe A via `gather_context()`).
+- **Verificação:** missão de documentação — nenhum código de `src/`/`tests/` alterado; `ruff check src tests` confirmado limpo.
+- **Recomendação:** GO para a implementação.
+- **Missão:** Technical Design do Delivery Advisor concluído. Retorno obrigatório para Executive Review do Founder antes de qualquer implementação.
+
 ---
 
 ## Convenção

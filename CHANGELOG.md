@@ -1318,3 +1318,16 @@ Founder exigiu que esta revisão analisasse um unico ponto adicional: se a recen
 **Recomendação:** GO para o Technical Design do Delivery Advisor.
 
 **Decision Log:** D-105.
+
+## Wave 5 — Technical Design do Delivery Advisor produzido (2026-08-04)
+
+Founder exigiu, alem de aplicar a recencia ja decidida, uma orientacao adicional de interpretacao de tendencia temporal (melhora/estabilidade/deterioracao) quando multiplos AnalysisRecords de status existirem -- exclusivamente no prompt do DeliveryAdvisorAgent, nenhum algoritmo adicional.
+
+**Adicionado**
+- `docs/architecture/TECHNICAL-DESIGN-DELIVERY-ADVISOR.md` -- fluxo identico ao Risk Advisor (`gather_context(kind="status")` -> `AdvisorFramework.run()` byte-for-byte inalterado); `DeliveryAdvisorAgent` serializa a lista de status ja ordenada do mais recente para o mais antigo (garantia estrutural existente, confirmada em AR-11) sem nenhum codigo de ordenacao; prompt instrui o modelo a tratar o primeiro item como estado atual e descrever tendencia quando houver 2+ entradas -- nenhuma funcao de comparacao de datas/health_status implementada. `CitedAnalysis` reaproveitado do Risk Advisor. RBAC `intelligence.read` reutilizada, nenhuma migracao nova.
+
+**Verificação:** `ruff check src tests` limpo.
+
+**Recomendação:** GO para a implementação.
+
+**Decision Log:** D-106.
