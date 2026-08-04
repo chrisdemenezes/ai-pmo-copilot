@@ -1361,3 +1361,16 @@ Founder declarou o Delivery Advisor oficialmente concluido (etapa 6 de 6) e auto
 **Recomendação:** GO para o Domain Blueprint do Portfolio Advisor.
 
 **Decision Log:** D-108.
+
+## Wave 5 — Domain Blueprint do Portfolio Advisor produzido (2026-08-04)
+
+Founder exigiu que a composicao de evidencias nao ficasse na rota HTTP -- um componente proprio do Advisor deveria assumir essa responsabilidade, com nome e localizacao definidos nesta etapa.
+
+**Adicionado**
+- `docs/architecture/DOMAIN-BLUEPRINT-PORTFOLIO-ADVISOR.md` -- define `PortfolioEvidenceAssembler` (`src/agents/portfolio_advisor/evidence_assembler.py`, dentro do proprio pacote do Advisor, nao em `src/services/`) como o componente que resolve o Portfolio org-scoped via `DomainService`, lista Programs/Projects, solicita evidencia via `framework.gather_context(kind="status")` uma vez por projeto, e consolida antes de `framework.run()`. Rastreabilidade via enriquecimento de `Evidence.metadata` (project_id/project_name/program_id), sem alterar o dataclass `Evidence`. 8 casos de dominio obrigatorios resolvidos por composicao do ja existente, nenhuma logica nova. Gatilho objetivo de performance registrado (20+ chamadas sequenciais ou p95 > 3s), nenhuma otimizacao especulativa.
+
+**Verificação:** `ruff check src tests` limpo.
+
+**Recomendação:** GO para a Architecture Review do Portfolio Advisor.
+
+**Decision Log:** D-109.
