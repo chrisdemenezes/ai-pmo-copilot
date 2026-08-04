@@ -1135,6 +1135,18 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Recomendação:** GO para a Architecture Review do Portfolio Advisor.
 - **Missão:** Domain Blueprint do Portfolio Advisor concluído. Retorno obrigatório para Executive Review do Founder antes de prosseguir à Architecture Review (etapa 3).
 
+### D-110 — AR-12: Architecture Review do Portfolio Advisor concluída; peso da evidência e ordem da composição decididos
+
+- **Contexto:** "Founder Decision — Domain Blueprint do Portfolio Advisor" (veredito **APPROVED — GO para a Architecture Review**), confirmando `PortfolioEvidenceAssembler` e `Evidence.metadata` como definitivos (D-109), e exigindo análise explícita de dois pontos: A. peso da evidência (um `Evidence` por Project? consistência com o Delivery Advisor); B. ordem da composição (Programs→Projects representa prioridade? nenhum algoritmo novo). Produzido `docs/architecture/AR-12-PORTFOLIO-ADVISOR-ARCHITECTURE-REVIEW.md`. Nenhum código escrito.
+- **Ponto A decidido:** cada Project contribui exatamente um `Evidence` — o de seu `AnalysisRecord` de status mais recente (`evidence[0]`, já garantido pela ordenação existente de `list_analyses()`), independentemente do volume de histórico. **Consistência com o Delivery Advisor confirmada, não contraditória:** os dois Advisors aplicam a mesma regra permanente (D-104: "o AnalysisRecord mais recente representa o estado atual") à unidade de composição correta para cada um — Delivery Advisor consome o histórico completo de *um* projeto (pergunta: trajetória); Portfolio Advisor consome apenas o estado atual de *cada* projeto (pergunta: comparação instantânea entre projetos), evitando comparar o estado atual de um projeto com o estado antigo de outro. Seleção de `evidence[0]` é mecânica (mesma natureza de `normalize_rag_evidence()`), nunca interpretação de conteúdo.
+- **Ponto B decidido:** a ordem de composição Programs→Projects é confirmada, por leitura de código (`list_programs_by_portfolio()` ordena por `Program.code`, `list_projects_by_program()` por `Project.name`), puramente alfabética/incidental — nunca carregou prioridade. Nenhum algoritmo de reordenação necessário; a instrução é textual (prompt do Technical Design): o `PortfolioAdvisorAgent` interpreta o conjunto de evidências, nunca a posição — mesmo princípio já aplicado à hierarquia documental do Governance Advisor (AR-10) e à recência do Delivery Advisor (AR-11).
+- **Preservação confirmada:** nenhuma mudança necessária a `AdvisorFramework`/`AIContextEngine`/Workflow Runtime/Event Pipeline/`RecommendationEngine`/`ExplanationEngine` — ambas as decisões resolvidas inteiramente no `PortfolioEvidenceAssembler` ou como conteúdo de prompt.
+- **Critérios de sucesso novos desta revisão:** cada Project contribui exatamente um `Evidence` (o mais recente); nenhuma resposta atribui importância a um projeto com base em sua posição na composição.
+- **Riscos residuais, nenhum bloqueante:** wording exato da instrução "interprete o conjunto, não a posição" (Technical Design, mitigado por teste de equivalência sob reordenação); riscos já registrados no Domain Blueprint, não agravados.
+- **Verificação:** missão de documentação — nenhum código de `src/`/`tests/` alterado; `ruff check src tests` confirmado limpo.
+- **Recomendação:** GO para o Technical Design do Portfolio Advisor.
+- **Missão:** Architecture Review do Portfolio Advisor concluída. Retorno obrigatório para Executive Review do Founder antes de prosseguir ao Technical Design (etapa 4).
+
 ---
 
 ## Convenção

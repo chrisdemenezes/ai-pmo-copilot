@@ -1374,3 +1374,16 @@ Founder exigiu que a composicao de evidencias nao ficasse na rota HTTP -- um com
 **Recomendação:** GO para a Architecture Review do Portfolio Advisor.
 
 **Decision Log:** D-109.
+
+## Wave 5 — AR-12: Architecture Review do Portfolio Advisor concluída (2026-08-04)
+
+Founder exigiu analise explicita de dois pontos: peso da evidencia (um Evidence por Project?) e ordem da composicao (Programs->Projects representa prioridade?).
+
+**Adicionado**
+- `docs/architecture/AR-12-PORTFOLIO-ADVISOR-ARCHITECTURE-REVIEW.md` -- decide que cada Project contribui exatamente um Evidence (o mais recente, evidence[0], ja garantido pela ordenacao existente de list_analyses()), consistente com o Delivery Advisor por aplicar a mesma regra permanente (D-104) a unidade de composicao correta para cada Advisor. Confirma, por leitura de codigo, que a ordem Programs->Projects e puramente alfabetica/incidental (ORDER BY Program.code / Project.name), nunca prioridade -- nenhum algoritmo de reordenacao necessario, apenas instrucao textual de prompt no Technical Design.
+
+**Verificação:** `ruff check src tests` limpo.
+
+**Recomendação:** GO para o Technical Design do Portfolio Advisor.
+
+**Decision Log:** D-110.
