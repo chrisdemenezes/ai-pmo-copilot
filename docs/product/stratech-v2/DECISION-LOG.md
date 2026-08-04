@@ -1064,6 +1064,17 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Recomendação:** GO para o Domain Blueprint do Delivery Advisor.
 - **Missão:** Advisor Specification do Delivery Advisor concluída. Retorno obrigatório para Executive Review do Founder antes de prosseguir ao Domain Blueprint (etapa 2).
 
+### D-104 — Definição institucional permanente de Classe A/B; Delivery Advisor confirmado Classe A com fonte `kind="status"`; Domain Blueprint produzido (etapa 2 de 6)
+
+- **Contexto:** "Founder Decision — Delivery Advisor Specification" (veredito **APPROVED — GO para o Domain Blueprint**), resolvendo o achado grounded deixado em aberto pela Advisor Specification (D-103): a fronteira entre Classe A e Classe B.
+- **Decisão arquitetural permanente (registrada em `AR-8-WAVE-5-ENTERPRISE-ADVISOR-MODEL-REVIEW.md` §4.2):** Classe A é definida pela utilização de **uma única fonte primária de evidência** — não pela quantidade de assuntos abordados na resposta. Classe B é definida pela **composição de duas ou mais fontes independentes de evidência**. Esta definição passa a ser permanente para toda a STRATECH, resolvendo de forma definitiva a tensão que Document/Governance (Classe D) e agora Delivery (Classe A) haviam levantado sobre como classificar Advisors cuja resposta sintetiza múltiplos temas a partir de uma evidência só.
+- **Delivery Advisor confirmado Classe A:** fonte oficial `AnalysisRecord`/`kind="status"` — podendo essa evidência conter `health_status`, `key_findings`, `recommendations`, e referências textuais a riscos/ações/bloqueios já presentes nesses campos, tudo isso caracterizando uma única evidência. **Nenhuma segunda consulta estrutural** a `kind="risk"`/`"meeting"`/timeline/`action_items` está autorizada para enriquecimento; se necessário no futuro, exige nova evolução arquitetural com possível reclassificação para Classe B, explicitamente autorizada pelo Founder.
+- **Domain Blueprint produzido** (`docs/architecture/DOMAIN-BLUEPRINT-DELIVERY-ADVISOR.md`): aplica a fonte já decidida (não a reabre); confirma por leitura direta de código que `AIContextEngine.gather(organization_id, project_name, kind="status")` e `AdvisorFramework.run()` não exigem nenhuma extensão (mesma forma exata do Risk Advisor); caracteriza 3 cenários de uso (estado geral de entrega, bloqueios, ausência de evidência); reafirma os limites de atuação de todos os Advisors mais o limite específico deste Advisor (não decide replanejamento) e o limite específico desta Founder Decision (nunca uma segunda fonte estrutural).
+- **Riscos identificados, nenhum bloqueante:** suficiência prática de `kind="status"` como única fonte (confirmação formal reservada à Architecture Review); wording de `no_evidence_answer`/`top_k` de domínio (Technical Design); nome definitivo da rota HTTP (Technical Design). TD-015 não incide (Classe A via `gather_context()`, não `normalize_rag_evidence()`).
+- **Verificação:** missão de documentação — nenhum código de `src/`/`tests/` alterado; `ruff check src tests` confirmado limpo.
+- **Recomendação:** GO para a Architecture Review do Delivery Advisor.
+- **Missão:** Domain Blueprint do Delivery Advisor concluído. Retorno obrigatório para Executive Review do Founder antes de prosseguir à Architecture Review (etapa 3).
+
 ---
 
 ## Convenção

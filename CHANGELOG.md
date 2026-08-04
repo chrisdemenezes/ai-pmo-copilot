@@ -1291,3 +1291,17 @@ Founder declarou o Governance Advisor oficialmente concluído (arquitetura ínte
 **Recomendação:** GO para o Domain Blueprint do Delivery Advisor.
 
 **Decision Log:** D-103.
+
+## Wave 5 — Definição institucional permanente de Classe A/B; Domain Blueprint do Delivery Advisor produzido (2026-08-04)
+
+Founder resolveu o achado grounded deixado em aberto pela Advisor Specification (D-103), fixando uma decisão arquitetural permanente para toda a STRATECH: a fronteira entre Classe A e Classe B é a cardinalidade de fontes primárias de evidência (uma única chamada estrutural vs. duas ou mais) -- nunca a quantidade de assuntos abordados na resposta.
+
+**Adicionado**
+- `docs/architecture/AR-8-WAVE-5-ENTERPRISE-ADVISOR-MODEL-REVIEW.md` §4.2 -- definição institucional permanente de Classe A/Classe B registrada. Delivery Advisor confirmado Classe A, com fonte oficial `AnalysisRecord`/`kind="status"` -- podendo conter referências textuais a riscos/ações/bloqueios sem deixar de ser uma única evidência.
+- `docs/architecture/DOMAIN-BLUEPRINT-DELIVERY-ADVISOR.md` -- etapa 2 de 6. Aplica a fonte já decidida (não a reabre); confirma por leitura de código que `AIContextEngine.gather(kind="status")` e `AdvisorFramework.run()` não exigem nenhuma extensão (mesma forma do Risk Advisor); caracteriza 3 cenários de uso (estado geral de entrega, bloqueios, ausência de evidência).
+
+**Verificação:** `ruff check src tests` limpo.
+
+**Recomendação:** GO para a Architecture Review do Delivery Advisor.
+
+**Decision Log:** D-104.

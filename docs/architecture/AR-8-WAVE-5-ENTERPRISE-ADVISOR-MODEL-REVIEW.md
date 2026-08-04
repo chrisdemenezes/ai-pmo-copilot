@@ -111,6 +111,15 @@ O tipo `Evidence` (`src/services/ai_foundation/types.py`) já é genérico o suf
 
 **Risco residual nomeado (§7):** o campo `Evidence.source_analysis_id: int` e `Recommendation`/`RecommendationEngine.build(cited_ids: list[int])` estão nomeados em vocabulário de `AnalysisRecord` (`source_analysis_id`, `cited_analysis_ids`). `Chunk.id` (tabela `chunks`) também é `Integer`, portanto **tipo-compatível**, mas o nome do campo confunde um futuro leitor. Isso é uma questão de nomenclatura a resolver no Technical Design do primeiro Advisor da Classe D — não uma barreira arquitetural, não algo a decidir nesta revisão.
 
+### 4.2 Definição institucional permanente — Classe A vs. Classe B (Founder Decision, D-104)
+
+Fixada como decisão arquitetural permanente para toda a STRATECH: a fronteira entre Classe A e Classe B **não é a quantidade de assuntos abordados na resposta do Advisor — é a cardinalidade de fontes primárias de evidência independentes que sua montagem de contexto consulta**.
+
+- **Classe A:** Advisor baseado em **uma única fonte primária de evidência** — uma única chamada estrutural (`gather_context()` com um `kind`, ou `gather_rag_context()`), independentemente de quantos temas a resposta do modelo sintetize a partir dessa única evidência (ex.: uma resposta sobre status de projeto pode mencionar riscos e ações em prosa, citando o mesmo `AnalysisRecord`, sem deixar de ser Classe A).
+- **Classe B:** Advisor baseado na **composição de duas ou mais fontes independentes de evidência** — duas ou mais chamadas estruturais distintas (ex.: `gather_context(kind="status")` **e** `gather_context(kind="risk")` na mesma resposta), compostas pelo próprio Advisor na etapa de montagem de contexto, per §4 acima.
+
+Confirmado nesta decisão: o **Delivery Advisor permanece Classe A** — sua fonte oficial de evidência é `AnalysisRecord`/`kind="status"` exclusivamente (`health_status`, `key_findings`, `recommendations`, incluindo referências textuais a riscos/ações/blooqueios já presentes nesses campos, quando o autor da análise de status as mencionou). Nenhuma segunda consulta estrutural a `kind="risk"`/`kind="meeting"`/timeline/`action_items` está autorizada apenas para enriquecer a resposta — fazer isso reclassificaria o Advisor para Classe B e exigiria uma nova evolução arquitetural, explicitamente autorizada pelo Founder, não uma decisão de Technical Design.
+
 ---
 
 ## 5. Relação entre Advisors e Knowledge Platform (RAG)
