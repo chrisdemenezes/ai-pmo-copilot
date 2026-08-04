@@ -1331,3 +1331,20 @@ Founder exigiu, alem de aplicar a recencia ja decidida, uma orientacao adicional
 **Recomendação:** GO para a implementação.
 
 **Decision Log:** D-106.
+
+## Wave 5 — Delivery Advisor implementado (2026-08-04)
+
+Implementacao completa per as 7 diretrizes obrigatorias de "Founder Decision -- Technical Design do Delivery Advisor" (GO). Inclui os tres cenarios temporais mandados (melhora/deterioracao/registro unico) e a prova de ausencia de segunda fonte (RAG incluido).
+
+**Adicionado**
+- `src/agents/delivery_advisor/agent.py` + `prompts/advise.md` -- novo `DeliveryAdvisorAgent`, mesma forma do `RiskAdvisorAgent`. Prompt declara explicitamente que o primeiro item do historico e o estado atual e que a tendencia deve respeitar a direcao temporal mais-recente-primeiro.
+- `src/api/routes/intelligence.py` -- `POST /delivery-advisor/ask` (RBAC `intelligence.read` reutilizada, nenhuma migracao nova); `CitedAnalysis` reaproveitado do Risk Advisor sem duplicacao. Nenhuma chamada a `gather_rag_context()` -- confirmado por busca de codigo e por teste estrutural (rag_pipeline=None / dublê que lança excecao).
+- `tests/test_delivery_advisor_agent.py`, `test_delivery_advisor.py`, `test_delivery_advisor_api.py` (novos, 23 testes) -- incluindo os tres cenarios temporais com timestamps explicitos, em duas camadas (Framework e HTTP).
+
+**Confirmado inalterado:** `AdvisorFramework`; `AIContextEngine`; `RecommendationEngine`; `ExplanationEngine`; Workflow Runtime; Event Pipeline. `git diff --stat` vazio.
+
+**Verificação:** suíte backend completa 603 passed, 0 failed (23 novos); suíte frontend completa 503 passed; `ruff`/`tsc`/`eslint` limpos.
+
+**Recomendação:** GO para o encerramento do Epic. Retorno obrigatório para Executive Review antes de qualquer trabalho do próximo Advisor.
+
+**Decision Log:** D-107.

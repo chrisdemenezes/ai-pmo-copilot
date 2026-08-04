@@ -14,6 +14,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field, field_validator
 from fastapi import APIRouter, Depends, HTTPException
 
+from src.agents.delivery_advisor.agent import DeliveryAdvisorAgent
 from src.agents.document_advisor.agent import DocumentAdvisorAgent
 from src.agents.governance_advisor.agent import GovernanceAdvisorAgent
 from src.agents.meeting_intelligence.agent import MeetingIntelligenceAgent
@@ -142,6 +143,18 @@ class CitedAnalysis(BaseModel):
 class RiskAdvisorResponse(BaseModel):
     answer: str
     cited_analyses: list[CitedAnalysis]
+
+
+class DeliveryAdvisorRequest(BaseModel):
+    project_name: str
+    question: str = Field(..., min_length=3, max_length=2000)
+
+    _validate_question = field_validator("question")(_ensure_has_content)
+
+
+class DeliveryAdvisorResponse(BaseModel):
+    answer: str
+    cited_analyses: list[CitedAnalysis]  # reaproveitado do Risk Advisor -- mesmo shape exato
 
 
 class DocumentAdvisorRequest(BaseModel):
@@ -602,6 +615,60 @@ def ask_risk_advisor(
 
 def _risk_advisor_response(explanation) -> RiskAdvisorResponse:
     return RiskAdvisorResponse(
+        answer=explanation.recommendation.answer,
+        cited_analyses=[
+            CitedAnalysis(
+                source_analysis_id=item.source_id,
+                source_created_at=item.metadata["created_at"],
+            )
+            for item in explanation.recommendation.cited_evidence
+        ],
+    )
+
+
+@router.post("/delivery-advisor/ask", response_model=DeliveryAdvisorResponse)
+def ask_delivery_advisor(
+    request: DeliveryAdvisorRequest,
+    context: RequestContext = Depends(get_request_context),
+    prompts: PromptRegistry = Depends(build_prompt_registry),
+    provider: LLMProvider = Depends(build_provider),
+    repository: AnalysisRepository = Depends(build_repository),
+    rag_pipeline: RagPipeline = Depends(build_rag_pipeline),
+    # Read-only, same permission already protecting the Risk Advisor -- this
+    # agent never creates/edits/triggers an analysis.
+    _permission: None = Depends(require_permission("intelligence.read")),
+):
+    # Classe A, single source of evidence (AR-8 §4.2/D-104, reconfirmed
+    # Technical Design item 2): exactly one call to gather_context(),
+    # kind="status" -- never risk/meeting/action_items, never RAG.
+    # gather_rag_context() is deliberately never called by this route.
+    session = SessionContext(
+        organization_id=context.organization.organization_id,
+        user_id=context.user.user_id,
+        session_id=context.session.session_id,
+        project_name=request.project_name,
+    )
+    framework = AdvisorFramework(repository, prompts, provider, rag_pipeline)
+
+    evidence = framework.gather_context(session.organization_id, session.project_name, kind="status")
+
+    agent = DeliveryAdvisorAgent(framework)
+    try:
+        explanation = framework.run(
+            agent,
+            session,
+            request.question,
+            evidence,
+            no_evidence_answer="Nenhuma análise de status registrada ainda para este projeto.",
+        )
+    except AdvisorExecutionError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    return _delivery_advisor_response(explanation)
+
+
+def _delivery_advisor_response(explanation) -> DeliveryAdvisorResponse:
+    return DeliveryAdvisorResponse(
         answer=explanation.recommendation.answer,
         cited_analyses=[
             CitedAnalysis(
