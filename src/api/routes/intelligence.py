@@ -16,6 +16,11 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from src.agents.delivery_advisor.agent import DeliveryAdvisorAgent
 from src.agents.document_advisor.agent import DocumentAdvisorAgent
+from src.agents.executive_advisor.agent import ExecutiveAdvisorAgent
+from src.agents.executive_advisor.evidence_assembler import (
+    ExecutiveAssemblyResult,
+    ExecutiveEvidenceAssembler,
+)
 from src.agents.governance_advisor.agent import GovernanceAdvisorAgent
 from src.agents.pmo_advisor.agent import PMOAdvisorAgent
 from src.agents.pmo_advisor.evidence_assembler import (
@@ -212,6 +217,39 @@ class PMOAdvisorResponse(BaseModel):
     # even when the same project_id appears more than once because
     # multiple records of that Project were cited.
     cited_projects: list[CitedProject]
+
+
+class ExecutiveAdvisorRequest(BaseModel):
+    # No project_id/portfolio_id -- same reasoning as PMOAdvisorRequest: the
+    # Executive Advisor's scope is always the organization of the
+    # authenticated session (Domain Blueprint §4, AR-14).
+    question: str = Field(..., min_length=3, max_length=2000)
+
+    _validate_question = field_validator("question")(_ensure_has_content)
+
+
+class ExecutiveCitedEvidence(BaseModel):
+    # New, isolated model (AR-14 §2/Technical Design §4.2) -- CitedProject
+    # is never touched, remains serving Portfolio/PMO Advisor unchanged.
+    # "kind" distinguishes "status" from "risk" citations of the same
+    # project, something CitedProject cannot express.
+    project_id: int
+    project_name: str
+    source_analysis_id: int
+    kind: str
+    created_at: datetime
+
+
+class ExecutiveAdvisorResponse(BaseModel):
+    answer: str
+    total_projects: int
+    projects_with_status: int
+    projects_without_status: int
+    projects_with_risk: int
+    projects_without_risk: int
+    projects_with_status_and_risk: int
+    projects_without_any_evidence: int
+    cited_evidence: list[ExecutiveCitedEvidence]
 
 
 class DocumentAdvisorRequest(BaseModel):
@@ -859,6 +897,76 @@ def _pmo_advisor_response(explanation, result: PMOAssemblyResult) -> PMOAdvisorR
                 project_name=item.metadata["project_name"],
                 source_analysis_id=item.source_id,
                 source_created_at=item.metadata["created_at"],
+            )
+            for item in explanation.recommendation.cited_evidence
+        ],
+    )
+
+
+@router.post("/executive-advisor/ask", response_model=ExecutiveAdvisorResponse)
+def ask_executive_advisor(
+    request: ExecutiveAdvisorRequest,
+    context: RequestContext = Depends(get_request_context),
+    prompts: PromptRegistry = Depends(build_prompt_registry),
+    provider: LLMProvider = Depends(build_provider),
+    repository: AnalysisRepository = Depends(build_repository),
+    rag_pipeline: RagPipeline = Depends(build_rag_pipeline),
+    domain_service: DomainService = Depends(build_domain_service),
+    # Read-only, same permission already protecting Risk/Delivery/Portfolio/
+    # PMO Advisor -- this agent never creates/edits/triggers an analysis.
+    _permission: None = Depends(require_permission("intelligence.read")),
+):
+    # Classe B, third of its kind (AR-8 §4.2/D-104), organizational scope
+    # (Domain Blueprint §4): composition of two independent gather_context()
+    # calls per Project ("status" + "risk") happens entirely inside
+    # ExecutiveEvidenceAssembler -- never inside AdvisorFramework/
+    # AIContextEngine, never gather_context_many() (D-120 §8). Same as the
+    # PMO Advisor, organizational scope always resolves via the session, so
+    # there is no 404 case here.
+    session = SessionContext(
+        organization_id=context.organization.organization_id,
+        user_id=context.user.user_id,
+        session_id=context.session.session_id,
+    )
+    framework = AdvisorFramework(repository, prompts, provider, rag_pipeline)
+    assembler = ExecutiveEvidenceAssembler(domain_service, framework)
+
+    result = assembler.assemble(session.organization_id)
+
+    agent = ExecutiveAdvisorAgent(framework)
+    try:
+        explanation = framework.run(
+            agent,
+            session,
+            request.question,
+            result.evidence,
+            no_evidence_answer="Nenhuma análise de status ou risco registrada para os projetos desta organização.",
+        )
+    except AdvisorExecutionError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    return _executive_advisor_response(explanation, result)
+
+
+def _executive_advisor_response(
+    explanation, result: ExecutiveAssemblyResult
+) -> ExecutiveAdvisorResponse:
+    return ExecutiveAdvisorResponse(
+        answer=explanation.recommendation.answer,
+        total_projects=result.total_projects,
+        projects_with_status=result.projects_with_status,
+        projects_without_status=result.projects_without_status,
+        projects_with_risk=result.projects_with_risk,
+        projects_without_risk=result.projects_without_risk,
+        projects_with_status_and_risk=result.projects_with_status_and_risk,
+        projects_without_any_evidence=result.projects_without_any_evidence,
+        cited_evidence=[
+            ExecutiveCitedEvidence(
+                project_id=item.metadata["project_id"],
+                project_name=item.metadata["project_name"],
+                source_analysis_id=item.source_id,
+                kind=item.metadata["kind"],
+                created_at=item.metadata["created_at"],
             )
             for item in explanation.recommendation.cited_evidence
         ],

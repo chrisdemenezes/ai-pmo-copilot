@@ -1548,3 +1548,19 @@ Founder aprovou a AR-14 (GO para o Technical Design), oficializando modelo de ci
 **Recomendação:** GO para a implementação do Executive Advisor.
 
 **Decision Log:** D-122.
+
+## Wave 5 — Executive Advisor implementado, etapa 5 de 6 (2026-08-05)
+
+Founder aprovou o Technical Design (GO para implementacao) com 7 diretrizes obrigatorias.
+
+**Adicionado**
+- `src/agents/executive_advisor/evidence_assembler.py` -- ExecutiveEvidenceAssembler + ExecutiveAssemblyResult. Duas chamadas explicitas gather_context(kind=status)/gather_context(kind=risk) por Project, evidence[0] de cada, enriquecimento minimo (project_id/project_name), sete contagens estruturais calculadas na mesma passada.
+- `src/agents/executive_advisor/agent.py` + `src/agents/executive_advisor/prompts/advise.md` -- ExecutiveAdvisorAgent, content transportado sem achatar campos (schemas de status e risk sao estruturalmente diferentes).
+- `src/api/routes/intelligence.py` -- ExecutiveAdvisorRequest, ExecutiveCitedEvidence (novo, isolado), ExecutiveAdvisorResponse, rota POST /executive-advisor/ask (RBAC intelligence.read reutilizada, nenhuma migracao nova).
+- `tests/test_executive_advisor_evidence_assembler.py` (16 testes unitarios), `tests/test_executive_advisor_agent.py` (6 testes unitarios), `tests/test_executive_advisor.py` (16 testes de integracao via AdvisorFramework real), `tests/test_executive_advisor_api.py` (9 testes HTTP, RBAC).
+
+**Verificação:** 13 cenarios A-M comprovados em quatro camadas. Invariantes de cobertura comprovadas por teste. Fonte unica confirmada estruturalmente (kind=meeting nunca contribui evidencia; RAG nunca consultado). git diff --stat vazio em AdvisorFramework/AIContextEngine/RecommendationEngine/ExplanationEngine/Workflow Runtime/Event Pipeline/CitedProject/PortfolioAdvisorResponse/PMOAdvisorResponse. Suite backend completa e suite frontend completa sem regressao. ruff/tsc/eslint limpos.
+
+**Recomendação:** GO para o encerramento do Epic do Executive Advisor.
+
+**Decision Log:** D-123.
