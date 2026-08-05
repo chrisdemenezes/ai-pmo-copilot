@@ -1418,3 +1418,16 @@ Implementacao completa per as 8 diretrizes obrigatorias de "Founder Decision -- 
 **Recomendação:** GO para o encerramento do Epic. Retorno obrigatório para Executive Review antes de qualquer trabalho do próximo Advisor.
 
 **Decision Log:** D-112.
+
+## Wave 5 — Portfolio Advisor oficialmente encerrado; PMO Advisor definido como proximo Advisor, segundo Classe B (2026-08-04)
+
+Founder declarou o Portfolio Advisor oficialmente concluido e autorizou a abertura do ciclo institucional do PMO Advisor -- segundo Advisor Classe B (D-104). Exigencia explicita: avaliar primeiro se o PMO Advisor deve consumir fontes primarias diretamente ou compor resultados estruturados ja produzidos pelos Advisors existentes -- nenhuma decisao tomada silenciosamente.
+
+**Adicionado**
+- `docs/architecture/ADVISOR-SPECIFICATION-PMO-ADVISOR.md` -- etapa 1 de 6. Questao arquitetural central resolvida: o PMO Advisor consome exclusivamente fontes primarias (AnalysisRecord via AIContextEngine.gather()), nunca compoe Recommendation/Explanation de outros Advisors -- fundamentado em restricao ja permanente do AdvisorFramework desde a Fase 3 ("nunca delegacao de um Advisor para outro"). Fonte proposta: AnalysisRecord/kind="status", com leitura adicional de created_at para detectar ausencia de atualizacao. Limites contra sobreposicao com Portfolio/Governance/Delivery/Executive Advisor definidos explicitamente.
+
+**Verificação:** `ruff check src tests` limpo.
+
+**Recomendação:** GO para o Domain Blueprint do PMO Advisor.
+
+**Decision Log:** D-113.
