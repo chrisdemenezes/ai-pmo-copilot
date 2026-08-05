@@ -1457,3 +1457,16 @@ Founder aprovou o Domain Blueprint (GO para a Architecture Review), confirmando 
 **Recomendação:** GO para o Technical Design do PMO Advisor.
 
 **Decision Log:** D-115.
+
+## Wave 5 — Technical Design do PMO Advisor produzido, etapa 4 de 6 (2026-08-05)
+
+Founder aprovou a AR-13 (GO para o Technical Design), oficializando staleness (limiar de 14 dias), controle de volume (5 registros mais recentes por Project), cobertura estrutural (5 contagens). Exigencias desta etapa: constante nomeada, timezone, data de referencia, comportamento na fronteira exata de 14 dias, gatilho de recalibracao, 13 cenarios de teste obrigatorios.
+
+**Adicionado**
+- `docs/architecture/TECHNICAL-DESIGN-PMO-ADVISOR.md` -- etapa 4 de 6. PMOEvidenceAssembler (src/agents/pmo_advisor/evidence_assembler.py) com contrato definitivo: resolve Projects org-scoped via DomainService.list_projects(organization_id), sem portfolio_id e portanto sem caso de 404 (escopo organizacional sempre resolve pela sessao). Staleness: constante PMO_STALENESS_THRESHOLD_DAYS=14, timezone UTC (datetime.now(timezone.utc), mesmo padrao ja permanente no codigo), reference_time capturada uma unica vez por chamada, fronteira de 14 dias inclusiva (staleness_days >= 14), mesma convencao ja usada em Invitation.status(). Gatilho de recalibracao futura registrado explicitamente, nunca ajuste silencioso. Modelo de resposta PMOAdvisorResponse reaproveita CitedProject do Portfolio Advisor sem duplicacao; cited_projects pode conter o mesmo project_id mais de uma vez (comportamento intencional documentado, rastreabilidade ate AnalysisRecord especifico). Cobertura estrutural: tres invariantes garantidas pela propria aritmetica do laco da Assembler. 13 cenarios de teste obrigatorios nomeados A-M. Infraestrutura compartilhada confirmada preservada.
+
+**Verificação:** `ruff check src tests` limpo.
+
+**Recomendação:** GO para a implementação do PMO Advisor.
+
+**Decision Log:** D-116.
