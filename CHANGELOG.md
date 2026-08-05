@@ -1488,3 +1488,11 @@ Founder aprovou o Technical Design (GO para implementacao) com 8 diretrizes: PMO
 **Recomendação:** GO para o encerramento do Epic do PMO Advisor.
 
 **Decision Log:** D-117.
+
+## Wave 5 — PMO Advisor oficialmente encerrado; validacao do padrao Classe B encerrada; ciclo do Executive Advisor autorizado a abrir (2026-08-05)
+
+Founder aprovou a Executive Evidence do PMO Advisor -- encerramento oficial. 6 de 8 Advisors da Wave 5 concluidos. Decisao permanente: PMOEvidenceAssembler constitui o segundo padrao consolidado para Advisors Classe B; PortfolioEvidenceAssembler e PMOEvidenceAssembler permanecem coexistindo, sem generalizacao, condicionada ao gatilho ja aprovado (terceiro consumidor estruturalmente equivalente). Validacao do padrao Classe B oficialmente encerrada -- proximos Advisors Classe B podem reutilizar os padroes ja estabelecidos sem nova validacao arquitetural. Autorizada exclusivamente a abertura do ciclo institucional do Executive Advisor -- setimo Advisor da Wave 5. Nenhum trabalho paralelo autorizado.
+
+**Verificação:** missão de governança -- nenhum código de `src/`/`tests/` alterado; `ruff check src tests` limpo.
+
+**Decision Log:** D-118.

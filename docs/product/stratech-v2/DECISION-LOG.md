@@ -1250,6 +1250,17 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-118 — PMO Advisor oficialmente encerrado; validação do padrão Classe B encerrada; ciclo institucional do Executive Advisor autorizado a abrir
+
+- **Contexto:** "Founder Decision — PMO Advisor", APPROVED — Executive Evidence aprovada, PMO Advisor oficialmente encerrado. Evidências reconhecidas como comprovando integralmente: escopo organizacional correto; cálculo estrutural de staleness; controle determinístico de volume; cobertura estrutural; rastreabilidade preservada; ausência de segunda fonte; preservação completa da infraestrutura compartilhada. **6 de 8 Advisors da Wave 5 concluídos** (Risk Advisor — referência; Document Advisor — W5-1; Governance Advisor; Delivery Advisor; Portfolio Advisor — primeiro Classe B; PMO Advisor — segundo Classe B).
+- **Decisão permanente registrada:** `PMOEvidenceAssembler` constitui o **segundo padrão consolidado para Advisors Classe B**. `PortfolioEvidenceAssembler` e `PMOEvidenceAssembler` permanecem coexistindo, sem qualquer tentativa de generalização. A generalização continua condicionada ao gatilho já aprovado (AR-8 §7.3, reafirmado em D-114/AR-13/D-116): existência de um **terceiro consumidor estruturalmente equivalente** — nunca presumida antes disso.
+- **Validação do padrão Classe B oficialmente encerrada:** os próximos Advisors Classe B (Executive Advisor) poderão reutilizar os padrões já estabelecidos (composição fora de `AdvisorFramework`/`AIContextEngine`, dentro do próprio pacote do Advisor; contagens estruturais nunca calculadas pelo LLM; rastreabilidade via `Evidence.metadata`/campos de citação já existentes) **sem necessidade de nova validação arquitetural** — a Architecture Review do Executive Advisor não precisa reabrir a pergunta "Opção B é o modelo correto?", já resolvida definitivamente em AR-8 (D-085).
+- **Autorização:** abertura exclusiva do ciclo institucional do **Executive Advisor** — sétimo Advisor da Wave 5. Nenhum trabalho paralelo autorizado. Aguardando diretrizes explícitas do Founder para a Advisor Specification (etapa 1 de 6).
+- **Verificação:** missão de governança — nenhum código de `src/`/`tests/` alterado nesta etapa; `ruff check src tests` confirmado limpo.
+- **Missão:** Encerramento do PMO Advisor registrado. Aguardando a próxima Founder Decision com as diretrizes da Advisor Specification do Executive Advisor.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.
