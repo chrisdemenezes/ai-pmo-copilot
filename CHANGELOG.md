@@ -1535,3 +1535,16 @@ Founder aprovou o Domain Blueprint (GO para a Architecture Review), confirmando 
 **Recomendação:** GO para o Technical Design do Executive Advisor.
 
 **Decision Log:** D-121.
+
+## Wave 5 — Technical Design do Executive Advisor produzido, etapa 4 de 6 (2026-08-05)
+
+Founder aprovou a AR-14 (GO para o Technical Design), oficializando modelo de citacao, cobertura estrutural, tratamento de ausencia/cobertura parcial e proibicao de ranking deterministico -- delegando a esta etapa o contrato completo de implementacao, sem escrever codigo.
+
+**Adicionado**
+- `docs/architecture/TECHNICAL-DESIGN-EXECUTIVE-ADVISOR.md` -- etapa 4 de 6. ExecutiveEvidenceAssembler contratado: duas chamadas explicitas gather_context(kind=status)/gather_context(kind=risk) por Project, evidence[0] de cada, enriquecimento minimo (project_id/project_name), sete contagens calculadas na mesma passada. Invariantes matematicas confirmadas, incluindo projects_without_any_evidence = total_projects - projects_with_status - projects_with_risk + projects_with_status_and_risk. Modelo de resposta definido: ExecutiveAdvisorRequest, ExecutiveCitedEvidence (novo, isolado, kind lido de Evidence.metadata), ExecutiveAdvisorResponse (sete contagens + cited_evidence). ExecutiveAdvisorAgent transporta content sem achatar campos (schemas de status e risk sao estruturalmente diferentes). 13 cenarios de teste A-M nomeados. Estrategia incremental de 4 passos definida, mesma sequencia de Delivery/Portfolio/PMO Advisor. Riscos residuais registrados, nenhum bloqueante. Infraestrutura compartilhada confirmada preservada.
+
+**Verificação:** missão de documentação -- nenhum código de `src/`/`tests/` alterado; `ruff check src tests` limpo.
+
+**Recomendação:** GO para a implementação do Executive Advisor.
+
+**Decision Log:** D-122.
