@@ -1509,3 +1509,16 @@ Founder autorizou formalmente a abertura do ciclo institucional do Executive Adv
 **Recomendação:** GO para o Domain Blueprint do Executive Advisor.
 
 **Decision Log:** D-119.
+
+## Wave 5 — Domain Blueprint do Executive Advisor produzido, etapa 2 de 6 (2026-08-05)
+
+Founder aprovou a Advisor Specification (GO para o Domain Blueprint), fixando fontes iniciais (kind=status + kind=risk), seis fontes fora de escopo inicial, identidade definitiva, e exigindo avaliacao obrigatoria de ProjectSummaryService e gather_context_many(), sem aprovacao automatica.
+
+**Adicionado**
+- `docs/architecture/DOMAIN-BLUEPRINT-EXECUTIVE-ADVISOR.md` -- etapa 2 de 6. Escopo organizacional confirmado via DomainService.list_projects(). ProjectSummaryService avaliado e rejeitado como fonte: summarize()/_aggregate() sem source_id por item (reprovado); list_action_items() reprovado por escopo (kind=meeting); list_latest_risks() passa no teste de rastreabilidade mas rejeitado por acoplamento a UI e falta de parametrizacao de volume -- decisao: composicao direta via AnalysisRecord. gather_context_many() avaliado e rejeitado: duas chamadas explicitas (kind=status + kind=risk) no ExecutiveEvidenceAssembler resolvem sem tocar o Framework, necessidade real nao demonstrada. Componente nomeado: ExecutiveEvidenceAssembler, terceiro componente Classe B, estruturalmente distinto dos dois ja existentes. Volume: exatamente 1 status + 1 risco mais recentes por Project, nunca historico -- torna estruturalmente impossivel alegar tendencia. Cobertura estrutural em duas dimensoes independentes (status e risco). Achado de rastreabilidade registrado: CitedProject nao carrega kind, duas solucoes candidatas registradas, reservado ao Technical Design. Infraestrutura compartilhada confirmada preservada.
+
+**Verificação:** missão de documentação -- nenhum código de `src/`/`tests/` alterado; `ruff check src tests` limpo.
+
+**Recomendação:** GO para a Architecture Review do Executive Advisor.
+
+**Decision Log:** D-120.
