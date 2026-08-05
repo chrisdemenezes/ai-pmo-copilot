@@ -1522,3 +1522,16 @@ Founder aprovou a Advisor Specification (GO para o Domain Blueprint), fixando fo
 **Recomendação:** GO para a Architecture Review do Executive Advisor.
 
 **Decision Log:** D-120.
+
+## Wave 5 — AR-14: Architecture Review do Executive Advisor concluida, etapa 3 de 6 (2026-08-05)
+
+Founder aprovou o Domain Blueprint (GO para a Architecture Review), confirmando escopo, fontes e rejeicoes (ProjectSummaryService, gather_context_many()) como oficiais, delegando modelo de citacao, cobertura estrutural e tratamento de ausencia/cobertura parcial.
+
+**Adicionado**
+- `docs/architecture/AR-14-EXECUTIVE-ADVISOR-ARCHITECTURE-REVIEW.md` -- etapa 3 de 6. Modelo de citacao: novo ExecutiveCitedEvidence (project_id/project_name/source_analysis_id/kind/created_at), especifico do Advisor -- CitedProject nao e alterado, permanece intocado para Portfolio/PMO Advisor. Cobertura estrutural: sete contagens (total_projects, projects_with_status/without_status, projects_with_risk/without_risk, projects_with_status_and_risk, projects_without_any_evidence), invariantes matematicas registradas. Ausencia total aciona no_evidence() sem LLM; cobertura parcial permite sintese com limitacao declarada, usando as contagens ja calculadas. Contrato do ExecutiveEvidenceAssembler descrito (forma, nao codigo). Limite adicional confirmado: nenhum ranking deterministico calculado em codigo. Infraestrutura compartilhada e contratos existentes (CitedProject, PortfolioAdvisorResponse, PMOAdvisorResponse) confirmados preservados.
+
+**Verificação:** missão de documentação -- nenhum código de `src/`/`tests/` alterado; `ruff check src tests` limpo.
+
+**Recomendação:** GO para o Technical Design do Executive Advisor.
+
+**Decision Log:** D-121.
