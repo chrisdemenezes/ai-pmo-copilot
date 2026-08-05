@@ -17,6 +17,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from src.agents.delivery_advisor.agent import DeliveryAdvisorAgent
 from src.agents.document_advisor.agent import DocumentAdvisorAgent
 from src.agents.governance_advisor.agent import GovernanceAdvisorAgent
+from src.agents.pmo_advisor.agent import PMOAdvisorAgent
+from src.agents.pmo_advisor.evidence_assembler import (
+    PMOAssemblyResult,
+    PMOEvidenceAssembler,
+)
 from src.agents.portfolio_advisor.agent import PortfolioAdvisorAgent
 from src.agents.portfolio_advisor.evidence_assembler import (
     PortfolioAssemblyResult,
@@ -183,6 +188,29 @@ class PortfolioAdvisorResponse(BaseModel):
     total_projects: int
     projects_with_evidence: int
     projects_without_evidence: int
+    cited_projects: list[CitedProject]
+
+
+class PMOAdvisorRequest(BaseModel):
+    # No project_id/portfolio_id -- the PMO Advisor's scope is always the
+    # organization of the authenticated session (D-114), never a
+    # caller-supplied identifier. Same shape as DocumentAdvisorRequest.
+    question: str = Field(..., min_length=3, max_length=2000)
+
+    _validate_question = field_validator("question")(_ensure_has_content)
+
+
+class PMOAdvisorResponse(BaseModel):
+    answer: str
+    total_projects: int
+    projects_with_status: int
+    projects_without_status: int
+    projects_stale: int
+    projects_current: int
+    # CitedProject reused as-is (D-116 SS5.3): source_analysis_id already
+    # makes every citation unambiguously traceable to one AnalysisRecord,
+    # even when the same project_id appears more than once because
+    # multiple records of that Project were cited.
     cited_projects: list[CitedProject]
 
 
@@ -761,6 +789,70 @@ def _portfolio_advisor_response(
         total_projects=result.total_projects,
         projects_with_evidence=result.projects_with_evidence,
         projects_without_evidence=result.total_projects - result.projects_with_evidence,
+        cited_projects=[
+            CitedProject(
+                project_id=item.metadata["project_id"],
+                project_name=item.metadata["project_name"],
+                source_analysis_id=item.source_id,
+                source_created_at=item.metadata["created_at"],
+            )
+            for item in explanation.recommendation.cited_evidence
+        ],
+    )
+
+
+@router.post("/pmo-advisor/ask", response_model=PMOAdvisorResponse)
+def ask_pmo_advisor(
+    request: PMOAdvisorRequest,
+    context: RequestContext = Depends(get_request_context),
+    prompts: PromptRegistry = Depends(build_prompt_registry),
+    provider: LLMProvider = Depends(build_provider),
+    repository: AnalysisRepository = Depends(build_repository),
+    rag_pipeline: RagPipeline = Depends(build_rag_pipeline),
+    domain_service: DomainService = Depends(build_domain_service),
+    # Read-only, same permission already protecting Risk/Delivery/Portfolio
+    # Advisor -- this agent never creates/edits/triggers an analysis.
+    _permission: None = Depends(require_permission("intelligence.read")),
+):
+    # Classe B, second of its kind (AR-8 §4.2/D-104), organizational scope
+    # (D-114): composition of N independent gather_context(kind="status")
+    # calls, one per Project of the organization, happens entirely inside
+    # PMOEvidenceAssembler -- never inside AdvisorFramework/AIContextEngine.
+    # Unlike the Portfolio Advisor, there is no caller-supplied id that can
+    # fail to resolve, so there is no 404 case here (D-116 §3.4).
+    session = SessionContext(
+        organization_id=context.organization.organization_id,
+        user_id=context.user.user_id,
+        session_id=context.session.session_id,
+    )
+    framework = AdvisorFramework(repository, prompts, provider, rag_pipeline)
+    assembler = PMOEvidenceAssembler(domain_service, framework)
+
+    result = assembler.assemble(session.organization_id)
+
+    agent = PMOAdvisorAgent(framework)
+    try:
+        explanation = framework.run(
+            agent,
+            session,
+            request.question,
+            result.evidence,
+            no_evidence_answer="Nenhuma análise de status registrada para os projetos desta organização.",
+        )
+    except AdvisorExecutionError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    return _pmo_advisor_response(explanation, result)
+
+
+def _pmo_advisor_response(explanation, result: PMOAssemblyResult) -> PMOAdvisorResponse:
+    return PMOAdvisorResponse(
+        answer=explanation.recommendation.answer,
+        total_projects=result.total_projects,
+        projects_with_status=result.projects_with_status,
+        projects_without_status=result.projects_without_status,
+        projects_stale=result.projects_stale,
+        projects_current=result.projects_current,
         cited_projects=[
             CitedProject(
                 project_id=item.metadata["project_id"],

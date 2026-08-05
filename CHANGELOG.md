@@ -1470,3 +1470,21 @@ Founder aprovou a AR-13 (GO para o Technical Design), oficializando staleness (l
 **Recomendação:** GO para a implementação do PMO Advisor.
 
 **Decision Log:** D-116.
+
+## Wave 5 — PMO Advisor implementado, etapa 5 de 6 (2026-08-05)
+
+Founder aprovou o Technical Design (GO para implementacao) com 8 diretrizes: PMOEvidenceAssembler exclusivo do pacote; staleness com 5 regras (UTC, referencia unica, 13/14/15 dias, Project sem status nunca stale, sem config por organizacao); volume evidence[:5] sem janela/batch/cache/paralelismo; cobertura estrutural com invariantes; rastreabilidade -- interromper antes de alterar contratos compartilhados caso CitedProject nao suportasse citacoes repetidas distinguiveis; fonte unica kind=status; preservacao integral da infraestrutura; 13 cenarios A-M + 7 provas adicionais.
+
+**Adicionado**
+- `src/agents/pmo_advisor/evidence_assembler.py` -- PMOEvidenceAssembler, PMOAssemblyResult, PMO_STALENESS_THRESHOLD_DAYS=14, PMO_MAX_RECORDS_PER_PROJECT=5. Resolve DomainService.list_projects(organization_id) sem portfolio_id (sem caso de 404). reference_time capturada uma unica vez por chamada (datetime.now(timezone.utc)). staleness_days/is_stale calculados uma vez por Project, replicados em todos os itens de Evidence daquele Project. Corte evidence[:5] em memoria, apos o calculo de staleness, sem tocar AdvisorFramework/AIContextEngine.
+- `src/agents/pmo_advisor/agent.py` -- PMOAdvisorAgent, mesma forma dos demais Advisors baseados em AnalysisRecord.
+- `src/agents/pmo_advisor/prompts/advise.md` -- instrui: registros ja trazem staleness_days/is_stale prontos; mesmo project_id agrupa historico, primeiro registro = estado atual; conjunto sem prioridade por posicao.
+- Rota `POST /pmo-advisor/ask` em `src/api/routes/intelligence.py` -- PMOAdvisorRequest (question apenas, sem portfolio_id/project_id), PMOAdvisorResponse (5 contagens + cited_projects), reaproveitando CitedProject do Portfolio Advisor sem alteracao (source_analysis_id ja torna citacoes repetidas do mesmo Project distinguiveis -- avaliacao cumprida, nenhuma interrupcao necessaria).
+- 48 testes novos: `tests/test_pmo_advisor_evidence_assembler.py` (17, unitario), `tests/test_pmo_advisor_agent.py` (6, unitario), `tests/test_pmo_advisor.py` (16, integracao Framework/Postgres), `tests/test_pmo_advisor_api.py` (9, HTTP/Postgres/RBAC) -- cobrindo os 13 cenarios A-M e as 7 provas adicionais (captura unica da data de referencia, Project sem status nunca stale, staleness unica por Project, cap de 5 evidencias, rastreabilidade de citacoes repetidas, ausencia de chamada ao LLM sem evidencia, ausencia de segunda fonte).
+- `docs/product/governance/PMO-ADVISOR-EXECUTIVE-EVIDENCE.md` -- Executive Evidence completa.
+
+**Verificação:** `git diff --stat` vazio em AdvisorFramework/AIContextEngine/RecommendationEngine/ExplanationEngine/Workflow Runtime/Event Pipeline/DomainService/DomainRepository/Evidence. Suite backend completa 680 passed (era 638). Suite frontend completa 503 passed. `ruff`/`tsc`/`eslint` limpos.
+
+**Recomendação:** GO para o encerramento do Epic do PMO Advisor.
+
+**Decision Log:** D-117.
