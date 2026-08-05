@@ -1343,6 +1343,20 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-124 — Executive Advisor oficialmente encerrado; terceiro padrão Classe B consolidado
+
+- **Contexto:** "Founder Decision — Executive Advisor" — APPROVED. A Executive Evidence apresentada (D-123) foi julgada suficiente para encerrar oficialmente o Epic do Executive Advisor.
+- **Founder confirmou que as evidências comprovam integralmente:** composição por múltiplos `kind`s primários (`status` + `risk`); `ExecutiveEvidenceAssembler` conforme aprovado no Technical Design; `ExecutiveCitedEvidence` isolado (`CitedProject` intocado); cobertura estrutural (sete contagens, invariantes verificadas); rastreabilidade por `kind`; ausência de ranking determinístico; ausência de tendência histórica; isolamento organizacional; preservação integral da infraestrutura compartilhada.
+- **Decisão permanente registrada:** o Executive Advisor estabelece o padrão definitivo para Advisors Classe B que compõem **múltiplos tipos de evidência primária** (múltiplos `kind`s), distinto estruturalmente dos dois padrões já consolidados que compõem um único `kind` sobre múltiplos escopos (Portfolio: múltiplos Projects, um `kind`; PMO: múltiplos Projects, um `kind`, histórico capado).
+- **Três padrões Classe B passam a coexistir oficialmente**, sem generalização automática entre eles: `PortfolioEvidenceAssembler` (um `Evidence` por Project via `evidence[0]`, escopo de Portfolio); `PMOEvidenceAssembler` (até 5 registros mais recentes por Project, escopo organizacional, staleness); `ExecutiveEvidenceAssembler` (até 2 `Evidence` por Project — um por `kind` via `evidence[0]` de cada — escopo organizacional, dois `kind`s independentes).
+- **Gatilho de generalização reafirmado, ainda não acionado:** a criação de um componente de composição compartilhado permanece condicionada à existência de um **quarto consumidor estruturalmente equivalente** que demonstre duplicação real e comprovada — nunca antecipada por semelhança superficial de forma entre os três Assemblers já existentes.
+- **7 de 8 Advisors da Wave 5 concluídos:** Risk Advisor (referência de padrão); Document Advisor (W5-1); Governance Advisor; Delivery Advisor; Portfolio Advisor (primeiro Classe B); PMO Advisor (segundo Classe B); Executive Advisor (terceiro Classe B, múltiplos `kind`s). Resta apenas o Strategy Advisor para o encerramento completo da Wave 5.
+- **Autorizada exclusivamente a abertura do ciclo institucional do Strategy Advisor.** Nenhum trabalho da Wave 6 poderá ser iniciado antes do encerramento completo da Wave 5.
+- **Verificação:** missão de governança — nenhum código de `src/`/`tests/` alterado nesta etapa; `ruff check src tests` confirmado limpo.
+- **Missão:** Encerramento do Executive Advisor registrado. Aguardando a próxima Founder Decision com as diretrizes de abertura do ciclo institucional do Strategy Advisor (etapa 1 de 6, Advisor Specification).
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.

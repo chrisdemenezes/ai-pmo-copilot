@@ -1564,3 +1564,19 @@ Founder aprovou o Technical Design (GO para implementacao) com 7 diretrizes obri
 **Recomendação:** GO para o encerramento do Epic do Executive Advisor.
 
 **Decision Log:** D-123.
+
+## Wave 5 — Executive Advisor oficialmente encerrado (2026-08-05)
+
+Founder aprovou a Executive Evidence do Executive Advisor -- Epic oficialmente encerrado.
+
+**Decisão permanente registrada**
+- Executive Advisor estabelece o padrao definitivo para Advisors Classe B que compoem multiplos tipos de evidencia primaria (multiplos kinds), distinto dos dois padroes ja consolidados (Portfolio: multiplos Projects/um kind; PMO: multiplos Projects/um kind/historico capado).
+- Tres padroes Classe B coexistem oficialmente sem generalizacao automatica: PortfolioEvidenceAssembler, PMOEvidenceAssembler, ExecutiveEvidenceAssembler.
+- Gatilho de generalizacao reafirmado: quarto consumidor estruturalmente equivalente com duplicacao real e comprovada.
+- 7 de 8 Advisors da Wave 5 concluidos (Risk Advisor -- referencia; Document Advisor -- W5-1; Governance Advisor; Delivery Advisor; Portfolio Advisor; PMO Advisor; Executive Advisor). Resta apenas o Strategy Advisor.
+
+**Verificação:** missão de governança -- nenhum código de `src/`/`tests/` alterado; `ruff check src tests` limpo.
+
+**Autorizado:** abertura exclusiva do ciclo institucional do Strategy Advisor. Nenhum trabalho da Wave 6 antes do encerramento completo da Wave 5.
+
+**Decision Log:** D-124.
