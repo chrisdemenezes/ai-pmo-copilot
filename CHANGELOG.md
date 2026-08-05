@@ -1444,3 +1444,16 @@ Founder aprovou a Advisor Specification (GO para o Domain Blueprint) com 7 diret
 **Recomendação:** GO para a Architecture Review do PMO Advisor.
 
 **Decision Log:** D-114.
+
+## Wave 5 — AR-13: Architecture Review do PMO Advisor concluida, etapa 3 de 6 (2026-08-05)
+
+Founder aprovou o Domain Blueprint (GO para a Architecture Review), confirmando unidade de composicao (Project), escopo (organizacional) e fonte (kind="status" exclusivo, historico completo) como oficiais, e delegando quatro decisoes: staleness, controle de volume, modelo de cobertura estrutural, confirmacao de preservacao de infraestrutura.
+
+**Adicionado**
+- `docs/architecture/AR-13-PMO-ADVISOR-ARCHITECTURE-REVIEW.md` -- etapa 3 de 6. Staleness: limiar inicial de 14 dias sem novo status (duas janelas de reporte semanal perdidas), registrado explicitamente como heuristica nao-empirica, calculo estrutural na PMOEvidenceAssembler, sem configuracao por organizacao. Controle de volume: limite de 5 registros mais recentes por Project (janela temporal descartada por risco de zerar evidencia de Project ativo), corte em memoria sobre lista ja ordenada por created_at DESC, zero mudanca de assinatura em AdvisorFramework/AIContextEngine. Cobertura estrutural: cinco contagens (total_projects/projects_with_status/projects_without_status/projects_stale/projects_current) calculadas em codigo, relacoes aritmeticas explicitas, distincao clara entre "sem status" e "desatualizado". Infraestrutura compartilhada reconfirmada preservada.
+
+**Verificação:** `ruff check src tests` limpo.
+
+**Recomendação:** GO para o Technical Design do PMO Advisor.
+
+**Decision Log:** D-115.

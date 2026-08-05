@@ -1202,6 +1202,20 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-115 — AR-13: Architecture Review do PMO Advisor concluída (etapa 3 de 6)
+
+- **Contexto:** "Founder Decision — Domain Blueprint do PMO Advisor" (D-114), APPROVED — GO para a Architecture Review, confirmando como oficiais unidade de composição (Project), escopo (organizacional), fonte (exclusivamente `kind="status"`) e histórico completo por Project, e delegando a esta etapa quatro decisões: staleness (limiar, justificativa, localização, metadados); controle de volume (limite de registros e/ou janela temporal, regra uniforme e determinística); modelo de cobertura estrutural (`total_projects`/`projects_with_status`/`projects_without_status`/`projects_stale`/`projects_current`); confirmação final de preservação de infraestrutura.
+- **AR-13 produzida** (`docs/architecture/AR-13-PMO-ADVISOR-ARCHITECTURE-REVIEW.md`): **Staleness decidida** — limiar inicial de **14 dias** sem novo `AnalysisRecord`/status, justificado como duas janelas de reporte semanal consecutivas perdidas, registrado explicitamente como heurística de mercado não-empírica (nenhuma telemetria de cadência existe hoje no produto), sujeita a revisão apenas por evidência real de uso. Cálculo pertence à `PMOEvidenceAssembler` (constante nomeada no módulo, nunca no prompt); `staleness_days`/`is_stale` entregues já prontos em `Evidence.metadata`. Sem configuração por organização, conforme instruído.
+- **Controle de volume decidido:** limite máximo de **5 registros mais recentes por Project** (não janela temporal) — janela temporal descartada por risco de zerar evidência de um Project ativo só por cair fora do intervalo, colidindo com a categoria "zero cobertura". Mecanismo é um corte em memória (`evidence[:5]`) sobre a lista já ordenada por `created_at DESC` que `AnalysisRepository.list_analyses()` já garante — aplicado inteiramente dentro da `PMOEvidenceAssembler`, **zero mudança de assinatura** em `AdvisorFramework.gather_context()`/`AIContextEngine.gather()` (que continuam retornando o histórico completo). Regra uniforme, sem exceção por Project.
+- **Modelo de cobertura estrutural definido:** cinco contagens (`total_projects`, `projects_with_status`, `projects_without_status`, `projects_stale`, `projects_current`), todas calculadas em código, nunca pelo LLM — mesmo padrão do Portfolio Advisor. Relações aritméticas explícitas fixadas: `projects_with_status + projects_without_status = total_projects`; `projects_stale + projects_current = projects_with_status`. Distinção explícita registrada: Project sem status nunca é contado como `stale` — são categorias estruturalmente diferentes (ausência total de evidência vs. evidência existente porém desatualizada).
+- **Infraestrutura compartilhada reconfirmada preservada:** `AdvisorFramework`/`AIContextEngine`/`RecommendationEngine`/`ExplanationEngine`/Workflow Runtime/Event Pipeline/`DomainService.list_projects()` — nenhuma mudança de assinatura ou comportamento necessária para nenhuma das quatro decisões desta etapa.
+- **Riscos residuais registrados, nenhum bloqueante:** limiar de 14 dias e cap de 5 registros são heurísticas iniciais não validadas por dados reais (explicitamente rotuladas como tal); volume de chamadas em escopo organizacional (mesmo gatilho de performance já aprovado para o Portfolio Advisor); nome definitivo dos componentes reservado ao Technical Design.
+- **Verificação:** missão de documentação — nenhum código de `src/`/`tests/` alterado; `ruff check src tests` confirmado limpo.
+- **Recomendação:** GO para o Technical Design do PMO Advisor.
+- **Missão:** Architecture Review do PMO Advisor concluída. Retorno obrigatório para Executive Review do Founder antes de prosseguir ao Technical Design (etapa 4).
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.
