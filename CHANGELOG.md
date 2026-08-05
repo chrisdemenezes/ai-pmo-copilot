@@ -1431,3 +1431,16 @@ Founder declarou o Portfolio Advisor oficialmente concluido e autorizou a abertu
 **Recomendação:** GO para o Domain Blueprint do PMO Advisor.
 
 **Decision Log:** D-113.
+
+## Wave 5 — Domain Blueprint do PMO Advisor produzido, etapa 2 de 6 (2026-08-05)
+
+Founder aprovou a Advisor Specification (GO para o Domain Blueprint) com 7 diretrizes: proibicao explicita de usar Recommendation/Explanation/resposta de outro Advisor como evidencia; avaliar unidade de agregacao (Portfolio/Program/Project); avaliar necessidade de kind="meeting" com base em consumidor real; avaliar staleness objetivamente (prompt vs. logica estrutural); avaliar generalizacao do PortfolioEvidenceAssembler sem criar abstracao antecipada; avaliar risco de duplicidade entre kinds futuros sem implementar solucao; preservar infraestrutura compartilhada.
+
+**Adicionado**
+- `docs/architecture/DOMAIN-BLUEPRINT-PMO-ADVISOR.md` -- etapa 2 de 6. Unidade de composicao decidida: Project, forcada pelo modelo de dados (AnalysisRecord so se associa a project_id, nunca a Portfolio/Program). Escopo de resolucao decidido: organizacional, via DomainService.list_projects(organization_id, program_id=None) -- ja em producao, nenhum metodo novo. kind="meeting" avaliado e considerado desnecessario: unico consumidor real (ProjectSummaryService.list_action_items()) resolve necessidade de UI, nao deteccao de padrao, e nao tem campo de conclusao. Decisao: manter exclusivamente kind="status", lido como historico completo por Project (nao apenas evidence[0]). Staleness definida como calculo estrutural, nunca de prompt -- mesma disciplina das contagens do Portfolio Advisor; limiar numerico reservado ao Technical Design. Generalizacao do PortfolioEvidenceAssembler avaliada e rejeitada nesta etapa -- logica de selecao de evidencia (evidence[0] vs. historico completo) e resolucao de escopo divergem estruturalmente entre os dois Advisors; gatilho real de generalizacao futura registrado (terceiro consumidor Classe B com comportamento identico). Risco de duplicidade de evidencia entre kinds futuros registrado, nao resolvido (especulativo, nao incide hoje).
+
+**Verificação:** `ruff check src tests` limpo.
+
+**Recomendação:** GO para a Architecture Review do PMO Advisor.
+
+**Decision Log:** D-114.
