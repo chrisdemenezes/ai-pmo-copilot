@@ -1496,3 +1496,16 @@ Founder aprovou a Executive Evidence do PMO Advisor -- encerramento oficial. 6 d
 **Verificação:** missão de governança -- nenhum código de `src/`/`tests/` alterado; `ruff check src tests` limpo.
 
 **Decision Log:** D-118.
+
+## Wave 5 — Advisor Specification do Executive Advisor produzida, etapa 1 de 6 (2026-08-05)
+
+Founder autorizou formalmente a abertura do ciclo institucional do Executive Advisor (setimo Advisor da Wave 5), iniciando pela Advisor Specification, missao exclusivamente documental.
+
+**Adicionado**
+- `docs/architecture/ADVISOR-SPECIFICATION-EXECUTIVE-ADVISOR.md` -- etapa 1 de 6. Classificacao Classe B confirmada (ja registrada em AR-8 SS4/D-085: multiplos projetos e/ou multiplos kind), tambem satisfeita pela definicao permanente de cardinalidade (D-104) -- kind=status + kind=risk ja constituem duas fontes primarias independentes. Fontes confirmadas: AnalysisRecord/kind=status e AnalysisRecord/kind=risk. Candidatas nao decididas, reservadas ao Domain Blueprint: kind=meeting, Knowledge Platform/RAG. Nao-duplicacao demonstrada contra os 6 Advisors existentes -- nenhum combina multiplos kinds de evidencia primaria para sintese de decisao executiva. Seis questoes arquiteturais abertas registradas, nenhuma decidida: conjunto definitivo de kinds; participacao de RAG; reaproveitamento de ProjectSummaryService vs. novo componente de composicao; escopo de resolucao; controle de volume; necessidade real de gather_context_many() no AdvisorFramework (extensao ja prevista condicionalmente em AR-8 SS3). Visao arquitetural registrada: progressao Delivery (projeto) -> Portfolio (portfolio) -> PMO (organizacao, processo) -> Executive (organizacao, decisao, multiplos kinds).
+
+**Verificação:** missão de documentação -- nenhum código de `src/`/`tests/` alterado; `ruff check src tests` limpo.
+
+**Recomendação:** GO para o Domain Blueprint do Executive Advisor.
+
+**Decision Log:** D-119.
