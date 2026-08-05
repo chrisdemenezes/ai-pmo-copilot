@@ -1580,3 +1580,16 @@ Founder aprovou a Executive Evidence do Executive Advisor -- Epic oficialmente e
 **Autorizado:** abertura exclusiva do ciclo institucional do Strategy Advisor. Nenhum trabalho da Wave 6 antes do encerramento completo da Wave 5.
 
 **Decision Log:** D-124.
+
+## Wave 5 — Advisor Specification do Strategy Advisor produzida, etapa 1 de 6 (2026-08-05)
+
+Founder autorizou formalmente a abertura do ciclo institucional do Strategy Advisor (oitavo e ultimo Advisor da Wave 5), missao exclusivamente documental.
+
+**Adicionado**
+- `docs/architecture/ADVISOR-SPECIFICATION-STRATEGY-ADVISOR.md` -- etapa 1 de 6. Achado que corrige a premissa factual de AR-8 SS4 (sem reescreve-lo): objetivos declarados nao vivem em AnalysisRecord, vivem nos campos reais Portfolio.strategic_objective/Program.objective/Project.objective, ja em producao desde a Wave 2. Classificacao determinada: Classe B, justificada per D-104 -- a propria identidade (verificar coerencia entre execucao e estrategia declarada) exige composicao de duas fontes independentes. Fontes identificadas, nenhuma decidida: campos de dominio (nunca antes usados como Evidence citavel) + AnalysisRecord kind=status/risk + RAG sobre documentos estrategicos (candidata, ja antecipada em WAVE-3-INTEGRATION-BLUEPRINT.md SS6). Nao-duplicacao demonstrada contra os 7 Advisors existentes. Distincao Executive vs Strategy registrada literalmente per a recomendacao do Founder. Sete questoes arquiteturais abertas registradas, nenhuma decidida. Avaliacao explicita: Strategy Advisor e a ultima dependencia estrutural nomeada para o encerramento da Wave 5 e, por consequencia, para a Wave 6 poder iniciar (Mission Control + WAVE-3-INTEGRATION-BLUEPRINT.md SS5/SS11).
+
+**Verificação:** missão de documentação -- nenhum código de `src/`/`tests/` alterado; `ruff check src tests` limpo.
+
+**Recomendação:** GO para o Domain Blueprint do Strategy Advisor.
+
+**Decision Log:** D-125.
