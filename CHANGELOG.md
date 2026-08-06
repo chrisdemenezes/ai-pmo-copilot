@@ -1632,3 +1632,16 @@ Founder aprovou condicionalmente a AR-15 (GO para o Technical Design), impondo d
 **Recomendação:** GO para a implementação do Strategy Advisor.
 
 **Decision Log:** D-128.
+
+## Wave 5 — Technical Design do Strategy Advisor harmonizado, correção de inconsistência de citação, ainda etapa 4 de 6 (2026-08-06)
+
+Founder identificou, por leitura direta de código, incompatibilidade real entre o Technical Design original e `RecommendationEngine.build()`: registros `declared_strategy` enviavam ao LLM `metadata["real_entity_id"]` no campo `source_id`, valor diferente do `Evidence.source_id` real (o sintético) usado por `by_id = {item.source_id: item for item in evidence}` para correlacionar citações -- nenhuma citação de estratégia declarada teria sido resolvida corretamente.
+
+**Corrigido**
+- `docs/architecture/TECHNICAL-DESIGN-STRATEGY-ADVISOR.md` -- `StrategyAdvisorAgent` (secao 10) corrigido: `records_json` agora envia `"source_id": item.source_id` sempre (sintetico para declared_strategy, AnalysisRecord.id real para status/risk), distinto de `"entity_id"` (sempre real, para o modelo se referir a unidade em prosa). source_id sintetico passa a ser exposto ao LLM exclusivamente como token tecnico opaco de citacao -- nunca identidade real, nunca usado em consulta ao banco, nunca retornado ao cliente, nunca exibido ao usuario, sempre convertido para identidade real antes da resposta HTTP. Nova secao 10.2: prova por leitura direta de recommendation_engine.py de que nenhum outro mecanismo de correlacao existe sem alterar RecommendationEngine. Oito cenarios de teste adicionais incorporados (secao 12.1): citacao real de declared_strategy ponta a ponta (P), conversao do token sintetico para identidade real (Q), ausencia de vazamento do token na resposta HTTP (R), mesmo id real gerando tokens distintos por nivel (S), ausencia de colisao com AnalysisRecord (J), estrategia e execucao citadas simultaneamente (T), descarte de token inventado (U), propriedade do round-trip (K) -- total 21 cenarios obrigatorios. Formula do namespace sintetico, mapeamento StrategyCitedEvidence, politica de timestamp e modelo de cobertura confirmados inalterados e corretos. Infraestrutura compartilhada confirmada preservada.
+
+**Verificação:** missão de documentação -- nenhum código de `src/`/`tests/` alterado; `ruff check src tests` limpo.
+
+**Autorização:** implementação da etapa 5 de 6 autorizada a prosseguir sem nova pausa.
+
+**Decision Log:** D-129.

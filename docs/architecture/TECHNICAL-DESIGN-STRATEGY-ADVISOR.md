@@ -2,6 +2,8 @@
 
 **Etapa 4 de 6** do ciclo institucional do Strategy Advisor. Produzido sob autorização da Founder Decision que aprovou condicionalmente a AR-15 (`AR-15-STRATEGY-ADVISOR-ARCHITECTURE-REVIEW.md`) com **GO para o Technical Design**, impondo dez condições explícitas — reafirmação da regra de alinhamento (nunca algoritmo/score/ranking/comparação lexical); independência total entre níveis (proibido herdar, decidir precedência, preencher ausência, criar/alterar estratégia); fontes exclusivas e fechadas para este Epic; formalização matemática do namespace sintético (fórmula definitiva, prova de ausência de colisão, proibido usar apenas `-entity_id` sem namespace por nível, proibido vazar o id sintético para a resposta HTTP ou usá-lo para consulta ao banco); modelo `StrategyCitedEvidence` com forma exata; política de timestamp fundamentada no modelo real; modelo de cobertura estrutural completo, sem condensação; tratamento de ausência/cobertura parcial; preservação integral da infraestrutura compartilhada. Esta etapa detalha o contrato completo, sem escrever código.
 
+**Harmonização registrada (Founder Decision — "Technical Design do Strategy Advisor"):** a primeira versão desta etapa foi aprovada condicionalmente — o Founder identificou uma incompatibilidade real entre a afirmação de que `records_json` nunca exporia o `source_id` sintético ao modelo (§10, versão original) e o fato de `RecommendationEngine.build()` correlacionar citações exclusivamente por `Evidence.source_id` (§10.2), o que teria impedido qualquer citação de evidência de `declared_strategy` de funcionar. Este documento já reflete a versão harmonizada: o `source_id` sintético é exposto ao LLM exclusivamente como token técnico opaco de citação (§3.4, §10, §10.2), nunca como identidade de domínio, sempre convertido para a identidade real antes da resposta HTTP (§4.3, §5) — nenhuma mudança à fórmula do namespace (§3.1, já aprovada) ou a nenhum componente de infraestrutura compartilhada foi necessária para resolver a incompatibilidade.
+
 ---
 
 ## 0. O que já é oficial (não reaberto aqui)
@@ -25,7 +27,9 @@ Este Technical Design fecha o contrato de implementação do Strategy Advisor se
 
 O componente central é `StrategyEvidenceAssembler` (`src/agents/strategy_advisor/evidence_assembler.py`), quarto componente de composição Classe B: resolve todos os Portfolios da organização, percorre Portfolio→Program→Project (mesma traversal do Portfolio Advisor), busca `gather_context(kind="status")`/`gather_context(kind="risk")` exatamente uma vez por Project, e monta as unidades comparáveis de cada nível — nunca interpretando alinhamento, nunca chamando o LLM, nunca decidindo qual nível prevalece.
 
-O achado central desta etapa é a **fórmula definitiva do namespace sintético**: `synthetic_source_id = -(real_entity_id * 10 + level_code)`, com `level_code` ∈ {1 (portfolio), 2 (program), 3 (project)} — uma codificação injetiva, determinística, estável, sem dependência de faixas arbitrárias (§3), com prova formal de que nunca colide com `AnalysisRecord.id` (sempre positivo) nem entre níveis (o dígito das unidades do valor codificado sempre identifica o nível de origem de forma única). O id real de cada entidade é preservado em `Evidence.metadata["real_entity_id"]`, nunca no `source_id` — que permanece exclusivamente interno ao mecanismo de correlação do `RecommendationEngine.build()`, nunca usado para consulta ao banco, nunca exposto na resposta HTTP (§4).
+O achado central desta etapa é a **fórmula definitiva do namespace sintético**: `synthetic_source_id = -(real_entity_id * 10 + level_code)`, com `level_code` ∈ {1 (portfolio), 2 (program), 3 (project)} — uma codificação injetiva, determinística, estável, sem dependência de faixas arbitrárias (§3), com prova formal de que nunca colide com `AnalysisRecord.id` (sempre positivo) nem entre níveis (o dígito das unidades do valor codificado sempre identifica o nível de origem de forma única). O id real de cada entidade é preservado em `Evidence.metadata["real_entity_id"]` — nunca usado para consulta ao banco, nunca apresentado como identidade real, nunca exposto na resposta HTTP (§4).
+
+**Correção registrada nesta revisão (Founder Decision — "Technical Design do Strategy Advisor"):** `Evidence.source_id` (o valor sintético, para evidência de estratégia declarada) **precisa** ser enviado ao LLM como um token técnico opaco de citação — nunca a identidade real — porque `RecommendationEngine.build()` correlaciona citações exclusivamente por `Evidence.source_id` (`by_id = {item.source_id: item for item in evidence}`), sem nenhum mecanismo alternativo (confirmado por leitura de código, §10.2), e essa correlação não pode ser alterada nesta etapa. O `StrategyAdvisorAgent` (§10) expõe o `source_id` sintético ao modelo exclusivamente como token de citação a ecoar de volta — nunca interpretado, nunca exibido ao usuário, sempre convertido para a identidade real antes da resposta HTTP.
 
 O modelo de cobertura estrutural expõe 18 contagens (6 por nível × 3 níveis), todas calculadas em código, nunca condensadas em uma taxa genérica (§8).
 
@@ -221,12 +225,13 @@ def _decode_synthetic_source_id(synthetic_id: int) -> tuple[str, int]:
 - **Estável**: o mesmo par `(level, real_entity_id)` produz sempre o mesmo `synthetic_source_id`, em qualquer chamada, em qualquer momento — não depende de quantas outras entidades existem na organização (diferente de um esquema de faixas fixas por posição de iteração, que seria instável).
 - **Compatível com o tipo de dados utilizado**: `Evidence.source_id: int` — Python `int` é de precisão arbitrária, sem risco de overflow para nenhuma magnitude real de `entity_id`; nenhuma mudança ao contrato `Evidence` é necessária.
 
-### 3.4 Uso estritamente interno
+### 3.4 Escopo de uso — o que é interno e o que é exposto como token opaco
 
 - **Nunca usado para consulta ao banco** — toda consulta a `Portfolio`/`Program`/`Project` continua usando o id real, via `DomainService`.
-- **Nunca apresentado como identidade real** — o id sintético não aparece em nenhum campo de resposta.
+- **Nunca apresentado como identidade real, em nenhuma superfície voltada ao usuário ou ao cliente da API** — o id sintético não aparece em nenhum campo de `StrategyCitedEvidence` nem de nenhuma resposta HTTP.
 - **Nunca vaza para a resposta HTTP** — confirmado em `StrategyCitedEvidence` (§5): `entity_id`/`source_id` (para `kind="declared_strategy"`) sempre lêem `Evidence.metadata["real_entity_id"]`, nunca `Evidence.source_id`.
-- **Permanece exclusivamente interno ao mecanismo de correlação de `RecommendationEngine.build()`** — sua única função é permitir que `by_id = {item.source_id: item for item in evidence}` nunca colida quando o array de evidência combina `AnalysisRecord.id` e ids de domínio na mesma chamada (achado da AR-15 §6.1).
+- **Exposto ao LLM exclusivamente como token técnico opaco de citação** (decisão explícita do Founder, harmonizando esta revisão) — o `StrategyAdvisorAgent` (§10) inclui o valor sintético no `records_json`, sob o mesmo nome de campo (`"source_id"`) já usado por todo Advisor anterior, para que o modelo o ecoe de volta em `cited_analysis_ids`; o prompt instrui explicitamente que esse valor nunca representa uma identidade real de domínio e nunca deve ser interpretado ou exibido, apenas citado.
+- **Permanece o único mecanismo de correlação viável sem alterar `RecommendationEngine`** — sua função é permitir que `by_id = {item.source_id: item for item in evidence}` nunca colida quando o array de evidência combina `AnalysisRecord.id` e ids de domínio na mesma chamada (achado da AR-15 §6.1), e ao mesmo tempo seja o valor que o modelo consegue efetivamente citar de volta (§10.2).
 
 ---
 
@@ -369,7 +374,8 @@ AdvisorFramework.run(agent, session, question, result.evidence,
         │
         ▼
 _strategy_advisor_response(explanation, result) → StrategyAdvisorResponse
-  (cited_evidence via §4.3 -- nunca expõe source_id sintético)
+  (cited_evidence via §4.3 -- nunca expõe source_id sintético NA RESPOSTA HTTP;
+   o token sintético foi visível ao LLM como token de citação em records_json, §10)
 ```
 
 ---
@@ -424,10 +430,9 @@ class StrategyAdvisorAgent:
                     "entity_name": item.metadata["entity_name"],
                     "kind": item.metadata["kind"],
                     "content": item.content,
-                    "source_id": (
-                        item.metadata["real_entity_id"] if item.metadata["kind"] == "declared_strategy"
-                        else item.source_id
-                    ),
+                    "source_id": item.source_id,  # token de citação -- sintético para
+                        # declared_strategy, AnalysisRecord.id real para status/risk;
+                        # ver §10.2 -- nunca a identidade real de domínio para declared_strategy.
                 }
                 for item in evidence
             ],
@@ -438,15 +443,29 @@ class StrategyAdvisorAgent:
         return parse_structured_output(raw_output)
 ```
 
-**`records_json` nunca expõe o `source_id` sintético ao modelo** — o campo `"source_id"` enviado ao LLM já é sempre a identidade real, mesma disciplina de nunca vazamento do mecanismo interno (§3.4), incluindo para o próprio prompt.
+**Correção desta revisão:** `records_json` inclui `"entity_id"` (sempre a identidade real, `metadata["real_entity_id"]`, útil ao modelo para nomear a unidade em prosa) **e** `"source_id"` (sempre `item.source_id`, o valor efetivamente presente em `Evidence.source_id` — sintético para `declared_strategy`, `AnalysisRecord.id` real para `status`/`risk`). O modelo deve **citar sempre `"source_id"`** em `cited_analysis_ids`, nunca `"entity_id"` — apenas `"source_id"` é o que `RecommendationEngine.build()` consegue correlacionar de volta a um item de `Evidence` (§10.2).
 
 ### 10.1 Diretrizes de prompt (não texto final)
 
 - Cada registro tem `"level"` (`"portfolio"`/`"program"`/`"project"`) e `"kind"` (`"declared_strategy"`/`"status"`/`"risk"`) — o modelo deve ler `content.objective` quando `kind="declared_strategy"`, e a forma real de status/risco (já estabelecida para o Executive Advisor) nos demais casos.
 - Cada unidade (identificada por `level`+`entity_id`) é avaliada **apenas contra seus próprios registros** — o modelo nunca compara a execução de um Project contra o objetivo de outro Project/Program/Portfolio.
+- **`"source_id"` é um token técnico opaco de citação, não uma identidade de domínio** — o modelo deve sempre copiá-lo literalmente para `cited_analysis_ids` ao citar aquele registro, nunca interpretá-lo, nunca exibi-lo na resposta em prosa, nunca assumir qualquer significado sobre seu valor numérico (positivo ou negativo). Para se referir à unidade em prosa, o modelo usa `"entity_name"`/`"level"`, nunca `"source_id"`.
 - O julgamento de alinhamento é sempre semântico, sempre fundamentado nos dois registros da mesma unidade (objetivo declarado + execução), sempre citado por `source_id` — nunca um score, nunca um ranking, nunca influenciado pela quantidade de evidência de execução disponível.
 - O modelo nunca decide qual nível prevalece caso observe divergência textual entre declarações de níveis diferentes da mesma cadeia — pode apenas observar, nunca resolver.
 - O modelo nunca infere um objetivo para uma unidade sem `objective`/`strategic_objective` próprio — declara a ausência explicitamente quando relevante à pergunta.
+
+### 10.2 Prova de que nenhum outro mecanismo de correlação existe sem alterar `RecommendationEngine`
+
+Por leitura direta de `src/services/ai_foundation/recommendation_engine.py`:
+
+```python
+def build(answer, cited_ids, evidence):
+    by_id = {item.source_id: item for item in evidence}
+    cited = [by_id[cited_id] for cited_id in cited_ids if cited_id in by_id]
+    return Recommendation(answer=answer, cited_evidence=cited)
+```
+
+A única chave de correlação que este método aceita é `Evidence.source_id` — não existe parâmetro adicional, não existe correlação por `metadata`, não existe segunda função de matching. Como o Founder proibiu explicitamente qualquer alteração a `RecommendationEngine` nesta etapa, e como o modelo só pode citar um registro devolvendo um valor que exista em `by_id`, a única forma estruturalmente possível de o modelo citar uma evidência de `kind="declared_strategy"` é ele receber, no `records_json`, exatamente o mesmo valor que está em `Evidence.source_id` daquele item — o `synthetic_source_id`. Não há caminho alternativo dentro dos limites impostos por esta Founder Decision; a exposição do token sintético ao LLM (exclusivamente como valor a ecoar, nunca a interpretar) é, portanto, não uma preferência de implementação, mas a única solução compatível com a preservação integral de `RecommendationEngine` já exigida desde o Domain Blueprint.
 
 ---
 
@@ -457,6 +476,7 @@ class StrategyAdvisorAgent:
 | Volume de chamadas — mesmo perfil do Executive Advisor (2 × total de Projects), mas agora com traversal adicional Portfolio→Program | Já registrado no Domain Blueprint | Mesmo gatilho de performance já aprovado; `execution_by_project` garante zero chamadas duplicadas |
 | 18 contagens tornam o modelo de resposta mais largo que qualquer Advisor anterior | Decisão explícita da Founder Decision item 7 (proibição de condensar) | Aceito conscientemente — nenhuma contagem omitida |
 | `created_at=None` para `declared_strategy` pode surpreender um consumidor da API que espere sempre um timestamp | Consequência direta da política de timestamp (§6) | Documentado explicitamente no contrato; nunca inventado como alternativa |
+| **Inconsistência identificada e corrigida nesta revisão:** a versão original desta etapa afirmava que `records_json` nunca expunha o `source_id` sintético ao modelo, o que teria quebrado a correlação de citação para `declared_strategy` (`RecommendationEngine.build()` correlaciona exclusivamente por `Evidence.source_id`) | Comprovado por leitura de código (§10.2), identificado pelo Founder antes da implementação | Corrigido nesta mesma revisão (§10/§10.2) — `source_id` sintético agora exposto ao LLM exclusivamente como token de citação opaco, nunca interpretado, sempre convertido para identidade real antes da resposta HTTP; cenário de teste P adicionado especificamente para este caminho |
 
 Nenhum risco listado é bloqueante para a implementação.
 
@@ -482,7 +502,20 @@ Nenhum risco listado é bloqueante para a implementação.
 | N | Isolamento organizacional — Portfolios/Programs/Projects de outra organização nunca entram em nenhuma contagem | Mesmo padrão de todos os Advisors anteriores |
 | O | `created_at` sempre `None` para `kind="declared_strategy"`, sempre preenchido para `status`/`risk` | Política de timestamp (§6) |
 
-Camadas de teste (mesmo padrão de Executive/PMO Advisor): unitários para `StrategyEvidenceAssembler` (fakes, cobrem A-G, J, K, L, O); unitários para `StrategyAdvisorAgent` (fakes, cobrem M na formação do JSON); integração via `AdvisorFramework` real contra Postgres (cobrem H-N); HTTP via `TestClient` (cobrem H-N novamente, mais RBAC/auditoria).
+### 12.1 Cenários adicionais exigidos pela Founder Decision de harmonização
+
+| # | Cenário | Cobre |
+|---|---|---|
+| P | **Citação real de `declared_strategy` ponta a ponta** — `_ScriptedProvider` cita o `source_id` sintético de um registro `declared_strategy` real (via `framework.run()` completo, nunca um fake isolado); `explanation.recommendation.cited_evidence` resolve exatamente ao item correto | Prova de que a correlação funciona de fato — o cenário que teria capturado a inconsistência original |
+| Q | **Conversão do token sintético para identidade real** — `_strategy_advisor_response()` mapeia um `Evidence` de `declared_strategy` citado (`source_id` sintético) para `StrategyCitedEvidence.entity_id`/`.source_id` sempre iguais ao id real, nunca ao valor sintético | Confirmação de conversão (§4.3) |
+| R | **Ausência de vazamento do token** — o `source_id` sintético nunca aparece em nenhum campo de `StrategyAdvisorResponse` (serialização completa da resposta HTTP inspecionada) | Mesmo cenário de L, reafirmado no nível da resposta HTTP completa |
+| S | **Portfolio/Program/Project com o mesmo id real geram tokens sintéticos distintos** — ex.: `Portfolio.id = 7` e `Program.id = 7` na mesma organização produzem `source_id`s sintéticos diferentes (`-71` vs. `-72`), ambos citáveis sem ambiguidade | Prova de disjunção entre níveis (§3.2), cenário explícito além do teste de propriedade genérico |
+| T | **Estratégia declarada e execução citadas simultaneamente** — uma resposta cita, na mesma chamada, um registro `declared_strategy` (`source_id` sintético) e um registro `status`/`risk` (`AnalysisRecord.id` real) sem colisão nem perda de nenhuma das duas citações | Prova de coexistência correta dos dois espaços de identificador na mesma resposta |
+| U | **Descarte de token inventado** — o modelo cita um `source_id` (sintético ou real) que nunca esteve em `evidence`; `RecommendationEngine.build()` já filtra por `cited_id in by_id` (mecanismo existente, inalterado) — confirmado especificamente para o caso de um valor sintético jamais emitido pelo `StrategyEvidenceAssembler` | Reafirmação do portão anti-alucinação de citação para o novo espaço de identificador |
+
+Cenários J (colisão com `AnalysisRecord`) e K (propriedade de round-trip da decodificação) já cobrem, respectivamente, duas das oito exigências da Founder Decision de harmonização; P-U cobrem as seis restantes.
+
+Camadas de teste (mesmo padrão de Executive/PMO Advisor): unitários para `StrategyEvidenceAssembler` (fakes, cobrem A-G, J, K, L, O, S); unitários para `StrategyAdvisorAgent` (fakes, cobrem M, R na formação do JSON); integração via `AdvisorFramework` real contra Postgres (cobrem H-N, P, Q, T, U); HTTP via `TestClient` (cobrem H-N, P, Q, R, T, U novamente, mais RBAC/auditoria).
 
 ---
 
@@ -501,4 +534,4 @@ Mesma sequência já usada em Delivery, Portfolio, PMO e Executive Advisor — n
 
 **GO para a implementação.**
 
-Nenhuma questão de arquitetura permanece em aberto para o Strategy Advisor: fórmula definitiva do namespace sintético com prova formal de ausência de colisão; estratégia de conversão para identidades reais garantindo zero vazamento; modelo `StrategyCitedEvidence` completo; política de timestamp fundamentada no modelo real (`created_at=None` para `declared_strategy`, nunca inventado); modelo de cobertura estrutural com 18 contagens e invariantes explícitas; tratamento de ausência/cobertura parcial; contrato completo do `StrategyEvidenceAssembler` e do `StrategyAdvisorAgent`. A implementação segue a estratégia incremental de 4 passos (§13), com os 15 cenários obrigatórios (§12) como critério de aceite. Ao final, retorno obrigatório para Executive Review antes de qualquer trabalho posterior.
+Nenhuma questão de arquitetura permanece em aberto para o Strategy Advisor: fórmula definitiva do namespace sintético com prova formal de ausência de colisão; estratégia de conversão para identidades reais garantindo zero vazamento na resposta HTTP; contrato de citação harmonizado — o token sintético é exposto ao LLM exclusivamente como valor de citação opaco (§10/§10.2, correção desta revisão, com prova de que nenhum outro mecanismo de correlação é possível sem alterar `RecommendationEngine`), nunca interpretado, nunca exposto ao usuário; modelo `StrategyCitedEvidence` completo; política de timestamp fundamentada no modelo real (`created_at=None` para `declared_strategy`, nunca inventado); modelo de cobertura estrutural com 18 contagens e invariantes explícitas; tratamento de ausência/cobertura parcial; contrato completo do `StrategyEvidenceAssembler` e do `StrategyAdvisorAgent`. A implementação segue a estratégia incremental de 4 passos (§13), com os 21 cenários obrigatórios (§12/§12.1) como critério de aceite. Ao final, retorno obrigatório para Executive Review antes de qualquer trabalho posterior.
