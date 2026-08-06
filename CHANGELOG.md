@@ -1725,3 +1725,16 @@ Founder aprovou a Vision sem ressalvas e registrou novo principio permanente: "E
 **Autorização:** primeira Architecture Review da Wave 6 autorizada, escopo exclusivo -- Executive Orchestrator (responsabilidades, fronteiras, contrato, ciclo de vida, relacao com AdvisorFramework, relacao com Workflow Runtime, relacao com Enterprise Advisors, riscos arquiteturais). Nenhum Domain Blueprint, nenhum Technical Design, nenhuma implementacao.
 
 **Decision Log:** D-135.
+
+## Wave 6 — AR-16: Architecture Review do Executive Orchestrator, primeira Architecture Review da Wave 6 (2026-08-06)
+
+D-135 autorizou exclusivamente esta revisao, objeto unico: Executive Orchestrator. Nenhum Domain Blueprint, nenhum Technical Design, nenhuma implementacao.
+
+**Adicionado**
+- `docs/architecture/AR-16-EXECUTIVE-ORCHESTRATOR-ARCHITECTURE-REVIEW.md` -- responde as 8 dimensoes mandatadas: responsabilidades (recebe pergunta, seleciona Advisors, invoca via AdvisorFramework.run(), coleta Explanations, declara insuficiencia de base); fronteiras (nunca invocado por Workflow Runtime no caminho sincrono, unica via de acesso e AdvisorFramework.run()); contrato (entrada/selecao/execucao/saida/estado terminal de insuficiencia, nenhuma assinatura decidida); ciclo de vida (request-scoped por consistencia com o padrao ja universal); relacao com AdvisorFramework (consumidor externo repetido, nunca extensao interna); relacao com Workflow Runtime (nenhuma no caminho sincrono, unica relacao hipotetica e inversa); relacao com Enterprise Advisors (tratamento uniforme pela mesma superficie publica); 5 riscos arquiteturais grounded, nenhum bloqueante. Nenhuma inconsistencia arquitetural encontrada.
+
+**Verificação:** missao exclusivamente documental -- zero alteracao em src/tests/web; ruff/tsc/eslint confirmados limpos.
+
+**Missão:** nenhum trabalho posterior devera ser iniciado automaticamente -- aguarda recomendacao GO/NO-GO e nova autorizacao explicita do Founder.
+
+**Decision Log:** D-136.
