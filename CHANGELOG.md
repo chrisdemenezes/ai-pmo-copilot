@@ -1701,3 +1701,16 @@ Founder mandatou exclusivamente a producao de `WAVE-6-EXECUTIVE-INTELLIGENCE-KIC
 **Missão:** nenhum trabalho posterior devera ser iniciado automaticamente -- aguarda recomendacao GO/NO-GO e nova autorizacao explicita do Founder.
 
 **Decision Log:** D-133.
+
+## Wave 6 — Architecture Vision produzida, visao arquitetural consolidada (2026-08-06)
+
+Founder aprovou o Kickoff sem ressalvas e mandatou a producao de um documento complementar consolidando a visao arquitetural da Wave 6 antes da primeira Architecture Review. Missao exclusivamente documental -- nenhum codigo, nenhum Domain Blueprint, nenhum Technical Design, nenhum Epic iniciado.
+
+**Adicionado**
+- `docs/architecture/WAVE-6-EXECUTIVE-INTELLIGENCE-VISION.md` -- construido sobre o Kickoff ja aprovado. Responde 8 perguntas institucionais: definicao de Executive Intelligence (consome Explanations ja produzidas, nunca consulta evidencia primaria diretamente); diferenca de um Advisor (fronteira fixa vs. atravessa fronteiras); papel do Executive Orchestrator (coordena, nunca interpreta dominio); cooperacao sem violar "um Advisor por chamada" (o principio e "uma chamada, um Advisor", cooperacao via multiplas chamadas independentes acima do Framework); preservacao de rastreabilidade (toda citacao atribuivel a exatamente um Advisor de origem); tratamento de conflitos (sempre expostos, nunca resolvidos, generalizando o limite ja permanente do Strategy Advisor); narrativa executiva unica preservando evidencia (sintese informativa, ADR-V2-007, estendida ao nivel multi-Advisor). Secao "Executive Intelligence Principles": 10 principios permanentes cobrindo fonte de evidencia, invariante de uma chamada por Advisor, interpretacao exclusiva do Advisor, rastreabilidade de citacao, tratamento de conflitos, sintese informativa, preservacao de infraestrutura compartilhada, papel do Orchestrator, ausencia de ranking, e natureza orientada a evento do Workflow Runtime.
+
+**Verificação:** missao exclusivamente documental -- zero alteracao em src/tests/web; ruff/tsc/eslint confirmados limpos.
+
+**Missão:** nenhum trabalho posterior devera ser iniciado automaticamente -- aguarda recomendacao GO/NO-GO e nova autorizacao explicita do Founder.
+
+**Decision Log:** D-134.
