@@ -103,10 +103,12 @@ Princípios institucionais permanentes desta camada, aplicáveis a toda a Wave 6
 
 10. **O Workflow Runtime permanece exclusivamente orientado a evento.** Ele nunca se torna o mecanismo de invocação síncrona de Executive Intelligence em resposta a uma pergunta de usuário — essa fronteira, já nomeada no Kickoff §5, é permanente.
 
+11. **Executive Intelligence nunca produz conhecimento novo.** Toda síntese deve ser integralmente derivada das respostas produzidas pelos Enterprise Advisors. Caso nenhuma combinação das respostas existentes permita sustentar determinada conclusão, Executive Intelligence deverá declarar explicitamente que não possui base suficiente para sintetizar essa resposta. Executive Intelligence nunca consulta diretamente Domain, Knowledge Platform, Workflow Runtime, banco de dados ou qualquer outra fonte primária de evidência (Founder Decision, registrado após a aprovação desta Vision — reafirma e torna permanente, em termos definitivos, a fronteira já descrita nos Princípios 1 e 3 acima).
+
 ---
 
 ## Recomendação
 
 **GO para a primeira Architecture Review da Wave 6**, fundamentada neste documento em conjunto com o Kickoff já aprovado (D-133).
 
-Nenhuma decisão de implementação foi tomada aqui — as oito perguntas foram respondidas em nível institucional e arquitetural, e os dez princípios permanentes acima consolidam o que a Wave 6 nunca poderá violar, independentemente de qual Domain Blueprint, Technical Design ou Epic vier a decidir a forma exata do Executive Orchestrator, do modelo de citação executivo, ou do mecanismo de síntese. Nenhum trabalho posterior deverá ser iniciado automaticamente — aguarda nova autorização explícita do Founder.
+Nenhuma decisão de implementação foi tomada aqui — as oito perguntas foram respondidas em nível institucional e arquitetural, e os onze princípios permanentes acima consolidam o que a Wave 6 nunca poderá violar, independentemente de qual Domain Blueprint, Technical Design ou Epic vier a decidir a forma exata do Executive Orchestrator, do modelo de citação executivo, ou do mecanismo de síntese. Nenhum trabalho posterior deverá ser iniciado automaticamente — aguarda nova autorização explícita do Founder.

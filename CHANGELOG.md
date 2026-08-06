@@ -1714,3 +1714,14 @@ Founder aprovou o Kickoff sem ressalvas e mandatou a producao de um documento co
 **Missão:** nenhum trabalho posterior devera ser iniciado automaticamente -- aguarda recomendacao GO/NO-GO e nova autorizacao explicita do Founder.
 
 **Decision Log:** D-134.
+
+## Wave 6 — Decimo primeiro principio permanente da Executive Intelligence; primeira Architecture Review autorizada (2026-08-06)
+
+Founder aprovou a Vision sem ressalvas e registrou novo principio permanente: "Executive Intelligence nunca produz conhecimento novo. Toda sintese deve ser integralmente derivada das respostas produzidas pelos Enterprise Advisors. Caso nenhuma combinacao das respostas existentes permita sustentar determinada conclusao, Executive Intelligence devera declarar explicitamente que nao possui base suficiente para sintetizar essa resposta. Executive Intelligence nunca consulta diretamente Domain, Knowledge Platform, Workflow Runtime, banco de dados ou qualquer outra fonte primaria de evidencia."
+
+**Alterado**
+- `docs/architecture/WAVE-6-EXECUTIVE-INTELLIGENCE-VISION.md` -- Principio 11 adicionado a secao Executive Intelligence Principles.
+
+**Autorização:** primeira Architecture Review da Wave 6 autorizada, escopo exclusivo -- Executive Orchestrator (responsabilidades, fronteiras, contrato, ciclo de vida, relacao com AdvisorFramework, relacao com Workflow Runtime, relacao com Enterprise Advisors, riscos arquiteturais). Nenhum Domain Blueprint, nenhum Technical Design, nenhuma implementacao.
+
+**Decision Log:** D-135.

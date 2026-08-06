@@ -1511,6 +1511,16 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-135 — Décimo primeiro princípio permanente da Executive Intelligence: "nunca produz conhecimento novo"; primeira Architecture Review da Wave 6 autorizada, escopo exclusivo: Executive Orchestrator
+
+- **Contexto:** "Founder Decision", aprovando `WAVE-6-EXECUTIVE-INTELLIGENCE-VISION.md` sem ressalvas e registrando um novo princípio permanente antes de autorizar a primeira Architecture Review da Wave 6.
+- **Princípio permanente registrado (verbatim do Founder):** *"Executive Intelligence nunca produz conhecimento novo. Toda síntese deve ser integralmente derivada das respostas produzidas pelos Enterprise Advisors. Caso nenhuma combinação das respostas existentes permita sustentar determinada conclusão, Executive Intelligence deverá declarar explicitamente que não possui base suficiente para sintetizar essa resposta. Executive Intelligence nunca consulta diretamente Domain, Knowledge Platform, Workflow Runtime, banco de dados ou qualquer outra fonte primária de evidência."*
+- **Registrado como Princípio 11 em `docs/architecture/WAVE-6-EXECUTIVE-INTELLIGENCE-VISION.md`**, seção "Executive Intelligence Principles" — reafirma e torna definitiva, em termos explícitos e inegociáveis, a fronteira já descrita nos Princípios 1 e 3 da mesma seção.
+- **Autorização do Founder:** a partir desta decisão, fica autorizada exclusivamente a **primeira Architecture Review da Wave 6**, com objeto arquitetural único e exclusivo: o **Executive Orchestrator**. Deve responder exclusivamente: responsabilidades; fronteiras; contrato; ciclo de vida; relação com `AdvisorFramework`; relação com Workflow Runtime; relação com Enterprise Advisors; riscos arquiteturais. **Nenhum Domain Blueprint. Nenhum Technical Design. Nenhuma implementação.**
+- **Missão:** registrar esta decisão em Decision Log/CHANGELOG/Mission Control. **Nenhum trabalho posterior deverá ser iniciado automaticamente.**
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.
