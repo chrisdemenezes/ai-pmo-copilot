@@ -1645,3 +1645,24 @@ Founder identificou, por leitura direta de código, incompatibilidade real entre
 **Autorização:** implementação da etapa 5 de 6 autorizada a prosseguir sem nova pausa.
 
 **Decision Log:** D-129.
+
+## Wave 5 — Strategy Advisor implementado, etapa 5 de 6, oitavo e ultimo Advisor da Wave (2026-08-06)
+
+D-129 autorizou a implementacao a prosseguir sem nova pausa, condicionada a nenhuma outra inconsistencia arquitetural ser encontrada. Esta missao implementa integralmente o contrato do Technical Design ja harmonizado.
+
+**Adicionado**
+- `src/agents/strategy_advisor/evidence_assembler.py` -- StrategyEvidenceAssembler/StrategyAssemblyResult: tres unidades de alinhamento independentes (Portfolio/Program/Project), cada uma comparada exclusivamente contra seu proprio objetivo declarado; gather_context(kind=status)/gather_context(kind=risk) chamado exatamente uma vez por Project, reaproveitado para Program/Portfolio; formula do namespace sintetico implementada conforme aprovada; 18 contagens estruturais calculadas na mesma passada.
+- `src/agents/strategy_advisor/agent.py` -- StrategyAdvisorAgent: records_json envia source_id sempre igual a item.source_id (correcao de D-129), entity_id sempre real e separado.
+- `src/agents/strategy_advisor/prompts/advise.md` -- diretrizes de que source_id e token opaco de citacao, cada unidade avaliada apenas contra seus proprios registros.
+- `src/api/routes/intelligence.py` -- StrategyAdvisorRequest/StrategyCitedEvidence/StrategyAdvisorResponse/rota POST /strategy-advisor/ask, mesmo padrao de ask_executive_advisor.
+
+**Achado adicional corrigido durante a implementacao:** o rascunho de referencia do Technical Design coletava Projects exclusivamente via traversal Portfolio->Program->Project, o que excluiria silenciosamente Projects orfaos (program_id IS NULL) da contagem de nivel Project -- contradizendo decisao ja oficial do Domain Blueprint (orfaos participam normalmente da unidade Project). Nao e nova questao arquitetural -- correcao de fidelidade de implementacao a decisao ja tomada. Resolvido via DomainService.list_projects(organization_id) organizacional para o nivel Project, travessia via Program/Portfolio inalterada para agregacoes superiores.
+
+**Testado**
+- `tests/test_strategy_advisor_evidence_assembler.py` (15 testes, unit/fakes), `tests/test_strategy_advisor_agent.py` (8 testes, unit/fakes), `tests/test_strategy_advisor.py` (12 testes, integracao/Postgres real), `tests/test_strategy_advisor_api.py` (12 testes, HTTP/Postgres real) -- 47 testes novos, 21 cenarios obrigatorios (A-U) comprovados, incluindo P (citacao real de declared_strategy ponta a ponta) e R (ausencia de vazamento do token na resposta HTTP completa).
+
+**Verificação:** `ruff check src tests` limpo; suite backend completa sem regressao; `git diff --stat` vazio em AdvisorFramework/AIContextEngine/RecommendationEngine/ExplanationEngine/Workflow Runtime/Event Pipeline/contrato Evidence/CitedProject/PortfolioAdvisorResponse/PMOAdvisorResponse/ExecutiveAdvisorResponse.
+
+**Missão:** Strategy Advisor implementado -- oitavo e ultimo Advisor da Wave 5. Retorno obrigatório para Executive Review antes de encerramento do Advisor/Wave 5 e antes de qualquer inicio da Wave 6.
+
+**Decision Log:** D-130.

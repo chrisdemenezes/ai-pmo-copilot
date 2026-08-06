@@ -27,6 +27,11 @@ from src.agents.pmo_advisor.evidence_assembler import (
     PMOAssemblyResult,
     PMOEvidenceAssembler,
 )
+from src.agents.strategy_advisor.agent import StrategyAdvisorAgent
+from src.agents.strategy_advisor.evidence_assembler import (
+    StrategyAssemblyResult,
+    StrategyEvidenceAssembler,
+)
 from src.agents.portfolio_advisor.agent import PortfolioAdvisorAgent
 from src.agents.portfolio_advisor.evidence_assembler import (
     PortfolioAssemblyResult,
@@ -54,7 +59,7 @@ from src.database.repository import AnalysisRepository, analysis_display_name
 from src.services.advisor_framework.framework import AdvisorFramework
 from src.services.advisor_framework.types import AdvisorExecutionError
 from src.services.domain_service import DomainService
-from src.services.ai_foundation.types import SessionContext
+from src.services.ai_foundation.types import Evidence, SessionContext
 from src.services.events.interfaces import EventPublisher
 from src.services.identity.models import RequestContext
 from src.services.knowledge_platform.embedding_provider import get_embedding_provider
@@ -250,6 +255,54 @@ class ExecutiveAdvisorResponse(BaseModel):
     projects_with_status_and_risk: int
     projects_without_any_evidence: int
     cited_evidence: list[ExecutiveCitedEvidence]
+
+
+class StrategyAdvisorRequest(BaseModel):
+    # No project_id/portfolio_id -- same reasoning as PMOAdvisorRequest/
+    # ExecutiveAdvisorRequest: the Strategy Advisor's scope is always the
+    # organization of the authenticated session (Domain Blueprint §4).
+    question: str = Field(..., min_length=3, max_length=2000)
+
+    _validate_question = field_validator("question")(_ensure_has_content)
+
+
+class StrategyCitedEvidence(BaseModel):
+    # New, isolated model (AR-15 §6.3/Technical Design §5) -- CitedProject/
+    # ExecutiveCitedEvidence are never touched. "level" and the third
+    # "kind" value ("declared_strategy") are the two extensions neither
+    # existing model can express. entity_id/source_id always carry the
+    # real domain identity here -- the synthetic Evidence.source_id used
+    # internally to correlate citations (Technical Design §3/§10.2) never
+    # reaches this model (Technical Design §4.3).
+    level: str
+    entity_id: int
+    entity_name: str
+    kind: str
+    source_id: int
+    created_at: datetime | None
+
+
+class StrategyAdvisorResponse(BaseModel):
+    answer: str
+    portfolios_total: int
+    portfolios_with_declared_strategy: int
+    portfolios_without_declared_strategy: int
+    portfolios_with_execution_evidence: int
+    portfolios_comparable: int
+    portfolios_with_strategy_without_execution: int
+    programs_total: int
+    programs_with_declared_strategy: int
+    programs_without_declared_strategy: int
+    programs_with_execution_evidence: int
+    programs_comparable: int
+    programs_with_strategy_without_execution: int
+    projects_total: int
+    projects_with_declared_strategy: int
+    projects_without_declared_strategy: int
+    projects_with_execution_evidence: int
+    projects_comparable: int
+    projects_with_strategy_without_execution: int
+    cited_evidence: list[StrategyCitedEvidence]
 
 
 class DocumentAdvisorRequest(BaseModel):
@@ -970,6 +1023,103 @@ def _executive_advisor_response(
             )
             for item in explanation.recommendation.cited_evidence
         ],
+    )
+
+
+@router.post("/strategy-advisor/ask", response_model=StrategyAdvisorResponse)
+def ask_strategy_advisor(
+    request: StrategyAdvisorRequest,
+    context: RequestContext = Depends(get_request_context),
+    prompts: PromptRegistry = Depends(build_prompt_registry),
+    provider: LLMProvider = Depends(build_provider),
+    repository: AnalysisRepository = Depends(build_repository),
+    rag_pipeline: RagPipeline = Depends(build_rag_pipeline),
+    domain_service: DomainService = Depends(build_domain_service),
+    # Read-only, same permission already protecting Risk/Delivery/Portfolio/
+    # PMO/Executive Advisor -- this agent never creates/edits/triggers an
+    # analysis, never creates/alters strategy.
+    _permission: None = Depends(require_permission("intelligence.read")),
+):
+    # Classe B, fourth of its kind, eighth and last Advisor of Wave 5
+    # (Advisor Specification/Domain Blueprint/AR-15/Technical Design):
+    # composition of declared strategy (Portfolio/Program/Project's own
+    # objective field) plus execution evidence (kind="status"/"risk",
+    # aggregated per unit from the same per-Project gather_context() calls)
+    # happens entirely inside StrategyEvidenceAssembler -- never inside
+    # AdvisorFramework/AIContextEngine. Organizational scope always
+    # resolves via the session, so there is no 404 case here.
+    session = SessionContext(
+        organization_id=context.organization.organization_id,
+        user_id=context.user.user_id,
+        session_id=context.session.session_id,
+    )
+    framework = AdvisorFramework(repository, prompts, provider, rag_pipeline)
+    assembler = StrategyEvidenceAssembler(domain_service, framework)
+
+    result = assembler.assemble(session.organization_id)
+
+    agent = StrategyAdvisorAgent(framework)
+    try:
+        explanation = framework.run(
+            agent,
+            session,
+            request.question,
+            result.evidence,
+            no_evidence_answer="Nenhum objetivo declarado ou evidência de execução comparável registrada para esta organização.",
+        )
+    except AdvisorExecutionError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    return _strategy_advisor_response(explanation, result)
+
+
+def _strategy_advisor_response(
+    explanation, result: StrategyAssemblyResult
+) -> StrategyAdvisorResponse:
+    return StrategyAdvisorResponse(
+        answer=explanation.recommendation.answer,
+        portfolios_total=result.portfolios_total,
+        portfolios_with_declared_strategy=result.portfolios_with_declared_strategy,
+        portfolios_without_declared_strategy=result.portfolios_without_declared_strategy,
+        portfolios_with_execution_evidence=result.portfolios_with_execution_evidence,
+        portfolios_comparable=result.portfolios_comparable,
+        portfolios_with_strategy_without_execution=result.portfolios_with_strategy_without_execution,
+        programs_total=result.programs_total,
+        programs_with_declared_strategy=result.programs_with_declared_strategy,
+        programs_without_declared_strategy=result.programs_without_declared_strategy,
+        programs_with_execution_evidence=result.programs_with_execution_evidence,
+        programs_comparable=result.programs_comparable,
+        programs_with_strategy_without_execution=result.programs_with_strategy_without_execution,
+        projects_total=result.projects_total,
+        projects_with_declared_strategy=result.projects_with_declared_strategy,
+        projects_without_declared_strategy=result.projects_without_declared_strategy,
+        projects_with_execution_evidence=result.projects_with_execution_evidence,
+        projects_comparable=result.projects_comparable,
+        projects_with_strategy_without_execution=result.projects_with_strategy_without_execution,
+        cited_evidence=[_strategy_cited_evidence(item) for item in explanation.recommendation.cited_evidence],
+    )
+
+
+def _strategy_cited_evidence(item: Evidence) -> StrategyCitedEvidence:
+    # Technical Design §4.3 -- the synthetic Evidence.source_id (used only
+    # internally by RecommendationEngine.build() to correlate citations,
+    # §10.2) is read HERE exactly once, only to be discarded: for
+    # kind="declared_strategy" the real identity always comes from
+    # metadata["real_entity_id"], never item.source_id.
+    kind = item.metadata["kind"]
+    if kind == "declared_strategy":
+        source_id = item.metadata["real_entity_id"]
+        created_at = None
+    else:
+        source_id = item.source_id
+        created_at = item.metadata["created_at"]
+    return StrategyCitedEvidence(
+        level=item.metadata["level"],
+        entity_id=item.metadata["real_entity_id"],
+        entity_name=item.metadata["entity_name"],
+        kind=kind,
+        source_id=source_id,
+        created_at=created_at,
     )
 
 
