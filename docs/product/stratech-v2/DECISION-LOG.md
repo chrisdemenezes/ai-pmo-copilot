@@ -1475,6 +1475,22 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-132 — Encerramento oficial da Wave 5 — Enterprise Advisors; abertura do ciclo institucional da Wave 6 autorizada
+
+- **Contexto:** "Founder Decision — Encerramento Oficial da Wave 5", em resposta a `WAVE-5-COMPLETION-REVIEW.md`.
+- **Veredito do Founder: APPROVED.** A Wave 5 — Enterprise Advisors está oficialmente encerrada.
+- **Registrado institucionalmente pelo Founder:**
+  1. Todos os oito Enterprise Advisors previstos foram implementados, testados, governados e aprovados.
+  2. Os padrões arquiteturais das Classes A, B e D ficam consolidados como referência oficial da plataforma.
+  3. A infraestrutura compartilhada permaneceu preservada durante toda a Wave.
+  4. Nenhuma pendência técnica ou arquitetural permanece aberta proveniente da Wave 5.
+  5. O ciclo institucional da Wave 5 é declarado encerrado.
+- **Estado do programa atualizado:** Wave 5 — **COMPLETED**.
+- **Autorização do Founder:** a partir desta decisão, autoriza-se exclusivamente a abertura do ciclo institucional da **Wave 6 — Executive Intelligence**. Nenhuma implementação da Wave 6 deverá começar antes da produção da Architecture Kickoff correspondente.
+- **Missão:** registrar esta decisão em Decision Log/CHANGELOG/Mission Control; atualizar o estado do programa para Wave 5 — COMPLETED.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.
