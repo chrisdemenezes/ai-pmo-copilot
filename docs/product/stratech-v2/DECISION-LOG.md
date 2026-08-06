@@ -1464,6 +1464,17 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-131 — Strategy Advisor oficialmente encerrado; quarto padrão Classe B consolidado; Wave 5 completa (8 de 8 Advisors)
+
+- **Contexto:** "Founder Decision — Strategy Advisor", em resposta à Executive Evidence apresentada ao final da implementação (D-130).
+- **Veredito do Founder: APPROVED.** O Strategy Advisor está oficialmente encerrado.
+- **Evidências confirmadas pelo Founder como integralmente comprovadas:** alinhamento independente em Portfolio, Program e Project; ausência de herança ou precedência estratégica entre níveis; composição exclusiva sobre objetivos declarados e evidências primárias; `StrategyEvidenceAssembler` conforme aprovado; namespace sintético determinístico e sem colisões; conversão obrigatória para identidades reais; ausência de vazamento do identificador sintético; `StrategyCitedEvidence` isolado; tratamento correto de timestamps; cobertura de Projects órfãos; ausência de criação, modificação ou decisão de estratégia; preservação integral da infraestrutura compartilhada; suíte completa sem regressões.
+- **Decisão permanente registrada pelo Founder:** o Strategy Advisor estabelece o **quarto padrão consolidado de Advisor Classe B**. Passam a coexistir oficialmente: `PortfolioEvidenceAssembler`, `PMOEvidenceAssembler`, `ExecutiveEvidenceAssembler`, `StrategyEvidenceAssembler`. Nenhum componente deverá ser generalizado automaticamente — qualquer generalização futura dependerá de duplicação estrutural real, comprovada e autorizada em missão arquitetural específica (mesmo gatilho já aplicado às três coexistências anteriores).
+- **Wave 5 — Enterprise Advisors: 8 de 8 Advisors concluídos.** Delivery, Risk, Document, Governance, Portfolio, PMO, Executive, Strategy — todos oficialmente encerrados. Nenhum Advisor remanescente.
+- **Missão:** registrar esta decisão em Decision Log/CHANGELOG/Mission Control; atualizar o progresso da Wave 5 para 8 de 8; produzir o Wave 5 Closure Review. **Nenhum trabalho da Wave 6 deverá ser iniciado antes da aprovação explícita do Founder sobre o encerramento formal da Wave 5.**
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.

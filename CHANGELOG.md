@@ -1666,3 +1666,15 @@ D-129 autorizou a implementacao a prosseguir sem nova pausa, condicionada a nenh
 **Missão:** Strategy Advisor implementado -- oitavo e ultimo Advisor da Wave 5. Retorno obrigatório para Executive Review antes de encerramento do Advisor/Wave 5 e antes de qualquer inicio da Wave 6.
 
 **Decision Log:** D-130.
+
+## Wave 5 — Strategy Advisor oficialmente encerrado; quarto padrao Classe B consolidado; Wave 5 completa 8 de 8 Advisors (2026-08-06)
+
+Founder aprovou a Executive Evidence do Strategy Advisor. Evidencias confirmadas: alinhamento independente em Portfolio/Program/Project, ausencia de heranca ou precedencia estrategica entre niveis, composicao exclusiva sobre objetivos declarados e evidencias primarias, StrategyEvidenceAssembler conforme aprovado, namespace sintetico determinístico e sem colisoes, conversao obrigatoria para identidades reais, ausencia de vazamento do identificador sintetico, StrategyCitedEvidence isolado, tratamento correto de timestamps, cobertura de Projects orfaos, ausencia de criacao/modificacao/decisao de estrategia, preservacao integral da infraestrutura compartilhada, suite completa sem regressoes.
+
+**Decisão permanente:** Strategy Advisor estabelece o quarto padrao consolidado de Advisor Classe B. Coexistem oficialmente: PortfolioEvidenceAssembler, PMOEvidenceAssembler, ExecutiveEvidenceAssembler, StrategyEvidenceAssembler -- nenhuma generalizacao automatica, gatilho reafirmado (duplicacao estrutural real, comprovada e autorizada em missao arquitetural especifica).
+
+**Wave 5 -- Enterprise Advisors: 8 de 8 Advisors concluidos** (Delivery, Risk, Document, Governance, Portfolio, PMO, Executive, Strategy).
+
+**Missão:** Wave 5 Closure Review a ser produzido. Nenhum trabalho da Wave 6 podera ser iniciado antes da aprovacao explicita do Founder sobre o encerramento formal da Wave 5.
+
+**Decision Log:** D-131.
