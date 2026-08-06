@@ -1593,3 +1593,16 @@ Founder autorizou formalmente a abertura do ciclo institucional do Strategy Advi
 **Recomendação:** GO para o Domain Blueprint do Strategy Advisor.
 
 **Decision Log:** D-125.
+
+## Wave 5 — Domain Blueprint do Strategy Advisor produzido, etapa 2 de 6 (2026-08-05)
+
+Founder aprovou a Advisor Specification (GO para o Domain Blueprint), confirmando Classe B definitivamente e que Portfolio.strategic_objective/Program.objective/Project.objective substituem oficialmente a hipotese preliminar de AR-8 SS4 -- delegando seis resolucoes: fonte oficial da estrategia, unidade de alinhamento, composicao de evidencias, tratamento de ausencia, cobertura parcial, escopo definitivo da comparacao.
+
+**Adicionado**
+- `docs/architecture/DOMAIN-BLUEPRINT-STRATEGY-ADVISOR.md` -- etapa 2 de 6. Fonte oficial confirmada: os tres campos de dominio, RAG permanece candidato nao decidido. Unidade de alinhamento decidida: tres unidades independentes -- Portfolio, Program, Project -- cada uma contra seu proprio campo de objetivo, nunca por heranca entre niveis. Composicao decidida: gather_context(kind=status)/gather_context(kind=risk) uma vez por Project, agregacao para Program/Portfolio e reagrupamento em memoria sem nova consulta -- volume identico ao ja aprovado para o Executive Advisor. Componente nomeado: StrategyEvidenceAssembler, quarto componente Classe B, estruturalmente distinto dos tres ja existentes. Primeira vez que DomainService se torna Evidence citavel, nao apenas resolucao de escopo. Tratamento de ausencia total (no_evidence()) e parcial (sintese com limitacao declarada) decididos. Escopo definitivo: organizacional, reaproveitando a traversal Portfolio->Program->Project ja estabelecida pelo Portfolio Advisor, para todos os Portfolios da organizacao. gather_context_many() reafirmado, nao reaberto. Infraestrutura compartilhada confirmada preservada.
+
+**Verificação:** missão de documentação -- nenhum código de `src/`/`tests/` alterado; `ruff check src tests` limpo.
+
+**Recomendação:** GO para a Architecture Review do Strategy Advisor.
+
+**Decision Log:** D-126.
