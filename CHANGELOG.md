@@ -1619,3 +1619,16 @@ Founder aprovou o Domain Blueprint (GO para a Architecture Review), delegando ci
 **Recomendação:** GO para o Technical Design do Strategy Advisor.
 
 **Decision Log:** D-127.
+
+## Wave 5 — Technical Design do Strategy Advisor produzido, etapa 4 de 6 (2026-08-05)
+
+Founder aprovou condicionalmente a AR-15 (GO para o Technical Design), impondo dez condicoes explicitas, incluindo formalizacao matematica do namespace sintetico com prova de ausencia de colisao.
+
+**Adicionado**
+- `docs/architecture/TECHNICAL-DESIGN-STRATEGY-ADVISOR.md` -- etapa 4 de 6. StrategyEvidenceAssembler contratado: traversal Portfolio->Program->Project, gather_context uma vez por Project (execution_by_project reaproveitado, nunca refeito), unidades restritas ao proprio objetivo. Formula definitiva: synthetic_source_id = -(real_entity_id * 10 + level_code), com prova formal de ausencia de colisao (sempre negativo vs. AnalysisRecord.id sempre positivo; digito das unidades identifica o nivel de forma unica). Id real preservado em metadata["real_entity_id"], nunca vaza para consulta ao banco, resposta HTTP ou prompt do LLM. StrategyCitedEvidence definido (level/entity_id/entity_name/kind/source_id/created_at). Politica de timestamp: created_at=None para declared_strategy, fundamentado em leitura de models.py (Portfolio/Program/Project so tem created_at de linha, nao do campo objetivo). Modelo de cobertura: 18 contagens (6 por nivel x 3 niveis), sem condensacao. Ausencia total aciona no_evidence() automaticamente; cobertura parcial permite sintese com limitacao declarada. 15 cenarios de teste obrigatorios, incluindo prova de colisao potencial e teste de propriedade da decodificacao. Estrategia incremental de 4 passos. Infraestrutura compartilhada confirmada preservada.
+
+**Verificação:** missão de documentação -- nenhum código de `src/`/`tests/` alterado; `ruff check src tests` limpo.
+
+**Recomendação:** GO para a implementação do Strategy Advisor.
+
+**Decision Log:** D-128.
