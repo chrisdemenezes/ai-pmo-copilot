@@ -1606,3 +1606,16 @@ Founder aprovou a Advisor Specification (GO para o Domain Blueprint), confirmand
 **Recomendação:** GO para a Architecture Review do Strategy Advisor.
 
 **Decision Log:** D-126.
+
+## Wave 5 — AR-15: Architecture Review do Strategy Advisor concluida, etapa 3 de 6 (2026-08-05)
+
+Founder aprovou o Domain Blueprint (GO para a Architecture Review), delegando cinco resolucoes: regra conceitual de alinhamento, conflitos entre niveis, ausencia em niveis intermediarios, precedencia entre unidades, modelo definitivo de citacoes.
+
+**Adicionado**
+- `docs/architecture/AR-15-STRATEGY-ADVISOR-ARCHITECTURE-REVIEW.md` -- etapa 3 de 6. Regra de alinhamento: sempre julgamento semantico do LLM, nunca calculo deterministico, sempre fundamentado em citacao explicita. Conflitos entre niveis: nao e responsabilidade formal do Advisor, observacao textual permitida, nunca decide qual nivel prevalece. Ausencia em niveis intermediarios: confirmado que nunca afeta niveis vizinhos. Precedencia entre unidades: nao existe -- observacoes paralelas, nunca hierarquia de autoridade. Achado critico encontrado nesta revisao: RecommendationEngine.build() agrupa evidencias exclusivamente por source_id, sem considerar kind -- Strategy Advisor e o primeiro Advisor a combinar dois espacos de identificador (AnalysisRecord.id e Portfolio/Program/Project.id) na mesma chamada, risco real de colisao. Resolvido sem tocar Evidence/RecommendationEngine: source_id sintetico e disjunto (negativo, namespaced por nivel) para evidencia de estrategia declarada, id real preservado em metadata, nunca exposto na resposta HTTP. Modelo de citacao decidido: StrategyCitedEvidence (novo, isolado, level/entity_id/entity_name/kind com terceiro valor declared_strategy/source_id/created_at) -- CitedProject e ExecutiveCitedEvidence intocados. Infraestrutura compartilhada confirmada preservada.
+
+**Verificação:** missão de documentação -- nenhum código de `src/`/`tests/` alterado; `ruff check src tests` limpo.
+
+**Recomendação:** GO para o Technical Design do Strategy Advisor.
+
+**Decision Log:** D-127.
