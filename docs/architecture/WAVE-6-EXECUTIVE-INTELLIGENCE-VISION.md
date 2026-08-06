@@ -105,10 +105,12 @@ Princípios institucionais permanentes desta camada, aplicáveis a toda a Wave 6
 
 11. **Executive Intelligence nunca produz conhecimento novo.** Toda síntese deve ser integralmente derivada das respostas produzidas pelos Enterprise Advisors. Caso nenhuma combinação das respostas existentes permita sustentar determinada conclusão, Executive Intelligence deverá declarar explicitamente que não possui base suficiente para sintetizar essa resposta. Executive Intelligence nunca consulta diretamente Domain, Knowledge Platform, Workflow Runtime, banco de dados ou qualquer outra fonte primária de evidência (Founder Decision, registrado após a aprovação desta Vision — reafirma e torna permanente, em termos definitivos, a fronteira já descrita nos Princípios 1 e 3 acima).
 
+12. **Executive Intelligence Principle XII — Deterministic Orchestration.** A seleção dos Enterprise Advisors nunca será responsabilidade do modelo de linguagem. O Executive Orchestrator deverá selecionar os Advisors através de regras explícitas, reproduzíveis e auditáveis. Para a mesma entrada e mesma configuração, o conjunto de Advisors executados deverá ser determinístico. O LLM participa apenas da síntese das respostas produzidas pelos Advisors selecionados, nunca da seleção deles (Founder Decision, registrado após a aprovação da AR-16 — resolve, em termos permanentes e definitivos, a questão de mecanismo de seleção deixada em aberto no Kickoff §8.2 e na AR-16 §1/§3: a decisão de *quem* seleciona nunca poderá ser o LLM; a forma exata das regras determinísticas permanece matéria do Domain Blueprint).
+
 ---
 
 ## Recomendação
 
-**GO para a primeira Architecture Review da Wave 6**, fundamentada neste documento em conjunto com o Kickoff já aprovado (D-133).
+**GO para o primeiro Domain Blueprint da Wave 6**, com objeto exclusivo o Executive Orchestrator, fundamentado neste documento em conjunto com o Kickoff (D-133) e a AR-16 (D-136) já aprovados.
 
-Nenhuma decisão de implementação foi tomada aqui — as oito perguntas foram respondidas em nível institucional e arquitetural, e os onze princípios permanentes acima consolidam o que a Wave 6 nunca poderá violar, independentemente de qual Domain Blueprint, Technical Design ou Epic vier a decidir a forma exata do Executive Orchestrator, do modelo de citação executivo, ou do mecanismo de síntese. Nenhum trabalho posterior deverá ser iniciado automaticamente — aguarda nova autorização explícita do Founder.
+Nenhuma decisão de implementação foi tomada aqui — as oito perguntas foram respondidas em nível institucional e arquitetural, e os doze princípios permanentes acima consolidam o que a Wave 6 nunca poderá violar, independentemente de qual Domain Blueprint, Technical Design ou Epic vier a decidir a forma exata do Executive Orchestrator, do modelo de citação executivo, ou do mecanismo de síntese. Nenhum trabalho posterior deverá ser iniciado automaticamente — aguarda nova autorização explícita do Founder.

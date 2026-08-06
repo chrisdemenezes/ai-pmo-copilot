@@ -1738,3 +1738,15 @@ D-135 autorizou exclusivamente esta revisao, objeto unico: Executive Orchestrato
 **Missão:** nenhum trabalho posterior devera ser iniciado automaticamente -- aguarda recomendacao GO/NO-GO e nova autorizacao explicita do Founder.
 
 **Decision Log:** D-136.
+
+## Wave 6 — Decimo segundo principio permanente da Executive Intelligence; abertura do primeiro Domain Blueprint autorizada (2026-08-06)
+
+Founder aprovou a AR-16 sem ressalvas e registrou novo principio permanente -- "Executive Intelligence Principle XII -- Deterministic Orchestration": a selecao dos Enterprise Advisors nunca sera responsabilidade do modelo de linguagem; o Executive Orchestrator devera selecionar os Advisors atraves de regras explicitas, reproduziveis e auditaveis; para a mesma entrada e mesma configuracao, o conjunto de Advisors executados devera ser deterministico; o LLM participa apenas da sintese das respostas produzidas pelos Advisors selecionados, nunca da selecao deles.
+
+**Alterado**
+- `docs/architecture/WAVE-6-EXECUTIVE-INTELLIGENCE-VISION.md` -- Principio 12 adicionado.
+- `docs/architecture/AR-16-EXECUTIVE-ORCHESTRATOR-ARCHITECTURE-REVIEW.md` -- nova linha na tabela de decisoes oficiais, nota de atualizacao, risco de selecao atualizado, recomendacao final atualizada.
+
+**Autorização:** abertura do primeiro Domain Blueprint da Wave 6, escopo exclusivo -- Executive Orchestrator. Nenhum Technical Design, nenhuma implementacao.
+
+**Decision Log:** D-137.

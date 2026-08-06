@@ -1531,6 +1531,17 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-137 — Décimo segundo princípio permanente da Executive Intelligence: "Deterministic Orchestration"; abertura do primeiro Domain Blueprint da Wave 6 autorizada, escopo exclusivo: Executive Orchestrator
+
+- **Contexto:** "Founder Decision", aprovando a AR-16 sem ressalvas e registrando um novo princípio permanente antes de autorizar o primeiro Domain Blueprint da Wave 6.
+- **Princípio permanente registrado (verbatim do Founder):** *"Executive Intelligence Principle XII — Deterministic Orchestration. A seleção dos Enterprise Advisors nunca será responsabilidade do modelo de linguagem. O Executive Orchestrator deverá selecionar os Advisors através de regras explícitas, reproduzíveis e auditáveis. Para a mesma entrada e mesma configuração, o conjunto de Advisors executados deverá ser determinístico. O LLM participa apenas da síntese das respostas produzidas pelos Advisors selecionados, nunca da seleção deles."*
+- **Registrado como Princípio 12 em `docs/architecture/WAVE-6-EXECUTIVE-INTELLIGENCE-VISION.md`**, seção "Executive Intelligence Principles" — resolve, em caráter permanente, a questão de mecanismo de seleção deixada explicitamente em aberto no Kickoff §8.2 e na AR-16 §1/§3: fixa que a seleção nunca poderá ser decidida pelo LLM; a forma exata das regras determinísticas permanece matéria do Domain Blueprint.
+- **Registrado em `docs/architecture/AR-16-EXECUTIVE-ORCHESTRATOR-ARCHITECTURE-REVIEW.md`** — nova linha na tabela §0, nota de atualização explícita preservando as Seções 1/3 originais sem reescrita retroativa, risco de seleção implícita em código (§8) atualizado para refletir a mitigação parcial, recomendação final atualizada de onze para doze princípios.
+- **Autorização do Founder:** a partir desta decisão, fica autorizada a abertura do **primeiro Domain Blueprint da Wave 6**, com objeto exclusivamente o **Executive Orchestrator**. **Nenhum Technical Design. Nenhuma implementação.**
+- **Missão:** registrar esta decisão em Decision Log/CHANGELOG/Mission Control. **Nenhum trabalho posterior deverá ser iniciado automaticamente.**
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.
