@@ -1688,3 +1688,16 @@ Founder aprovou o Wave 5 Completion Review. Veredito: APPROVED. Registrado insti
 **Autorização:** abertura do ciclo institucional da Wave 6 -- Executive Intelligence autorizada exclusivamente. Nenhuma implementacao da Wave 6 devera comecar antes da producao da Architecture Kickoff correspondente.
 
 **Decision Log:** D-132.
+
+## Wave 6 — Architecture Kickoff produzido; abertura institucional (2026-08-06)
+
+Founder mandatou exclusivamente a producao de `WAVE-6-EXECUTIVE-INTELLIGENCE-KICKOFF.md`. Missao exclusivamente arquitetural -- nenhum codigo, nenhum Technical Design, nenhuma implementacao, nenhuma alteracao em src/tests/web.
+
+**Adicionado**
+- `docs/architecture/WAVE-6-EXECUTIVE-INTELLIGENCE-KICKOFF.md` -- fundamentado exclusivamente na arquitetura real (nunca no Blueprint conceitual pre-D-071). Cobre: lacuna real apos a Wave 5 (AdvisorFramework.run() executa exatamente um Advisor por chamada, nenhuma correlacao entre Advisors hoje); inventario de Enterprise Domain/Knowledge Platform/Enterprise Operations/Enterprise Advisors (achado: EnterpriseMemoryService implementado desde a Wave 3 Fase 2, zero consumidor ate hoje); definicao institucional de Executive Intelligence; 7 capacidades esperadas caracterizadas sem implementacao; fronteiras arquiteturais (Advisor -> Executive Intelligence -> Workflow Runtime -> Enterprise Domain); fluxo conceitual; papel dos 8 Advisors; 10 questoes arquiteturais levantadas, nao respondidas; roadmap proposto em 4 Epics (W6-1 a W6-4); 5 riscos arquiteturais grounded; 6 criterios objetivos de encerramento da Wave 6.
+
+**Verificação:** missao exclusivamente documental -- zero alteracao em src/tests/web; ruff/tsc/eslint confirmados limpos.
+
+**Missão:** nenhum trabalho posterior devera ser iniciado automaticamente -- aguarda recomendacao GO/NO-GO e nova autorizacao explicita do Founder.
+
+**Decision Log:** D-133.
