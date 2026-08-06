@@ -1542,6 +1542,16 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-138 — Domain Blueprint do Executive Orchestrator produzido — primeiro Domain Blueprint da Wave 6
+
+- **Contexto:** D-137 autorizou a abertura do primeiro Domain Blueprint da Wave 6, objeto exclusivo o Executive Orchestrator. Nenhum Technical Design, nenhuma implementação.
+- **`docs/architecture/DOMAIN-BLUEPRINT-EXECUTIVE-ORCHESTRATOR.md` produzido**, fundamentado exclusivamente nos doze princípios já registrados na Vision e na AR-16. Resolve, em nível de modelo de domínio — nunca de código —, as três questões que a AR-16 nomeou explicitamente como abertas: (1) **Regra de seleção determinística (§3)** — modelo conceitual de `Advisor Identity` (a identidade institucional já declarada de cada um dos 8 Advisors, desde suas próprias Advisor Specifications, nunca um novo dado inventado) e `Selection Rule` (correspondência determinística, explícita, reproduzível e auditável entre sinais estruturados extraídos da pergunta e as Advisor Identities relevantes — nunca um julgamento livre de LLM); mecanismo exato de extração de sinais permanece aberto para o Technical Design; (2) **Definição operacional de "base insuficiente" (§4, Princípio 11)** — dois gatilhos exaustivos e precisos: seleção vazia (nenhum Advisor relevante identificado) ou coleta vazia (todos os Advisors selecionados retornam sem evidência própria); caso intermediário de cobertura parcial explicitamente permitido, mesma disciplina já usada por todo Advisor Classe B da Wave 5; (3) **Ciclo de vida (§5)** — confirmado request-scoped, elevando a observação da AR-16 §4 a decisão de domínio, por consistência com o padrão já universal na plataforma. Modelo de domínio também nomeia `Orchestration Result` (§2.3) como um de dois estados exaustivos: coleção com proveniência preservada, ou base insuficiente — nunca um terceiro estado. Rastreabilidade (§6) reafirma que nenhum esquema global de citação é introduzido — cada Advisor mantém seu próprio modelo de citação intacto. Seis questões remanescentes nomeadas explicitamente para o Technical Design (§8): mecanismo de extração de sinais, taxonomia exata de sinais/categorias, forma de código do Orchestration Result, se a correlação/síntese é responsabilidade do próprio Orchestrator ou de componente distinto, controle de custo/latência, estratégia de paralelismo vs. sequencialidade.
+- **Nenhuma inconsistência arquitetural encontrada** entre este Domain Blueprint e os doze princípios já registrados, nem com nenhuma decisão já tomada na AR-16.
+- **Verificação:** missão exclusivamente documental — `git status` confirma zero alteração em `src/`/`tests/`/`web/`; `ruff check src tests`/`tsc`/`eslint` confirmados limpos.
+- **Missão:** registrar esta decisão em Decision Log/CHANGELOG/Mission Control. **Nenhum trabalho posterior (Technical Design, implementação) deverá ser iniciado automaticamente** — aguarda recomendação GO/NO-GO apresentada ao Founder e nova autorização explícita.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.

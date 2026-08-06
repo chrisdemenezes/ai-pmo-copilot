@@ -1750,3 +1750,16 @@ Founder aprovou a AR-16 sem ressalvas e registrou novo principio permanente -- "
 **Autorização:** abertura do primeiro Domain Blueprint da Wave 6, escopo exclusivo -- Executive Orchestrator. Nenhum Technical Design, nenhuma implementacao.
 
 **Decision Log:** D-137.
+
+## Wave 6 — Domain Blueprint do Executive Orchestrator, primeiro Domain Blueprint da Wave 6 (2026-08-06)
+
+D-137 autorizou a abertura deste Domain Blueprint, objeto exclusivo -- Executive Orchestrator. Nenhum Technical Design, nenhuma implementacao.
+
+**Adicionado**
+- `docs/architecture/DOMAIN-BLUEPRINT-EXECUTIVE-ORCHESTRATOR.md` -- resolve em nivel de modelo de dominio as tres questoes deixadas abertas pela AR-16: regra de selecao deterministica (conceitos Advisor Identity e Selection Rule, correspondencia deterministica/explicita/reproduzivel/auditavel entre sinais estruturados e identidades ja declaradas dos 8 Advisors, nunca julgamento de LLM); definicao operacional de "base insuficiente" (dois gatilhos exaustivos -- selecao vazia ou coleta vazia -- cobertura parcial explicitamente permitida); ciclo de vida confirmado request-scoped. Conceito Orchestration Result nomeado (dois estados exaustivos). Rastreabilidade reafirma que nenhum esquema global de citacao e introduzido. Seis questoes remanescentes nomeadas para o Technical Design. Nenhuma inconsistencia arquitetural encontrada.
+
+**Verificação:** missao exclusivamente documental -- zero alteracao em src/tests/web; ruff/tsc/eslint confirmados limpos.
+
+**Missão:** nenhum trabalho posterior devera ser iniciado automaticamente -- aguarda recomendacao GO/NO-GO e nova autorizacao explicita do Founder.
+
+**Decision Log:** D-138.
