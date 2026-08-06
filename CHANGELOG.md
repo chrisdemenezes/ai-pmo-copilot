@@ -1763,3 +1763,16 @@ D-137 autorizou a abertura deste Domain Blueprint, objeto exclusivo -- Executive
 **Missão:** nenhum trabalho posterior devera ser iniciado automaticamente -- aguarda recomendacao GO/NO-GO e nova autorizacao explicita do Founder.
 
 **Decision Log:** D-138.
+
+## Wave 6 — AR-17: Executive Intelligence Composition Model (2026-08-06)
+
+Founder aprovou o Domain Blueprint do Executive Orchestrator sem ressalvas e mandatou, antes do primeiro Technical Design da Wave 6, consolidar a arquitetura de composicao da Executive Intelligence. Nenhum Domain Blueprint, Technical Design ou implementacao.
+
+**Adicionado**
+- `docs/architecture/AR-17-EXECUTIVE-INTELLIGENCE-COMPOSITION-MODEL.md` -- 6 produtos de inteligencia definidos (Executive Briefing, Executive Narrative, Cross Advisor Correlation, Conflict Analysis, Recommendation Package, Decision Support); cada produto gerado por uma Capability homonima, composicao fixa de 4 Operacoes Estruturais (Selecao/Execucao/Correlacao/Sintese); participacao de Advisor Identities por Capability caracterizada como ilustrativa nunca prescritiva; rastreabilidade via Composition Trace obrigatorio; determinismo preservado por uma unica Selection Rule compartilhada; 4 tripwires contra virar nono Advisor; Orchestrator agnostico ao dominio (conhece apenas o catalogo fechado de Advisor Identities e sinais estruturados da pergunta). Taxonomia Permanente consolidada em 3 camadas. Nenhuma inconsistencia arquitetural encontrada.
+
+**Verificação:** missao exclusivamente documental -- zero alteracao em src/tests/web; ruff/tsc/eslint confirmados limpos.
+
+**Missão:** nenhum trabalho posterior devera ser iniciado automaticamente -- aguarda recomendacao GO/NO-GO e nova autorizacao explicita do Founder.
+
+**Decision Log:** D-139.
