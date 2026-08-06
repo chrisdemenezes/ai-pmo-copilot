@@ -1562,6 +1562,19 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-140 — Executive Intelligence Result (Orchestration Result) registrado — último conceito permanente antes do primeiro Technical Design da Wave 6
+
+- **Contexto:** "Founder Decision", aprovando a AR-17 (D-139) e mandatando o registro de um último conceito permanente da Executive Intelligence antes do primeiro Technical Design da Wave 6: o **Executive Intelligence Result (ou Orchestration Result)**.
+- **Definição mandatada, verbatim do Founder** — "Este conceito representa o produto lógico da orquestração, contendo: Capability executada; Selection Rule aplicada; conjunto de Advisor Identities participantes; Explanations consumidas; Composition Trace; síntese produzida." E explicitamente o que não é: "não é um novo Advisor; não é uma nova fonte de evidência; não é um contrato HTTP; não é um modelo de banco; não é um tipo de domínio. É apenas a representação arquitetural do resultado produzido pela Executive Intelligence."
+- **Registrado em dois documentos, sem reescrever retroativamente nenhum conteúdo já aprovado:**
+  - **`WAVE-6-EXECUTIVE-INTELLIGENCE-VISION.md`** — nova seção `## Conceito Permanente — Executive Intelligence Result (Orchestration Result)`, inserida entre o Princípio 12 e a `## Recomendação` original, detalhando os seis elementos sempre contidos, reafirmando (sem alterar) a decisão já oficial do Domain Blueprint (§2.3, D-138) de que o conceito assume sempre um de dois estados exaustivos — coleção completa com proveniência preservada, ou base insuficiente (Princípio 11) — nunca um terceiro estado, nunca coleção parcial silenciosa; e listando as cinco exclusões explícitas mandatadas pelo Founder. O parágrafo de fechamento da Recomendação original ("GO para o primeiro Domain Blueprint da Wave 6...") foi preservado integralmente, com um pequeno acréscimo mencionando o novo conceito.
+  - **`AR-17-EXECUTIVE-INTELLIGENCE-COMPOSITION-MODEL.md`** — nova subseção `### Camada 4 — Executive Intelligence Result / Orchestration Result (registrado após a aprovação original desta AR)`, inserida após a Camada 3 (Composition Trace) e antes da `## Recomendação`, com definição completa remetendo à Vision como fonte canônica. O parágrafo de fechamento da Recomendação foi atualizado de "três camadas fechadas" para "quatro camadas fechadas: quatro Operações Estruturais, seis Capabilities, o Composition Trace obrigatório, e o conceito de Executive Intelligence Result/Orchestration Result que os reúne."
+- **Nenhuma inconsistência arquitetural encontrada** entre este conceito e nenhuma decisão já registrada na Vision, na AR-16, na AR-17, ou no Domain Blueprint — o conceito consolida, em nível puramente arquitetural, o que já estava implícito na Camada 3 (Composition Trace) e no §2.3 do Domain Blueprint, sem decidir nenhuma forma de serialização, classe, tabela ou rota.
+- **Verificação:** missão exclusivamente documental — `git status` confirma zero alteração em `src/`/`tests/`/`web/` além dos arquivos de governança; `ruff check src tests`/`tsc`/`eslint` confirmados limpos.
+- **Missão:** registrar esta decisão em Decision Log/CHANGELOG/Mission Control. Conforme o mandato do Founder, **fica autorizada a produção do primeiro Technical Design da Wave 6** — mas essa produção **não é iniciada automaticamente nesta mesma decisão**: "Nenhum código. Nenhuma implementação. Nenhum trabalho posterior deverá ser iniciado automaticamente." Aguarda novo turno explícito do Founder, tipicamente delimitando o escopo exato do primeiro Technical Design.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.

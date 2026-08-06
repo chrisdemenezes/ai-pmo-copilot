@@ -1776,3 +1776,16 @@ Founder aprovou o Domain Blueprint do Executive Orchestrator sem ressalvas e man
 **Missão:** nenhum trabalho posterior devera ser iniciado automaticamente -- aguarda recomendacao GO/NO-GO e nova autorizacao explicita do Founder.
 
 **Decision Log:** D-139.
+
+## Wave 6 — Executive Intelligence Result / Orchestration Result (2026-08-06)
+
+Founder aprovou a AR-17 e mandatou o registro de um ultimo conceito permanente antes do primeiro Technical Design da Wave 6: Executive Intelligence Result (ou Orchestration Result).
+
+**Adicionado**
+- Conceito registrado em `WAVE-6-EXECUTIVE-INTELLIGENCE-VISION.md` (nova secao "Conceito Permanente") e em `AR-17-EXECUTIVE-INTELLIGENCE-COMPOSITION-MODEL.md` (nova "Camada 4"), sem reescrever nenhum conteudo ja aprovado. Representa o produto logico de qualquer Capability, sempre contendo: Capability executada; Selection Rule aplicada; conjunto de Advisor Identities participantes; Explanations consumidas; Composition Trace; sintese produzida (quando aplicavel). Assume sempre um de dois estados exaustivos -- colecao completa ou base insuficiente -- nunca um terceiro estado. Explicitamente nao e: um novo Advisor, uma nova fonte de evidencia, um contrato HTTP, um modelo de banco, um tipo de dominio -- apenas a representacao arquitetural do resultado. Nenhuma inconsistencia arquitetural encontrada.
+
+**Verificação:** missao exclusivamente documental -- zero alteracao em src/tests/web; ruff/tsc/eslint confirmados limpos.
+
+**Missão:** primeiro Technical Design da Wave 6 fica autorizado, porem nao e iniciado automaticamente -- aguarda novo turno explicito do Founder delimitando o escopo.
+
+**Decision Log:** D-140.

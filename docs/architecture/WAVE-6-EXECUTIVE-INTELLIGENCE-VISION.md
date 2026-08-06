@@ -109,8 +109,33 @@ Princípios institucionais permanentes desta camada, aplicáveis a toda a Wave 6
 
 ---
 
+## Conceito Permanente — Executive Intelligence Result (Orchestration Result)
+
+Registrado após a aprovação da AR-17 (D-139) como o último conceito permanente da Executive Intelligence antes do primeiro Technical Design da Wave 6 — a representação arquitetural definitiva do produto lógico de qualquer Capability (§Taxonomia Permanente, AR-17).
+
+**Contém, sempre:**
+- A **Capability** executada (uma das seis já permanentes — AR-17, Camada 2).
+- A **Selection Rule** aplicada — a regra determinística que decidiu a seleção (Princípio 12; Domain Blueprint §2.2/§3).
+- O conjunto de **Advisor Identities** participantes — o resultado real da seleção para aquela chamada específica, nunca uma lista fixa (Domain Blueprint §2.1).
+- As **Explanations** consumidas — cada uma preservando integralmente sua proveniência e citação real (Princípio 4).
+- O **Composition Trace** — o registro auditável de como a Selection Rule, as Explanations, a Correlação e a Síntese se encadeiam (AR-17 §4/Camada 3).
+- A **síntese produzida** — quando a Capability executada incluir a operação de Síntese (AR-17 §2); ausente, por definição, quando a Capability termina na Correlação (Cross Advisor Correlation, Conflict Analysis) ou quando o resultado é base insuficiente.
+
+Reafirma, sem alterar, a decisão já oficial do Domain Blueprint (§2.3, D-138) de que este conceito assume sempre um de dois estados exaustivos: uma coleção completa com todos os seis campos acima preenchidos e proveniência preservada, ou uma declaração explícita de base insuficiente (Princípio 11) — nunca um terceiro estado, nunca uma coleção parcial silenciosa.
+
+**Este conceito explicitamente não é:**
+- Um novo Advisor.
+- Uma nova fonte de evidência.
+- Um contrato HTTP.
+- Um modelo de banco de dados.
+- Um tipo de domínio.
+
+É exclusivamente a representação arquitetural do resultado produzido pela Executive Intelligence — nenhuma forma de serialização, nenhum nome de classe, nenhuma tabela, nenhuma rota é decidida por este registro. A forma concreta de expressão deste conceito em código é matéria exclusiva do Technical Design.
+
+---
+
 ## Recomendação
 
 **GO para o primeiro Domain Blueprint da Wave 6**, com objeto exclusivo o Executive Orchestrator, fundamentado neste documento em conjunto com o Kickoff (D-133) e a AR-16 (D-136) já aprovados.
 
-Nenhuma decisão de implementação foi tomada aqui — as oito perguntas foram respondidas em nível institucional e arquitetural, e os doze princípios permanentes acima consolidam o que a Wave 6 nunca poderá violar, independentemente de qual Domain Blueprint, Technical Design ou Epic vier a decidir a forma exata do Executive Orchestrator, do modelo de citação executivo, ou do mecanismo de síntese. Nenhum trabalho posterior deverá ser iniciado automaticamente — aguarda nova autorização explícita do Founder.
+Nenhuma decisão de implementação foi tomada aqui — as oito perguntas foram respondidas em nível institucional e arquitetural, e os doze princípios permanentes, em conjunto com o conceito permanente de Executive Intelligence Result, consolidam o que a Wave 6 nunca poderá violar, independentemente de qual Domain Blueprint, Technical Design ou Epic vier a decidir a forma exata do Executive Orchestrator, do modelo de citação executivo, ou do mecanismo de síntese. Nenhum trabalho posterior deverá ser iniciado automaticamente — aguarda nova autorização explícita do Founder.
