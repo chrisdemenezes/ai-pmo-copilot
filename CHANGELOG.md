@@ -1789,3 +1789,16 @@ Founder aprovou a AR-17 e mandatou o registro de um ultimo conceito permanente a
 **Missão:** primeiro Technical Design da Wave 6 fica autorizado, porem nao e iniciado automaticamente -- aguarda novo turno explicito do Founder delimitando o escopo.
 
 **Decision Log:** D-140.
+
+## Wave 6 — Technical Design do Executive Orchestrator (2026-08-06)
+
+Founder declarou toda a arquitetura conceitual da Wave 6 oficialmente concluida (Kickoff/Vision/AR-16/Domain Blueprint/AR-17) e mandatou exclusivamente o primeiro Technical Design da Wave 6, objeto o Executive Orchestrator, respondendo 12 pontos. Nenhum codigo, nenhuma implementacao, nenhum pseudocodigo, nenhuma alteracao em contrato compartilhado.
+
+**Adicionado**
+- `docs/architecture/TECHNICAL-DESIGN-EXECUTIVE-ORCHESTRATOR.md` -- contrato interno (entrada/estado/transicoes/saida/estado terminal, inteiramente conceitual); Selection Rules representadas como tabela estatica e versionada de sinais explicitos/implicitos contra Advisor Identities, avaliacao deterministica, nunca LLM; ciclo completo da orquestracao documentado etapa a etapa (Pergunta -> Selection Rule -> Advisor Identities -> AdvisorFramework.run() -> Explanations -> Correlation -> Synthesis -> Composition Trace -> Executive Intelligence Result); Executive Intelligence Result caracterizado em nascimento/evolucao/completude; Composition Trace definido em o que/quando/como relaciona; Correlacao resolvida como operacao estritamente estrutural (escopo compartilhado + pares pre-declarados do catalogo fechado, nunca leitura de conteudo), unificando Cross Advisor Correlation e Conflict Analysis; Sintese limitada ao mecanismo (LLM recebendo exclusivamente Explanations ja coletadas, reaproveitando o padrao institucional ja validado); estado request-scoped demonstrado; 8 preservacoes obrigatorias confirmadas (AdvisorFramework/AIContextEngine/RecommendationEngine/ExplanationEngine/Workflow Runtime/Enterprise Advisors/Knowledge Platform/Enterprise Domain); riscos arquiteturais grounded, nenhum bloqueante; estrategia incremental de 5 etapas (Selection Rule + catalogo; Execucao multi-Advisor; Correlacao; Sintese; Endurecimento/custo); 8 criterios de encerramento objetivos. Todas as questoes remanescentes do Domain Blueprint/AR-17 resolvidas em nivel conceitual. Nenhuma inconsistencia arquitetural encontrada.
+
+**Verificação:** missao exclusivamente documental -- zero alteracao em src/tests/web; ruff/tsc/eslint confirmados limpos.
+
+**Missão:** recomendacao GO para a implementacao, iniciando pela Etapa 1. Nenhum trabalho posterior devera ser iniciado automaticamente -- aguarda nova autorizacao explicita do Founder antes de qualquer codigo.
+
+**Decision Log:** D-141.
