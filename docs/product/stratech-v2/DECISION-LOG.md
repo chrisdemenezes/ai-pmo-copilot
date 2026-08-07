@@ -1678,6 +1678,31 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-149 — Wave 6 Progress Assessment aprovada; próximo ciclo institucional: Decision Support
+
+- **Contexto:** "Founder Decision — Wave 6 / Decision Support", em resposta ao `WAVE-6-PROGRESS-ASSESSMENT.md` (D-148).
+- **Veredito do Founder: APPROVED.** Reconhecido oficialmente o estado atual da Wave 6: Executive Orchestrator tecnicamente concluído; Selection, Execution, Correlation e Synthesis implementados; nenhuma Capability possui ainda consumidor de produção; nenhuma Capability classificada como Delivered; progresso executivo da Wave 6 ~40%.
+- **Próximo ciclo institucional mandatado: Decision Support** — entregar a primeira Capability funcional da Wave 6 com consumidor HTTP real, preservando integralmente o Executive Orchestrator e os princípios permanentes. 15 seções mandatadas para o Technical Design: consumidor de produção (rota como adaptador fino, nunca seleciona/correlaciona/sintetiza/acessa evidência/Domain/Knowledge Platform); contrato de entrada mínimo; contrato de saída derivado do Executive Intelligence Result; seleção determinística preservada; execução preservando "uma chamada, um Advisor"; correlação estritamente estrutural; síntese restrita às Explanations; base insuficiente com dois estados estruturais; `EnterpriseMemoryService` fora de escopo; Workflow Runtime fora do caminho síncrono; Executive Briefing/Recommendation Package fora de escopo; consumidor frontend mínimo sem dashboard novo; preservação arquitetural total; ciclo institucional produzindo exclusivamente um Technical Design, ainda sem código.
+- **Missão:** registrar esta decisão em Decision Log/CHANGELOG/Mission Control.
+
+---
+
+### D-150 — Technical Design: Decision Support produzido
+
+- **Contexto:** continuação direta da "Founder Decision — Wave 6/Decision Support" (D-149), mandatando exclusivamente um Technical Design — nenhum código.
+- **`docs/architecture/TECHNICAL-DESIGN-DECISION-SUPPORT.md` produzido**, resolvendo primeiro as quatro questões arquiteturais remanescentes necessárias ao Decision Support (Wave 6 Progress Assessment §9): (1) **paralelismo (§8.3)** — decidido sequencial, mantendo a implementação já testada, paralelismo deferred por ausência de necessidade real demonstrada; (2) **cache (§8.4)** — decidido nenhum cache, deferred, evitando infraestrutura paralela sem consumidor comprovado; (3) **confiança (§8.7)** — decidido nenhum score numérico, apenas o binário `had_evidence` já existente, por respeito ao Princípio 9 (nenhum ranking); (4) **duplicação de citação (§8.8)** — decidido não deduplicar, citações expostas por Advisor sem mesclagem, por respeito ao Princípio 4 (proveniência exclusiva por Advisor).
+- **Rota `POST /decision-support/ask` desenhada** como adaptador fino em `src/api/routes/intelligence.py` (mesmo módulo das 8 rotas de Advisor, nunca módulo paralelo): constrói `SessionContext`/`AdvisorFramework`/`ExecutiveOrchestrator` via DI (uma dependência nova, `build_orchestrator_prompt_registry()`, espelhando `build_prompt_registry()` com `base_path="src/services"`), traduz `DecisionSupportRequest` em `SelectionSignals`, chama `orchestrator.run(Capability.DECISION_SUPPORT, ...)`, mapeia `ExecutiveIntelligenceResult` para `DecisionSupportResponse` — nenhuma lógica de domínio na rota.
+- **Contrato de entrada**: `question` (obrigatório) + `project_name`/`portfolio_id` (opcionais, alimentam `OrchestrationScope`) — nenhum campo de Capability (identificada pela própria rota, simetria com as 8 rotas de Advisor) e nenhum campo `explicit` exposto (evitaria vazar vocabulário interno do catálogo). **Contrato de saída**: `capability`/`insufficient_basis`/`insufficient_basis_reason`/`answer`/`advisors_used`/`citations`/`composition_trace` — todos derivados exclusivamente de `ExecutiveIntelligenceResult`, nenhum campo interno novo inventado.
+- **Risco de escopo identificado e resolvido em nível de decisão (não de código)**: `project_name` omitido faz Advisors project-scoped (Risk/Delivery) agregarem evidência de toda a organização (`AIContextEngine.gather()` com `project_name=None` já resolve assim desde a Wave 3) — comportamento pré-existente, nunca alterado, mas alcançado pela primeira vez por um caminho de produção; aceito e documentado explicitamente como intencional.
+- **Consumidor frontend mínimo desenhado**: BFF (`app/api/bff/decision-support/route.ts`, primeira rota BFF org-level de uma Capability/Advisor), hook (`use-ask-decision-support.ts`), painel (`decision-support-panel.tsx`) adicionado ao Dashboard Executivo já existente — nenhuma tela nova, nenhum item de menu novo.
+- **RBAC**: reutiliza `intelligence.read`, a mesma permissão das 8 rotas de Advisor — nenhuma nova permissão criada (CLAUDE.md: nunca criar novo registry).
+- **Estratégia incremental de três etapas** definida (Etapa 1: rota HTTP backend + testes; Etapa 2: consumidor frontend mínimo + testes; Etapa 3: validação E2E + fechamento do Epic, com atualização da Wave 6 Delivery Matrix reclassificando Decision Support de Partially Delivered para Delivered).
+- **Nenhuma inconsistência arquitetural encontrada** entre este desenho e qualquer decisão já registrada na Vision, AR-16, AR-17, no Domain Blueprint, ou no Technical Design original do Executive Orchestrator.
+- **Verificação:** missão exclusivamente documental — `git status` confirma zero alteração em `src/`/`tests/`/`web/`; `ruff check src tests`/`tsc`/`eslint` confirmados limpos (nenhum arquivo de código tocado).
+- **Missão:** registrar esta decisão em Decision Log/CHANGELOG/Mission Control, commit e push. Retornar obrigatoriamente para Executive Review. Nenhuma implementação deverá começar antes da aprovação explícita do Founder.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.

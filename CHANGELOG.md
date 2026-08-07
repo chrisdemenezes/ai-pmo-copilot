@@ -1906,3 +1906,24 @@ Avaliacao exclusiva (nenhum codigo, nenhum Domain Blueprint, nenhum Technical De
 **Missão:** aguardar recomendacao sobre o proximo ciclo institucional e nova autorizacao explicita do Founder.
 
 **Decision Log:** D-148.
+
+## Wave 6 — Decision Support: ciclo aprovado (2026-08-07)
+
+Founder Decision "Wave 6 / Decision Support": APPROVED do Wave 6 Progress Assessment. Proximo ciclo institucional mandatado: Decision Support -- primeira Capability funcional da Wave 6 com consumidor HTTP real.
+
+**Missão:** Technical Design (proxima entrada) -- nenhum codigo nesta decisao.
+
+**Decision Log:** D-149.
+
+## Wave 6 — Technical Design: Decision Support (2026-08-07)
+
+Technical Design exclusivo (nenhum codigo) para a primeira Capability funcional da Wave 6 com consumidor de producao real.
+
+**Adicionado**
+- `docs/architecture/TECHNICAL-DESIGN-DECISION-SUPPORT.md` -- rota `POST /decision-support/ask` como adaptador fino, contrato de entrada/saida, fluxo completo, resolucao de 4 questoes arquiteturais remanescentes (paralelismo, cache, confianca, duplicacao de citacao -- todas deferred), consumidor frontend minimo (BFF + hook + painel no Dashboard existente), RBAC reutilizado, plano de testes, estrategia incremental de 3 etapas.
+
+**Verificação:** missao documental; git status confirma zero alteracao em src/tests/web; ruff/tsc/eslint limpos.
+
+**Missão:** retorno obrigatorio para Executive Review. Nenhuma implementacao comeca antes de aprovacao explicita do Founder.
+
+**Decision Log:** D-150.
