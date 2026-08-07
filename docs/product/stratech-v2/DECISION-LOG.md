@@ -1769,6 +1769,22 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-156 — Decision Support, Etapa 3: E2E, fechamento do Epic, reclassificação para Delivered
+
+- **Contexto:** continuação direta do roadmap mandatado pelo Founder (D-155), sem nova pausa. Etapa 3: "E2E + Executive Evidence + reclassificação da Capability."
+- **`web/e2e/mock-backend.mjs` estendido** — novo handler `POST /api/decision-support/ask`, mock isolado do FastAPI real usado exclusivamente pelo Playwright (nunca toca `src/`): valida `question`/`scope`, retorna resposta completa citando Risk/Delivery Advisor para o caminho feliz, e `insufficient_basis` para uma pergunta deliberadamente fora de alcance de qualquer Advisor. Lookup de risco deliberadamente agnóstico a escopo — este mock prova apenas fiação de UI, nunca correteza de evidência por escopo (essa prova já é exaustiva via pytest real contra PostgreSQL real, D-154).
+- **`web/e2e/dashboard.spec.ts` estendido** — 3 novos testes: (1) pergunta executiva com escopo organização, citando Risk Advisor e Delivery Advisor via badges e lista de citações; (2) botão "Perguntar" nunca habilita sem um escopo explicitamente escolhido — nenhum valor pré-selecionado no seletor; (3) Base Insuficiente exibida para pergunta sem cobertura de nenhum Advisor. 9 execuções (3 testes × mobile/md/lg), todas passando.
+- **Suíte E2E completa** (`npx playwright test`): 298 passed, 2 skipped, 3 failed — os 3 failures são de `shell.spec.ts` ("renders exactly twelve nav items"), confirmados pré-existentes e não relacionados a esta missão: reproduzidos identicamente em `git worktree` no commit imediatamente anterior a qualquer trabalho de Decision Support (`c2ed5db`), portanto fora de escopo desta missão.
+- **Suíte backend completa**: `python -m pytest -q` → 846 passed, `EXIT:0`.
+- **Suíte frontend completa**: `npx vitest run` → 522 passed.
+- **Qualidade**: `ruff check src tests` limpo; `npx tsc --noEmit -p .` limpo; `npx eslint .` limpo (incluindo `mock-backend.mjs`/`dashboard.spec.ts`).
+- **Preservação arquitetural confirmada**: `git diff --stat` contra o commit anterior a toda a missão de Decision Support, filtrado para `AdvisorFramework`/`AIContextEngine`/`RecommendationEngine`/`ExplanationEngine`/Workflow Runtime/Event Pipeline/Knowledge Platform/`src/agents` — saída vazia. Nenhum dos 8 Enterprise Advisors alterado em nenhuma das 3 etapas.
+- **`docs/product/governance/WAVE-6-PROGRESS-ASSESSMENT.md` atualizado** — Decision Support reclassificada de Partially Delivered para **Delivered** (§3, §5, novo §13 de adendo com evidência completa e recomendação GO/NO-GO), preservando as seções §1-§12 originais como registro histórico do estado anterior à execução desta Founder Decision.
+- **Veredito final: GO para classificar Decision Support como Delivered.** Consumidor de produção real (rota HTTP + BFF + painel de Dashboard), Explicit Scope (Princípio 13) provado ponta a ponta (isolamento cross-tenant, elegibilidade determinística por scope, ausência de fallback implícito, nenhuma evidência fora do escopo), E2E via browser real, todas as suítes verdes, zero alteração a componente protegido.
+- **Missão:** registrar esta decisão em Decision Log/CHANGELOG/Mission Control, commit independente, push. Apresentar Executive Summary final. Retornar obrigatoriamente para Executive Review — nenhum outro componente da Wave 6 (Executive Briefing, Recommendation Package, ou qualquer outra Capability) inicia automaticamente sem nova Founder Decision explícita.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.

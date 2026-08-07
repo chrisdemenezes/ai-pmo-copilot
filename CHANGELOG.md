@@ -1994,3 +1994,20 @@ Segunda etapa da implementacao: consumidor frontend minimo.
 **Missão:** prosseguir imediatamente para a Etapa 3 (validacao E2E e fechamento do Epic), sem nova pausa, per mandato do Founder.
 
 **Decision Log:** D-155.
+
+## Wave 6 — Decision Support, Etapa 3: E2E e fechamento (2026-08-07)
+
+Terceira e ultima etapa: validacao E2E via browser real, fechamento do Epic, reclassificacao para Delivered.
+
+**Adicionado**
+- `web/e2e/mock-backend.mjs` -- handler `POST /api/decision-support/ask`, mock isolado do FastAPI real usado apenas pelo Playwright.
+- `web/e2e/dashboard.spec.ts` -- 3 novos testes E2E: resposta com escopo organizacao citando Risk+Delivery Advisor; botao "Perguntar" nunca habilita sem escopo explicito; Base Insuficiente para pergunta fora de alcance. 9 execucoes (3 testes x mobile/md/lg), todas passando.
+
+**Verificação:** ruff/tsc/eslint limpos; suite backend completa (846 testes) sem falha; suite frontend completa (522 testes) sem falha; suite E2E completa (298 passed, 2 skipped, 3 failed -- os 3 failures em `shell.spec.ts` confirmados pre-existentes e nao relacionados a esta missao via git worktree contra o commit anterior a todo o trabalho de Decision Support). Preservacao arquitetural confirmada: zero alteracao em AdvisorFramework/AIContextEngine/RecommendationEngine/ExplanationEngine/Workflow Runtime/Event Pipeline/Knowledge Platform/os 8 Advisors.
+
+**Alterado**
+- `docs/product/governance/WAVE-6-PROGRESS-ASSESSMENT.md` -- Decision Support reclassificada de Partially Delivered para Delivered (novo §13, evidencia completa + recomendacao GO/NO-GO); §§1-12 originais preservados como registro historico.
+
+**Missão:** Executive Summary final apresentado. Retornar obrigatoriamente para Executive Review -- nenhum outro componente da Wave 6 inicia automaticamente sem nova Founder Decision explicita.
+
+**Decision Log:** D-156.

@@ -218,3 +218,60 @@ test("dashboard grid stacks to a single column on narrow viewports", async ({ pa
     expect(box!.width).toBeGreaterThan(300);
   }
 });
+
+// Wave 6 -- Decision Support: end-to-end proof of the full chain mandated
+// by the Founder -- usuário → pergunta executiva → Decision Support →
+// Executive Orchestrator → Advisors → resposta integrada -- through the
+// real UI (backend → BFF → hook → panel), citing evidence and naming the
+// Advisors that produced the synthesis.
+test("Decision Support answers an executive question with organization scope, citing its Advisors", async ({
+  page,
+}) => {
+  await login(page);
+
+  const section = page.locator("section", { has: page.getByRole("heading", { name: "Decision Support" }) });
+  await section.scrollIntoViewIfNeeded();
+  await section.getByLabel("Pergunta executiva").fill("Existe risco relevante para a entrega?");
+
+  await section.getByRole("combobox", { name: "Escopo" }).click();
+  await page.getByRole("option", { name: "Organização" }).click();
+
+  await section.getByRole("button", { name: "Perguntar" }).click();
+
+  await expect(section.getByText(/Existe risco de escalação/)).toBeVisible();
+  // { exact: true } disambiguates from the citation list item's own text
+  // ("risk_advisor: Análise de risco #201"), never a strict-mode collision.
+  await expect(section.getByText("risk_advisor", { exact: true })).toBeVisible();
+  await expect(section.getByText("delivery_advisor", { exact: true })).toBeVisible();
+  await expect(section.getByText(/Análise de risco/)).toBeVisible();
+});
+
+// Explicit Scope (Vision, Princípio 13): "Organização" is never the
+// starting state -- the question can be typed, but the panel must not
+// allow submission until a scope is explicitly chosen.
+test("Decision Support never submits without an explicitly chosen scope", async ({ page }) => {
+  await login(page);
+
+  const section = page.locator("section", { has: page.getByRole("heading", { name: "Decision Support" }) });
+  await section.scrollIntoViewIfNeeded();
+  await section.getByLabel("Pergunta executiva").fill("Existe risco relevante para a entrega?");
+
+  await expect(section.getByRole("button", { name: "Perguntar" })).toBeDisabled();
+});
+
+// Base Insuficiente: declared explicitly, never a blank or invented answer.
+test("Decision Support declares Base Insuficiente for a question no Advisor can answer", async ({
+  page,
+}) => {
+  await login(page);
+
+  const section = page.locator("section", { has: page.getByRole("heading", { name: "Decision Support" }) });
+  await section.scrollIntoViewIfNeeded();
+  await section.getByLabel("Pergunta executiva").fill("Qual a previsão do tempo hoje?");
+
+  await section.getByRole("combobox", { name: "Escopo" }).click();
+  await page.getByRole("option", { name: "Organização" }).click();
+  await section.getByRole("button", { name: "Perguntar" }).click();
+
+  await expect(section.getByText("Base insuficiente")).toBeVisible();
+});

@@ -1249,6 +1249,85 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Wave 6 -- Decision Support: first production consumer of the Executive
+  // Orchestrator, mirroring src/api/routes/intelligence.py's
+  // POST /api/decision-support/ask (TECHNICAL-DESIGN-DECISION-SUPPORT.md).
+  // This mock proves the UI wiring end-to-end (BFF -> hook -> panel), never
+  // re-implements Selection Rule/Correlation/Síntese -- those are proven
+  // exhaustively by the real pytest suite (tests/test_decision_support_api.py).
+  if (req.method === "POST" && url.pathname === "/api/decision-support/ask") {
+    let raw = "";
+    req.on("data", (chunk) => (raw += chunk));
+    req.on("end", () => {
+      const { question, scope } = JSON.parse(raw);
+      if (!question || question.trim().length < 3) {
+        return send(res, 422, { detail: "question inválida" });
+      }
+      if (!scope || typeof scope !== "object" || !scope.type) {
+        return send(res, 422, { detail: "scope é obrigatório" });
+      }
+
+      // Scope-agnostic on purpose: this mock proves the UI wiring
+      // (BFF -> hook -> panel) end-to-end, never per-Advisor evidence
+      // correctness by scope -- that is proven exhaustively by the real
+      // pytest suite (tests/test_decision_support_api.py, 18 tests +
+      // TestExplicitScopeEligibility).
+      const latestRisk = ANALYSES.filter((a) => a.kind === "risk").sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at),
+      )[0];
+
+      if (scope.type === "organization" && /previs.o do tempo/i.test(question)) {
+        return send(res, 200, {
+          capability: "decision_support",
+          insufficient_basis: true,
+          insufficient_basis_reason: "selection_empty",
+          answer: null,
+          advisors_used: [],
+          citations: [],
+          composition_trace: {
+            selection_signals: [question],
+            selected_advisor_names: [],
+            advisors_used: [],
+            correlations: [],
+            synthesis_source_advisor_names: null,
+          },
+        });
+      }
+
+      const firstRisk = latestRisk?.payload?.model_output?.risks?.[0];
+      return send(res, 200, {
+        capability: "decision_support",
+        insufficient_basis: false,
+        insufficient_basis_reason: null,
+        answer: `Existe risco de escalação (${firstRisk ? firstRisk.description : "ver histórico"}) e a entrega do projeto Multilift está em andamento.`,
+        advisors_used: ["risk_advisor", "delivery_advisor"],
+        citations: firstRisk
+          ? [
+              {
+                advisor_name: "risk_advisor",
+                source_type: "analysis_record",
+                source_id: latestRisk.id,
+                source_label: `Análise de risco #${latestRisk.id}`,
+              },
+            ]
+          : [],
+        composition_trace: {
+          selection_signals: [question],
+          selected_advisor_names: ["risk_advisor", "delivery_advisor"],
+          advisors_used: [
+            { advisor_name: "risk_advisor", had_evidence: true },
+            { advisor_name: "delivery_advisor", had_evidence: true },
+          ],
+          correlations: [
+            { advisor_names: ["delivery_advisor", "risk_advisor"], is_structural_pair: true },
+          ],
+          synthesis_source_advisor_names: ["risk_advisor", "delivery_advisor"],
+        },
+      });
+    });
+    return;
+  }
+
   // TIP-007 -- Meeting Intelligence (Comunicação / FS-006). The only one of
   // the 3 analyze routes whose body uses "transcript", not "project_context"
   // -- matches web/app/api/bff/.../analyze/meeting/route.ts, which is the
