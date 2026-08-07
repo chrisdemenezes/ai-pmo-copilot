@@ -1598,6 +1598,19 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-143 — Executive Orchestrator, Etapa 2: Selection Rules determinísticas implementadas
+
+- **Contexto:** continuação direta do roadmap de implementação mandatado pelo Founder (D-142), sem nova pausa. Etapa 2: "implementação das Selection Rules determinísticas. Ainda sem correlação."
+- **`src/services/executive_orchestrator/catalog.py` criado** — o catálogo fechado dos 8 `AdvisorIdentity`s (Domain Blueprint §2.1), cada `name` idêntico ao já usado por cada `AdvisorContract` real, cada `description` uma restatement de uma linha do que a própria Advisor Specification de cada Advisor já declara publicamente (para o Risk Advisor, anterior à convenção de Advisor Specification, do próprio docstring de `RiskAdvisorAgent`). `VOCABULARY` — tabela fixa e versionada de termos por Advisor Identity para correspondência lexical implícita (Technical Design §2.1.2), sobreposição entre Advisors legítima e esperada, nunca resolvida aqui. `ADVISOR_NAMES_REQUIRING_PORTFOLIO_ID` — único precondicionante estrutural encontrado entre os 8: o Portfolio Advisor já exige `portfolio_id` em seu próprio contrato HTTP existente (`PortfolioAdvisorRequest.portfolio_id`); dobrado para dentro da Seleção (nunca da Execução), garantindo que todo Advisor que alcança a Execução seja sempre plenamente provisionável.
+- **`src/services/executive_orchestrator/selection_rule.py` criado** — `OrchestrationScope` (união dos parâmetros de escopo que os 8 Advisors já exigem hoje: `project_name`/`portfolio_id`, nada inventado); `SelectionSignals` (sinais explícitos, com precedência determinística absoluta sobre correspondência lexical contra a pergunta, exatamente como decidido no Technical Design §2.1); `evaluate_selection_rule()` — função pura, sem estado externo, sem dependência de evidência já coletada, retornando sempre o mesmo `SelectionOutcome` para a mesma entrada; nenhuma importação, nenhuma referência, nenhum parâmetro relacionado a LLM em todo o módulo.
+- **`tests/test_executive_orchestrator_selection_rule.py` criado** — 18 testes, incluindo as evidências explicitamente mandatadas pela Garantia 1 do Founder: **seleção determinística** (mesmos sinais → mesma seleção, múltiplas execuções) e **repetibilidade da mesma pergunta** (5 execuções, mesmo conjunto sempre); **ausência de seleção pelo LLM** (nenhuma importação relacionada a LLM no módulo, via `ast`; nenhum parâmetro relacionado a LLM na assinatura de `evaluate_selection_rule`, via `inspect`); sinais explícitos (por termo e por nome de Advisor, múltiplos simultâneos, precedência absoluta sobre o texto da pergunta); correspondência lexical implícita (single e multi-Advisor); seleção vazia (pergunta irrelevante, sinais totalmente ausentes); a precondição estrutural do Portfolio Advisor (nunca selecionado sem `portfolio_id`, selecionado assim que fornecido, demais Advisors nunca afetados); conteúdo do `SelectionTraceEntry` em cada caso, inclusive seleção vazia.
+- **Nenhuma correlação, nenhuma execução de Advisor, nenhuma síntese nesta etapa** — exatamente o escopo mandatado para a Etapa 2.
+- **Nenhuma inconsistência arquitetural encontrada.** Nenhum dos cinco gatilhos de interrupção do Founder foi disparado.
+- **Verificação:** `ruff check src tests`/`tsc`/`eslint` limpos; 18/18 testes novos passando (29/29 incluindo Etapa 1); suíte completa de regressão executada sem falha.
+- **Missão:** registrar esta decisão em Decision Log/CHANGELOG/Mission Control, commit independente. Prosseguir imediatamente para a Etapa 3 (ciclo completo, sem síntese), sem nova pausa, per mandato do Founder.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.

@@ -1816,3 +1816,18 @@ Founder aprovou o Technical Design e deu GO para implementacao, mandatando execu
 **Missão:** prosseguir imediatamente para a Etapa 2 (Selection Rules deterministicas), sem nova pausa, per mandato do Founder.
 
 **Decision Log:** D-142.
+
+## Wave 6 — Executive Orchestrator, Etapa 2: Selection Rules deterministicas (2026-08-07)
+
+Continuacao direta do roadmap mandatado pelo Founder, sem nova pausa. Etapa 2: Selection Rules deterministicas, ainda sem correlacao.
+
+**Adicionado**
+- `src/services/executive_orchestrator/catalog.py` -- catalogo fechado dos 8 AdvisorIdentity (nome identico a cada AdvisorContract real, descricao grounded na Advisor Specification/docstring de cada um); VOCABULARY (tabela fixa e versionada de termos por Advisor para correspondencia lexical implicita); ADVISOR_NAMES_REQUIRING_PORTFOLIO_ID (Portfolio Advisor exige portfolio_id, dobrado para dentro da Selecao, nunca da Execucao).
+- `src/services/executive_orchestrator/selection_rule.py` -- OrchestrationScope, SelectionSignals (sinais explicitos com precedencia absoluta sobre correspondencia lexical), evaluate_selection_rule() -- funcao pura, deterministica, nenhuma referencia a LLM.
+- `tests/test_executive_orchestrator_selection_rule.py` -- 18 testes: determinismo e repetibilidade, ausencia de LLM (via ast/inspect), sinais explicitos e implicitos, precedencia, selecao vazia, precondicao do Portfolio Advisor, conteudo do trace de selecao.
+
+**Verificação:** ruff/tsc/eslint limpos; 18/18 testes novos passando (29/29 incluindo Etapa 1); suite completa de regressao sem falha.
+
+**Missão:** prosseguir imediatamente para a Etapa 3 (ciclo completo, sem sintese), sem nova pausa, per mandato do Founder.
+
+**Decision Log:** D-143.
