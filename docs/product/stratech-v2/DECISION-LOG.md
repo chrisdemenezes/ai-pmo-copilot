@@ -1785,6 +1785,38 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-157 — Founder Decision: encerramento formal do Decision Support (ratificação) + mandato de E2E Baseline Stabilization
+
+- **Contexto:** "Founder Decision — Decision Support Closure + E2E Baseline Stabilization". O Founder revisou a Executive Evidence apresentada em D-156 e emitiu veredito formal.
+- **Veredito do Founder: APPROVED.** Decision Support está oficialmente classificado como **DELIVERED**. Reconhecidas como evidências: rota HTTP funcional; BFF funcional; consumidor real no Dashboard; Explicit Scope aplicado ponta a ponta; Advisor Eligibility por scope; isolamento organizacional; Selection determinística; execução multi-Advisor; Composition Trace; citations; insufficient_basis; E2E funcional nos três breakpoints; preservação arquitetural dos componentes compartilhados. Esta ratificação confirma, sem alterar retroativamente, a reclassificação já registrada em D-156/`WAVE-6-PROGRESS-ASSESSMENT.md` §13.
+- **Nova missão mandatada — E2E Baseline Stabilization:** antes de iniciar qualquer outra Capability da Wave 6, executar missão isolada para eliminar os 3 failures pré-existentes em `shell.spec.ts` (já identificados e confirmados fora de escopo do Decision Support em D-156), com as seguintes regras: diagnóstico individual e causa raiz obrigatórios antes de qualquer correção; proibição de alterar comportamento funcional apenas para satisfazer testes; proibição de mascarar failures (skip, retry adicional, relaxamento de assertion, alteração de timeout sem causa técnica comprovada); correção do produto se houver defeito real, do teste se comprovadamente desatualizado/incorreto; preservação integral de Decision Support e Executive Orchestrator; suítes completas (backend/frontend/E2E) + ruff/tsc/eslint após a correção; critério de encerramento obrigatório: **0 failures na suíte E2E completa**.
+- **Missão:** registrar este encerramento em Decision Log/CHANGELOG/Mission Control/Wave 6 Delivery Matrix; em seguida executar a E2E Baseline Stabilization Mission (ver D-158). Nenhuma nova Capability da Wave 6 deverá ser iniciada automaticamente.
+
+---
+
+### D-158 — E2E Baseline Stabilization: os 3 failures de `shell.spec.ts` eliminados (0 failed)
+
+- **Contexto:** execução direta do mandato do Founder em D-157.
+- **Diagnóstico individual (obrigatório antes de qualquer correção), produzido para os 3 failures** (mobile/md/lg, mesmo teste `shell.spec.ts:38` — "renders exactly twelve nav items, only Dashboard active on /dashboard"):
+  - **Cenário esperado:** nav (bottom-nav em mobile, sidebar-nav em md/lg) com exatamente 13 links, terminando em Mission Control.
+  - **Comportamento observado:** `toHaveCount(13)` → **Received: 14**, idêntico nos 3 breakpoints.
+  - **Reprodução no HEAD:** confirmada, determinística.
+  - **Reprodução no baseline anterior** (`c2ed5db`, commit imediatamente anterior a todo o trabalho de Decision Support): confirmada — `web/components/shell/navigation.ts` naquele commit já continha os mesmos 14 `NAV_ITEMS`.
+  - **Causa raiz:** o item real "Documentos" (`/administracao/documentos`) foi adicionado a `NAV_ITEMS` no commit `6fb54eb` ("Epic W5-0: Document Ingestion", 2026-08-01) — Capability real, com rota, dado e testes próprios, seguindo a regra de entrada de navegação já documentada em `navigation.ts`. `shell.spec.ts` foi editado pela última vez no commit `45f516e` ("Wave Completion Review retrospective, item 6: Convites", 2026-07-24), **antes** da adição de Documentos, e nunca foi atualizado depois — o commit `6fb54eb` não tocou o arquivo de teste. Dívida de sincronização teste↔produto anterior a toda esta missão, não uma regressão recente.
+  - **Classificação: TESTE (desatualizado).** O produto está correto.
+- **Correção aplicada — exclusivamente ao teste** (Regra 5 do Founder: corrigir o teste quando comprovadamente desatualizado): `web/e2e/shell.spec.ts` — título do teste corrigido de "twelve" para "fourteen" (já estava dessincronizado da própria asserção interna, que checava 13); `toHaveCount(13)` → `toHaveCount(14)`; adicionada a asserção que faltava para `links.nth(12)` → `/administracao/documentos`; `links.nth(13)` → `/mission-control` (deslocado). Nenhuma alteração de produto. Nenhum `skip`/`fixme`/aumento de retries/relaxamento de assertion/alteração de timeout — diff único, estritamente aditivo em rigor (mais asserções, não menos).
+- **Ausência de mascaramento confirmada:** `git diff --stat` do commit → um único arquivo (`web/e2e/shell.spec.ts`), 5 inserções/3 remoções; `playwright.config.ts` sem alteração de `retries`; único `test.skip()` em todo o E2E é o pré-existente "mobile-only check" (linha 94, não tocado por este diff), responsável pelos 2 skips esperados.
+- **Os 3 casos originais reexecutados isoladamente** (`npx playwright test shell.spec.ts -g "renders exactly fourteen nav items"`): 3/3 passed (mobile/md/lg).
+- **Suíte E2E completa** (`npx playwright test`, execução isolada, sem concorrência de recursos): **301 passed, 2 skipped, 0 failed**, `EXIT:0`.
+- **Suíte backend completa** (`python -m pytest -q`): **846 passed**, `EXIT:0`. (Nota: uma primeira tentativa, executada em paralelo com a suíte E2E completa, produziu 573 erros por `Connection refused` do PostgreSQL — falha de infraestrutura do ambiente, mesma classe de incidente já registrada anteriormente na missão, sem relação com este código; reexecutada isoladamente após reiniciar o serviço, resultado limpo.)
+- **Suíte frontend completa** (`npx vitest run`): **522 passed**, `EXIT:0`.
+- **Qualidade:** `ruff check src tests` limpo; `npx tsc --noEmit -p .` limpo; `npx eslint .` limpo.
+- **Preservação confirmada:** único arquivo alterado em toda a missão é `web/e2e/shell.spec.ts`; Decision Support e Executive Orchestrator preservados integralmente (nenhum arquivo de `src/services/executive_orchestrator/`, `src/api/routes/intelligence.py`, `web/components/dashboard/decision-support-panel.tsx` ou correlatos tocado).
+- **Veredito final: GO para retomar a execução da Wave 6.** A Wave 6 E2E baseline está estabilizada em 0 failures, sem dívida de teste conhecida pendente.
+- **Missão:** registrar esta decisão em Decision Log/CHANGELOG/Mission Control, commit independente, push. Nenhuma nova Capability da Wave 6 deverá ser iniciada automaticamente sem nova Founder Decision explícita.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.

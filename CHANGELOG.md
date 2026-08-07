@@ -2011,3 +2011,19 @@ Terceira e ultima etapa: validacao E2E via browser real, fechamento do Epic, rec
 **Missão:** Executive Summary final apresentado. Retornar obrigatoriamente para Executive Review -- nenhum outro componente da Wave 6 inicia automaticamente sem nova Founder Decision explicita.
 
 **Decision Log:** D-156.
+
+## Wave 6 — Decision Support: encerramento ratificado + E2E Baseline Stabilization (2026-08-07)
+
+Founder ratificou Decision Support = Delivered e mandatou missao isolada para eliminar os 3 failures pre-existentes de `shell.spec.ts` antes de iniciar qualquer nova Capability da Wave 6.
+
+**Corrigido**
+- `web/e2e/shell.spec.ts` -- teste "renders exactly twelve nav items" corrigido para "fourteen": causa raiz era o item real de navegacao "Documentos" (Epic W5-0, Document Ingestion, 2026-08-01), adicionado a `NAV_ITEMS` apos a ultima atualizacao do teste (2026-07-24) e nunca refletido na asercao. Classificado como teste desatualizado, nao defeito de produto. Correcao unica: contagem 13->14 + asercao da 14a entrada (`/administracao/documentos`). Nenhuma alteracao de produto, nenhum skip/fixme/retry/relaxamento de assertion.
+
+**Verificação:** os 3 casos originais reexecutados isoladamente (3/3 passed); suite E2E completa (301 passed, 2 skipped, 0 failed); suite backend completa (846 testes) sem falha; suite frontend completa (522 testes) sem falha; ruff/tsc/eslint limpos. Preservacao confirmada: unico arquivo alterado em toda a missao.
+
+**Alterado**
+- `docs/product/governance/WAVE-6-PROGRESS-ASSESSMENT.md` -- novo §14: ratificacao final do Founder + resultado da E2E Baseline Stabilization.
+
+**Missão:** GO para retomar a execucao da Wave 6. Nenhuma nova Capability inicia automaticamente sem nova Founder Decision explicita.
+
+**Decision Log:** D-157, D-158.

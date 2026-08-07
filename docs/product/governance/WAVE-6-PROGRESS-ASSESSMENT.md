@@ -211,3 +211,23 @@ Esta seção é um adendo posterior à avaliação original acima (§§1-12), qu
 **GO/NO-GO — Decision Support = Delivered:** **GO.** Consumidor real (rota HTTP + BFF + painel de Dashboard), contrato de resposta completo, Explicit Scope aplicado e provado ponta a ponta (isolamento, seleção determinística, ausência de fallback implícito), E2E via browser real, todas as suítes verdes, zero alteração a componentes protegidos. Nenhum bloqueio remanescente para esta Capability específica.
 
 **Nenhuma implementação, Domain Blueprint, ou Technical Design é produzido por esta avaliação.** Aguarda decisão explícita do Founder sobre o próximo ciclo institucional.
+
+---
+
+## 14. Atualização — Ratificação final do Founder + E2E Baseline Stabilization (2026-08-07, D-157/D-158)
+
+O Founder revisou a Executive Evidence do §13 e emitiu veredito formal ("Founder Decision — Decision Support Closure + E2E Baseline Stabilization", D-157): **APPROVED — Decision Support = DELIVERED**, ratificando a reclassificação do §13 sem alterá-la retroativamente.
+
+O mesmo Founder Decision mandatou uma missão isolada, prévia a qualquer nova Capability da Wave 6: eliminar os 3 failures pré-existentes de `shell.spec.ts`, já identificados no §13 como fora de escopo do Decision Support. Diagnóstico obrigatório antes de qualquer correção; proibição de mascaramento (skip, retry, relaxamento de assertion, timeout sem causa comprovada); critério de encerramento: 0 failures na suíte E2E completa.
+
+**Causa raiz confirmada:** os 3 failures eram um único teste (`shell.spec.ts:38`, 3 breakpoints) que nunca foi atualizado quando o item real de navegação "Documentos" (`/administracao/documentos`, Epic W5-0, Document Ingestion, 2026-08-01) foi adicionado a `NAV_ITEMS` — o teste esperava 13 links, o produto corretamente renderiza 14. Classificação: **teste desatualizado**, não defeito de produto.
+
+**Correção:** exclusivamente em `web/e2e/shell.spec.ts` (contagem e asserção da 14ª entrada). Nenhuma alteração de produto, nenhuma alteração a Decision Support ou ao Executive Orchestrator.
+
+**Resultado final (D-158):**
+- E2E completo, execução isolada: **301 passed, 2 skipped, 0 failed**.
+- Backend completo: **846 passed**.
+- Frontend completo: **522 passed**.
+- ruff/tsc/eslint: limpos.
+
+**A Wave 6 E2E baseline está estabilizada em 0 failures.** GO para retomar a execução da Wave 6, aguardando nova decisão explícita do Founder sobre qual Capability iniciar em seguida.
