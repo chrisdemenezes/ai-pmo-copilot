@@ -1654,6 +1654,30 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-147 — Encerramento formal do Executive Orchestrator
+
+- **Contexto:** "Founder Decision — Executive Orchestrator", em resposta ao Executive Summary apresentado ao final da Etapa 5 (D-146).
+- **Veredito do Founder: APPROVED.** O Executive Orchestrator está oficialmente aprovado para encerramento.
+- **Reconhecidas institucionalmente como evidências de conclusão:** 5 de 5 etapas incrementais concluídas; Selection Rules determinísticas e independentes de LLM; execução preservando `AdvisorFramework.run()` com exatamente um Advisor por chamada; correlação estritamente estrutural; síntese restrita às Explanations produzidas pelos Advisors; Composition Trace completo; Executive Intelligence Result implementado; tratamento estrutural de Selection Empty e Collection Empty; ausência de acesso direto a fontes primárias; ausência de memória entre requisições; 54 testes novos; suíte completa com 822 passed e zero failures; ruff/tsc/eslint limpos; preservação mecânica dos componentes arquiteturais protegidos; implementação integralmente aditiva.
+- **Estado do componente atualizado:** Executive Orchestrator — **ENCERRADO**.
+- **Autorização do Founder:** após o registro, nenhum outro componente da Executive Intelligence deverá ser iniciado automaticamente.
+- **Próxima missão mandatada:** produzir exclusivamente uma avaliação de progresso da Wave 6 contra `WAVE-6-EXECUTIVE-INTELLIGENCE-KICKOFF.md`/`WAVE-6-EXECUTIVE-INTELLIGENCE-VISION.md`/`AR-17-EXECUTIVE-INTELLIGENCE-COMPOSITION-MODEL.md`/roadmap preliminar de Epics — missão exclusivamente de avaliação e replanejamento, nenhum código, nenhum Domain Blueprint, nenhum Technical Design, nenhuma implementação.
+- **Missão:** registrar esta decisão em Decision Log/CHANGELOG/Mission Control.
+
+---
+
+### D-148 — Wave 6 Progress Assessment produzida
+
+- **Contexto:** continuação direta da "Founder Decision — Executive Orchestrator" (D-147), mandatando exclusivamente uma avaliação — nenhum código, nenhum Domain Blueprint, nenhum Technical Design, nenhuma implementação.
+- **`docs/product/governance/WAVE-6-PROGRESS-ASSESSMENT.md` produzido**, comparando o estado real do código (`src/services/executive_orchestrator/`, suíte de testes, `src/api/routes/`, `web/`) contra `WAVE-6-EXECUTIVE-INTELLIGENCE-KICKOFF.md` (Epics W6-1 a W6-4), `WAVE-6-EXECUTIVE-INTELLIGENCE-VISION.md` (12 Princípios) e `AR-17-EXECUTIVE-INTELLIGENCE-COMPOSITION-MODEL.md` (4 operações estruturais, 6 Capabilities).
+- **Achado central, grounded por leitura de código (`grep` em `src/api/` e `web/` para `ExecutiveOrchestrator`/`executive_orchestrator`):** o Executive Orchestrator não tem nenhuma rota HTTP e nenhum consumidor de frontend — é instanciado exclusivamente dentro da suíte de testes. Nenhuma das seis Capabilities é, portanto, "funcional em produção" no sentido do próprio Critério de Encerramento nº3 do Kickoff §11 ("implementada, testada e funcional em produção, citando evidência real de dois ou mais Advisors distintos na mesma resposta") — apesar de a cadeia completa estar provada ponta a ponta em teste (D-146). Classificação aplicada rigorosamente por Capability: quatro das seis (Executive Narrative, Cross Advisor Correlation, Conflict Analysis, Decision Support) têm comportamento real exercitado via `orchestrator.run()` em teste; duas (Executive Briefing, Recommendation Package) existem apenas como valor de enum incluído em `CAPABILITIES_WITH_SYNTHESIS`, nunca invocadas por nenhum teste.
+- **Wave 6 Delivery Matrix produzida** — as seis Capabilities classificadas Partially Delivered (nenhuma Delivered, por ausência de consumidor de produção); Epic Ledger atualizado proposto (W6-1 absorvido pelo Executive Orchestrator; W6-2 parcialmente absorvido — Correlação estrutural entregue, Conflict Analysis como Capability entregue mas nunca exercitada; W6-3 parcialmente absorvido — Síntese com citação preservada por proveniência de Advisor, mas nenhum "modelo de citação unificado" per §8.6 do Kickoff foi construído; W6-4 não iniciado); percentual de conclusão da Wave 6 e caminho crítico restante apresentados com evidência concreta de código para cada item.
+- **Nenhuma inconsistência arquitetural encontrada** — a lacuna identificada (ausência de rota/consumidor) é uma lacuna de escopo já esperada pelo próprio roadmap (Epic W6-1 nunca previu rota HTTP), não uma divergência entre código e decisão já tomada.
+- **Verificação:** missão exclusivamente documental — `git status` confirma zero alteração em `src/`/`tests/`/`web/`; `ruff check src tests`/`tsc`/`eslint` confirmados limpos (nenhum arquivo de código tocado).
+- **Missão:** registrar esta decisão em Decision Log/CHANGELOG/Mission Control, commit e push. Nenhum trabalho posterior deverá ser iniciado automaticamente — aguarda recomendação sobre o próximo ciclo institucional e nova autorização explícita do Founder.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.
