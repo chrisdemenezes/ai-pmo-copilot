@@ -1949,3 +1949,28 @@ Revisao do Technical Design incorporando o principio Executive Intelligence Expl
 **Missão:** retorno obrigatorio para Executive Review. Nenhuma implementacao comeca antes de aprovacao explicita do Founder, incluindo especificamente do impacto sobre catalog.py/selection_rule.py.
 
 **Decision Log:** D-152.
+
+## Wave 6 — Explicit Scope / Decision Support: APPROVED, GO (2026-08-07)
+
+Founder Decision: APPROVED, GO para implementacao. Impacto pontual sobre catalog.py/selection_rule.py explicitamente autorizado.
+
+**Missão:** executar as 3 etapas ja aprovadas no Technical Design.
+
+**Decision Log:** D-153.
+
+## Wave 6 — Decision Support, Etapa 1: backend (2026-08-07)
+
+Primeira etapa da implementacao: rota HTTP, Explicit Scope, eligibility por escopo.
+
+**Adicionado**
+- `src/services/executive_orchestrator/catalog.py` -- `ADVISOR_ELIGIBLE_SCOPES`, tabela de elegibilidade por escopo, aditiva, nenhum Advisor alterado.
+- `src/services/executive_orchestrator/selection_rule.py` -- `_scope_type()` + nova condicao AND'd em `_meets_structural_precondition()`, nunca substitui a precondicao de portfolio ja existente (D-143).
+- `src/api/routes/intelligence.py` -- `DecisionSupportScope`/`DecisionSupportRequest`/`DecisionSupportResponse`, `build_orchestrator_prompt_registry()`, `resolve_decision_support_scope()` (reusa `DomainService.get_project()`/`get_portfolio()` ja existentes, cross-tenant -> 404), rota `POST /decision-support/ask` como adaptador fino. RBAC: `intelligence.read` reutilizada.
+- `tests/test_decision_support_api.py` -- 18 testes (fluxo completo, base insuficiente, os 10 cenarios obrigatorios do Founder, eligibilidade A/B na fronteira HTTP, RBAC, 502, ast).
+- `tests/test_executive_orchestrator_selection_rule.py` estendido -- `TestExplicitScopeEligibility`, 6 testes (eligibilidade C/D/E em isolamento).
+
+**Verificação:** ruff limpo; 18/18 + 6/6 testes novos passando; suite completa (846 testes) sem falha.
+
+**Missão:** prosseguir imediatamente para a Etapa 2 (consumidor frontend minimo), sem nova pausa, per mandato do Founder.
+
+**Decision Log:** D-154.

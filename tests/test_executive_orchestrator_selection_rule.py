@@ -6,6 +6,10 @@ import ast
 import inspect
 
 from src.services.executive_orchestrator import selection_rule as selection_rule_module
+from src.services.executive_orchestrator.catalog import (
+    ADVISOR_ELIGIBLE_SCOPES,
+    ADVISOR_IDENTITY_CATALOG,
+)
 from src.services.executive_orchestrator.selection_rule import (
     OrchestrationScope,
     SelectionSignals,
@@ -130,6 +134,105 @@ class TestPortfolioAdvisorStructuralPrecondition:
         outcome = evaluate_selection_rule(signals)
 
         assert {identity.name for identity in outcome.selected} == {"risk_advisor"}
+
+
+class TestExplicitScopeEligibility:
+    """Founder Decision -- Explicit Scope / Decision Support, §3/§7 A-D:
+    scope eligibility (`catalog.ADVISOR_ELIGIBLE_SCOPES`) is enforced
+    inside the Selection Rule itself -- no Advisor is ever selected under
+    a scope its own evidence-gathering cannot honor, and no explicit
+    signal (not even the Advisor's own name) can override that."""
+
+    def test_project_scope_never_selects_an_organization_only_advisor(self):
+        signals = SelectionSignals(
+            explicit=frozenset({"pmo", "risco"}),
+            scope=OrchestrationScope(project_name="Aurora"),
+        )
+
+        outcome = evaluate_selection_rule(signals)
+
+        names = {identity.name for identity in outcome.selected}
+        assert "pmo_advisor" not in names
+        assert names == {"risk_advisor"}
+
+    def test_portfolio_scope_never_selects_organization_only_or_project_scoped_advisor(self):
+        signals = SelectionSignals(
+            explicit=frozenset({"pmo", "risco", "entrega", "portfólio"}),
+            scope=OrchestrationScope(portfolio_id=42),
+        )
+
+        outcome = evaluate_selection_rule(signals)
+
+        assert {identity.name for identity in outcome.selected} == {"portfolio_advisor"}
+
+    def test_organization_is_an_eligible_scope_type_for_all_eight_advisors(self):
+        # Founder Decision -- Explicit Scope / Decision Support §3: "todos
+        # os 8 Enterprise Advisors" under scope=organization. This is a
+        # property of the scope-*type* eligibility table itself (Portfolio
+        # Advisor is never excluded by scope type "organization") -- not a
+        # claim that it is actually selectable with no portfolio_id, which
+        # remains governed by the older, untouched, pre-existing
+        # `ADVISOR_NAMES_REQUIRING_PORTFOLIO_ID` precondition (D-143),
+        # never widened here (Founder §3/§6: "Nenhum Advisor deverá ser
+        # alterado").
+        for identity in ADVISOR_IDENTITY_CATALOG:
+            assert "organization" in ADVISOR_ELIGIBLE_SCOPES[identity.name], identity.name
+
+    def test_organization_scope_selects_all_eight_when_each_precondition_is_met(self):
+        # Every Advisor except Portfolio Advisor is genuinely selectable
+        # under scope=organization with no further precondition. Portfolio
+        # Advisor additionally needs its own pre-existing `portfolio_id`
+        # precondition satisfied (D-143) -- unrelated to Explicit Scope,
+        # unchanged by it.
+        explicit = frozenset(identity.name for identity in ADVISOR_IDENTITY_CATALOG)
+
+        without_portfolio_id = evaluate_selection_rule(
+            SelectionSignals(explicit=explicit, scope=OrchestrationScope())
+        )
+        assert {i.name for i in without_portfolio_id.selected} == explicit - {"portfolio_advisor"}
+
+        with_portfolio_id_supplied_alongside_organization_signals = evaluate_selection_rule(
+            SelectionSignals(explicit=explicit, scope=OrchestrationScope(portfolio_id=1))
+        )
+        # Supplying a portfolio_id switches the inferred scope *type* to
+        # "portfolio" (§6.1: type is inferred from which field is
+        # populated) -- so this is a portfolio-scoped selection, not an
+        # organization-scoped one, and only Portfolio Advisor remains.
+        assert {
+            i.name for i in with_portfolio_id_supplied_alongside_organization_signals.selected
+        } == {"portfolio_advisor"}
+
+    def test_selection_rule_cannot_reintroduce_an_advisor_excluded_by_scope(self):
+        # Naming the excluded Advisor explicitly by its own name is not
+        # enough to bypass scope eligibility -- structural, not lexical.
+        signals = SelectionSignals(
+            explicit=frozenset({"pmo_advisor"}), scope=OrchestrationScope(project_name="Aurora")
+        )
+
+        outcome = evaluate_selection_rule(signals)
+
+        assert outcome.selected == ()
+
+    def test_same_question_under_different_scopes_selects_different_advisors_deterministically(self):
+        explicit = frozenset({"risco", "entrega", "portfólio", "pmo"})
+
+        project_scope = evaluate_selection_rule(
+            SelectionSignals(explicit=explicit, scope=OrchestrationScope(project_name="Aurora"))
+        )
+        portfolio_scope = evaluate_selection_rule(
+            SelectionSignals(explicit=explicit, scope=OrchestrationScope(portfolio_id=1))
+        )
+        organization_scope = evaluate_selection_rule(
+            SelectionSignals(explicit=explicit, scope=OrchestrationScope())
+        )
+
+        assert {i.name for i in project_scope.selected} == {"risk_advisor", "delivery_advisor"}
+        assert {i.name for i in portfolio_scope.selected} == {"portfolio_advisor"}
+        assert {i.name for i in organization_scope.selected} == {
+            "risk_advisor",
+            "delivery_advisor",
+            "pmo_advisor",
+        }
 
 
 class TestSelectionTraceEntry:

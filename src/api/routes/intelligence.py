@@ -11,7 +11,9 @@ module uses (`portfolio.py`, `program.py`, `project_delivery.py`,
 import logging
 from datetime import datetime
 
-from pydantic import BaseModel, Field, field_validator
+from typing import Literal
+
+from pydantic import BaseModel, Field, field_validator, model_validator
 from fastapi import APIRouter, Depends, HTTPException
 
 from src.agents.delivery_advisor.agent import DeliveryAdvisorAgent
@@ -61,6 +63,9 @@ from src.services.advisor_framework.types import AdvisorExecutionError
 from src.services.domain_service import DomainService
 from src.services.ai_foundation.types import Evidence, SessionContext
 from src.services.events.interfaces import EventPublisher
+from src.services.executive_orchestrator.orchestrator import ExecutiveOrchestrator
+from src.services.executive_orchestrator.selection_rule import OrchestrationScope, SelectionSignals
+from src.services.executive_orchestrator.types import Capability
 from src.services.identity.models import RequestContext
 from src.services.knowledge_platform.embedding_provider import get_embedding_provider
 from src.services.knowledge_platform.knowledge_repository import KnowledgeRepository
@@ -362,6 +367,14 @@ def _parse_governance_classification(answer: str) -> tuple[str, str]:
 
 def build_prompt_registry() -> PromptRegistry:
     return PromptRegistry(base_path="src/agents")
+
+
+def build_orchestrator_prompt_registry() -> PromptRegistry:
+    # Distinct from build_prompt_registry() above: synthesize() (Executive
+    # Orchestrator, D-145) requires base_path="src/services", never
+    # "src/agents" -- preserves the closed 8-Advisor catalog (Vision,
+    # Princípio 8; TECHNICAL-DESIGN-DECISION-SUPPORT.md §2).
+    return PromptRegistry(base_path="src/services")
 
 
 def build_provider() -> LLMProvider:
@@ -1248,4 +1261,197 @@ def _governance_advisor_response(explanation) -> GovernanceAdvisorResponse:
             )
             for item in explanation.recommendation.cited_evidence
         ],
+    )
+
+
+# -- Decision Support -- first production consumer of the Executive
+# Orchestrator (D-147/D-152; TECHNICAL-DESIGN-DECISION-SUPPORT.md) --------
+
+
+class DecisionSupportScope(BaseModel):
+    """Executive Intelligence Explicit Scope (Founder Decision --
+    Eliminação do Risco de Escopo Implícito; Vision, Princípio 13): a scope
+    is always one of exactly three declared types, never inferred from
+    absence. `organization` is a valid, intentional scope -- never an
+    implicit fallback from an omitted `project_id`/`portfolio_id`."""
+
+    type: Literal["project", "portfolio", "organization"]
+    project_id: int | None = None
+    portfolio_id: int | None = None
+
+    @model_validator(mode="after")
+    def _validate_combination(self) -> "DecisionSupportScope":
+        if self.type == "project":
+            if self.project_id is None:
+                raise ValueError("project_id is required when scope.type is 'project'")
+            if self.portfolio_id is not None:
+                raise ValueError("portfolio_id must not be set when scope.type is 'project'")
+        elif self.type == "portfolio":
+            if self.portfolio_id is None:
+                raise ValueError("portfolio_id is required when scope.type is 'portfolio'")
+            if self.project_id is not None:
+                raise ValueError("project_id must not be set when scope.type is 'portfolio'")
+        else:  # organization
+            if self.project_id is not None or self.portfolio_id is not None:
+                raise ValueError(
+                    "project_id/portfolio_id must not be set when scope.type is 'organization'"
+                )
+        return self
+
+
+class DecisionSupportRequest(BaseModel):
+    question: str = Field(..., min_length=3, max_length=2000)
+    # No default -- absence of `scope` is a 422 (Pydantic: required field),
+    # never interpreted as organization scope (Technical Design §3).
+    scope: DecisionSupportScope
+
+    _validate_question = field_validator("question")(_ensure_has_content)
+
+
+class DecisionSupportCitation(BaseModel):
+    advisor_name: str
+    source_type: str
+    source_id: int
+    source_label: str
+
+
+class DecisionSupportAdvisorExecution(BaseModel):
+    advisor_name: str
+    had_evidence: bool
+
+
+class DecisionSupportCorrelation(BaseModel):
+    advisor_names: tuple[str, str]
+    is_structural_pair: bool
+
+
+class DecisionSupportCompositionTrace(BaseModel):
+    selection_signals: list[str]
+    selected_advisor_names: list[str]
+    advisors_used: list[DecisionSupportAdvisorExecution]
+    correlations: list[DecisionSupportCorrelation]
+    synthesis_source_advisor_names: list[str] | None
+
+
+class DecisionSupportResponse(BaseModel):
+    capability: str
+    insufficient_basis: bool
+    insufficient_basis_reason: str | None
+    answer: str | None
+    advisors_used: list[str]
+    citations: list[DecisionSupportCitation]
+    composition_trace: DecisionSupportCompositionTrace
+
+
+def resolve_decision_support_scope(
+    scope: DecisionSupportScope,
+    organization_id: int,
+    domain_service: DomainService,
+) -> OrchestrationScope:
+    """Boundary-only identity resolution + organizational ownership check
+    (Founder Decision -- Explicit Scope; Technical Design §5/§8) -- never a
+    domain decision, purely translates an already-validated `scope` into
+    the `OrchestrationScope` the Executive Orchestrator already accepts,
+    itself unchanged (Technical Design §6.1, Decisão A). `project_id`/
+    `portfolio_id` given but belonging to another organization is reported
+    as not-found, never confirmed as existing elsewhere -- the same
+    `DomainService.get_project()`/`get_portfolio()` already used by
+    `ExecutiveEvidenceAssembler`/`PortfolioEvidenceAssembler`."""
+    if scope.type == "project":
+        project = domain_service.get_project(scope.project_id, organization_id)
+        if project is None:
+            raise HTTPException(status_code=404, detail="Project not found")
+        return OrchestrationScope(project_name=project.name)
+    if scope.type == "portfolio":
+        portfolio = domain_service.get_portfolio(scope.portfolio_id, organization_id)
+        if portfolio is None:
+            raise HTTPException(status_code=404, detail="Portfolio not found")
+        return OrchestrationScope(portfolio_id=portfolio.id)
+    return OrchestrationScope()
+
+
+@router.post("/decision-support/ask", response_model=DecisionSupportResponse)
+def ask_decision_support(
+    request: DecisionSupportRequest,
+    context: RequestContext = Depends(get_request_context),
+    prompts: PromptRegistry = Depends(build_prompt_registry),
+    orchestrator_prompts: PromptRegistry = Depends(build_orchestrator_prompt_registry),
+    provider: LLMProvider = Depends(build_provider),
+    repository: AnalysisRepository = Depends(build_repository),
+    rag_pipeline: RagPipeline = Depends(build_rag_pipeline),
+    domain_service: DomainService = Depends(build_domain_service),
+    # Read-only, same permission already protecting all 8 Advisors --
+    # Decision Support never creates/edits/triggers an analysis, never
+    # persists anything.
+    _permission: None = Depends(require_permission("intelligence.read")),
+) -> DecisionSupportResponse:
+    # First production consumer of the Executive Orchestrator (D-147),
+    # first functional Wave 6 Capability (AR-17 §2: Seleção -> Execução ->
+    # Correlação -> Síntese). A thin adapter (Technical Design §2): never
+    # selects Advisors, never correlates, never synthesizes, never accesses
+    # evidence/Domain/Knowledge Platform directly -- all of that stays
+    # exclusively inside ExecutiveOrchestrator/AdvisorFramework/the 8
+    # Advisors, all preserved unchanged. Explicit Scope (Founder Decision
+    # -- Eliminação do Risco de Escopo Implícito; Vision, Princípio 13)
+    # resolved and validated (ownership confirmed, 404 on cross-tenant)
+    # before ExecutiveOrchestrator.run() is ever invoked.
+    session = SessionContext(
+        organization_id=context.organization.organization_id,
+        user_id=context.user.user_id,
+        session_id=context.session.session_id,
+    )
+    scope = resolve_decision_support_scope(request.scope, session.organization_id, domain_service)
+
+    framework = AdvisorFramework(repository, prompts, provider, rag_pipeline)
+    orchestrator = ExecutiveOrchestrator(framework, domain_service, provider, orchestrator_prompts)
+    signals = SelectionSignals(question=request.question, scope=scope)
+
+    try:
+        result = orchestrator.run(Capability.DECISION_SUPPORT, session, request.question, signals)
+    except AdvisorExecutionError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    return _decision_support_response(result)
+
+
+def _decision_support_response(result) -> DecisionSupportResponse:
+    trace = result.composition_trace
+    citations = [
+        DecisionSupportCitation(
+            advisor_name=item.advisor_name,
+            source_type=evidence.source_type,
+            source_id=evidence.source_id,
+            source_label=evidence.source_label,
+        )
+        for item in result.explanations
+        for evidence in item.explanation.recommendation.cited_evidence
+    ]
+    return DecisionSupportResponse(
+        capability=result.capability.value,
+        insufficient_basis=result.is_insufficient_basis,
+        insufficient_basis_reason=(
+            result.insufficient_basis_reason.value if result.insufficient_basis_reason else None
+        ),
+        answer=result.synthesis,
+        advisors_used=[identity.name for identity in result.advisor_identities],
+        citations=citations,
+        composition_trace=DecisionSupportCompositionTrace(
+            selection_signals=list(trace.selection.signals),
+            selected_advisor_names=list(trace.selection.selected_advisor_names),
+            advisors_used=[
+                DecisionSupportAdvisorExecution(
+                    advisor_name=entry.advisor_name, had_evidence=entry.had_evidence
+                )
+                for entry in trace.executions
+            ],
+            correlations=[
+                DecisionSupportCorrelation(
+                    advisor_names=entry.advisor_names, is_structural_pair=entry.is_structural_pair
+                )
+                for entry in trace.correlations
+            ],
+            synthesis_source_advisor_names=(
+                list(trace.synthesis.source_advisor_names) if trace.synthesis else None
+            ),
+        ),
     )

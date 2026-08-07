@@ -70,3 +70,39 @@ VOCABULARY: dict[str, frozenset[str]] = {
 # explícito"). Folded into Selection, never into Execution, so every
 # Advisor Identity that reaches Execution is always fully provisionable.
 ADVISOR_NAMES_REQUIRING_PORTFOLIO_ID: frozenset[str] = frozenset({"portfolio_advisor"})
+
+# Scope eligibility (Founder Decision -- Explicit Scope / Decision Support,
+# TECHNICAL-DESIGN-DECISION-SUPPORT.md §6.2, approved without reservation):
+# of the 8 Advisor Identities, only 3 actually consume `OrchestrationScope`
+# in `provisioning.py` (risk_advisor/delivery_advisor filter by
+# `project_name`; portfolio_advisor requires `portfolio_id`) -- the other 5
+# are unconditionally organization-scoped by their own Wave 5 design
+# (`PMOEvidenceAssembler`/`ExecutiveEvidenceAssembler`/
+# `StrategyEvidenceAssembler`.assemble(organization_id) and
+# `gather_rag_context(organization_id, ...)` for Document/Governance never
+# receive a scope parameter at all). This table is the single source of
+# truth for which `scope.type` ("project"/"portfolio"/"organization") each
+# Advisor Identity may be selected under, so that none ever produces
+# evidence broader than the scope explicitly declared by the caller.
+# Nothing here changes what evidence an Advisor gathers -- only whether it
+# is eligible for Selection under a given scope.
+ADVISOR_ELIGIBLE_SCOPES: dict[str, frozenset[str]] = {
+    "risk_advisor": frozenset({"project", "organization"}),
+    "delivery_advisor": frozenset({"project", "organization"}),
+    # "organization" is included per the Founder's own eligibility table
+    # (Founder Decision -- Explicit Scope / Decision Support §3: "todos os
+    # 8 Enterprise Advisors" under scope=organization) -- but Portfolio
+    # Advisor is never actually *selected* under scope=organization in
+    # practice, because the older, untouched structural precondition
+    # (`ADVISOR_NAMES_REQUIRING_PORTFOLIO_ID`, D-143) independently
+    # requires a `portfolio_id`, never present under scope=organization.
+    # This table only says scope *type* organization does not, by itself,
+    # exclude Portfolio Advisor -- it never grants it a new organization-
+    # wide evidence-gathering mode (no Advisor is altered, Founder §3/§6).
+    "portfolio_advisor": frozenset({"portfolio", "organization"}),
+    "pmo_advisor": frozenset({"organization"}),
+    "executive_advisor": frozenset({"organization"}),
+    "strategy_advisor": frozenset({"organization"}),
+    "document_advisor": frozenset({"organization"}),
+    "governance_advisor": frozenset({"organization"}),
+}

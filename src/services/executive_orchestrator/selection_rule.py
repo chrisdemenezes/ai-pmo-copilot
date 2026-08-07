@@ -13,6 +13,7 @@ circular).
 from dataclasses import dataclass, field
 
 from src.services.executive_orchestrator.catalog import (
+    ADVISOR_ELIGIBLE_SCOPES,
     ADVISOR_IDENTITY_CATALOG,
     ADVISOR_NAMES_REQUIRING_PORTFOLIO_ID,
     VOCABULARY,
@@ -59,10 +60,25 @@ def _matches_question_text(advisor_name: str, question: str) -> bool:
     return any(term in lowered for term in VOCABULARY[advisor_name])
 
 
+def _scope_type(scope: OrchestrationScope) -> str:
+    """Infers which of the three Explicit Scope types (Founder Decision --
+    Eliminação do Risco de Escopo Implícito; Vision, Princípio 13) `scope`
+    represents. Safe by construction: `OrchestrationScope` is only ever
+    built by a validated caller boundary (Technical Design §5) where
+    `project_name`/`portfolio_id` being simultaneously `None` always means
+    `organization` was explicitly declared, never that scope was omitted."""
+    if scope.project_name is not None:
+        return "project"
+    if scope.portfolio_id is not None:
+        return "portfolio"
+    return "organization"
+
+
 def _meets_structural_precondition(advisor_name: str, scope: OrchestrationScope) -> bool:
     if advisor_name in ADVISOR_NAMES_REQUIRING_PORTFOLIO_ID:
-        return scope.portfolio_id is not None
-    return True
+        if scope.portfolio_id is None:
+            return False
+    return _scope_type(scope) in ADVISOR_ELIGIBLE_SCOPES[advisor_name]
 
 
 def evaluate_selection_rule(
