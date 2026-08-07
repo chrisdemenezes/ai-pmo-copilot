@@ -1755,6 +1755,20 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-155 — Decision Support, Etapa 2: consumidor frontend mínimo
+
+- **Contexto:** continuação direta do roadmap mandatado pelo Founder (D-154), sem nova pausa. Etapa 2: "BFF + hook + painel mínimo no Dashboard."
+- **`web/app/api/bff/decision-support/route.ts` criado** — proxy fino, mesmo padrão de `.../risk-advisor/route.ts` (institucional headers via cookie de sessão, validação de `question`, mapeamento de erro), com timeout de 120s (não os 8s do helper genérico `forwardDomainRequest`, nem os 60s de uma única chamada de Advisor — Decision Support pode invocar até 2-3 Advisors sequenciais mais uma Síntese, Technical Design §10). `scope` é campo obrigatório repassado verbatim; sua ausência ou tipo inválido é rejeitada (400) antes de contatar o backend, nunca interpretada como escopo organizacional implícito (Princípio 13). Erros do backend mapeados: 404 → `scope_not_found`, 422/400 → `invalid_request`, 429 → `rate_limited`, timeout → 504.
+- **`web/lib/dashboard/types.ts` estendido** — `DecisionSupportScope`/`DecisionSupportResponse` e tipos auxiliares, espelhando exatamente o contrato Pydantic do backend (D-154).
+- **`web/lib/hooks/use-ask-decision-support.ts` criado** — hook de mutação, mesmo formato de `use-ask-risk-advisor.ts`.
+- **`web/components/dashboard/decision-support-panel.tsx` criado** — painel autocontido: campo de pergunta, seletor de Escopo (Projeto/Portfólio/Organização) sem seleção inicial — o formulário permanece bloqueado até uma escolha explícita, espelhando a exigência do backend; seletor de Project/Portfolio correspondente aparece apenas quando o tipo respectivo é escolhido (reutiliza `usePortfolios()`/`useProjects()`, já existentes); exibição de resposta/Advisors usados/citações, ou banner explícito de Base Insuficiente. Adicionado como mais uma seção do Dashboard Executivo já existente (`web/app/dashboard/page.tsx`) — nenhuma tela nova, nenhum item de menu novo (Founder §12).
+- **Testes criados**: `route.test.ts` (13 cenários, incluindo rejeição de `scope` ausente antes de contatar o backend, e mapeamento 404→`scope_not_found`); `use-ask-decision-support.test.tsx` (2 cenários); `decision-support-panel.test.tsx` (5 cenários — botão desabilitado sem pergunta+escopo, seletor nunca pré-selecionado, Base Insuficiente explícita, resposta completa com Advisors/citações, erro).
+- **Regressão corrigida durante a implementação**: `web/app/dashboard/page.test.tsx` não mockava `useAskDecisionSupport` (agora renderizado dentro de `DashboardPage` via o novo painel) — o `useMutation` real exigia um `QueryClientProvider` que aquele teste nunca configurou (todos os outros hooks ali já eram mockados). Corrigido adicionando o mock com `vi.importActual` (preservando `DecisionSupportFetchError`, consumida pelo próprio painel).
+- **Verificação:** `npx tsc --noEmit`/`npx eslint .` limpos; `npx next build` bem-sucedido (rota `/api/bff/decision-support` e `/dashboard` compiladas); suíte frontend completa (522 testes) sem falha.
+- **Missão:** registrar esta decisão em Decision Log/CHANGELOG/Mission Control, commit independente. Prosseguir imediatamente para a Etapa 3 (validação E2E e fechamento do Epic), sem nova pausa, per mandato do Founder.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.

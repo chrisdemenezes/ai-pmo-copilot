@@ -26,6 +26,7 @@ import { DecisionCenterPanel } from "@/components/cockpit/decision-center-panel"
 import { ActionsCenterTable } from "@/components/cockpit/actions-center-table";
 import { RecentActivityTimeline } from "@/components/cockpit/recent-activity-timeline";
 import { AIRecommendationsPanel } from "@/components/cockpit/ai-recommendations-panel";
+import { DecisionSupportPanel } from "@/components/dashboard/decision-support-panel";
 import { computeExecutiveFocus } from "@/lib/dashboard/executive-focus";
 import {
   WORK_ITEM_BREAKDOWN,
@@ -221,6 +222,16 @@ export default function DashboardPage() {
           </div>
           <AIRecommendationsPanel recommendations={AI_RECOMMENDATIONS} />
         </div>
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="font-display text-lg font-semibold text-ink">Decision Support</h2>
+          <p className="text-sm text-ink-muted">
+            Pergunta executiva — Executive Orchestrator, Wave 6 (Enterprise Advisors reais).
+          </p>
+        </div>
+        <DecisionSupportPanel />
       </section>
 
       {projects.length === 0 ? (

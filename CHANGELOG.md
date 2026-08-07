@@ -1974,3 +1974,23 @@ Primeira etapa da implementacao: rota HTTP, Explicit Scope, eligibility por esco
 **Missão:** prosseguir imediatamente para a Etapa 2 (consumidor frontend minimo), sem nova pausa, per mandato do Founder.
 
 **Decision Log:** D-154.
+
+## Wave 6 — Decision Support, Etapa 2: frontend (2026-08-07)
+
+Segunda etapa da implementacao: consumidor frontend minimo.
+
+**Adicionado**
+- `web/app/api/bff/decision-support/route.ts` -- proxy fino, timeout 120s (multiplas chamadas LLM sequenciais), scope obrigatorio rejeitado antes de contatar o backend.
+- `web/lib/dashboard/types.ts` -- DecisionSupportScope/Response, espelhando o contrato do backend.
+- `web/lib/hooks/use-ask-decision-support.ts` -- hook de mutacao.
+- `web/components/dashboard/decision-support-panel.tsx` -- painel com seletor de Escopo obrigatorio (nunca pre-selecionado), adicionado ao Dashboard existente, nenhuma tela nova.
+- Testes: route.test.ts (13), use-ask-decision-support.test.tsx (2), decision-support-panel.test.tsx (5).
+
+**Corrigido**
+- `web/app/dashboard/page.test.tsx` -- adicionado mock de `useAskDecisionSupport` (regressao: painel novo exigia QueryClientProvider real).
+
+**Verificação:** tsc/eslint limpos; `next build` bem-sucedido; suite frontend completa (522 testes) sem falha.
+
+**Missão:** prosseguir imediatamente para a Etapa 3 (validacao E2E e fechamento do Epic), sem nova pausa, per mandato do Founder.
+
+**Decision Log:** D-155.
