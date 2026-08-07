@@ -53,8 +53,10 @@ class _AllCitingProvider:
 
     def __init__(self, cited_analysis_ids: list[int]):
         self.cited_analysis_ids = cited_analysis_ids
+        self.calls = 0
 
     def generate(self, prompt: str) -> str:
+        self.calls += 1
         return json.dumps({"answer": "synthesis citing everything", "cited_analysis_ids": self.cited_analysis_ids})
 
 
@@ -100,7 +102,12 @@ def _framework(repo, knowledge_repository, provider):
 
 
 def _orchestrator(repo, knowledge_repository, domain_service, provider):
-    return ExecutiveOrchestrator(_framework(repo, knowledge_repository, provider), domain_service)
+    return ExecutiveOrchestrator(
+        _framework(repo, knowledge_repository, provider),
+        domain_service,
+        provider,
+        PromptRegistry(base_path="src/services"),
+    )
 
 
 def _session(repo, org_id: int, project_name: str = "Aurora") -> SessionContext:
@@ -202,8 +209,11 @@ class TestMultipleAdvisors:
         provider = _ScriptedProvider(answer="grounded synthesis")
         orchestrator = _orchestrator(repo, knowledge_repository, domain_service, provider)
 
+        # Cross Advisor Correlation never includes Síntese (AR-17 §2) --
+        # keeps this test's "one call per Advisor" assertion exclusively
+        # about Execução, unaffected by Etapa 4.
         result = orchestrator.run(
-            Capability.EXECUTIVE_NARRATIVE,
+            Capability.CROSS_ADVISOR_CORRELATION,
             _session(repo, org_id),
             "Quais os riscos e o status de entrega deste projeto?",
             SelectionSignals(explicit=frozenset({"risco", "entrega"})),
@@ -380,7 +390,12 @@ class TestRequestScoped:
     ):
         orchestrator = _orchestrator(repo, knowledge_repository, domain_service, _ScriptedProvider())
 
-        assert set(vars(orchestrator).keys()) == {"_framework", "_domain_service"}
+        assert set(vars(orchestrator).keys()) == {
+            "_framework",
+            "_domain_service",
+            "_llm_provider",
+            "_prompt_registry",
+        }
 
 
 class TestNoDirectInfrastructureAccess:
@@ -407,3 +422,104 @@ class TestNoDirectInfrastructureAccess:
         }
         forbidden = {"AnalysisRepository", "PgVectorRepository", "KnowledgeRepository", "DomainRepository"}
         assert not (imported_names & forbidden)
+
+
+class TestSynthesis:
+    """Etapa 4 -- Selection -> Execution -> Correlation -> Synthesis ->
+    Composition Trace -> Executive Intelligence Result."""
+
+    def test_a_capability_with_synthesis_produces_one(self, repo, knowledge_repository, domain_service):
+        org_id = repo.enterprise.create_organization("Org A")
+        risk_id = repo.save_analysis(
+            kind="risk",
+            payload={"model_output": {"structured": True, "risks": []}},
+            organization_id=org_id,
+            project_name="Aurora",
+        )
+        provider = _AllCitingProvider([risk_id])
+        orchestrator = _orchestrator(repo, knowledge_repository, domain_service, provider)
+
+        result = orchestrator.run(
+            Capability.EXECUTIVE_NARRATIVE,
+            _session(repo, org_id),
+            "Existe risco neste projeto?",
+            SelectionSignals(explicit=frozenset({"risco"})),
+        )
+
+        assert result.synthesis is not None
+        assert result.composition_trace.synthesis is not None
+        assert result.composition_trace.synthesis.source_advisor_names == ("risk_advisor",)
+        # one LLM call for the Advisor's own analysis, a second for the Síntese
+        assert provider.calls == 2
+
+    def test_cross_advisor_correlation_never_produces_a_synthesis(
+        self, repo, knowledge_repository, domain_service
+    ):
+        org_id = repo.enterprise.create_organization("Org A")
+        repo.save_analysis(
+            kind="risk",
+            payload={"model_output": {"structured": True, "risks": []}},
+            organization_id=org_id,
+            project_name="Aurora",
+        )
+        provider = _ScriptedProvider()
+        orchestrator = _orchestrator(repo, knowledge_repository, domain_service, provider)
+
+        result = orchestrator.run(
+            Capability.CROSS_ADVISOR_CORRELATION,
+            _session(repo, org_id),
+            "Existe risco neste projeto?",
+            SelectionSignals(explicit=frozenset({"risco"})),
+        )
+
+        assert result.synthesis is None
+        assert result.composition_trace.synthesis is None
+        assert provider.calls == 1  # only the Advisor's own call, never a Síntese call
+
+    def test_conflict_analysis_never_produces_a_synthesis(self, repo, knowledge_repository, domain_service):
+        org_id = repo.enterprise.create_organization("Org A")
+        repo.save_analysis(
+            kind="risk",
+            payload={"model_output": {"structured": True, "risks": []}},
+            organization_id=org_id,
+            project_name="Aurora",
+        )
+        provider = _ScriptedProvider()
+        orchestrator = _orchestrator(repo, knowledge_repository, domain_service, provider)
+
+        result = orchestrator.run(
+            Capability.CONFLICT_ANALYSIS,
+            _session(repo, org_id),
+            "Existe risco neste projeto?",
+            SelectionSignals(explicit=frozenset({"risco"})),
+        )
+
+        assert result.synthesis is None
+        assert result.composition_trace.synthesis is None
+
+    def test_synthesis_source_advisor_names_excludes_ungrounded_advisors(
+        self, repo, knowledge_repository, domain_service
+    ):
+        org_id = repo.enterprise.create_organization("Org A")
+        risk_id = repo.save_analysis(
+            kind="risk",
+            payload={"model_output": {"structured": True, "risks": []}},
+            organization_id=org_id,
+            project_name="Aurora",
+        )
+        # delivery_advisor is selected (explicit signal) but has zero evidence
+        # for this project -- partial coverage (Domain Blueprint §4) --
+        # never invoked via the LLM, so it can never be cited.
+        provider = _AllCitingProvider([risk_id])
+        orchestrator = _orchestrator(repo, knowledge_repository, domain_service, provider)
+
+        result = orchestrator.run(
+            Capability.EXECUTIVE_NARRATIVE,
+            _session(repo, org_id),
+            "Existe risco ou status de entrega neste projeto?",
+            SelectionSignals(explicit=frozenset({"risco", "entrega"})),
+        )
+
+        assert result.is_insufficient_basis is False
+        assert {identity.name for identity in result.advisor_identities} == {"risk_advisor", "delivery_advisor"}
+        assert result.composition_trace.synthesis.source_advisor_names == ("risk_advisor",)

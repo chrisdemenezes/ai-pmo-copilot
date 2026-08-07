@@ -1849,3 +1849,22 @@ Continuacao direta do roadmap mandatado pelo Founder, sem nova pausa. Etapa 3: S
 **Missão:** prosseguir imediatamente para a Etapa 4 (Sintese), sem nova pausa, per mandato do Founder.
 
 **Decision Log:** D-144.
+
+## Wave 6 — Executive Orchestrator, Etapa 4: Sintese (2026-08-07)
+
+Continuacao direta do roadmap mandatado pelo Founder, sem nova pausa. Etapa 4: Sintese, exclusivamente a partir das Explanations ja produzidas pelos Advisors, nunca nova evidencia.
+
+**Adicionado**
+- `src/services/executive_orchestrator/prompts/synthesize.md` -- instrucao institucional: nunca afirmar fato ausente das contribuicoes, nunca resolver divergencia, declarar ausencia de evidencia por Advisor.
+- `src/services/executive_orchestrator/synthesis.py` -- synthesize(), mecanismo apenas, reutiliza render_analyst_prompt()/ObservabilityRecorder.record_call() (mesmo padrao ja validado em 8 ciclos institucionais), PromptRegistry injetado com base_path="src/services" (nunca "src/agents").
+- `src/services/executive_orchestrator/orchestrator.py` estendido -- CAPABILITIES_WITH_SYNTHESIS (as 4 que incluem Sintese per AR-17 §2), run() invoca synthesize() apenas para elas, SynthesisTraceEntry com Advisors realmente citados.
+- `tests/test_executive_orchestrator_synthesis.py` -- 6 testes unitarios de synthesize() em isolamento.
+- `tests/test_executive_orchestrator_orchestrator.py` estendido -- classe TestSynthesis, 4 testes.
+
+**Correção de processo registrada:** a primeira tentativa misturou Etapa 3 nao commitada com a extensao da Etapa 4 no mesmo arquivo -- corrigido revertendo para o estado exato da Etapa 3, commitando isoladamente (D-144), e reaplicando a extensao da Etapa 4 sobre o historico limpo.
+
+**Verificação:** ruff/tsc/eslint limpos; 10/10 testes novos passando (52/52 incluindo Etapas 1-3); suite completa de regressao sem falha.
+
+**Missão:** prosseguir imediatamente para a Etapa 5 (validacao ponta a ponta), sem nova pausa, per mandato do Founder.
+
+**Decision Log:** D-145.
