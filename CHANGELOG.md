@@ -1831,3 +1831,21 @@ Continuacao direta do roadmap mandatado pelo Founder, sem nova pausa. Etapa 2: S
 **Missão:** prosseguir imediatamente para a Etapa 3 (ciclo completo, sem sintese), sem nova pausa, per mandato do Founder.
 
 **Decision Log:** D-143.
+
+## Wave 6 — Executive Orchestrator, Etapa 3: ciclo completo, sem sintese (2026-08-07)
+
+Continuacao direta do roadmap mandatado pelo Founder, sem nova pausa. Etapa 3: Selection -> Execution -> Correlation -> Composition Trace -> Executive Intelligence Result, ainda sem sintese por LLM.
+
+**Adicionado**
+- `src/services/executive_orchestrator/provisioning.py` -- provision(), uma funcao por Advisor Identity, reutilizando verbatim a receita de evidencia ja em producao em cada rota (gather_context/gather_rag_context/EvidenceAssembler), nunca um caminho novo.
+- `src/services/executive_orchestrator/correlation.py` -- STRUCTURAL_PAIRS (tabela estatica versionada), correlate() -- opera exclusivamente sobre escopo compartilhado e pares pre-declarados, nunca julga conteudo.
+- `src/services/executive_orchestrator/orchestrator.py` -- ExecutiveOrchestrator.run(): Selecao -> Execucao (AdvisorFramework.run() uma vez por Advisor selecionado) -> Base Insuficiente (Selection Empty ou Collection Empty) -> Correlacao -> Composition Trace -> Executive Intelligence Result.
+- `tests/test_executive_orchestrator_orchestrator.py` -- 13 testes com Advisors reais via AdvisorFramework: selection/collection empty, Advisor unico, multiplos Advisors, correlacao estrutural real, Conflict Analysis, Composition Trace, preservacao de citacao, ausencia de memoria entre chamadas, ausencia de importacao direta de repositorio.
+
+**Correção registrada nesta etapa:** a primeira versao computava Collection Empty a partir da citacao de saida do LLM em vez da evidencia de entrada -- corrigido para refletir exatamente a definicao do Domain Blueprint §4 (portao no_evidence() de AdvisorFramework.run(), nunca a escolha de citacao do modelo). Um teste expos o erro antes do commit.
+
+**Verificação:** ruff/tsc/eslint limpos; 13/13 testes novos passando (42/42 incluindo Etapas 1-2); suite completa de regressao sem falha.
+
+**Missão:** prosseguir imediatamente para a Etapa 4 (Sintese), sem nova pausa, per mandato do Founder.
+
+**Decision Log:** D-144.
