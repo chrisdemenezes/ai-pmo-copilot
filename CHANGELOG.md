@@ -1868,3 +1868,18 @@ Continuacao direta do roadmap mandatado pelo Founder, sem nova pausa. Etapa 4: S
 **Missão:** prosseguir imediatamente para a Etapa 5 (validacao ponta a ponta), sem nova pausa, per mandato do Founder.
 
 **Decision Log:** D-145.
+
+## Wave 6 — Executive Orchestrator, Etapa 5: Validação Ponta a Ponta (2026-08-07)
+
+Continuacao direta do roadmap mandatado pelo Founder, sem nova pausa. Etapa 5: validacao end-to-end da cadeia completa -- Pergunta -> Selection Rule -> Advisor Identities -> AdvisorFramework.run() -> Explanations -> Correlation -> Composition Trace -> Executive Intelligence Result -> Resposta Executiva -- contra Advisors reais e PostgreSQL real.
+
+**Adicionado**
+- `tests/test_executive_orchestrator_e2e.py` -- 2 testes: cadeia completa com Risk Advisor + Delivery Advisor reais produzindo Explanations, Correlacao estrutural, Composition Trace e Sintese integros (3 chamadas LLM: uma por Advisor, uma para a Sintese); e Base Insuficiente quando nenhum Advisor e selecionado.
+
+**Encerramento da missão (Etapas 1-5):** 5 commits (D-142 a D-146), 54 testes novos, 1914 linhas inseridas / 0 removidas, 0 alteracao a qualquer um dos 15 componentes preservados, 1 correcao real de logica (had_evidence baseado em input, nao em citacao de output), 1 correcao de processo (commit isolado por etapa).
+
+**Verificação:** ruff/tsc/eslint limpos; 2/2 testes novos passando (54/54 incluindo Etapas 1-4); suite completa de regressao (822 testes) sem falha.
+
+**Missão:** entrega do Executive Summary final e retorno obrigatorio para Executive Review. Nenhum trabalho da Wave 6 prossegue automaticamente; nenhum novo componente da Executive Intelligence pode ser iniciado antes de aprovacao explicita do Founder.
+
+**Decision Log:** D-146.
