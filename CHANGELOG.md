@@ -1927,3 +1927,25 @@ Technical Design exclusivo (nenhum codigo) para a primeira Capability funcional 
 **Missão:** retorno obrigatorio para Executive Review. Nenhuma implementacao comeca antes de aprovacao explicita do Founder.
 
 **Decision Log:** D-150.
+
+## Wave 6 — Eliminação do Risco de Escopo Implícito (2026-08-07)
+
+Founder Decision: o risco "project_name omitido agrega evidencia da organizacao inteira" nao sera aceito como risco residual -- deve ser eliminado estruturalmente. Principio permanente mandatado: Executive Intelligence Explicit Scope.
+
+**Missão:** revisao do Technical Design (proxima entrada) -- nenhum codigo nesta decisao.
+
+**Decision Log:** D-151.
+
+## Wave 6 — Technical Design: Decision Support revisado (Explicit Scope) (2026-08-07)
+
+Revisao do Technical Design incorporando o principio Executive Intelligence Explicit Scope -- elimina estruturalmente, nao apenas mitiga, o risco de escopo implicito.
+
+**Alterado**
+- `docs/architecture/TECHNICAL-DESIGN-DECISION-SUPPORT.md` -- contrato de entrada passa a exigir `scope` estruturado (project/portfolio/organization + identificador correspondente), validado antes de qualquer chamada ao Executive Orchestrator. Decisao project_id vs project_name: project_id, groundada em TD-008 Fase 3b e no comentario literal de AIContextEngine.gather(). Isolamento organizacional confirmado via DomainService.get_project()/get_portfolio() ja existentes (cross-org id -> 404, nunca confirmado). OrchestrationScope avaliado: contrato ja correto, nenhuma evolucao necessaria. Impacto identificado e apresentado para confirmacao (nao decidido silenciosamente): tabela de elegibilidade por escopo em catalog.py/selection_rule.py, necessaria porque 5 dos 8 Advisors sao incondicionalmente organization-scoped por desenho da Wave 5. Comportamento exato demonstrado para os 3 escopos. Consumidor frontend revisado com seletor de escopo obrigatorio. 10 novos cenarios de teste obrigatorios.
+- `docs/architecture/WAVE-6-EXECUTIVE-INTELLIGENCE-VISION.md` -- Principio 13 (Executive Intelligence Explicit Scope) registrado como permanente, aplicavel a toda Capability futura da Wave 6.
+
+**Verificação:** missao documental; git status confirma zero alteracao em src/tests/web; ruff/tsc/eslint limpos.
+
+**Missão:** retorno obrigatorio para Executive Review. Nenhuma implementacao comeca antes de aprovacao explicita do Founder, incluindo especificamente do impacto sobre catalog.py/selection_rule.py.
+
+**Decision Log:** D-152.
