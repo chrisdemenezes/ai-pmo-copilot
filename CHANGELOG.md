@@ -1802,3 +1802,17 @@ Founder declarou toda a arquitetura conceitual da Wave 6 oficialmente concluida 
 **Missão:** recomendacao GO para a implementacao, iniciando pela Etapa 1. Nenhum trabalho posterior devera ser iniciado automaticamente -- aguarda nova autorizacao explicita do Founder antes de qualquer codigo.
 
 **Decision Log:** D-141.
+
+## Wave 6 — Executive Orchestrator, Etapa 1: estrutura interna (2026-08-07)
+
+Founder aprovou o Technical Design e deu GO para implementacao, mandatando execucao do roadmap de 5 etapas sem nova pausa entre elas. Etapa 1: estrutura interna, ainda sem execucao de Advisors.
+
+**Adicionado**
+- `src/services/executive_orchestrator/types.py` -- Capability (6 membros permanentes), AdvisorIdentity, AttributedExplanation, CompositionTrace (imutavel, construcao incremental via with_selection/with_execution/with_correlations/with_synthesis), ExecutiveIntelligenceResult (dois estados exaustivos impostos por post_init, construido exclusivamente via .complete()/.insufficient_basis()).
+- `tests/test_executive_orchestrator_types.py` -- 11 testes: Capability, imutabilidade do CompositionTrace, os dois estados do ExecutiveIntelligenceResult, terceiro estado impossivel por construcao.
+
+**Verificação:** `ruff check src tests` limpo; 11/11 testes novos passando; suite completa de regressao sem falha.
+
+**Missão:** prosseguir imediatamente para a Etapa 2 (Selection Rules deterministicas), sem nova pausa, per mandato do Founder.
+
+**Decision Log:** D-142.

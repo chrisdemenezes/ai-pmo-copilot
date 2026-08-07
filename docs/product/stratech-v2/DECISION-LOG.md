@@ -1586,6 +1586,18 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-142 — Executive Orchestrator, Etapa 1: estrutura interna implementada
+
+- **Contexto:** "Founder Decision — Implementação do Executive Orchestrator": Technical Design aprovado, GO para implementação, mandatando execução exclusiva do roadmap de 5 etapas nele aprovado, sem nova pausa entre etapas salvo inconsistência arquitetural real, necessidade de alterar contrato/princípio/componente compartilhado, ou necessidade de fonte primária de evidência nova. Etapa 1: "implementação da estrutura interna do Executive Orchestrator. Ainda sem execução de Advisors."
+- **`src/services/executive_orchestrator/types.py` criado** — contrato interno inteiramente novo, zero dependência de `AdvisorFramework`/qualquer Advisor: `Capability` (Enum, os seis membros permanentes da AR-17 §1); `AdvisorIdentity` (nome + descrição, tipo apenas — o catálogo real de 8 é Etapa 2); `AttributedExplanation` (uma `Explanation` já existente, pareada com o nome do Advisor de origem, proveniência preservada); `CorrelationFinding`/`SelectionTraceEntry`/`ExecutionTraceEntry`/`CorrelationTraceEntry`/`SynthesisTraceEntry` (tipos de apoio ao Composition Trace); `CompositionTrace` (dataclass congelada, construída incrementalmente por quatro métodos `with_*` que sempre retornam uma nova instância — nunca mutação em lugar, satisfazendo a garantia "nunca altera Composition Trace após produzido"); `ExecutiveIntelligenceResult` (dataclass congelada, dois estados exaustivos impostos por `__post_init__` — base insuficiente nunca carrega síntese nem correlação, violação levanta `ValueError` — construída exclusivamente via os factories `.complete(...)`/`.insufficient_basis(...)`, nunca diretamente).
+- **`tests/test_executive_orchestrator_types.py` criado** — 11 testes: seis membros permanentes de `Capability`; imutabilidade e construção incremental do `CompositionTrace` (`with_selection`/`with_execution`/`with_correlations`/`with_synthesis` cada um retornando nova instância, original nunca alterado; `FrozenInstanceError` ao tentar mutar diretamente); `ExecutiveIntelligenceResult.complete()` com e sem correlação/síntese; `ExecutiveIntelligenceResult.insufficient_basis()` para os dois gatilhos (`SELECTION_EMPTY` sem Advisors nem Explanations; `COLLECTION_EMPTY` podendo carregar os Advisors selecionados com suas Explanations vazias); dois testes provando que o terceiro estado é impossível por construção (síntese ou correlação presentes junto de `insufficient_basis_reason` levantam `ValueError`).
+- **Nenhuma execução de Advisor, nenhuma Selection Rule, nenhuma correlação, nenhuma síntese nesta etapa** — exatamente o escopo mandatado para a Etapa 1.
+- **Nenhuma inconsistência arquitetural encontrada.** Nenhum dos cinco gatilhos de interrupção do Founder foi disparado.
+- **Verificação:** `ruff check src tests` limpo; 11/11 testes novos passando; suíte completa de regressão executada sem falha.
+- **Missão:** registrar esta decisão em Decision Log/CHANGELOG/Mission Control, executar `ruff`/`tsc`/`eslint`, commit independente representando um estado íntegro e executável. Prosseguir imediatamente para a Etapa 2 (Selection Rules determinísticas), sem nova pausa, per mandato do Founder.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.
