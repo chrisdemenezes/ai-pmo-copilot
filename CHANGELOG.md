@@ -2076,3 +2076,24 @@ Implementacao completa das 3 etapas ja aprovadas no Technical Design (D-160), re
 **Missão:** Executive Summary final apresentado. Retornar obrigatoriamente para Executive Review -- nenhum outro componente da Wave 6 (Executive Briefing, Recommendation Package, Cross Advisor Correlation, Conflict Analysis) inicia automaticamente sem nova Founder Decision explicita.
 
 **Decision Log:** D-161.
+
+## Wave 6 — Executive Narrative: encerramento ratificado (2026-08-10)
+
+Founder ratificou Executive Narrative = Delivered e mandatou missao isolada de reavaliacao (Wave 6 Progress Assessment V3), exclusivamente documental.
+
+**Verificação:** nenhuma alteracao de codigo nesta decisao -- ratificacao formal apenas.
+
+**Missão:** produzir Wave 6 Progress Assessment V3, considerando duas Capabilities Delivered (Decision Support, Executive Narrative), reavaliando Cross Advisor Correlation/Conflict Analysis/Executive Briefing/Recommendation Package com codigo real. Risco operacional registrado: latencia real de organization scope sob LLM de producao ainda nao validada (0.22s mede exclusivamente overhead estrutural) -- validacao em staging recomendada antes de Enterprise Readiness. Nenhuma otimizacao antecipada.
+
+**Decision Log:** D-162.
+
+## Wave 6 — Progress Assessment V3 (2026-08-10)
+
+Reavaliacao integral da Wave 6 pos-Executive Narrative, exclusivamente documental (nenhum codigo).
+
+**Adicionado**
+- `docs/product/governance/WAVE-6-PROGRESS-ASSESSMENT-V3.md` -- Delivery Matrix V3: Decision Support e Executive Narrative = Delivered (duas); Cross Advisor Correlation/Conflict Analysis = Partially Delivered; Executive Briefing/Recommendation Package = Not Started. Achado novo: `correlate()` roda incondicionalmente em toda Capability em producao, mas `composition_trace` (incluindo correlacoes) nunca e renderizado nos paineis existentes -- dado chega ao browser e e descartado. Recomendacao: nao construir consumidores dedicados para Cross Advisor Correlation/Conflict Analysis, apenas expor `composition_trace` nos paineis ja existentes se o Founder decidir que ha valor. Recommendation Package confirmado mecanicamente indistinguivel de Executive Narrative (risco de alias). Executive Briefing confirmado exigindo logica de dominio multi-escopo inexistente. Caminho minimo para encerrar a Wave 6 identificado como inteiramente decisorio, sem necessidade de nova implementacao de Capability. Percentual revisado: ~65% (subiu de ~50% em V2).
+
+**Missão:** GO para abrir o proximo ciclo institucional, condicionado a nova Founder Decision explicita que resolva as pendencias decisorias identificadas. Nenhum trabalho posterior inicia automaticamente.
+
+**Decision Log:** D-163.
