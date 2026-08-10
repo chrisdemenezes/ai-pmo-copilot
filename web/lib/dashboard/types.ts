@@ -20,9 +20,14 @@ export type DecisionSupportScope =
   | { type: "portfolio"; portfolio_id: number }
   | { type: "organization" };
 
-/** Mirrors DecisionSupportResponse (src/api/routes/intelligence.py, Wave 6). */
+/**
+ * Mirrors DecisionSupportResponse (src/api/routes/intelligence.py, Wave 6).
+ * One entry per real, distinct primary source (Founder Decision -- Wave 6
+ * Final Consolidation Actions, D-165): `advisor_names` lists every Advisor
+ * that cited it -- never one entry per Advisor for the same source.
+ */
 export interface DecisionSupportCitation {
-  advisor_name: string;
+  advisor_names: string[];
   source_type: string;
   source_id: number;
   source_label: string;

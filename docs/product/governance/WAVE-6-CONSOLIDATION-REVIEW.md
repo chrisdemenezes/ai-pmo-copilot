@@ -156,3 +156,19 @@ A consolidação institucional (taxonomia §1) resolve objetivamente a ambiguida
 **Nenhuma implementação foi realizada nesta missão** — todos os achados acima são diagnósticos de leitura de código, reproduzíveis e citados por arquivo/linha.
 
 Retornando obrigatoriamente para Executive Review. Nenhum trabalho posterior inicia automaticamente.
+
+---
+
+## 13. Atualização — Resolução implementada (2026-08-10, D-165)
+
+O Founder aprovou este Consolidation Review ("Wave 6 Final Consolidation Actions") e mandatou a implementação das duas pendências de §10, com princípios explícitos. Ambas resolvidas:
+
+**§8.8 Citation Duplication — RESOLVIDO (não mais OPEN).** `_consolidate_citations()` (`src/api/routes/intelligence.py`), reusada por `_decision_support_response()`/`_executive_narrative_response()`, agrupa citações pela identidade real e estável da fonte (`Evidence.source_type`/`source_id` — nunca texto, label, similaridade ou hash inventado), preservando todo Advisor que citou aquela fonte em `advisor_names: list[str]` (contrato evoluído de `advisor_name: str`). Localizada exclusivamente na camada de composição/apresentação — `Document Advisor`, `Governance Advisor`, demais Advisors, RAG Pipeline, Knowledge Platform, `AdvisorFramework`, `AIContextEngine`, `RecommendationEngine`, `ExplanationEngine` preservados integralmente (`git diff --stat` vazio). Provado: (1) unitariamente, 8 cenários A-G em `tests/test_executive_intelligence_citation_consolidation.py`; (2) ponta a ponta, com documento real ingerido/indexado e `document_advisor`/`governance_advisor` citando o mesmo `chunk_id` sob `scope=organization` via HTTP real, em `tests/test_executive_narrative_api.py::TestCitationConsolidation`.
+
+**Composition Trace visível — RESOLVIDO.** `CompositionTraceSummary` (`web/components/dashboard/composition-trace-summary.tsx`), componente compartilhado (mesmo padrão de reuso do `ScopeSelector`, D-161), reutilizado por `DecisionSupportPanel`/`ExecutiveNarrativePanel` sem nenhuma rota, BFF, página ou contrato backend novo — confirmando a análise de §3/§5: o contrato já continha tudo o necessário. Exibe Advisors utilizados, correlações identificadas, possíveis conflitos (correlações `is_structural_pair`, sempre expostos, nunca resolvidos automaticamente) e fontes consolidadas — nunca JSON bruto. Provado por 5 testes de componente (`composition-trace-summary.test.tsx`) e por asserções E2E novas nos dois cenários de escopo organização (`dashboard.spec.ts`).
+
+**Suítes finais:** backend 869 passed (860 + 9 novos); frontend 546 passed (541 + 5 novos); E2E 65 passed no run completo + 1 flake de cold-start confirmado por reexecução isolada (mesmo padrão documentado em toda a missão) — 0 falhas reais. `ruff`/`tsc`/`eslint` limpos. Preservação arquitetural confirmada.
+
+**Pendências remanescentes:** nenhuma técnica. A Wave 6, na taxonomia consolidada (§1), não tem mais bloqueio identificado para o Completion Review.
+
+**GO/NO-GO revisado: GO para iniciar imediatamente o Wave 6 Completion Review.**

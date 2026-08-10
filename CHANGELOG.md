@@ -2108,3 +2108,24 @@ Consolidacao institucional da taxonomia da Wave 6 (D-164), exclusivamente docume
 **Missão:** GO condicional para o Completion Review, apos decisao do Founder sobre citation duplication e visibilidade de Composition Trace. Nenhuma implementacao realizada nesta missao. Nenhum trabalho posterior inicia automaticamente.
 
 **Decision Log:** D-164.
+
+## Wave 6 — Final Consolidation Actions: citation deduplication + Composition Trace visível (2026-08-10)
+
+Implementacao das duas pendencias do Consolidation Review (D-164), mandatada pelo Founder (D-165).
+
+**Adicionado**
+- `src/api/routes/intelligence.py` -- `_consolidate_citations()`, reutilizada por `_decision_support_response()`/`_executive_narrative_response()`, agrupa citacoes por `(Evidence.source_type, Evidence.source_id)` -- identidade real e estavel da fonte, nunca texto/label/hash inventado. `ExecutiveIntelligenceCitation.advisor_name: str` evoluido para `advisor_names: list[str]`, preservando todo Advisor que citou aquela fonte -- nunca uma entrada por Advisor para a mesma fonte real. Localizada exclusivamente na camada de composicao/apresentacao, zero alteracao em Document Advisor/Governance Advisor/demais Advisors/RAG Pipeline/Knowledge Platform/AdvisorFramework/AIContextEngine/RecommendationEngine/ExplanationEngine/ExecutiveOrchestrator/correlation.py/selection_rule.py/catalog.py.
+- `tests/test_executive_intelligence_citation_consolidation.py` -- 8 testes unitarios cobrindo os cenarios A-G mandatados (mesmo chunk por dois Advisors, chunks distintos, um Advisor com multiplas fontes, tipos estruturalmente diferentes com id numerico coincidente, nenhuma evidencia perdida, nenhuma evidencia inventada, ordenacao deterministica).
+- `tests/test_executive_narrative_api.py::TestCitationConsolidation` -- teste ponta a ponta com documento real ingerido/indexado, document_advisor e governance_advisor citando o mesmo chunk_id sob scope=organization via rota HTTP real.
+- `web/components/dashboard/composition-trace-summary.tsx` -- `CompositionTraceSummary`, componente compartilhado (mesmo padrao de reuso do ScopeSelector, D-161), reutilizado por DecisionSupportPanel/ExecutiveNarrativePanel sem nenhuma rota/BFF/pagina/contrato backend novo. Renderiza Advisors utilizados, correlacoes identificadas, possiveis conflitos (correlacoes is_structural_pair, sempre expostos, nunca resolvidos automaticamente) e fontes consolidadas -- nunca JSON bruto, nunca conteudo fabricado quando vazio.
+- `web/components/dashboard/composition-trace-summary.test.tsx` -- 5 testes de componente.
+- Novas asercoes E2E nos dois cenarios de escopo organizacao ja existentes (`dashboard.spec.ts`), provando a visibilidade do Composition Trace.
+
+**Verificação:** backend completo 869 passed (860 + 9 novos); frontend completo 546 passed (541 + 5 novos); E2E completo 65 passed + 1 flake de cold-start confirmado por reexecucao isolada (mesmo padrao ja documentado) -- 0 falhas reais. ruff/tsc/eslint limpos. Preservacao arquitetural confirmada por git diff --stat vazio em todos os componentes protegidos.
+
+**Alterado**
+- `docs/product/governance/WAVE-6-CONSOLIDATION-REVIEW.md` -- novo §13: resolucao implementada, ambas pendencias fechadas, nenhuma pendencia tecnica remanescente.
+
+**Missão:** GO para iniciar imediatamente o Wave 6 Completion Review. Nenhuma nova Capability foi criada. Retornando obrigatoriamente para Executive Review.
+
+**Decision Log:** D-165.

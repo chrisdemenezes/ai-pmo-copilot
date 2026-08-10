@@ -26,11 +26,17 @@ import pytest
 from fastapi.testclient import TestClient
 
 from src.api import authorization as authorization_module
+from src.api import dependencies as dependencies_module
 from src.api.routes import intelligence
 from src.database.repository import AnalysisRepository
 from src.main import app
 from src.services.authorization.checker import SqlPermissionChecker
 from src.services.domain_service import DomainService
+from src.services.events.dispatcher import EventDispatcher
+from src.services.events.in_process_publisher import InProcessEventPublisher
+from src.services.knowledge_platform.embedding_provider import MockEmbeddingProvider
+from src.services.knowledge_platform.knowledge_repository import KnowledgeRepository
+from src.services.knowledge_platform.vector_repository import PgVectorRepository
 
 from tests.db import temp_database_url
 
@@ -92,6 +98,30 @@ class _CitingProvider:
 class _ExplodingProvider:
     def generate(self, prompt: str) -> str:
         raise AssertionError("the LLM must not be called for this scenario")
+
+
+class _DualRagCitingProvider:
+    """Cites the same evidence id from both RAG-based Advisors
+    (document_advisor, governance_advisor) -- the real duplication scenario
+    diagnosed in the Wave 6 Consolidation Review (D-164): both call
+    `gather_rag_context()` with identical arguments (same organization,
+    same question), so both receive the exact same chunk pool and may cite
+    the same chunk independently."""
+
+    def __init__(self, chunk_id: int):
+        self._chunk_id = chunk_id
+
+    def generate(self, prompt: str) -> str:
+        if "Indexed document chunks" in prompt or "Governance document chunks" in prompt:
+            return json.dumps(
+                {
+                    "answer": "Resposta fundamentada no documento indexado.",
+                    "cited_analysis_ids": [self._chunk_id],
+                }
+            )
+        if "Contributions already produced by the selected Enterprise Advisors" in prompt:
+            return "Síntese executiva a partir das contribuições recebidas."
+        return json.dumps({"answer": "Resposta fundamentada.", "cited_analysis_ids": []})
 
 
 @pytest.fixture()
@@ -280,7 +310,7 @@ class TestPartialCoverage:
         assert body["insufficient_basis"] is False
         assert body["narrative"] is not None
         assert {c["source_id"] for c in body["citations"]} == {risk_id}
-        assert all(c["advisor_name"] == "risk_advisor" for c in body["citations"])
+        assert all(c["advisor_names"] == ["risk_advisor"] for c in body["citations"])
         trace_by_advisor = {e["advisor_name"]: e["had_evidence"] for e in body["composition_trace"]["advisors_used"]}
         assert trace_by_advisor["risk_advisor"] is True
         assert trace_by_advisor["delivery_advisor"] is False
@@ -440,3 +470,59 @@ class TestExplicitScope:
         )
 
         assert response.status_code == 404
+
+
+class TestCitationConsolidation:
+    """Founder Decision -- Wave 6 Final Consolidation Actions (D-165): the
+    real duplication scenario diagnosed in the Wave 6 Consolidation Review
+    (D-164) -- `document_advisor`/`governance_advisor` both query the same
+    RAG pool under `scope=organization` -- proven end to end here, through
+    the real HTTP route, a real ingested/indexed document, and a real
+    Postgres-backed `KnowledgeRepository`/`RagPipeline`. The pure-function
+    scenarios A-G are covered in isolation by
+    `tests/test_executive_intelligence_citation_consolidation.py`."""
+
+    def test_two_rag_advisors_citing_the_same_chunk_consolidate_into_one_source(self, client):
+        test_client, repo, _domain_service = client
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = _actor(repo, org_id)
+
+        dispatcher = EventDispatcher(repo.SessionLocal)
+        event_publisher = InProcessEventPublisher(repo.SessionLocal, dispatcher)
+        knowledge_repository = KnowledgeRepository(
+            repo.SessionLocal, MockEmbeddingProvider(), PgVectorRepository(repo.SessionLocal), event_publisher
+        )
+        document = knowledge_repository.ingest(org_id, "runbook.md", "conteudo indexado relevante")
+        knowledge_repository.index(document.id, CORRELATION_ID)
+
+        app.dependency_overrides[dependencies_module.build_event_publisher] = lambda: event_publisher
+        app.dependency_overrides[intelligence.build_provider] = lambda: _DualRagCitingProvider(chunk_id=1)
+
+        try:
+            response = test_client.post(
+                "/api/executive-narrative/generate",
+                headers=_headers(org_id, user_id),
+                json={"scope": {"type": "organization"}},
+            )
+        finally:
+            app.dependency_overrides.pop(dependencies_module.build_event_publisher, None)
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["insufficient_basis"] is False
+        # Both document_advisor and governance_advisor cited the exact same
+        # chunk -- the only one indexed for this organization -- consolidated
+        # into a single citation, never presented as two independent
+        # confirmations of the same primary source.
+        document_chunk_citations = [c for c in body["citations"] if c["source_type"] == "document_chunk"]
+        assert len(document_chunk_citations) == 1
+        assert document_chunk_citations[0]["source_id"] == 1
+        assert set(document_chunk_citations[0]["advisor_names"]) == {"document_advisor", "governance_advisor"}
+        # Composition Trace still attributes each Advisor's own execution
+        # individually -- consolidation touches only `citations`, never
+        # `composition_trace.advisors_used`.
+        trace_by_advisor = {
+            e["advisor_name"]: e["had_evidence"] for e in body["composition_trace"]["advisors_used"]
+        }
+        assert trace_by_advisor["document_advisor"] is True
+        assert trace_by_advisor["governance_advisor"] is True

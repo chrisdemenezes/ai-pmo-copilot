@@ -11,7 +11,7 @@ const SAMPLE = {
   insufficient_basis_reason: null,
   narrative: "Síntese executiva: risco de escalação identificado, entrega em andamento.",
   advisors_used: ["risk_advisor", "delivery_advisor"],
-  citations: [{ advisor_name: "risk_advisor", source_type: "analysis_record", source_id: 7, source_label: "Risk 7" }],
+  citations: [{ advisor_names: ["risk_advisor"], source_type: "analysis_record", source_id: 7, source_label: "Risk 7" }],
   composition_trace: {
     selection_signals: ["risk_advisor", "delivery_advisor"],
     selected_advisor_names: ["risk_advisor", "delivery_advisor"],

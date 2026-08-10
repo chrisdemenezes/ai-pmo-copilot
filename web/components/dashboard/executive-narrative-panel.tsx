@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { FileText } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { CompositionTraceSummary } from "@/components/dashboard/composition-trace-summary";
 import { ScopeSelector } from "@/components/dashboard/scope-selector";
 import type { DecisionSupportScope, DecisionSupportScopeType } from "@/lib/dashboard/types";
 import {
@@ -98,22 +98,11 @@ export function ExecutiveNarrativePanel() {
         {result && !result.insufficient_basis && (
           <div className="flex flex-col gap-3">
             <p className="text-sm text-ink">{result.narrative}</p>
-            <div className="flex flex-wrap gap-1">
-              {result.advisors_used.map((advisorName) => (
-                <Badge key={advisorName} variant="outline">
-                  {advisorName}
-                </Badge>
-              ))}
-            </div>
-            {result.citations.length > 0 && (
-              <ul className="flex flex-col gap-1 text-xs text-ink-muted">
-                {result.citations.map((citation, index) => (
-                  <li key={`${citation.advisor_name}-${citation.source_type}-${citation.source_id}-${index}`}>
-                    {citation.advisor_name}: {citation.source_label}
-                  </li>
-                ))}
-              </ul>
-            )}
+            <CompositionTraceSummary
+              advisorsUsed={result.advisors_used}
+              compositionTrace={result.composition_trace}
+              citations={result.citations}
+            />
           </div>
         )}
       </CardContent>

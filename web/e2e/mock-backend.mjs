@@ -1304,7 +1304,7 @@ const server = http.createServer((req, res) => {
         citations: firstRisk
           ? [
               {
-                advisor_name: "risk_advisor",
+                advisor_names: ["risk_advisor"],
                 source_type: "analysis_record",
                 source_id: latestRisk.id,
                 source_label: `Análise de risco #${latestRisk.id}`,
@@ -1405,7 +1405,7 @@ const server = http.createServer((req, res) => {
           citations: firstRisk
             ? [
                 {
-                  advisor_name: "risk_advisor",
+                  advisor_names: ["risk_advisor"],
                   source_type: "analysis_record",
                   source_id: latestRisk.id,
                   source_label: `Análise de risco #${latestRisk.id}`,
@@ -1498,7 +1498,7 @@ const server = http.createServer((req, res) => {
         citations: firstRisk
           ? [
               {
-                advisor_name: "risk_advisor",
+                advisor_names: ["risk_advisor"],
                 source_type: "analysis_record",
                 source_id: latestRisk.id,
                 source_label: `Análise de risco #${latestRisk.id}`,

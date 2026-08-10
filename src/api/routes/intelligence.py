@@ -1315,9 +1315,15 @@ class DecisionSupportRequest(BaseModel):
 class ExecutiveIntelligenceCitation(BaseModel):
     """Shared by every Executive Intelligence Capability's response --
     identical shape for Decision Support and Executive Narrative, never
-    duplicated."""
+    duplicated.
 
-    advisor_name: str
+    One entry per real, distinct primary source (Founder Decision -- Wave 6
+    Final Consolidation Actions, D-165): `advisor_names` lists every Advisor
+    that cited it, never one entry per Advisor. The same primary source
+    cited by two Advisors is one consolidated fact, never presented as two
+    independent confirmations."""
+
+    advisor_names: list[str]
     source_type: str
     source_id: int
     source_label: str
@@ -1452,18 +1458,40 @@ def ask_decision_support(
     return _decision_support_response(result)
 
 
+def _consolidate_citations(explanations) -> list[ExecutiveIntelligenceCitation]:
+    """Composition-layer citation consolidation (Founder Decision -- Wave 6
+    Final Consolidation Actions, D-165): groups by the source's own real,
+    stable identity -- `Evidence.source_type`/`source_id`, its own primary
+    key (`ai_foundation/types.py`, `Evidence` docstring), never by text,
+    label, similarity, or an invented hash. Every Advisor that cited a
+    source is preserved in `advisor_names`; no evidence is dropped, no
+    evidence is invented. Runs exclusively here, in Decision Support's and
+    Executive Narrative's own composition step -- never inside an Advisor,
+    the RAG Pipeline, or the Executive Orchestrator, all of which remain
+    free to keep citing the same source independently (Founder Decision
+    §3)."""
+    by_source: dict[tuple[str, int], ExecutiveIntelligenceCitation] = {}
+    order: list[tuple[str, int]] = []
+    for item in explanations:
+        for evidence in item.explanation.recommendation.cited_evidence:
+            key = (evidence.source_type, evidence.source_id)
+            existing = by_source.get(key)
+            if existing is None:
+                by_source[key] = ExecutiveIntelligenceCitation(
+                    advisor_names=[item.advisor_name],
+                    source_type=evidence.source_type,
+                    source_id=evidence.source_id,
+                    source_label=evidence.source_label,
+                )
+                order.append(key)
+            elif item.advisor_name not in existing.advisor_names:
+                existing.advisor_names.append(item.advisor_name)
+    return [by_source[key] for key in order]
+
+
 def _decision_support_response(result) -> DecisionSupportResponse:
     trace = result.composition_trace
-    citations = [
-        ExecutiveIntelligenceCitation(
-            advisor_name=item.advisor_name,
-            source_type=evidence.source_type,
-            source_id=evidence.source_id,
-            source_label=evidence.source_label,
-        )
-        for item in result.explanations
-        for evidence in item.explanation.recommendation.cited_evidence
-    ]
+    citations = _consolidate_citations(result.explanations)
     return DecisionSupportResponse(
         capability=result.capability.value,
         insufficient_basis=result.is_insufficient_basis,
@@ -1547,16 +1575,7 @@ def generate_executive_narrative(
 
 def _executive_narrative_response(result, scope: ExplicitScope) -> ExecutiveNarrativeResponse:
     trace = result.composition_trace
-    citations = [
-        ExecutiveIntelligenceCitation(
-            advisor_name=item.advisor_name,
-            source_type=evidence.source_type,
-            source_id=evidence.source_id,
-            source_label=evidence.source_label,
-        )
-        for item in result.explanations
-        for evidence in item.explanation.recommendation.cited_evidence
-    ]
+    citations = _consolidate_citations(result.explanations)
     return ExecutiveNarrativeResponse(
         capability=result.capability.value,
         scope=scope,

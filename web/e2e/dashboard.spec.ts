@@ -244,6 +244,13 @@ test("Decision Support answers an executive question with organization scope, ci
   await expect(section.getByText("risk_advisor", { exact: true })).toBeVisible();
   await expect(section.getByText("delivery_advisor", { exact: true })).toBeVisible();
   await expect(section.getByText(/Análise de risco/)).toBeVisible();
+  // Composition Trace (Founder Decision -- Wave 6 Final Consolidation
+  // Actions, D-165): risk_advisor/delivery_advisor form a declared
+  // structural pair -- presented as a possible conflict, never
+  // automatically resolved.
+  await expect(section.getByText("Como esta resposta foi construída")).toBeVisible();
+  await expect(section.getByText(/Possíveis conflitos identificados/)).toBeVisible();
+  await expect(section.getByText(/nunca resolvidos automaticamente/)).toBeVisible();
 });
 
 // Explicit Scope (Vision, Princípio 13): "Organização" is never the
@@ -307,6 +314,10 @@ test("Executive Narrative generates a narrative with organization scope, naming 
   // no teste dedicado abaixo).
   await expect(section.getByText("pmo_advisor", { exact: true })).toBeVisible();
   await expect(section.getByText(/Análise de risco/)).toBeVisible();
+  // Composition Trace visível (Founder Decision -- Wave 6 Final
+  // Consolidation Actions, D-165) -- mesmo painel, nenhuma rota/tela nova.
+  await expect(section.getByText("Como esta resposta foi construída")).toBeVisible();
+  await expect(section.getByText(/Possíveis conflitos identificados/)).toBeVisible();
 });
 
 // Explicit Scope (Vision, Princípio 13): "Organização" is never the
