@@ -27,6 +27,7 @@ import { ActionsCenterTable } from "@/components/cockpit/actions-center-table";
 import { RecentActivityTimeline } from "@/components/cockpit/recent-activity-timeline";
 import { AIRecommendationsPanel } from "@/components/cockpit/ai-recommendations-panel";
 import { DecisionSupportPanel } from "@/components/dashboard/decision-support-panel";
+import { ExecutiveNarrativePanel } from "@/components/dashboard/executive-narrative-panel";
 import { computeExecutiveFocus } from "@/lib/dashboard/executive-focus";
 import {
   WORK_ITEM_BREAKDOWN,
@@ -232,6 +233,16 @@ export default function DashboardPage() {
           </p>
         </div>
         <DecisionSupportPanel />
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="font-display text-lg font-semibold text-ink">Narrativa Executiva</h2>
+          <p className="text-sm text-ink-muted">
+            Síntese executiva de um escopo declarado — Executive Orchestrator, Wave 6.
+          </p>
+        </div>
+        <ExecutiveNarrativePanel />
       </section>
 
       {projects.length === 0 ? (

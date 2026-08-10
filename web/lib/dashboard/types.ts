@@ -55,3 +55,21 @@ export interface DecisionSupportResponse {
   citations: DecisionSupportCitation[];
   composition_trace: DecisionSupportCompositionTrace;
 }
+
+/**
+ * Mirrors ExecutiveNarrativeResponse (src/api/routes/intelligence.py, Wave
+ * 6). Never accepts a free-text question -- only `scope` -- and echoes it
+ * back (Technical Design -- Executive Narrative, §5.3), unlike Decision
+ * Support. Reuses `DecisionSupportScope`/`DecisionSupportCitation`/
+ * `DecisionSupportCompositionTrace` -- identical shapes, never duplicated.
+ */
+export interface ExecutiveNarrativeResponse {
+  capability: string;
+  scope: DecisionSupportScope;
+  insufficient_basis: boolean;
+  insufficient_basis_reason: string | null;
+  narrative: string | null;
+  advisors_used: string[];
+  citations: DecisionSupportCitation[];
+  composition_trace: DecisionSupportCompositionTrace;
+}
