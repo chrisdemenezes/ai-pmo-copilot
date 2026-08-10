@@ -2097,3 +2097,14 @@ Reavaliacao integral da Wave 6 pos-Executive Narrative, exclusivamente documenta
 **Missão:** GO para abrir o proximo ciclo institucional, condicionado a nova Founder Decision explicita que resolva as pendencias decisorias identificadas. Nenhum trabalho posterior inicia automaticamente.
 
 **Decision Log:** D-163.
+
+## Wave 6 — Executive Intelligence Consolidation (2026-08-10)
+
+Consolidacao institucional da taxonomia da Wave 6 (D-164), exclusivamente documental (nenhum codigo).
+
+**Adicionado**
+- `docs/product/governance/WAVE-6-CONSOLIDATION-REVIEW.md` -- taxonomia consolidada: Produto = Decision Support + Executive Narrative (Delivered); Operacao estrutural interna = Selection/Execution/Correlation-Conflict Detection/Synthesis; Cross Advisor Correlation e Conflict Analysis reclassificadas como INTERNAL EXECUTIVE INTELLIGENCE OPERATION; Recommendation Package = ABSORBED BY EXECUTIVE NARRATIVE; Executive Briefing = DEFERRED. Diagnostico tecnico mandatado, sem implementacao: Composition Trace confirmado completo ponta a ponta (backend -> TS -> BFF -> hook, sem selecao de campos) -- ja chega intacto aos dois paineis existentes; duplicacao real de citacoes identificada em document_advisor/governance_advisor (mesma query RAG, mesmos argumentos, provisioning.py) com impacto semantico real, nao apenas de apresentacao; menor delta tecnico para expor Correlation/Conflict confirmado como puramente de apresentacao (dois paineis existentes, zero mudanca de contrato/BFF/hook). Questoes do Kickoff par.8 formalizadas: paralelismo/cache = DEFERRED UNTIL MEASURED NEED; confidence = CLOSED (sem confidence score); EnterpriseMemoryService = DEFERRED; Workflow Runtime = CLOSED FOR SYNCHRONOUS EXECUTIVE INTELLIGENCE; citation duplication = OPEN (diagnostico concluido, implementacao pendente de decisao do Founder). Percentual revisado: ~95% (Executive Briefing fora do escopo de conclusao) ou ~72% (Executive Briefing contado como Epic obrigatorio) -- duas leituras apresentadas, decisao de enquadramento do Founder.
+
+**Missão:** GO condicional para o Completion Review, apos decisao do Founder sobre citation duplication e visibilidade de Composition Trace. Nenhuma implementacao realizada nesta missao. Nenhum trabalho posterior inicia automaticamente.
+
+**Decision Log:** D-164.
