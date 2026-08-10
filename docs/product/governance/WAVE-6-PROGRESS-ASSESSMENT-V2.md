@@ -206,3 +206,23 @@ Justificativa: com o mecanismo comprovado em produção pela primeira vez (§5/�
 **GO/NO-GO para abrir o próximo ciclo institucional: GO**, condicionado exclusivamente a uma nova Founder Decision explícita que autorize Executive Narrative (ou outra Capability, à escolha do Founder) — nenhuma implementação começa automaticamente a partir desta avaliação.
 
 **Nenhuma implementação, Domain Blueprint, ou Technical Design é produzido por esta avaliação.** Aguarda decisão explícita do Founder sobre o próximo ciclo institucional.
+
+---
+
+## 9. Atualização — Executive Narrative entregue (2026-08-10, D-160/D-161)
+
+Esta seção é um adendo posterior à avaliação original (§§1-8), preservadas intocadas como registro histórico do estado da Wave 6 antes da implementação de Executive Narrative. A recomendação do §8 foi formalmente autorizada pelo Founder ("Founder Decision — Wave 6 / Executive Narrative", APPROVED/GO) e executada em 3 etapas, seguindo exatamente o padrão de Decision Support.
+
+**Executive Narrative reclassificada de Partially Delivered para Delivered.**
+
+- **Consumidor real:** `POST /api/executive-narrative/generate` (`src/api/routes/intelligence.py`) → BFF `web/app/api/bff/executive-narrative/route.ts` → hook `use-generate-executive-narrative.ts` → `ExecutiveNarrativePanel`, adicionado ao Dashboard Executivo já existente.
+- **Diferença estrutural de Decision Support, provada em teste dedicado:** nenhum campo de texto livre no contrato (`ExecutiveNarrativeRequest{scope}` apenas); seleção via `explicit`=todos os 8 nomes do catálogo (elegibilidade por escopo já existente faz a narrowing real, nunca correspondência lexical); rota com verbo `generate`, não `ask`; campo de resposta `narrative`, `scope` ecoado.
+- **Zero alteração a `catalog.py`/`selection_rule.py`** — confirmado por `git diff --stat` vazio para ambos os arquivos e para todos os demais componentes protegidos (`ExecutiveOrchestrator`, `AdvisorFramework`, `AIContextEngine`, `RecommendationEngine`, `ExplanationEngine`, Workflow Runtime, Event Pipeline, Knowledge Platform, os 8 Advisors) durante toda a missão.
+- **Os três scopes comprovados com conjuntos de Advisors estruturalmente distintos:** `project` → `{risk_advisor, delivery_advisor}` (2); `portfolio` → `{portfolio_advisor}` (1); `organization` → 7 Advisors elegíveis (todos exceto `portfolio_advisor`, estruturalmente excluído por ausência de `portfolio_id`, mesmo comportamento já demonstrado para Decision Support).
+- **Não-aliasing provado em teste dedicado (API e E2E):** mesma organização/dados, Decision Support (pergunta lexicalmente restrita) e Executive Narrative (mesmo escopo) produzem `advisors_used` estruturalmente diferentes.
+- **Testes:** 14 testes de API (`tests/test_executive_narrative_api.py`) + 19 testes de frontend (componente, hook, rota BFF) + 5 testes E2E via browser real (3 breakpoints, 15 execuções) — todos verdes.
+- **Performance (scope=organization):** medição real via `TestClient` (LLM real indisponível neste ambiente, mesma limitação já registrada ao longo de toda a missão) — 7 Advisors executados sequencialmente + 1 síntese, 220ms de piso estrutural (DB + roteamento, sem latência de LLM real), execução sequencial confirmada tanto estruturalmente (`orchestrator.py`, sem paralelismo) quanto pela ordem dos logs. **Risco residual identificado, não bloqueante:** sob `scope=organization`, até 8 chamadas sequenciais de LLM podem ocorrer (o dobro do caso típico de Decision Support, que já justificou o timeout de BFF de 120s) — a latência real de produção (com provedor LLM real) não pôde ser medida neste ambiente; recomenda-se validação em staging com provedor real antes de qualquer uso intensivo sob este escopo. Nenhuma otimização (paralelismo/cache) foi introduzida preventivamente, conforme mandato do Founder.
+- **Suítes completas:** backend 860 passed; frontend 541 passed; E2E completo 316 passed, 2 skipped, 0 failed.
+- **GO/NO-GO — Executive Narrative = Delivered:** **GO.** Consumidor real, contrato completo, diferença funcional de Decision Support provada estruturalmente e em teste, três scopes comprovados, zero impacto sobre componente protegido, todas as suítes verdes.
+
+**Efeito sobre a Wave 6 Delivery Matrix:** Decision Support e Executive Narrative são agora as duas Capabilities Delivered da Wave 6 — a primeira prova de que o padrão de exposição (backend/RBAC/eligibility → frontend mínimo → E2E) generaliza com custo baixo, exatamente como o §8 desta avaliação previu.

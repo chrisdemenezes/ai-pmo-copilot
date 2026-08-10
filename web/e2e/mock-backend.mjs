@@ -1328,6 +1328,209 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Wave 6 -- Executive Narrative: second production consumer of the
+  // Executive Orchestrator, mirroring src/api/routes/intelligence.py's
+  // POST /api/executive-narrative/generate
+  // (TECHNICAL-DESIGN-EXECUTIVE-NARRATIVE.md). This mock proves the UI
+  // wiring end-to-end (BFF -> hook -> panel) and the scope-driven
+  // selection contract (no `question` field, distinct advisor set per
+  // scope), never re-implements Selection Rule/Correlation/Síntese --
+  // those are proven exhaustively by the real pytest suite
+  // (tests/test_executive_narrative_api.py).
+  if (req.method === "POST" && url.pathname === "/api/executive-narrative/generate") {
+    let raw = "";
+    req.on("data", (chunk) => (raw += chunk));
+    req.on("end", () => {
+      const { scope } = JSON.parse(raw);
+      if (!scope || typeof scope !== "object" || !scope.type) {
+        return send(res, 422, { detail: "scope é obrigatório" });
+      }
+
+      // Deliberately distinct advisor sets per scope, matching
+      // ADVISOR_ELIGIBLE_SCOPES (catalog.py) -- proves, at the UI level,
+      // that the three scopes produce structurally different results, and
+      // that this set never matches Decision Support's own (narrower,
+      // lexically-selected) set for the same underlying data.
+      if (scope.type === "portfolio") {
+        return send(res, 200, {
+          capability: "executive_narrative",
+          scope,
+          insufficient_basis: false,
+          insufficient_basis_reason: null,
+          narrative:
+            "O portfólio Cloud Modernization está equilibrado, sem sobreposição relevante entre os projetos ativos.",
+          advisors_used: ["portfolio_advisor"],
+          citations: [],
+          composition_trace: {
+            selection_signals: [
+              "risk_advisor",
+              "delivery_advisor",
+              "portfolio_advisor",
+              "pmo_advisor",
+              "executive_advisor",
+              "strategy_advisor",
+              "document_advisor",
+              "governance_advisor",
+            ],
+            selected_advisor_names: ["portfolio_advisor"],
+            advisors_used: [{ advisor_name: "portfolio_advisor", had_evidence: true }],
+            correlations: [],
+            synthesis_source_advisor_names: ["portfolio_advisor"],
+          },
+        });
+      }
+
+      const latestRisk = ANALYSES.filter((a) => a.kind === "risk").sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at),
+      )[0];
+      const firstRisk = latestRisk?.payload?.model_output?.risks?.[0];
+
+      if (scope.type === "organization") {
+        return send(res, 200, {
+          capability: "executive_narrative",
+          scope,
+          insufficient_basis: false,
+          insufficient_basis_reason: null,
+          narrative:
+            "Estado executivo da organização: risco de escalação sob acompanhamento, entregas em andamento, processo de status seguido pelos projetos, nenhum desvio estratégico identificado.",
+          advisors_used: [
+            "risk_advisor",
+            "delivery_advisor",
+            "pmo_advisor",
+            "executive_advisor",
+            "strategy_advisor",
+            "document_advisor",
+            "governance_advisor",
+          ],
+          citations: firstRisk
+            ? [
+                {
+                  advisor_name: "risk_advisor",
+                  source_type: "analysis_record",
+                  source_id: latestRisk.id,
+                  source_label: `Análise de risco #${latestRisk.id}`,
+                },
+              ]
+            : [],
+          composition_trace: {
+            selection_signals: [
+              "risk_advisor",
+              "delivery_advisor",
+              "portfolio_advisor",
+              "pmo_advisor",
+              "executive_advisor",
+              "strategy_advisor",
+              "document_advisor",
+              "governance_advisor",
+            ],
+            selected_advisor_names: [
+              "risk_advisor",
+              "delivery_advisor",
+              "pmo_advisor",
+              "executive_advisor",
+              "strategy_advisor",
+              "document_advisor",
+              "governance_advisor",
+            ],
+            advisors_used: [
+              { advisor_name: "risk_advisor", had_evidence: true },
+              { advisor_name: "delivery_advisor", had_evidence: true },
+              { advisor_name: "pmo_advisor", had_evidence: false },
+              { advisor_name: "executive_advisor", had_evidence: false },
+              { advisor_name: "strategy_advisor", had_evidence: false },
+              { advisor_name: "document_advisor", had_evidence: false },
+              { advisor_name: "governance_advisor", had_evidence: false },
+            ],
+            correlations: [
+              { advisor_names: ["delivery_advisor", "risk_advisor"], is_structural_pair: true },
+            ],
+            synthesis_source_advisor_names: ["risk_advisor", "delivery_advisor"],
+          },
+        });
+      }
+
+      // scope.type === "project". Projects without any seeded ANALYSES
+      // entry (e.g. "Automação de Faturamento", id 2) demonstrate Base
+      // Insuficiente end-to-end -- risk_advisor/delivery_advisor are
+      // selected but neither gathers evidence, exactly the Collection
+      // Empty path already proven at the API layer
+      // (tests/test_executive_narrative_api.py::TestInsufficientBasis).
+      const project = DOMAIN_PROJECTS.find((p) => p.id === scope.project_id);
+      const projectHasEvidence = project && ["Multilift", "Aurora"].includes(project.name);
+      if (!projectHasEvidence) {
+        return send(res, 200, {
+          capability: "executive_narrative",
+          scope,
+          insufficient_basis: true,
+          insufficient_basis_reason: "collection_empty",
+          narrative: null,
+          advisors_used: ["risk_advisor", "delivery_advisor"],
+          citations: [],
+          composition_trace: {
+            selection_signals: [
+              "risk_advisor",
+              "delivery_advisor",
+              "portfolio_advisor",
+              "pmo_advisor",
+              "executive_advisor",
+              "strategy_advisor",
+              "document_advisor",
+              "governance_advisor",
+            ],
+            selected_advisor_names: ["risk_advisor", "delivery_advisor"],
+            advisors_used: [
+              { advisor_name: "risk_advisor", had_evidence: false },
+              { advisor_name: "delivery_advisor", had_evidence: false },
+            ],
+            correlations: [],
+            synthesis_source_advisor_names: null,
+          },
+        });
+      }
+
+      return send(res, 200, {
+        capability: "executive_narrative",
+        scope,
+        insufficient_basis: false,
+        insufficient_basis_reason: null,
+        narrative: `Existe risco de escalação (${firstRisk ? firstRisk.description : "ver histórico"}) e a entrega do projeto Multilift está em andamento.`,
+        advisors_used: ["risk_advisor", "delivery_advisor"],
+        citations: firstRisk
+          ? [
+              {
+                advisor_name: "risk_advisor",
+                source_type: "analysis_record",
+                source_id: latestRisk.id,
+                source_label: `Análise de risco #${latestRisk.id}`,
+              },
+            ]
+          : [],
+        composition_trace: {
+          selection_signals: [
+            "risk_advisor",
+            "delivery_advisor",
+            "portfolio_advisor",
+            "pmo_advisor",
+            "executive_advisor",
+            "strategy_advisor",
+            "document_advisor",
+            "governance_advisor",
+          ],
+          selected_advisor_names: ["risk_advisor", "delivery_advisor"],
+          advisors_used: [
+            { advisor_name: "risk_advisor", had_evidence: true },
+            { advisor_name: "delivery_advisor", had_evidence: true },
+          ],
+          correlations: [
+            { advisor_names: ["delivery_advisor", "risk_advisor"], is_structural_pair: true },
+          ],
+          synthesis_source_advisor_names: ["risk_advisor", "delivery_advisor"],
+        },
+      });
+    });
+    return;
+  }
+
   // TIP-007 -- Meeting Intelligence (Comunicação / FS-006). The only one of
   // the 3 analyze routes whose body uses "transcript", not "project_context"
   // -- matches web/app/api/bff/.../analyze/meeting/route.ts, which is the

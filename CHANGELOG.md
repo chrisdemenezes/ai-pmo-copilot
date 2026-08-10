@@ -2049,3 +2049,30 @@ Abertura do ciclo institucional da Executive Narrative, mandatada pelo Founder. 
 **Missão:** GO para implementacao. Retornando obrigatoriamente para Executive Review. Nenhum trabalho posterior inicia automaticamente.
 
 **Decision Log:** D-160.
+
+## Wave 6 — Executive Narrative implementada e entregue (3 etapas) (2026-08-10)
+
+Implementacao completa das 3 etapas ja aprovadas no Technical Design (D-160), reutilizando integralmente o padrao validado para Decision Support. Segunda Capability entregue da Wave 6.
+
+**Adicionado**
+- `src/api/routes/intelligence.py` -- `POST /executive-narrative/generate`, adaptador fino (nunca seleciona Advisors, correlaciona, sintetiza, ou acessa Domain/Knowledge Platform/banco diretamente, confirmado por verificacao AST). `ExecutiveNarrativeRequest{scope}` -- sem `question`; `ExecutiveNarrativeResponse{capability, scope, insufficient_basis, insufficient_basis_reason, narrative, advisors_used, citations, composition_trace}`. Reutiliza `resolve_decision_support_scope()`, `ADVISOR_ELIGIBLE_SCOPES` e `ExecutiveOrchestrator` sem alteracao -- `SelectionSignals.explicit` populado com os 8 nomes do `ADVISOR_IDENTITY_CATALOG` ja existente, deixando a elegibilidade por escopo (D-154) fazer toda a selecao real. **Nenhuma alteracao em `catalog.py`/`selection_rule.py`**, confirmado por `git diff --stat` vazio.
+- `tests/test_executive_narrative_api.py` -- 14 testes cobrindo os 11 cenarios obrigatorios (eligibilidade por escopo x3, base insuficiente, cobertura parcial com citacoes rastreaveis, nao-aliasing contra Decision Support, ausencia de `question` no contrato, ausencia de acesso direto a infraestrutura, RBAC, resposta malformada, Explicit Scope obrigatorio).
+- `web/app/api/bff/executive-narrative/route.ts` -- proxy fino, timeout 120s, nunca repassa `question` mesmo que um cliente mal-comportado o envie.
+- `web/lib/dashboard/types.ts` -- `ExecutiveNarrativeResponse`, reutilizando os tipos ja existentes de Decision Support (`DecisionSupportScope`/`DecisionSupportCitation`/`DecisionSupportCompositionTrace`), sem duplicacao.
+- `web/lib/hooks/use-generate-executive-narrative.ts` -- hook de mutacao.
+- `web/components/dashboard/scope-selector.tsx` -- `ScopeSelector` extraido de `DecisionSupportPanel`, subcomponente compartilhado entre os dois paineis, evitando duplicar a logica de selecao de escopo.
+- `web/components/dashboard/executive-narrative-panel.tsx` -- painel sem campo de pergunta, botao "Gerar Narrativa" (nunca "Perguntar"), adicionado ao Dashboard existente, nenhuma pagina nova. 19 testes novos (componente: 6, hook: 2, rota BFF: 11).
+- `web/e2e/mock-backend.mjs` -- handler para `/api/executive-narrative/generate`, com conjuntos de Advisors distintos por escopo.
+- `web/e2e/dashboard.spec.ts` -- 5 novos testes E2E: narrativa com escopo organizacao citando 7 Advisors; botao desabilitado sem escopo; Base Insuficiente para projeto sem evidencia; escopo portfolio selecionando exclusivamente `portfolio_advisor`; prova de nao-aliasing lado a lado com Decision Support. 15 execucoes (5 testes x mobile/md/lg), todas passando.
+
+**Refatoracao de reuso (sem mudanca de comportamento)**
+- `DecisionSupportScope`/`DecisionSupportCitation`/`DecisionSupportAdvisorExecution`/`DecisionSupportCorrelation`/`DecisionSupportCompositionTrace` renomeados para tipos compartilhados (`ExplicitScope`/`ExecutiveIntelligenceCitation`/`ExecutiveIntelligenceAdvisorExecution`/`ExecutiveIntelligenceCorrelation`/`ExecutiveIntelligenceCompositionTrace`) em `intelligence.py`, evitando duplicar o validador de escopo entre as duas Capabilities -- suite completa de Decision Support (24 testes) permanece verde sem alteracao de asercao.
+
+**Verificação:** ruff/tsc/eslint limpos; suite backend completa (860 testes) sem falha; suite frontend completa (541 testes) sem falha; suite E2E completa (316 passed, 2 skipped, 0 failed -- 1 flake de cold-start confirmado e resolvido por reexecucao isolada). Performance sob escopo organizacao medida (piso estrutural, sem LLM real disponivel neste ambiente): 7 Advisors executados, 0.22s, 0.18% do timeout de BFF de 120s -- risco residual (nao bloqueante) de latencia real sob LLM registrado para validacao em staging. Preservacao arquitetural confirmada: zero alteracao em ExecutiveOrchestrator/AdvisorFramework/AIContextEngine/RecommendationEngine/ExplanationEngine/Workflow Runtime/Event Pipeline/Knowledge Platform/os 8 Advisors/catalog.py/selection_rule.py.
+
+**Alterado**
+- `docs/product/governance/WAVE-6-PROGRESS-ASSESSMENT-V2.md` -- novo §9: Executive Narrative reclassificada de Partially Delivered para Delivered, segunda Capability entregue da Wave 6. §§1-8 originais preservados intocados como registro historico.
+
+**Missão:** Executive Summary final apresentado. Retornar obrigatoriamente para Executive Review -- nenhum outro componente da Wave 6 (Executive Briefing, Recommendation Package, Cross Advisor Correlation, Conflict Analysis) inicia automaticamente sem nova Founder Decision explicita.
+
+**Decision Log:** D-161.
