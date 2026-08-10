@@ -63,6 +63,7 @@ from src.services.advisor_framework.types import AdvisorExecutionError
 from src.services.domain_service import DomainService
 from src.services.ai_foundation.types import Evidence, SessionContext
 from src.services.events.interfaces import EventPublisher
+from src.services.executive_orchestrator.catalog import ADVISOR_IDENTITY_CATALOG
 from src.services.executive_orchestrator.orchestrator import ExecutiveOrchestrator
 from src.services.executive_orchestrator.selection_rule import OrchestrationScope, SelectionSignals
 from src.services.executive_orchestrator.types import Capability
@@ -1268,19 +1269,22 @@ def _governance_advisor_response(explanation) -> GovernanceAdvisorResponse:
 # Orchestrator (D-147/D-152; TECHNICAL-DESIGN-DECISION-SUPPORT.md) --------
 
 
-class DecisionSupportScope(BaseModel):
+class ExplicitScope(BaseModel):
     """Executive Intelligence Explicit Scope (Founder Decision --
     Eliminação do Risco de Escopo Implícito; Vision, Princípio 13): a scope
     is always one of exactly three declared types, never inferred from
     absence. `organization` is a valid, intentional scope -- never an
-    implicit fallback from an omitted `project_id`/`portfolio_id`."""
+    implicit fallback from an omitted `project_id`/`portfolio_id`. Shared,
+    unchanged, by every Executive Intelligence Capability that requires a
+    scope (Decision Support, Executive Narrative) -- never duplicated
+    (Technical Design -- Executive Narrative, §5.2)."""
 
     type: Literal["project", "portfolio", "organization"]
     project_id: int | None = None
     portfolio_id: int | None = None
 
     @model_validator(mode="after")
-    def _validate_combination(self) -> "DecisionSupportScope":
+    def _validate_combination(self) -> "ExplicitScope":
         if self.type == "project":
             if self.project_id is None:
                 raise ValueError("project_id is required when scope.type is 'project'")
@@ -1303,33 +1307,37 @@ class DecisionSupportRequest(BaseModel):
     question: str = Field(..., min_length=3, max_length=2000)
     # No default -- absence of `scope` is a 422 (Pydantic: required field),
     # never interpreted as organization scope (Technical Design §3).
-    scope: DecisionSupportScope
+    scope: ExplicitScope
 
     _validate_question = field_validator("question")(_ensure_has_content)
 
 
-class DecisionSupportCitation(BaseModel):
+class ExecutiveIntelligenceCitation(BaseModel):
+    """Shared by every Executive Intelligence Capability's response --
+    identical shape for Decision Support and Executive Narrative, never
+    duplicated."""
+
     advisor_name: str
     source_type: str
     source_id: int
     source_label: str
 
 
-class DecisionSupportAdvisorExecution(BaseModel):
+class ExecutiveIntelligenceAdvisorExecution(BaseModel):
     advisor_name: str
     had_evidence: bool
 
 
-class DecisionSupportCorrelation(BaseModel):
+class ExecutiveIntelligenceCorrelation(BaseModel):
     advisor_names: tuple[str, str]
     is_structural_pair: bool
 
 
-class DecisionSupportCompositionTrace(BaseModel):
+class ExecutiveIntelligenceCompositionTrace(BaseModel):
     selection_signals: list[str]
     selected_advisor_names: list[str]
-    advisors_used: list[DecisionSupportAdvisorExecution]
-    correlations: list[DecisionSupportCorrelation]
+    advisors_used: list[ExecutiveIntelligenceAdvisorExecution]
+    correlations: list[ExecutiveIntelligenceCorrelation]
     synthesis_source_advisor_names: list[str] | None
 
 
@@ -1339,12 +1347,42 @@ class DecisionSupportResponse(BaseModel):
     insufficient_basis_reason: str | None
     answer: str | None
     advisors_used: list[str]
-    citations: list[DecisionSupportCitation]
-    composition_trace: DecisionSupportCompositionTrace
+    citations: list[ExecutiveIntelligenceCitation]
+    composition_trace: ExecutiveIntelligenceCompositionTrace
+
+
+class ExecutiveNarrativeRequest(BaseModel):
+    """Never accepts `question` or any free text (Technical Design --
+    Executive Narrative, §2/§5.2) -- the only input is an explicitly
+    declared scope."""
+
+    scope: ExplicitScope
+
+
+class ExecutiveNarrativeResponse(BaseModel):
+    capability: str
+    scope: ExplicitScope
+    insufficient_basis: bool
+    insufficient_basis_reason: str | None
+    narrative: str | None
+    advisors_used: list[str]
+    citations: list[ExecutiveIntelligenceCitation]
+    composition_trace: ExecutiveIntelligenceCompositionTrace
+
+
+# Fixed internal prompt for Executive Narrative -- never user-configurable,
+# never exposed in the contract (Technical Design §6): a single synthesis-
+# eliciting text passed identically to every selected Advisor and to
+# synthesize(), exactly the way `request.question` already is for Decision
+# Support -- no change to either signature.
+EXECUTIVE_NARRATIVE_PROMPT = (
+    "Produza uma síntese executiva do estado atual deste escopo, cobrindo riscos, "
+    "entrega e quaisquer sinais relevantes segundo a evidência disponível."
+)
 
 
 def resolve_decision_support_scope(
-    scope: DecisionSupportScope,
+    scope: ExplicitScope,
     organization_id: int,
     domain_service: DomainService,
 ) -> OrchestrationScope:
@@ -1417,7 +1455,7 @@ def ask_decision_support(
 def _decision_support_response(result) -> DecisionSupportResponse:
     trace = result.composition_trace
     citations = [
-        DecisionSupportCitation(
+        ExecutiveIntelligenceCitation(
             advisor_name=item.advisor_name,
             source_type=evidence.source_type,
             source_id=evidence.source_id,
@@ -1435,17 +1473,111 @@ def _decision_support_response(result) -> DecisionSupportResponse:
         answer=result.synthesis,
         advisors_used=[identity.name for identity in result.advisor_identities],
         citations=citations,
-        composition_trace=DecisionSupportCompositionTrace(
+        composition_trace=ExecutiveIntelligenceCompositionTrace(
             selection_signals=list(trace.selection.signals),
             selected_advisor_names=list(trace.selection.selected_advisor_names),
             advisors_used=[
-                DecisionSupportAdvisorExecution(
+                ExecutiveIntelligenceAdvisorExecution(
                     advisor_name=entry.advisor_name, had_evidence=entry.had_evidence
                 )
                 for entry in trace.executions
             ],
             correlations=[
-                DecisionSupportCorrelation(
+                ExecutiveIntelligenceCorrelation(
+                    advisor_names=entry.advisor_names, is_structural_pair=entry.is_structural_pair
+                )
+                for entry in trace.correlations
+            ],
+            synthesis_source_advisor_names=(
+                list(trace.synthesis.source_advisor_names) if trace.synthesis else None
+            ),
+        ),
+    )
+
+
+@router.post("/executive-narrative/generate", response_model=ExecutiveNarrativeResponse)
+def generate_executive_narrative(
+    request: ExecutiveNarrativeRequest,
+    context: RequestContext = Depends(get_request_context),
+    prompts: PromptRegistry = Depends(build_prompt_registry),
+    orchestrator_prompts: PromptRegistry = Depends(build_orchestrator_prompt_registry),
+    provider: LLMProvider = Depends(build_provider),
+    repository: AnalysisRepository = Depends(build_repository),
+    rag_pipeline: RagPipeline = Depends(build_rag_pipeline),
+    domain_service: DomainService = Depends(build_domain_service),
+    # Read-only, same permission already protecting Decision Support and all
+    # 8 Advisors -- Executive Narrative never creates/edits/triggers an
+    # analysis, never persists anything.
+    _permission: None = Depends(require_permission("intelligence.read")),
+) -> ExecutiveNarrativeResponse:
+    # Second production consumer of the Executive Orchestrator (Technical
+    # Design -- Executive Narrative). A thin adapter, same shape as
+    # ask_decision_support: never selects Advisors, never correlates, never
+    # synthesizes, never accesses evidence/Domain/Knowledge Platform
+    # directly. Explicit Scope resolved/validated before
+    # ExecutiveOrchestrator.run() is ever invoked. Unlike Decision Support,
+    # no free-text question is ever accepted -- `explicit` is populated with
+    # every Advisor Identity in the catalog, so the scope-eligibility table
+    # already approved for Decision Support (`ADVISOR_ELIGIBLE_SCOPES`,
+    # `catalog.py`, unmodified) does the entire selection, never lexical
+    # matching against user text (Technical Design §4).
+    session = SessionContext(
+        organization_id=context.organization.organization_id,
+        user_id=context.user.user_id,
+        session_id=context.session.session_id,
+    )
+    scope = resolve_decision_support_scope(request.scope, session.organization_id, domain_service)
+
+    framework = AdvisorFramework(repository, prompts, provider, rag_pipeline)
+    orchestrator = ExecutiveOrchestrator(framework, domain_service, provider, orchestrator_prompts)
+    signals = SelectionSignals(
+        explicit=frozenset(identity.name for identity in ADVISOR_IDENTITY_CATALOG),
+        scope=scope,
+    )
+
+    try:
+        result = orchestrator.run(
+            Capability.EXECUTIVE_NARRATIVE, session, EXECUTIVE_NARRATIVE_PROMPT, signals
+        )
+    except AdvisorExecutionError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    return _executive_narrative_response(result, request.scope)
+
+
+def _executive_narrative_response(result, scope: ExplicitScope) -> ExecutiveNarrativeResponse:
+    trace = result.composition_trace
+    citations = [
+        ExecutiveIntelligenceCitation(
+            advisor_name=item.advisor_name,
+            source_type=evidence.source_type,
+            source_id=evidence.source_id,
+            source_label=evidence.source_label,
+        )
+        for item in result.explanations
+        for evidence in item.explanation.recommendation.cited_evidence
+    ]
+    return ExecutiveNarrativeResponse(
+        capability=result.capability.value,
+        scope=scope,
+        insufficient_basis=result.is_insufficient_basis,
+        insufficient_basis_reason=(
+            result.insufficient_basis_reason.value if result.insufficient_basis_reason else None
+        ),
+        narrative=result.synthesis,
+        advisors_used=[identity.name for identity in result.advisor_identities],
+        citations=citations,
+        composition_trace=ExecutiveIntelligenceCompositionTrace(
+            selection_signals=list(trace.selection.signals),
+            selected_advisor_names=list(trace.selection.selected_advisor_names),
+            advisors_used=[
+                ExecutiveIntelligenceAdvisorExecution(
+                    advisor_name=entry.advisor_name, had_evidence=entry.had_evidence
+                )
+                for entry in trace.executions
+            ],
+            correlations=[
+                ExecutiveIntelligenceCorrelation(
                     advisor_names=entry.advisor_names, is_structural_pair=entry.is_structural_pair
                 )
                 for entry in trace.correlations
