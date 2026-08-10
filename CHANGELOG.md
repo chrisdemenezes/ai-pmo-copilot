@@ -2027,3 +2027,14 @@ Founder ratificou Decision Support = Delivered e mandatou missao isolada para el
 **Missão:** GO para retomar a execucao da Wave 6. Nenhuma nova Capability inicia automaticamente sem nova Founder Decision explicita.
 
 **Decision Log:** D-157, D-158.
+
+## Wave 6 — Progress Assessment V2 (2026-08-07)
+
+Reavaliacao integral da Wave 6 pos-Decision Support, exclusivamente documental (nenhum codigo).
+
+**Adicionado**
+- `docs/product/governance/WAVE-6-PROGRESS-ASSESSMENT-V2.md` -- Delivery Matrix V2: Decision Support = Delivered (unica); Executive Narrative, Cross Advisor Correlation, Conflict Analysis = Partially Delivered; Executive Briefing, Recommendation Package = Not Started (reclassificadas do V1, aplicando de forma consistente "nao assumir Delivered apenas porque a infraestrutura existe"). Epic Ledger revisado (W6-2/W6-3 subiram de ~60%/~50% para ~65%/~65%, mecanismo comum provado em producao via Decision Support). Percentual consolidado da Wave 6: ~50% (subiu de ~40%). Recomendacao: Executive Narrative como proxima Capability. V1 preservado intocado como registro historico.
+
+**Missão:** GO para abrir o proximo ciclo institucional, condicionado a nova Founder Decision explicita. Nenhum trabalho posterior inicia automaticamente.
+
+**Decision Log:** D-159.
