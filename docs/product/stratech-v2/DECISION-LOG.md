@@ -1832,6 +1832,26 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-160 — Technical Design: Executive Narrative
+
+- **Contexto:** "Founder Decision — Wave 6 / Executive Narrative — Abertura do próximo ciclo institucional" (APPROVED do Wave 6 Progress Assessment V2, D-159), que autorizou exclusivamente este Technical Design — nenhum código nesta etapa. Próxima Capability oficial: Executive Narrative.
+- **`docs/architecture/TECHNICAL-DESIGN-EXECUTIVE-NARRATIVE.md` produzido.**
+- **Identidade funcional:** Executive Narrative não cria nova inteligência — transforma o `ExecutiveIntelligenceResult` já produzido pelo Executive Orchestrator em uma narrativa executiva de um escopo explicitamente declarado, derivada exclusivamente de Advisor Explanations/Correlation Findings/Composition Trace/Executive Intelligence Result, nunca de fonte primária.
+- **Diferença definitiva para Decision Support, demonstrada estruturalmente (não apenas por rótulo):** Decision Support recebe `question` livre e seleciona Advisors por correspondência lexical; Executive Narrative não aceita texto livre algum — apenas `scope` — e seleciona todo Advisor elegível ao escopo via `explicit` populado com os 8 nomes do catálogo (a elegibilidade por escopo já existente, `ADVISOR_ELIGIBLE_SCOPES`, D-154, faz a narrowing real). Rota `POST /executive-narrative/generate` (verbo distinto de `/ask`); campo de resposta `narrative` (não `answer`); `scope` ecoado na resposta. Teste dedicado de não-aliasing proposto (mesma organização/dados, comparação estrutural de `advisors_used` entre as duas rotas).
+- **Scopes suportados — avaliação grounded, não assumida:** os três (project/portfolio/organization) confirmados legítimos — cada um produz um conjunto real e não-vazio de Advisors elegíveis via a tabela já existente (2 para project, 1 para portfolio, até 7 para organization). Distinção preventiva registrada com uma futura Executive Briefing (organization de Executive Narrative = uma síntese fundida única; Executive Briefing, se implementada, seria composição de N sínteses por unidade — não a mesma coisa).
+- **Selection Rules — reuso confirmado, zero alteração a `catalog.py`/`selection_rule.py`:** demonstrado que `_matches_vocabulary`/`_meets_structural_precondition` já são genéricas o suficiente — popular `SelectionSignals.explicit` com todos os 8 nomes do catálogo já existente faz toda a Capability funcionar sem nenhuma linha nova nesses dois arquivos. Único Technical Design da Wave 6, até aqui, sem nenhum impacto identificado sobre componente protegido.
+- **Contrato funcional definido:** `ExecutiveNarrativeRequest{scope}` (mesma validação estrutural de `DecisionSupportScope`, proposta de extração de tipo Pydantic compartilhado `ExplicitScope` para evitar duplicação — decisão a confirmar na implementação); `ExecutiveNarrativeResponse{capability, scope, insufficient_basis, insufficient_basis_reason, narrative, advisors_used, citations, composition_trace}` — nenhum dado inventado, cada campo já existe em `ExecutiveIntelligenceResult`. RBAC: `intelligence.read`, reutilizada.
+- **Consumidor frontend mínimo:** reutiliza o Dashboard existente, nenhuma página nova — segundo painel visualmente distinto do `DecisionSupportPanel` (sem campo de pergunta, botão "Gerar Narrativa"), com `ScopeSelector` extraído como subcomponente compartilhado entre os dois painéis.
+- **11 cenários de teste obrigatórios definidos**, incluindo o teste de não-aliasing (item 11) e a prova de que `advisors_used` corresponde exatamente à tabela de elegibilidade por escopo para cada um dos três casos (item 6).
+- **Riscos avaliados:** nenhum bloqueante; latência sob escopo organização (até 7 chamadas sequenciais) tratada como risco operacional, mitigação igual à de Decision Support (timeout de BFF generoso, medição na implementação).
+- **Nota de precisão:** o Wave 6 Progress Assessment V2 (D-159) registrou "9 invocações reais" de `orchestrator.run(Capability.EXECUTIVE_NARRATIVE, ...)` em teste; a recontagem exata durante este Technical Design encontrou **10** (`grep -c` em `tests/test_executive_orchestrator_orchestrator.py`). Correção registrada aqui, não editada retroativamente em D-159 — a diferença não altera nenhuma conclusão daquele documento.
+- **Estratégia incremental:** mesmas 3 etapas já validadas para Decision Support (backend/RBAC/eligibility reuse → frontend mínimo → E2E/fechamento do Epic).
+- **Verificação:** missão exclusivamente documental — `git status` confirma zero alteração em `src/`/`tests/`/`web/`.
+- **Recomendação:** GO para implementação, sem pré-condição de aprovação de impacto sobre componente protegido (ao contrário de Decision Support/D-154, nenhuma extensão de `catalog.py`/`selection_rule.py` é necessária).
+- **Missão:** registrar esta decisão em Decision Log/CHANGELOG/Mission Control, commit e push. Retornar obrigatoriamente para Executive Review. Nenhum trabalho posterior deverá ser iniciado automaticamente.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.

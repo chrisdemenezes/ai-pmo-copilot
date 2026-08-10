@@ -2038,3 +2038,14 @@ Reavaliacao integral da Wave 6 pos-Decision Support, exclusivamente documental (
 **Missão:** GO para abrir o proximo ciclo institucional, condicionado a nova Founder Decision explicita. Nenhum trabalho posterior inicia automaticamente.
 
 **Decision Log:** D-159.
+
+## Wave 6 — Technical Design: Executive Narrative (2026-08-07)
+
+Abertura do ciclo institucional da Executive Narrative, mandatada pelo Founder. Exclusivamente documental (nenhum codigo).
+
+**Adicionado**
+- `docs/architecture/TECHNICAL-DESIGN-EXECUTIVE-NARRATIVE.md` -- identidade funcional (transforma o Executive Intelligence Result ja produzido, nunca consulta fonte primaria); diferenca definitiva para Decision Support demonstrada estruturalmente (sem texto livre, selecao por elegibilidade total via explicit=todos os 8 nomes em vez de correspondencia lexical, rota POST /executive-narrative/generate, campo narrative em vez de answer, scope ecoado); tres scopes avaliados e confirmados legitimos (project: 2 advisors, portfolio: 1, organization: ate 7); zero impacto identificado sobre catalog.py/selection_rule.py (reuso integral de ADVISOR_ELIGIBLE_SCOPES, D-154); contrato funcional completo; consumidor frontend minimo reutilizando o Dashboard existente (painel distinto, sem alias); 11 cenarios de teste obrigatorios, incluindo prova de nao-aliasing; riscos avaliados, nenhum bloqueante; estrategia incremental de 3 etapas.
+
+**Missão:** GO para implementacao. Retornando obrigatoriamente para Executive Review. Nenhum trabalho posterior inicia automaticamente.
+
+**Decision Log:** D-160.
