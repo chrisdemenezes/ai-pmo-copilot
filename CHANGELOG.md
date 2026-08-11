@@ -2163,3 +2163,14 @@ Primeira missao da Wave 7, exclusivamente documental (nenhum codigo, nenhum Tech
 **Missão:** GO para a primeira Architecture Review da Wave 7. Nenhuma implementacao, Technical Design ou Domain Blueprint produzido. Nenhum trabalho posterior inicia automaticamente.
 
 **Decision Log:** D-168.
+
+## Wave 7 — Architecture Review: taxonomia State x Nature + Epic Ledger revisado (2026-08-11)
+
+Segunda missao da Wave 7, exclusivamente documental (nenhum codigo, nenhum Technical Design, nenhuma implementacao). Wave enquadrada explicitamente como readiness e hardening, nao novas funcionalidades.
+
+**Adicionado**
+- `docs/architecture/WAVE-7-ARCHITECTURE-REVIEW.md` -- reclassificacao das 25 dimensoes com taxonomia State x Nature (BLOCKER/READINESS GAP/DEFERRED/NON-BLOCKING DEBT): apenas 2 BLOCKER (Disaster Recovery, Staging -- as duas nomeadas pelo Founder), 16 READINESS GAP, 3 NON-BLOCKING DEBT, 4 Ready. Dois achados novos por leitura direta de codigo: correlation_id (padrao ja estabelecido em 15 arquivos) ausente do caminho LLM/Advisor/Orchestrator; zero security headers e zero dependency/secret scanning em todo o repositorio. Staging definido arquiteturalmente (10 caracteristicas minimas, sem implementacao). LLM/Embedding separados em 4 camadas (codigo/configuracao/ambiente/validacao real). Seguranca avaliada exclusivamente para exposicao de producao, sem reabrir RBAC/tenant isolation/audit. Ordem de execucao em 4 Blocos do Founder confirmada, com 5 amendamentos de sequenciamento fino. 16 itens de Technical Debt/Deferred classificados individualmente, zero sem classificacao. Criterios de encerramento refinados cobrindo os 11 itens minimos do Founder.
+
+**Missão:** GO para o primeiro Technical Design. Epic inicial recomendado: W7-5 sequenciado em W7-1. Nenhum trabalho posterior inicia automaticamente.
+
+**Decision Log:** D-169.
