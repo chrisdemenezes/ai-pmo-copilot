@@ -2185,3 +2185,14 @@ Terceira missao da Wave 7, exclusivamente documental (nenhum codigo, nenhum Tech
 **Missão:** GO para o primeiro Technical Design. Epic inicial recomendado: W7-5 sequenciado em W7-1, com W7-4/W7-7/decisoes de W7-3 paralelos desde o inicio. Nenhum trabalho posterior inicia automaticamente.
 
 **Decision Log:** D-170.
+
+## W7-5 -- Technical Design: Deployment / Environment / Release Discipline (2026-08-12)
+
+AR-18 aprovada; W7-9 absorvido (TD-002 -> W7-3, TD-011 -> W7-1, sem encerramento automatico de divida); abertura exclusiva do ciclo tecnico de W7-5, apenas Technical Design produzido.
+
+**Adicionado**
+- `docs/architecture/TECHNICAL-DESIGN-W7-5-DEPLOYMENT-ENVIRONMENT-RELEASE-DISCIPLINE.md` -- 22 secoes, precedido de inventario real do repositorio: docker-compose/Dockerfile reais (so backend); configuracao espalhada em 10 arquivos via os.getenv(), sem modulo central; 21 migrations Alembic; /health e liveness apenas, sem readiness; CI real valida mas nunca implanta; Demo Mode e ambiente Postgres local RC-2 sao o mesmo script; PRI-008/PRI-009 reais mas rotulados V1, nunca revisados para o schema V2; tags Git so existem para V1. Achado central: nenhuma config critica falha no boot hoje (DATABASE_URL cai para SQLite, LLM/API_KEY falham lazy). Modelo DEV/STAGING/PRODUCTION definido (nao implementado). Configuration Contract, Secrets Boundaries, Fail-Fast Rules (variavel ENVIRONMENT), Deployment/Migration/Release/Health-Readiness/Smoke-Test/Rollback Models -- todos reaproveitando PRI-008/PRI-009/CI/docker-compose existentes, sem introduzir Kubernetes/service mesh/vault/blue-green/GitOps sem gap real. Uma Founder Decision elevada (hospedagem de frontend, ja aberta desde RFC-001) -- demais 6 questoes do AR-18 confirmadas sem impacto direto em W7-5. Plano incremental em 6 etapas pequenas e verificaveis, nenhuma executada. 13 criterios de encerramento refinados.
+
+**Missão:** GO para implementacao incremental, condicionado a decisao de hospedagem de frontend (Etapa 4) e a nova autorizacao explicita do Founder para iniciar a implementacao. Nenhum codigo escrito, nenhum ambiente provisionado. W7-1/W7-3/W7-4/W7-7 permanecem nao autorizados.
+
+**Decision Log:** D-171.
