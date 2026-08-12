@@ -2174,3 +2174,14 @@ Segunda missao da Wave 7, exclusivamente documental (nenhum codigo, nenhum Techn
 **Missão:** GO para o primeiro Technical Design. Epic inicial recomendado: W7-5 sequenciado em W7-1. Nenhum trabalho posterior inicia automaticamente.
 
 **Decision Log:** D-169.
+
+## AR-18 — Wave 7 Architecture Review formal: 21 secoes, taxonomia por 8 campos, dependency graph real (2026-08-12)
+
+Terceira missao da Wave 7, exclusivamente documental (nenhum codigo, nenhum Technical Design, nenhuma infraestrutura, nenhum gap resolvido). Substitui em rigor e formato a revisao anterior (D-169).
+
+**Adicionado**
+- `docs/architecture/AR-18-WAVE-7-ENTERPRISE-READINESS-ARCHITECTURE-REVIEW.md` -- taxonomia State x Nature das 25 dimensoes com 8 campos cada (estado/evidencia/gap/impacto/classificacao/Epic/dependencias/condicao de Ready): 2 BLOCKER (Disaster Recovery, Staging), 16 READINESS GAP, 3 NON-BLOCKING DEBT, 4 Ready -- nenhuma dimensao recebe Nature=Deferred (todo gap tem Epic responsavel). Correcao factual: EventDispatcher nao e capacidade morta -- tem handler real de producao (document_indexed_workflow), corrigindo caracterizacao da revisao anterior. Disaster Recovery mapeado: unico datastore com estado (Postgres, 20 tabelas, embeddings na propria tabela chunks via pgvector). Production AI Validation Model formalizado em 7 camadas para LLM/Embedding. RC-2 (7,1/10) identificada como estruturalmente desatualizada (anterior as Waves 3-6). Epic Ledger revisado individualmente (10 Epics) -- recomendacao sinalizada, nao decidida silenciosamente: absorver W7-9 em W7-3/W7-1. Hipotese de Critical Path do Founder confirmada na direcao geral com 3 ajustes reais (W7-4 e W7-7 sem dependencia de Foundation, paralelos desde o dia 1; W7-9 absorvivel). 16 itens de TD/Deferred classificados individualmente. 7 Founder Decisions elevadas explicitamente. 18 criterios de encerramento refinados, verificaveis por execucao real.
+
+**Missão:** GO para o primeiro Technical Design. Epic inicial recomendado: W7-5 sequenciado em W7-1, com W7-4/W7-7/decisoes de W7-3 paralelos desde o inicio. Nenhum trabalho posterior inicia automaticamente.
+
+**Decision Log:** D-170.
