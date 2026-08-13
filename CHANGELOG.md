@@ -2375,3 +2375,19 @@ Founder aprovou RTO=8h/RPO=24h, a estrategia pg_dump/pg_restore/Alembic, Option 
 **Missão:** Etapa 2 concluida -- IMPLEMENTED/TESTED LOCALLY, NOT YET EXERCISED IN REAL DR DRILL. Prosseguindo para Etapa 3 (TD-002).
 
 **Decision Log:** D-183.
+
+## W7-3 Etapa 3 -- TD-002 (Delete Policy) analisado e fechado (2026-08-13)
+
+Analise mandatoria antes de implementar: 33 ForeignKey() no schema, nenhuma com `ondelete=`; unico `.delete()` de aplicacao em todo o codebase e um UserRole (join row, sem filhos) -- nenhum hard delete de entidade pai/CRITICAL em lugar nenhum.
+
+**Achado que corrige AR-18 SS12, elevado com transparencia:** testado empiricamente que o comportamento real do Postgres (NO ACTION default) ja bloqueia deletes com dependentes (ForeignKeyViolation), nunca produz orfao silencioso como AR-18 afirmava. D-181/AR-18 nao editados retroativamente -- correcao registrada como nova entrada.
+
+**Adicionado**
+- `tests/test_delete_policy.py` -- 6 testes travando o comportamento RESTRICT-equivalente ja vigente (organizations/portfolios, users/audit_logs, documents/document_versions/chunks, projects/analysis_records, events/workflow_executions) + teste negativo confirmando que dados RECONSTRUCTABLE sem dependentes continuam geriveis normalmente.
+
+**Testes**
+- `pytest tests/test_delete_policy.py`: 6 passed. `ruff` limpo.
+
+**Missão:** TD-002 fechado para a V1 -- politica ja vigente, agora testada e documentada, nenhuma mudanca de schema necessaria, derivavel sem nova decisao arquitetural/de negocio (Etapa 3 nao interrompida, nenhum Decision Brief necessario). Prosseguindo para Etapa 4 (DR Procedure).
+
+**Decision Log:** D-184.
