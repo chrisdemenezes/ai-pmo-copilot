@@ -26,6 +26,8 @@ explicitamente onde uma decisão de infraestrutura ainda não foi tomada.
 | `API_KEY` | Sim | Toda rota `/api/*` responde `503` (`verify_api_key`, fail-closed) |
 | `LLM_PROVIDER` | Sim | Deve ser o provider real (nunca `mock`) em produção |
 | `ANTHROPIC_API_KEY` (ou equivalente do provider real) | Sim, se `LLM_PROVIDER` != mock | Falha ao processar qualquer análise |
+| `EMBEDDING_PROVIDER` | Sim | Deve ser `voyage` (nunca `mock`) em produção — Production Embedding Provider Approval, D-177 |
+| `VOYAGE_API_KEY` | Sim, se `EMBEDDING_PROVIDER=voyage` | Falha ao indexar/consultar a Knowledge Platform (`EmbeddingProviderConfigError`) |
 | `CORS_ALLOWED_ORIGINS` | Sim | Vazio por padrão (fail-closed) — sem isso, o frontend de produção não consegue chamar a API |
 | `RATE_LIMIT_MAX_REQUESTS` / `RATE_LIMIT_WINDOW_SECONDS` | Não (default 60/60) | Usa o default do `src/api/rate_limiter.py` |
 

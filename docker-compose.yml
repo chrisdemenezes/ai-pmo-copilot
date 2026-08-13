@@ -26,6 +26,11 @@ services:
       DB_POOL_PRE_PING: ${DB_POOL_PRE_PING:-true}
       LLM_PROVIDER: ${LLM_PROVIDER:-mock}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      # Production Embedding Provider Approval (Founder Decision, D-177):
+      # Voyage AI, model voyage-4 -- same fail-fast pattern as LLM_PROVIDER/
+      # ANTHROPIC_API_KEY above (src/api/startup_config.py).
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-mock}
+      VOYAGE_API_KEY: ${VOYAGE_API_KEY:-}
       API_KEY: ${API_KEY:-}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-}
       RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-60}
