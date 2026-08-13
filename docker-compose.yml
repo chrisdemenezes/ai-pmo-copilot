@@ -1,9 +1,23 @@
 services:
   api:
-    build: .
+    build:
+      context: .
+      # W7-5 Release Identity: bakes the running commit into the image
+      # (exposed at GET /health as "release") -- `${GIT_SHA:-unknown}` so a
+      # plain `docker compose build` still works without the caller having
+      # to export anything, same default behavior `Dockerfile`'s own
+      # `ARG GIT_SHA=unknown` already has.
+      args:
+        GIT_SHA: ${GIT_SHA:-unknown}
     ports:
       - "8000:8000"
     environment:
+      # W7-5 Configuration Contract: docker-compose.yml is the deployment
+      # vehicle for staging/production (PRI-009), so it defaults ENVIRONMENT
+      # to "production" explicitly -- never inherits the "dev" default that
+      # `resolve_environment()` uses for local/demo entry points that never
+      # set this variable at all.
+      ENVIRONMENT: ${ENVIRONMENT:-production}
       DATABASE_URL: postgresql://aipmo:aipmo@database:5432/aipmo
       DB_POOL_SIZE: ${DB_POOL_SIZE:-5}
       DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-10}
@@ -20,6 +34,26 @@ services:
       database:
         condition: service_healthy
     command: sh -c "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8000"
+
+  web:
+    # W7-5 Etapa 4 (Founder Decision -- Frontend Hosting, D-171/D-172):
+    # containerized, same deployment discipline as `api` -- separate
+    # artifact, common release/rollback model, no single container mixing
+    # frontend and backend.
+    build:
+      context: ./web
+      args:
+        GIT_SHA: ${GIT_SHA:-unknown}
+    ports:
+      - "3000:3000"
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      BACKEND_URL: ${BACKEND_URL:-http://api:8000}
+      API_KEY: ${API_KEY:-}
+      SESSION_SECRET: ${SESSION_SECRET:-}
+      WORKSPACE_PASSWORD: ${WORKSPACE_PASSWORD:-}
+    depends_on:
+      - api
 
   database:
     # pgvector/pgvector:pg16 = the official postgres:16 image with the

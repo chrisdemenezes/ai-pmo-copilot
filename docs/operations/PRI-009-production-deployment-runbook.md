@@ -12,10 +12,10 @@ explicitamente onde uma decisão de infraestrutura ainda não foi tomada.
 
 | Item | Status | Observação |
 |---|---|---|
-| Backend containerizado (`Dockerfile` + `docker-compose.yml`) | Pronto | Serviços `api` (FastAPI/Uvicorn) e `database` (`postgres:16`) |
+| Backend containerizado (`Dockerfile` + `docker-compose.yml`) | Pronto | Serviços `api` (FastAPI/Uvicorn), `web` (frontend, W7-5 Etapa 4) e `database` (`pgvector/pgvector:pg16`) |
 | Migração de schema | Pronta | `alembic upgrade head` já é parte do comando de start do serviço `api` |
 | Variáveis de ambiente de produção | A configurar por deploy | Ver tabela abaixo |
-| Hospedagem do frontend (`web/`) | **Não decidido** | `RFC-001-frontend-architecture.html` (linha 1167) registra esta pergunta como aberta desde a concepção do frontend ("Deploy: nova entrada no `docker-compose.yml` existente, ou pipeline separado?") — não há `Dockerfile` em `web/`, nem `vercel.json`, nem entrada de frontend no `docker-compose.yml` atual. **Este runbook não pode prescrever passos de deploy do frontend até essa decisão ser tomada pelo Founder/CTO.** |
+| Hospedagem do frontend (`web/`) | **Decidido (Founder Decision, W7-5, D-171/D-172)** | Containerizado, mesma disciplina de deployment do backend — `web/Dockerfile` + serviço `web` em `docker-compose.yml` (W7-5 Etapa 4). Resolve a pergunta aberta desde `RFC-001-frontend-architecture.html` (linha 1167). |
 | Mitigação de força bruta em `/api/bff/session` | **Pendente — condição já registrada** | `docs/development/01-project-structure.md` (seção "Decision: Security Finding") registra risco aceito formalmente apenas para uso interno/piloto, com condição explícita e obrigatória antes de qualquer deploy além desse escopo: rate limiting + throttling por IP na rota de login do BFF, com testes e documentação. Verificado nesta revisão: `web/app/api/bff/session/route.ts` ainda não implementa nenhuma dessas mitigações. **Deploy para clientes externos/produção pública não deve ocorrer antes desta condição ser atendida** — este runbook cobre apenas o cenário já aprovado (uso interno/piloto). |
 
 ### Variáveis de ambiente obrigatórias (serviço `api`)
@@ -29,7 +29,7 @@ explicitamente onde uma decisão de infraestrutura ainda não foi tomada.
 | `CORS_ALLOWED_ORIGINS` | Sim | Vazio por padrão (fail-closed) — sem isso, o frontend de produção não consegue chamar a API |
 | `RATE_LIMIT_MAX_REQUESTS` / `RATE_LIMIT_WINDOW_SECONDS` | Não (default 60/60) | Usa o default do `src/api/rate_limiter.py` |
 
-### Variáveis de ambiente obrigatórias (frontend `web/`, onde quer que seja hospedado)
+### Variáveis de ambiente obrigatórias (frontend `web/`, serviço `web` do `docker-compose.yml`)
 
 | Variável | Obrigatória | Efeito se ausente |
 |---|---|---|
@@ -44,16 +44,14 @@ explicitamente onde uma decisão de infraestrutura ainda não foi tomada.
 # 1. Backup pré-deploy (obrigatório -- ver PRI-008-production-backup-restore-runbook.md Secao 2)
 #    executar o procedimento de backup completo antes de prosseguir
 
-# 2. Build e subida do backend com a imagem nova
-docker compose pull        # se usando um registry; ou:
-docker compose build api
-docker compose up -d --build api database
+# 2. Build das imagens novas (backend + frontend), com a identidade de release
+#    (W7-5 Etapa 3 -- commit SHA, exposto em GET /health de ambos os servicos)
+GIT_SHA=$(git rev-parse HEAD) docker compose build api web
+docker compose up -d --build api web database
 
-# 3. Confirmar que a migracao foi aplicada (o comando do servico ja roda
+# 3. Confirmar que a migracao foi aplicada (o comando do servico api ja roda
 #    "alembic upgrade head" antes do uvicorn subir -- isto so confirma o resultado)
 docker compose run --rm api alembic current
-
-# 4. Frontend: depende da decisao de hospedagem da Secao 1 -- nao prescrito aqui
 ```
 
 ## 3. Rollback
