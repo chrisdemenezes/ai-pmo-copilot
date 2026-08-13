@@ -2287,3 +2287,16 @@ Decisao oficial: Production Embedding Provider = Voyage AI, Model = voyage-4, Ve
 **Missão:** GO tecnicamente para Provision Staging -- mas o provisionamento em si nao esta autorizado nesta missao, condicionado a gates externos pendentes (Data/DPA, host de staging, credencial real). Nenhum outro Epic da Wave 7 foi iniciado.
 
 **Decision Log:** D-177.
+
+## W7-1 Staging & Production AI Validation Plan produzido (2026-08-13)
+
+Plano de execução do W7-1 (nao encerrado apos D-177 -- nenhuma chamada real a LLM/Embedding, nenhum staging provisionado, nenhuma validacao integrada de IA existe ainda). Missao exclusivamente documental/de planejamento -- nenhum provisionamento, deployment, credencial real, chamada paga ou migration fora do ambiente de teste.
+
+**Adicionado**
+- `docs/product/governance/W7-1-STAGING-PRODUCTION-AI-VALIDATION-PLAN.md` -- 17 secoes: Current State (revalidacao mecanica do codigo/config real, sem achado que invalide decisoes anteriores), Staging Architecture (topologia derivada do Deployment Contract ja aprovado), Configuration Contract Checklist (A-E), External Gates (A-D classificados PENDING), Deployment Protocol (15 passos, input/comando/resultado/evidencia/GO/NO-GO/rollback), protocolos de validacao de Production LLM/Embedding/Knowledge-RAG/Executive Intelligence/Smoke-Browser, Failure & Rollback Matrix (13 cenarios), Evidence Collection Plan, 20 Criterios de Encerramento do W7-1, Riscos, Blockers, GO/NO-GO.
+- Duas divergencias documentais encontradas e elevadas, nao corrigidas nesta missao: exemplo de `/health` desatualizado em `PRI-008`/`PRI-009` §4 (sem o campo `release`); `.env.example` nao documenta `ENVIRONMENT`/`RELEASE_SHA`.
+- Achado de risco adicional elevado: porta `5432` exposta e `POSTGRES_PASSWORD` fixo em `docker-compose.yml` -- adequado para dev local, a restringir antes de deploy real de staging.
+
+**Missão:** GO tecnico para a execucao real do protocolo, condicionado a resolucao dos Gates A-C (Staging Host, Voyage/Anthropic credentials) pelo Founder. NO-GO para envio de dado corporativo real a Voyage ate o Gate D (Data/DPA) ser resolvido. Nenhum trabalho subsequente inicia automaticamente.
+
+**Decision Log:** D-178.
