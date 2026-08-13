@@ -97,10 +97,24 @@ curl -sf -H "X-API-Key: <API_KEY-de-producao>" https://<host-de-producao>/api/pr
 
 ## 5. Smoke tests
 
-Executar manualmente (ou via a suíte E2E real, `npx playwright test`, apontada para o
-ambiente de produção via `PLAYWRIGHT_BASE_URL`, se essa variável vier a ser suportada
-pela config — hoje `playwright.config.ts` aponta para `localhost:3100` fixamente, então
-o smoke test pós-deploy real é manual até essa lacuna ser fechada):
+**Smoke test parametrizável (W7-5 Etapa 6):** `web/e2e/smoke.spec.ts`, distinto da suíte
+E2E completa, aponta para qualquer ambiente via `PLAYWRIGHT_BASE_URL` (em vez de assumir
+`localhost:3100`) e cobre apenas os sinais essenciais pós-instalação: app acessível,
+`/api/health` do frontend saudável, `/ready` do backend verde (via `SMOKE_BACKEND_URL`) e
+um login básico até um endpoint funcional (via `SMOKE_LOGIN_EMAIL`/`SMOKE_LOGIN_PASSWORD`/
+`SMOKE_LOGIN_ORGANIZATION` — nenhuma credencial hardcoded; os checks que dependem dessas
+variáveis são pulados, não falham, se elas não forem informadas). Executar:
+
+```bash
+PLAYWRIGHT_BASE_URL=https://<host-de-producao> \
+SMOKE_BACKEND_URL=https://<host-de-producao-api> \
+SMOKE_LOGIN_EMAIL=<email-real> SMOKE_LOGIN_PASSWORD=<senha-real> SMOKE_LOGIN_ORGANIZATION=<org-real> \
+  npx playwright test e2e/smoke.spec.ts
+```
+
+Este smoke test automatizado cobre apenas o essencial operacional -- ele não substitui os
+5 passos manuais abaixo, que continuam sendo a validação funcional completa recomendada
+após qualquer deploy real:
 
 1. Login no workspace com a senha real de produção → deve redirecionar para `/dashboard`.
 2. `/dashboard` carrega o Portfolio Overview com dado real (não vazio, não erro).
