@@ -15,6 +15,7 @@ from src.api.routes.knowledge import router as knowledge_router
 from src.api.routes.portfolio import router as portfolio_router
 from src.api.routes.program import router as program_router
 from src.api.routes.project_delivery import router as project_delivery_router
+from src.api.startup_config import resolve_environment, validate_startup_config
 from src.llm.providers.base import ProviderConfigError, ProviderUnavailableError
 from src.services.identity.auth_service import bootstrap_identities
 
@@ -29,6 +30,12 @@ configure_logging()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Fail-closed at boot (W7-5, Configuration Contract): staging/production
+    # never become ready with missing/invalid critical configuration --
+    # never lazily, on the first request that would have exercised it.
+    # DEV's current permissive behavior is unchanged (validate_startup_config
+    # is a no-op there by design).
+    validate_startup_config(resolve_environment())
     # Idempotent (Identity Layer, TDS Epic 2 Section 12/16): safe to run on
     # every boot, never recreates or resets an existing user.
     bootstrap_identities(build_auth_service())
