@@ -2391,3 +2391,15 @@ Analise mandatoria antes de implementar: 33 ForeignKey() no schema, nenhuma com 
 **Missão:** TD-002 fechado para a V1 -- politica ja vigente, agora testada e documentada, nenhuma mudanca de schema necessaria, derivavel sem nova decisao arquitetural/de negocio (Etapa 3 nao interrompida, nenhum Decision Brief necessario). Prosseguindo para Etapa 4 (DR Procedure).
 
 **Decision Log:** D-184.
+
+## W7-3 Etapa 4 -- DR Procedure formalizado (2026-08-13)
+
+**Adicionado**
+- `docs/operations/PRI-010-disaster-recovery-procedure.md` -- 13 fases (Incident -> Declare Disaster -> Stop/Isolate -> Recover Environment -> Restore Database -> Validate Schema -> Start Services -> Readiness -> Structural Validation -> Functional Validation -> Knowledge/AI Validation -> Smoke Test -> Recovery Acceptance), cada uma com entrada/acao/criterio de sucesso/criterio de falha/evidencia produzida, mapeada a mecanismos reais ja implementados (backup.py, restore_validation.py, docker-compose/PRI-009, smoke test). Formulas de RTO real e RPO real explicitadas contra os objetivos aprovados (RTO<=8h/RPO<=24h). Nenhum mecanismo novo introduzido.
+
+**Testes**
+- Suite combinada das Etapas 1-3 (test_backup.py/test_restore_validation.py/test_delete_policy.py): 18 passed, confirmando os mecanismos referenciados.
+
+**Missão:** Etapa 4 concluida -- DOCUMENTED, cada fase mapeia a mecanismo IMPLEMENTED/TESTED LOCALLY, NOT YET EXERCISED IN REAL DR DRILL. As 4 Etapas autorizadas estao concluidas. STOP -- Etapa 5 (Drill) e Etapa 6 (encerramento) nao iniciam automaticamente. W7-3 permanece OPEN, DR nao esta Delivered.
+
+**Decision Log:** D-185.
