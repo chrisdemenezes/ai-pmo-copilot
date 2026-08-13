@@ -2254,3 +2254,14 @@ Staging Architecture (VM Linux dedicada, 2 vCPU/4GB/20-40GB, Docker+Compose, iso
 **Missão:** GO para o Founder decidir o Production Embedding Provider. NO-GO para qualquer implementacao/migration/provisionamento ate essa decisao.
 
 **Decision Log:** D-175.
+
+## Verificacao factual atual de providers de embedding: voyage-multilingual-2 sucedido por voyage-4 (2026-08-13)
+
+Verificacao factual contra documentacao oficial dos fornecedores, antes de qualquer registro definitivo do Production Embedding Provider (D-175 ja APPROVED como base arquitetural).
+
+**Adicionado**
+- `docs/architecture/PRODUCTION-EMBEDDING-PROVIDER-VERIFICATION.md` -- achado que altera a recomendacao anterior: voyage-multilingual-2 (jun/2024) foi sucedido pela familia Voyage 4 (voyage-4/voyage-4-large/voyage-4-lite, lancada 15/jan/2026), com dimensao configuravel (recurso que voyage-multilingual-2 nao tem) e mesma cobertura multilingue incl. portugues. voyage-context-4 (jun/2026) e mais novo mas tem contrato de API estruturalmente diferente, fora de escopo. Opcao adicional de implantacao Voyage via AWS/Azure Marketplace (dados nunca saem da VPC do cliente) confirmada. Verificacao sintetica de OpenAI (inalterado) e Cohere (corrigido de embed-v3 para embed-v4, multimodal, 1536 dim configuravel, 128K contexto). Recomendacao de provider mantida (Voyage AI); recomendacao de modelo atualizada para voyage-4 (dimensao 1024); nem provider, nem modelo, nem dimensao aprovados nesta missao -- decisao pendente do Founder.
+
+**Missão:** NO-GO para registrar o provider como decisao definitiva nesta missao. Fatos entregues para o Executive Review do Founder.
+
+**Decision Log:** D-176.
