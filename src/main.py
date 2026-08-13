@@ -1,10 +1,13 @@
+import logging
 import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy import text
 
+from src.api.dependencies import build_repository
 from src.api.request_context import RequestIDMiddleware, configure_logging
 from src.api.routes.administration import router as administration_router
 from src.api.routes.auth import build_auth_service
@@ -15,9 +18,16 @@ from src.api.routes.knowledge import router as knowledge_router
 from src.api.routes.portfolio import router as portfolio_router
 from src.api.routes.program import router as program_router
 from src.api.routes.project_delivery import router as project_delivery_router
-from src.api.startup_config import resolve_environment, validate_startup_config
+from src.api.startup_config import (
+    collect_startup_config_problems,
+    resolve_environment,
+    validate_startup_config,
+)
+from src.database.repository import AnalysisRepository
 from src.llm.providers.base import ProviderConfigError, ProviderUnavailableError
 from src.services.identity.auth_service import bootstrap_identities
+
+logger = logging.getLogger(__name__)
 
 
 def _cors_allowed_origins() -> list[str]:
@@ -89,3 +99,27 @@ def provider_unavailable_error_handler(request: Request, exc: ProviderUnavailabl
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "service": "AI PMO Copilot"}
+
+
+@app.get("/ready")
+def readiness_check(repository: AnalysisRepository = Depends(build_repository)):
+    """Distinct from `/health` (W7-5, Technical Design S12): "is this
+    process alive" versus "is this instance apt to receive real traffic".
+    Checks only what is cheap and objectively verifiable -- critical
+    configuration (reusing the same Configuration Contract as the boot-time
+    fail-fast check) and real database connectivity. Deliberately makes no
+    LLM call -- no Technical Design has demonstrated a need for that here,
+    and it would make every readiness probe expensive and provider-billed."""
+    environment = resolve_environment()
+    problems = collect_startup_config_problems(environment)
+
+    try:
+        with repository.engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+    except Exception as exc:  # noqa: BLE001 -- readiness must report any broken dependency, never crash
+        logger.error("Readiness check: database unreachable: %s", exc)
+        problems = [*problems, f"database unreachable: {exc}"]
+
+    if problems:
+        return JSONResponse(status_code=503, content={"status": "not_ready", "problems": problems})
+    return {"status": "ready"}
