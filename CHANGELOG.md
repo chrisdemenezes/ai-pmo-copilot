@@ -2232,3 +2232,14 @@ W7-5 encerrado oficialmente com base na Executive Evidence (D-172), sem revisao 
 **Missão:** GO para que o Founder decida o host de staging. Validacao de embedding real permanece bloqueada ate a escolha do backend de producao. Nenhum provisionamento/deployment/validacao real inicia automaticamente.
 
 **Decision Log:** D-173.
+
+## W7-1 Decision Analysis: Staging Host + Production Embedding Provider (2026-08-13)
+
+Analise tecnica exclusiva para fechar as 2 decisoes elevadas pelo Technical Design do W7-1 (ja APPROVED como base arquitetural) -- sem provisionar, sem implantar, sem implementar codigo, sem credenciais reais.
+
+**Adicionado**
+- `docs/architecture/W7-1-DECISION-ANALYSIS-STAGING-HOST-EMBEDDING-PROVIDER.md` -- Staging Host: matriz de requisitos minimos (2 vCPU/4GB/20-40GB, Docker+compose), 3 opcoes comparadas (VM self-hosted recomendada; container gerenciado so se beneficio concreto; infra existente confirmada inexistente por busca real no repositorio). Embedding Provider: contrato real extraido de embedding_provider.py; achado critico -- dimensao hoje e 16 (mock), qualquer escolha real exige migration + reembedding completo; 4 alternativas comparadas em 11 criterios (Voyage AI, OpenAI, Cohere, self-hosted); recomendacao Voyage AI (parceria oficial Anthropic, ja em uso para LLM_PROVIDER), condicionada a aprovacao de tratamento de dados. Decision Gate apresentado separadamente para as 2 escolhas, ambas marcadas como decisao de procurement/business pendente do Founder -- nenhuma decidida por esta missao. Sequencia de execucao do W7-1 verificada contra o codigo real, mantida sem alteracao.
+
+**Missão:** Aguardar escolha do Founder (Decision Brief) antes de qualquer provisionamento. Nenhum trabalho de execucao do W7-1 inicia automaticamente.
+
+**Decision Log:** D-174.
