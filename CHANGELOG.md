@@ -2417,3 +2417,14 @@ As 4 Etapas autorizadas (D-182/D-183/D-184/D-185) concluidas. Mandato de encerra
 **Missão:** GO tecnico condicional para Etapa 5 (DR Drill), condicionado ao Gate A de W7-1 e nova autorizacao do Founder. NO-GO para execucao real de Drill nesta missao e para encerramento do W7-3 -- Disaster Recovery permanece nao Delivered.
 
 **Decision Log:** D-186.
+
+## W7-4 (Security Hardening for Production Exposure) aberto institucionalmente (2026-08-13)
+
+Missao exclusivamente de Architecture Review + Security Readiness Assessment + Technical Design -- sem codigo, sem correcao de vulnerabilidade, sem infraestrutura nova. W7-1/W7-3 inalterados.
+
+**Adicionado**
+- `docs/architecture/TECHNICAL-DESIGN-W7-4-SECURITY-HARDENING.md` -- 23 secoes. Threat Surface de 13 fronteiras. 10 findings classificados (SEVERITY/READINESS IMPACT/STATUS): 3 HIGH/BLOCKS PILOT (F1 brute-force ausente, F2 kill switch DISABLE_WORKSPACE_SESSION_GATE sem fail-fast, F4 upload sem limite de tamanho), nenhum CRITICAL. Confirmado sem vulnerabilidade estrutural de RBAC/tenant isolation. Controlled Pilot Security Baseline vs Enterprise Production Security Baseline distintos item a item. Security Test Matrix de 20 cenarios. Estrategia incremental de 6 etapas (3 fecham o baseline de piloto), nenhuma autorizada. Preservacao arquitetural confirmada.
+
+**Missão:** GO para o Founder decidir a Estrategia Incremental. GO/NO-GO atual para CONTROLLED USER PILOT: NO-GO condicional (3 findings HIGH a fechar antes de expor a usuarios reais externos). NO-GO para implementacao nesta missao. Nenhum outro Epic iniciado.
+
+**Decision Log:** D-187.
