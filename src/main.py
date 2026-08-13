@@ -98,7 +98,15 @@ def provider_unavailable_error_handler(request: Request, exc: ProviderUnavailabl
 
 @app.get("/health")
 def health_check():
-    return {"status": "healthy", "service": "AI PMO Copilot"}
+    # W7-5 Release Identity (Technical Design S11): which commit is
+    # actually running, observable without guessing from deploy logs.
+    # Additive to /health's existing liveness semantics -- not a new
+    # endpoint, not a behavior change to what /health already meant.
+    return {
+        "status": "healthy",
+        "service": "AI PMO Copilot",
+        "release": os.getenv("RELEASE_SHA", "unknown"),
+    }
 
 
 @app.get("/ready")
