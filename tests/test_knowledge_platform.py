@@ -129,6 +129,27 @@ class TestKnowledgeRepository:
         assert results[0].document_id == document.id
         assert "rollback" in results[0].text
 
+    def test_round_trip_persists_and_retrieves_the_approved_production_dimension(
+        self, repo, knowledge_repository
+    ):
+        """Retrieval Compatibility (Founder Decision D-177 Etapa 4):
+        ingestion -> embedding -> persistence -> pgvector retrieval keeps
+        working end to end now that chunks.embedding is vector(1024)
+        (migration 0021), not the old vector(16) mock placeholder --
+        proven against real PostgreSQL/pgvector, not sqlite/mocked SQL."""
+        org_id = repo.enterprise.create_organization("Org A")
+        document = knowledge_repository.ingest(org_id, "runbook.md", "the rollback procedure")
+        knowledge_repository.index(document.id, CORRELATION_ID)
+
+        with repo.SessionLocal() as session:
+            chunk = session.query(Chunk).filter(Chunk.document_version_id == document.version_id).one()
+        assert len(chunk.embedding) == KNOWLEDGE_EMBEDDING_DIM
+        assert KNOWLEDGE_EMBEDDING_DIM == 1024
+
+        results = knowledge_repository.search(org_id, "rollback procedure", top_k=3)
+        assert len(results) == 1
+        assert results[0].document_id == document.id
+
     def test_reingestion_creates_a_new_version_not_an_overwrite(self, repo, knowledge_repository):
         org_id = repo.enterprise.create_organization("Org A")
         first = knowledge_repository.ingest(org_id, "policy.md", "version one content")
