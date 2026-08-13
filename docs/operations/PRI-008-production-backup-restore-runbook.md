@@ -14,6 +14,17 @@ ferramentas já presentes na imagem `postgres:16` (`pg_dump`/`pg_restore`/`psql`
 Alembic já usado pelo próprio serviço `api` (`alembic upgrade head`, `Dockerfile` linha 12
 e comando do serviço `api` em `docker-compose.yml`).
 
+**W7-1 Staging Deployment Readiness (Founder Decision, D-179):** todos os comandos
+`docker compose` abaixo passam `-f docker-compose.yml` explicitamente — em staging/
+produção isso exclui `docker-compose.override.yml` (mesclado automaticamente apenas
+quando `docker compose` é invocado sem `-f`, mecanismo nativo do Compose para
+conveniência de desenvolvimento local), garantindo que a porta `5432` do `database`
+nunca fique acessível fora da rede do Compose nesses ambientes. `POSTGRES_USER`/
+`POSTGRES_DB` nos comandos `pg_dump`/`pg_restore`/`psql` abaixo usam a mesma variável
+de ambiente (`${POSTGRES_USER:-aipmo}`/`${POSTGRES_DB:-aipmo}`) que `docker-compose.yml`
+já usa para o serviço `database` — funcionam sem alteração tanto com o default de
+desenvolvimento quanto com um valor real sobrescrito em staging/produção.
+
 ## 1. Estratégia de backup
 
 Backup lógico via `pg_dump` em formato custom (`-Fc`), executado dentro do container
@@ -29,13 +40,13 @@ dump lógico foi escolhido em vez de um snapshot do volume porque:
 
 ```bash
 # Executar a partir do host que roda o docker-compose
-docker compose exec -T database \
-  pg_dump -U aipmo -d aipmo -Fc -f /tmp/aipmo_backup.dump
+docker compose -f docker-compose.yml exec -T database \
+  pg_dump -U "${POSTGRES_USER:-aipmo}" -d "${POSTGRES_DB:-aipmo}" -Fc -f /tmp/aipmo_backup.dump
 
-docker compose cp database:/tmp/aipmo_backup.dump \
+docker compose -f docker-compose.yml cp database:/tmp/aipmo_backup.dump \
   "./backups/aipmo_$(date +%Y%m%d_%H%M%S).dump"
 
-docker compose exec -T database rm /tmp/aipmo_backup.dump
+docker compose -f docker-compose.yml exec -T database rm /tmp/aipmo_backup.dump
 ```
 
 Armazenar o arquivo resultante fora do host do container (o diretório `./backups/` acima
@@ -68,25 +79,25 @@ escritas durante a restauração).
 
 ```bash
 # 1. Parar a API para evitar escritas durante a restauração
-docker compose stop api
+docker compose -f docker-compose.yml stop api
 
 # 2. Copiar o dump para dentro do container do banco
-docker compose cp "./backups/aipmo_20260716_030000.dump" \
+docker compose -f docker-compose.yml cp "./backups/aipmo_20260716_030000.dump" \
   database:/tmp/restore.dump
 
 # 3. Restaurar em um banco limpo (--clean remove objetos existentes antes de recriar)
-docker compose exec -T database \
-  pg_restore -U aipmo -d aipmo --clean --if-exists /tmp/restore.dump
+docker compose -f docker-compose.yml exec -T database \
+  pg_restore -U "${POSTGRES_USER:-aipmo}" -d "${POSTGRES_DB:-aipmo}" --clean --if-exists /tmp/restore.dump
 
 # 4. Confirmar que o schema está na revisão esperada pelo código atual
-docker compose run --rm api alembic current
-docker compose run --rm api alembic upgrade head
+docker compose -f docker-compose.yml run --rm api alembic current
+docker compose -f docker-compose.yml run --rm api alembic upgrade head
 
 # 5. Reiniciar a API
-docker compose up -d api
+docker compose -f docker-compose.yml up -d api
 
 # 6. Limpar o dump temporário do container
-docker compose exec -T database rm /tmp/restore.dump
+docker compose -f docker-compose.yml exec -T database rm /tmp/restore.dump
 ```
 
 `alembic upgrade head` no passo 4 é idempotente (não-op se o schema restaurado já estiver
@@ -101,16 +112,18 @@ Nenhuma restauração é considerada concluída sem os 3 checks abaixo:
 ```bash
 # 1. Health check da API
 curl -sf http://localhost:8000/health
-# esperado: {"status":"healthy","service":"AI PMO Copilot"}
+# esperado (W7-5 Etapa 3, Release Identity -- "release" faz parte do
+# contrato real de /health desde então, corrigido nesta revisão):
+# {"status":"healthy","service":"AI PMO Copilot","release":"<git-sha-do-deploy>"}
 
 # 2. Contagem de registros restaurados é maior que zero e plausível
-docker compose exec -T database \
-  psql -U aipmo -d aipmo -c "SELECT COUNT(*) FROM analysis_records;"
+docker compose -f docker-compose.yml exec -T database \
+  psql -U "${POSTGRES_USER:-aipmo}" -d "${POSTGRES_DB:-aipmo}" -c "SELECT COUNT(*) FROM analysis_records;"
 
 # 3. O registro mais recente restaurado corresponde ao esperado (mesma
 #    data/hora do momento em que o backup usado foi gerado, nunca mais recente)
-docker compose exec -T database \
-  psql -U aipmo -d aipmo -c \
+docker compose -f docker-compose.yml exec -T database \
+  psql -U "${POSTGRES_USER:-aipmo}" -d "${POSTGRES_DB:-aipmo}" -c \
   "SELECT project_name, kind, created_at FROM analysis_records ORDER BY created_at DESC, id DESC LIMIT 5;"
 ```
 
@@ -138,7 +151,7 @@ redesenho de Disaster Recovery (RTO/RPO permanecem fora do escopo desta revisão
 
 | Cenário | Procedimento |
 |---|---|
-| Volume do Postgres corrompido/perdido | Provisionar um volume novo (`docker compose down -v database && docker compose up -d database`), seguir a Seção 3 (Restauração) a partir do backup diário mais recente |
+| Volume do Postgres corrompido/perdido | Provisionar um volume novo (`docker compose -f docker-compose.yml down -v database && docker compose -f docker-compose.yml up -d database`), seguir a Seção 3 (Restauração) a partir do backup diário mais recente |
 | Migração (`alembic upgrade head`) falha após deploy | Restaurar o backup pré-deploy (Seção 2, linha "antes de qualquer deploy") — nunca tentar reverter uma migração parcialmente aplicada manualmente no banco |
 | Dump mais recente está corrompido/ilegível pelo `pg_restore` | Usar o dump anterior na retenção (diário N-1, depois semanal); documentar o dump corrompido como incidente para investigar a causa antes do próximo ciclo |
 | Perda total do host (sem backups locais acessíveis) | Depende inteiramente de onde os arquivos de `./backups/` foram replicados (Seção 1) — este runbook não pode garantir recuperação nesse cenário até que a estratégia de armazenamento externo de backup seja decidida (mesmo ponto em aberto citado na Seção 1) |

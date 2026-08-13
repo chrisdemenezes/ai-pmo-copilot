@@ -18,7 +18,14 @@ services:
       # `resolve_environment()` uses for local/demo entry points that never
       # set this variable at all.
       ENVIRONMENT: ${ENVIRONMENT:-production}
-      DATABASE_URL: postgresql://aipmo:aipmo@database:5432/aipmo
+      # W7-1 Staging Deployment Readiness (Founder Decision, D-179): built
+      # from the same POSTGRES_USER/POSTGRES_PASSWORD/POSTGRES_DB the
+      # `database` service itself uses below, instead of a literal
+      # `aipmo:aipmo` credential -- overriding those three variables (real
+      # secret, never committed) changes both sides consistently. Local dev
+      # is unaffected: all three default to `aipmo`, reproducing the exact
+      # same DATABASE_URL as before this change.
+      DATABASE_URL: postgresql://${POSTGRES_USER:-aipmo}:${POSTGRES_PASSWORD:-aipmo}@database:5432/${POSTGRES_DB:-aipmo}
       DB_POOL_SIZE: ${DB_POOL_SIZE:-5}
       DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-10}
       DB_POOL_TIMEOUT_SECONDS: ${DB_POOL_TIMEOUT_SECONDS:-30}
@@ -72,15 +79,28 @@ services:
     # 0016's `CREATE EXTENSION IF NOT EXISTS vector` just works here.
     image: pgvector/pgvector:pg16
     environment:
-      POSTGRES_DB: aipmo
-      POSTGRES_USER: aipmo
-      POSTGRES_PASSWORD: aipmo
-    ports:
-      - "5432:5432"
+      # W7-1 Staging Deployment Readiness (Founder Decision, D-179):
+      # defaults preserve the exact local/dev experience (`aipmo`/`aipmo`/
+      # `aipmo`, unchanged). Staging/production MUST override
+      # POSTGRES_PASSWORD (and, if desired, POSTGRES_USER/POSTGRES_DB) with
+      # a real secret via the host's environment -- never committed, never
+      # left at this default outside dev (enforced at boot by
+      # `src/api/startup_config.py`'s Configuration Contract).
+      POSTGRES_DB: ${POSTGRES_DB:-aipmo}
+      POSTGRES_USER: ${POSTGRES_USER:-aipmo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aipmo}
+    # No `ports:` mapping here on purpose (W7-1 Staging Deployment
+    # Readiness, D-179): Postgres must never be reachable from outside the
+    # Compose network in staging/production. Local dev regains host access
+    # to 5432 via `docker-compose.override.yml`, which `docker compose up`
+    # merges automatically when invoked without an explicit `-f` -- staging/
+    # production deploys always pass `-f docker-compose.yml` explicitly
+    # (see `docs/operations/PRI-009-production-deployment-runbook.md` §2),
+    # which excludes it.
     volumes:
       - aipmo_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U aipmo -d aipmo"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aipmo} -d ${POSTGRES_DB:-aipmo}"]
       interval: 5s
       timeout: 5s
       retries: 10

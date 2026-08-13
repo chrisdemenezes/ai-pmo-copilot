@@ -14,6 +14,12 @@ Environment = Literal["dev", "staging", "production"]
 
 _VALID_ENVIRONMENTS: tuple[Environment, ...] = ("dev", "staging", "production")
 
+# W7-1 Staging Deployment Readiness (Founder Decision, D-179): the literal
+# credential `docker-compose.yml`'s `database`/`api` services fall back to
+# when POSTGRES_USER/POSTGRES_PASSWORD are left unset -- the exact default
+# that keeps local dev working unchanged. Never valid outside dev.
+_DEFAULT_DEV_DATABASE_CREDENTIALS = "aipmo:aipmo@"
+
 
 class StartupConfigError(Exception):
     """Raised when ENVIRONMENT is invalid, or critical configuration is
@@ -38,6 +44,12 @@ def collect_startup_config_problems(environment: Environment) -> list[str]:
         problems.append("DATABASE_URL is not set (would silently fall back to SQLite).")
     elif database_url.startswith("sqlite"):
         problems.append(f"DATABASE_URL={database_url!r} resolves to SQLite, not permitted outside dev.")
+    elif _DEFAULT_DEV_DATABASE_CREDENTIALS in database_url:
+        problems.append(
+            "DATABASE_URL uses the default development database credentials "
+            f"({_DEFAULT_DEV_DATABASE_CREDENTIALS!r}), not permitted outside dev. "
+            "Override POSTGRES_USER/POSTGRES_PASSWORD with a real secret."
+        )
 
     if not os.getenv("API_KEY"):
         problems.append("API_KEY is not set.")

@@ -1,0 +1,17 @@
+# Local development convenience only (W7-1 Staging Deployment Readiness,
+# Founder Decision, D-179). Docker Compose merges this file automatically
+# with `docker-compose.yml` whenever `docker compose <command>` is run
+# without an explicit `-f` (Compose's own base+override mechanism -- no new
+# infrastructure, no separate tool). It exists solely to restore host access
+# to Postgres (`localhost:5432`) for local tooling (`psql`, DBeaver, etc.),
+# exactly as `docker-compose.yml` exposed it before this change.
+#
+# Staging/production deploys always invoke `docker compose -f
+# docker-compose.yml <command>` explicitly (see
+# docs/operations/PRI-009-production-deployment-runbook.md §2), which
+# excludes this file -- Postgres is never reachable outside the Compose
+# network in those environments.
+services:
+  database:
+    ports:
+      - "5432:5432"

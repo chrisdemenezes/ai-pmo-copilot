@@ -22,7 +22,8 @@ explicitamente onde uma decisão de infraestrutura ainda não foi tomada.
 
 | Variável | Obrigatória | Efeito se ausente |
 |---|---|---|
-| `DATABASE_URL` | Sim (já fixada no `docker-compose.yml` para o serviço `database`) | — |
+| `ENVIRONMENT` | Sim (`docker-compose.yml` já usa o default `production` para este veículo de deployment) | Se resolvida para `dev` fora de um ambiente de desenvolvimento real, desativa inteiramente o Configuration Contract (fail-fast) desta tabela — nunca definir manualmente como `dev` em staging/produção |
+| `DATABASE_URL` | Sim (montada automaticamente pelo `docker-compose.yml` a partir de `POSTGRES_USER`/`POSTGRES_PASSWORD`/`POSTGRES_DB`, ver tabela abaixo) | — |
 | `API_KEY` | Sim | Toda rota `/api/*` responde `503` (`verify_api_key`, fail-closed) |
 | `LLM_PROVIDER` | Sim | Deve ser o provider real (nunca `mock`) em produção |
 | `ANTHROPIC_API_KEY` (ou equivalente do provider real) | Sim, se `LLM_PROVIDER` != mock | Falha ao processar qualquer análise |
@@ -30,6 +31,20 @@ explicitamente onde uma decisão de infraestrutura ainda não foi tomada.
 | `VOYAGE_API_KEY` | Sim, se `EMBEDDING_PROVIDER=voyage` | Falha ao indexar/consultar a Knowledge Platform (`EmbeddingProviderConfigError`) |
 | `CORS_ALLOWED_ORIGINS` | Sim | Vazio por padrão (fail-closed) — sem isso, o frontend de produção não consegue chamar a API |
 | `RATE_LIMIT_MAX_REQUESTS` / `RATE_LIMIT_WINDOW_SECONDS` | Não (default 60/60) | Usa o default do `src/api/rate_limiter.py` |
+| `RELEASE_SHA` | Não é uma variável de runtime — bake em build-time (`Dockerfile`, `ARG GIT_SHA`/`ENV RELEASE_SHA`) a partir do build arg `GIT_SHA` (Seção 2, passo 2) | `/health` reporta `"release": "unknown"` |
+
+### Variáveis de ambiente do PostgreSQL (serviço `database`, consumidas também pela montagem de `DATABASE_URL` acima)
+
+**W7-1 Staging Deployment Readiness (Founder Decision, D-179):** antes desta revisão,
+`docker-compose.yml` fixava `POSTGRES_PASSWORD: aipmo` (e `DATABASE_URL` correspondente)
+como literal, sem forma de sobrescrever para staging/produção. Corrigido para
+interpolação com o mesmo padrão já usado por `ANTHROPIC_API_KEY`/`VOYAGE_API_KEY`.
+
+| Variável | Obrigatória | Efeito se ausente/deixada no default |
+|---|---|---|
+| `POSTGRES_USER` | Recomendado em staging/produção (default `aipmo`, apenas para dev) | Sem efeito de fail-fast isolado — combinado com `POSTGRES_PASSWORD` default, ativa o próximo item |
+| `POSTGRES_PASSWORD` | **Sim em staging/produção** — nunca deixar no default | Se `DATABASE_URL` resultante ainda contiver a credencial padrão de dev (`aipmo:aipmo@`), o Configuration Contract (`src/api/startup_config.py`) falha o boot explicitamente |
+| `POSTGRES_DB` | Recomendado em staging/produção (default `aipmo`, apenas para dev) | Sem efeito de fail-fast isolado |
 
 ### Variáveis de ambiente obrigatórias (frontend `web/`, serviço `web` do `docker-compose.yml`)
 
@@ -42,32 +57,39 @@ explicitamente onde uma decisão de infraestrutura ainda não foi tomada.
 
 ## 2. Implantação
 
+**W7-1 Staging Deployment Readiness (Founder Decision, D-179):** todo comando
+`docker compose` abaixo passa `-f docker-compose.yml` explicitamente. Em staging/
+produção isso é obrigatório: sem o `-f`, o Compose mescla automaticamente
+`docker-compose.override.yml` (presente no repositório para conveniência de
+desenvolvimento local — reexpõe a porta `5432` do `database` ao host), o que exporia
+o PostgreSQL fora da rede do Compose nesses ambientes.
+
 ```bash
 # 1. Backup pré-deploy (obrigatório -- ver PRI-008-production-backup-restore-runbook.md Secao 2)
 #    executar o procedimento de backup completo antes de prosseguir
 
 # 2. Build das imagens novas (backend + frontend), com a identidade de release
 #    (W7-5 Etapa 3 -- commit SHA, exposto em GET /health de ambos os servicos)
-GIT_SHA=$(git rev-parse HEAD) docker compose build api web
+GIT_SHA=$(git rev-parse HEAD) docker compose -f docker-compose.yml build api web
 
 # 3. Migracao como etapa explicita e separada, ANTES de subir a aplicacao
 #    (W7-5 Etapa 5, Migration Discipline -- nao faz mais parte do comando de
 #    start do servico api). Uma falha aqui interrompe o deploy: nao
 #    prosseguir para o passo 4 se este comando sair com erro.
-docker compose run --rm api alembic upgrade head
+docker compose -f docker-compose.yml run --rm api alembic upgrade head
 
 # 4. Subida da aplicacao (backend + frontend) sobre o schema ja migrado
-docker compose up -d api web database
+docker compose -f docker-compose.yml up -d api web database
 
 # 5. Confirmar a revisao aplicada (o passo 3 ja a aplicou -- isto so confirma o resultado)
-docker compose run --rm api alembic current
+docker compose -f docker-compose.yml run --rm api alembic current
 ```
 
 ## 3. Rollback
 
 ```bash
 # 1. Reverter para a imagem/tag anterior do backend
-docker compose up -d --no-build api   # com a tag anterior configurada na imagem/registry
+docker compose -f docker-compose.yml up -d --no-build api   # com a tag anterior configurada na imagem/registry
 
 # 2. Se a migracao da versao com problema alterou o schema, restaurar o backup
 #    pre-deploy (PRI-008-production-backup-restore-runbook.md Secao 3) --
@@ -87,10 +109,12 @@ deploy que aplique uma migration nova precisa deste procedimento se o deploy for
 ```bash
 # 1. Health check
 curl -sf https://<host-de-producao>/health
-# esperado: {"status":"healthy","service":"AI PMO Copilot"}
+# esperado (W7-5 Etapa 3, Release Identity -- "release" faz parte do
+# contrato real de /health desde então, corrigido nesta revisão):
+# {"status":"healthy","service":"AI PMO Copilot","release":"<git-sha-do-deploy>"}
 
 # 2. Confirmar a revisao do schema
-docker compose run --rm api alembic current
+docker compose -f docker-compose.yml run --rm api alembic current
 # esperado: a revisao mais recente em alembic/versions/
 
 # 3. Confirmar que a chave de API esta ativa (uma chamada real, nao apenas o health check)

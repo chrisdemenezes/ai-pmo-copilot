@@ -4,6 +4,10 @@ Mandated coverage (Founder Decision, W7-5 Technical Design Approval +
 Implementation Authorization): dev permissive; staging valid; staging
 invalid; production valid; production invalid; ENVIRONMENT absent;
 ENVIRONMENT invalid; absence of each critical config individually.
+
+W7-1 Staging Deployment Readiness (Founder Decision, D-179) added coverage:
+DATABASE_URL resolving to the default dev-only Postgres credentials
+(`aipmo:aipmo@`) is rejected outside dev, same as SQLite.
 """
 import pytest
 
@@ -50,7 +54,7 @@ class TestDevPermissive:
 @pytest.mark.parametrize("environment", ["staging", "production"])
 class TestStagingAndProductionValid:
     def _set_valid_env(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setenv("DATABASE_URL", "postgresql://aipmo:aipmo@database:5432/aipmo")
+        monkeypatch.setenv("DATABASE_URL", "postgresql://stratech_staging:real-db-secret@database:5432/stratech")
         monkeypatch.setenv("API_KEY", "real-key")
         monkeypatch.setenv("LLM_PROVIDER", "anthropic")
         monkeypatch.setenv("ANTHROPIC_API_KEY", "real-anthropic-key")
@@ -67,7 +71,7 @@ class TestStagingAndProductionValid:
 @pytest.mark.parametrize("environment", ["staging", "production"])
 class TestStagingAndProductionInvalid:
     def _set_valid_env(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setenv("DATABASE_URL", "postgresql://aipmo:aipmo@database:5432/aipmo")
+        monkeypatch.setenv("DATABASE_URL", "postgresql://stratech_staging:real-db-secret@database:5432/stratech")
         monkeypatch.setenv("API_KEY", "real-key")
         monkeypatch.setenv("LLM_PROVIDER", "anthropic")
         monkeypatch.setenv("ANTHROPIC_API_KEY", "real-anthropic-key")
@@ -88,6 +92,16 @@ class TestStagingAndProductionInvalid:
         monkeypatch.setenv("DATABASE_URL", "sqlite:///./ai_pmo_copilot.db")
         problems = collect_startup_config_problems(environment)
         assert any("resolves to SQLite" in p for p in problems)
+
+    def test_database_url_uses_default_dev_credentials(
+        self, monkeypatch: pytest.MonkeyPatch, environment: str
+    ) -> None:
+        self._set_valid_env(monkeypatch)
+        monkeypatch.setenv("DATABASE_URL", "postgresql://aipmo:aipmo@database:5432/aipmo")
+        problems = collect_startup_config_problems(environment)
+        assert any("default development database credentials" in p for p in problems)
+        with pytest.raises(StartupConfigError):
+            validate_startup_config(environment)
 
     def test_missing_api_key(self, monkeypatch: pytest.MonkeyPatch, environment: str) -> None:
         self._set_valid_env(monkeypatch)

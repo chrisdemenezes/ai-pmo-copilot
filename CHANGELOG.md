@@ -2300,3 +2300,24 @@ Plano de execução do W7-1 (nao encerrado apos D-177 -- nenhuma chamada real a 
 **Missão:** GO tecnico para a execucao real do protocolo, condicionado a resolucao dos Gates A-C (Staging Host, Voyage/Anthropic credentials) pelo Founder. NO-GO para envio de dado corporativo real a Voyage ate o Gate D (Data/DPA) ser resolvido. Nenhum trabalho subsequente inicia automaticamente.
 
 **Decision Log:** D-178.
+
+## W7-1 Staging Deployment Readiness: gaps de deployment de D-178 fechados (2026-08-13)
+
+Antes do provisionamento real, fechamento dos 4 gaps de deployment identificados em D-178 -- sem provisionar staging, sem credenciais reais.
+
+**Corrigido**
+- `docs/operations/PRI-008-production-backup-restore-runbook.md` / `PRI-009-production-deployment-runbook.md`: exemplo de `/health` desatualizado corrigido para incluir o campo `release`; todos os comandos `docker compose` passam a usar `-f docker-compose.yml` explicitamente.
+- `.env.example`: `ENVIRONMENT` e `RELEASE_SHA`/`GIT_SHA` documentados; `POSTGRES_USER`/`POSTGRES_PASSWORD`/`POSTGRES_DB` documentados.
+- `docker-compose.yml`: porta `5432` do `database` nao fica mais exposta na base (movida para o novo `docker-compose.override.yml`, mesclado automaticamente so em dev); `POSTGRES_DB`/`POSTGRES_USER`/`POSTGRES_PASSWORD` e o `DATABASE_URL` do `api` passam de literais fixos para interpolacao `${VAR:-aipmo}` -- local dev inalterado, staging/producao sobrescrevem com segredo real.
+- `src/api/startup_config.py`: novo fail-fast -- `DATABASE_URL` com a credencial padrao de dev (`aipmo:aipmo@`) e rejeitada fora de dev.
+
+**Adicionado**
+- `docker-compose.override.yml`: reexpoe a porta 5432 apenas para conveniencia de dev local.
+- `docs/product/governance/W7-1-STAGING-DEPLOYMENT-READINESS-EXECUTIVE-EVIDENCE.md`.
+
+**Testes**
+- 2 testes novos (fail-fast de credencial padrao, staging e producao). Suite backend completa: 914 passed. `docker compose config` validado para dev (mesclagem automatica, comportamento identico ao anterior) e staging simulado (porta nao exposta, DATABASE_URL consistente).
+
+**Missão:** GO tecnicamente para Provision Staging -- gaps de D-178 fechados e comprovados, sem regressao. Provisionamento real ainda condicionado aos Gates Externos ja registrados em D-178. Nenhum outro Epic da Wave 7 foi iniciado.
+
+**Decision Log:** D-179.
