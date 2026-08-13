@@ -2333,3 +2333,14 @@ Registro de governanca puro -- sem codigo, sem novo Architecture Review/Technica
 - D-178/D-179 nao alterados retroativamente.
 
 **Decision Log:** D-180.
+
+## W7-3 (Resilience & Disaster Recovery) aberto institucionalmente (2026-08-13)
+
+Missao exclusivamente de analise arquitetural -- sem codigo, sem infraestrutura, sem restore real, sem alteracao de banco/migrations/pipelines. W7-1 permanece OPEN, inalterado.
+
+**Adicionado**
+- `docs/architecture/TECHNICAL-DESIGN-W7-3-RESILIENCE-DISASTER-RECOVERY.md` -- 20 secoes. Persistent State Inventory + Criticality Classification das 21 tabelas do schema real; achado confirmado (nao assumido) sobre embeddings serem reconstruiveis via reindexacao, mas com custo real/pago e condicionado a divida ja registrada (reindex nao deleta chunks antigos) -- reconstrucao e caminho secundario, nunca substituto do restore primario. RTO/RPO: alternativas concretas apresentadas (recomendado RTO 8h, RPO 24h), nenhum valor decidido. Backup Contract e Restore Contract definidos reaproveitando pg_dump/pg_restore/Alembic existentes -- Restore Contract especifica o que deve substituir o gap do PRI-008 SS4 (cobre so analysis_records, nao as outras 20 tabelas). Disaster Recovery Protocol validado contra o codigo real, sem alteracao estrutural. DR Drill Model definido, nenhum drill executado. Failure Scenario Matrix (12 cenarios). Staging Relationship: Option A recomendada (staging do W7-1 tambem serve pro drill). Operational Ownership: 4 papeis conceituais propostos. Technical Debt Mapping: TD-002 ABSORBED BY W7-3, TD-011 RESOLVED BY EXISTING WORK, TD-001 e demais RELATED BUT OUT OF SCOPE/UNCHANGED. Estrategia incremental de 6 etapas, nenhuma autorizada para execucao.
+
+**Missão:** GO para as Founder Decisions (RTO/RPO/TD-002/staging relationship/ownership/autorizacao da Etapa 1). GO tecnico condicional para a Etapa 1 (Backup Contract, nao depende de staging). NO-GO para execucao real de backup/restore/drill e para encerramento do W7-3.
+
+**Decision Log:** D-181.
