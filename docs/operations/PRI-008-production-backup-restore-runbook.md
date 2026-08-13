@@ -1,10 +1,11 @@
 # PRI-008 — Production Backup & Restore Runbook
 
 Runbook operacional para o único armazenamento com estado da STRATECH V1 em produção: o
-banco PostgreSQL (`docker-compose.yml`, serviço `database`, imagem `postgres:16`, volume
-nomeado `aipmo_postgres_data`). O SQLite usado por `AnalysisRepository` é o padrão apenas
-para desenvolvimento local/Demo Mode (`DATABASE_URL` não definido) — nunca o alvo deste
-runbook.
+banco PostgreSQL (`docker-compose.yml`, serviço `database`, imagem `pgvector/pgvector:pg16`
+— o `postgres:16` oficial com a extensão `pgvector` pré-instalada, adotada na Wave 3,
+Enterprise Knowledge Platform Fase 1 —, volume nomeado `aipmo_postgres_data`). O SQLite
+usado por `AnalysisRepository` é o padrão apenas para desenvolvimento local/Demo Mode
+(`DATABASE_URL` não definido) — nunca o alvo deste runbook.
 
 Registrado como `PRI-008` no Platform Readiness Backlog por decisão do Founder/CTO
 (Release Blocker `RB-002`), como pré-requisito para a STRATECH V1 RC-1. Nenhuma
@@ -22,7 +23,9 @@ dump lógico foi escolhido em vez de um snapshot do volume porque:
 - é portável entre versões de imagem do Postgres (16.x → 16.y);
 - permite restauração seletiva (`pg_restore --table`) se um dia necessário;
 - não exige parar o container para um backup consistente (`pg_dump` usa uma transação
-  `REPEATABLE READ`, sem lock exclusivo sobre a tabela `analysis_records`).
+  `REPEATABLE READ`, sem lock exclusivo sobre nenhuma das tabelas do banco `aipmo` —
+  revisão W7-5 Etapa 5: o schema real hoje tem ~20 tabelas, não apenas `analysis_records`,
+  ver nota na Seção 4).
 
 ```bash
 # Executar a partir do host que roda o docker-compose
@@ -114,6 +117,22 @@ docker compose exec -T database \
 Se qualquer um dos 3 falhar, não promover a restauração como concluída — repetir a partir
 de um backup anterior (Seção 2, retenção de 7 diários + 4 semanais existe exatamente para
 esse cenário).
+
+**Gap elevado (revisão W7-5 Etapa 5, não mascarado):** os 3 checks acima validam apenas
+`analysis_records`, a única tabela que existia quando este runbook foi escrito. O schema
+real hoje (`alembic/versions/0001_initial.py` a `0020_w5_0_document_ingestion.py`, 20
+migrations) tem cerca de 20 tabelas cobrindo Identity/RBAC (`organizations`, `users`,
+`roles`, `permissions`, `sessions`, `api_keys`, `invitations`), o Enterprise Domain
+(`portfolios`, `programs`, `projects`) e a Enterprise Knowledge Platform (`documents`,
+`chunks` — com os embeddings `pgvector` colocados nessa mesma tabela, `memory_records`,
+`event`/`workflow_executions` — ver `AR-18-WAVE-7-ENTERPRISE-READINESS-ARCHITECTURE-REVIEW.md`).
+`pg_restore` já restaura o dump inteiro (todas as tabelas, por ser um backup lógico do
+banco `aipmo` completo — Seção 1), então a **restauração em si não tem essa lacuna**; é
+apenas a validação pós-restauração (esta Seção 4) que ainda reflete a superfície de dados
+da V1. Antes de qualquer restauração real em produção, este passo 2 deve ser expandido
+para incluir pelo menos uma contagem de linhas por domínio crítico (ex.: `organizations`,
+`users`, `chunks`). Este runbook registra a lacuna e não a resolve por si só — não é um
+redesenho de Disaster Recovery (RTO/RPO permanecem fora do escopo desta revisão).
 
 ## 5. Recuperação após falha
 

@@ -13,7 +13,7 @@ explicitamente onde uma decisão de infraestrutura ainda não foi tomada.
 | Item | Status | Observação |
 |---|---|---|
 | Backend containerizado (`Dockerfile` + `docker-compose.yml`) | Pronto | Serviços `api` (FastAPI/Uvicorn), `web` (frontend, W7-5 Etapa 4) e `database` (`pgvector/pgvector:pg16`) |
-| Migração de schema | Pronta | `alembic upgrade head` já é parte do comando de start do serviço `api` |
+| Migração de schema | Pronta | Etapa explícita e separada do start do serviço `api` (W7-5 Etapa 5, Migration Discipline) — ver Seção 2 |
 | Variáveis de ambiente de produção | A configurar por deploy | Ver tabela abaixo |
 | Hospedagem do frontend (`web/`) | **Decidido (Founder Decision, W7-5, D-171/D-172)** | Containerizado, mesma disciplina de deployment do backend — `web/Dockerfile` + serviço `web` em `docker-compose.yml` (W7-5 Etapa 4). Resolve a pergunta aberta desde `RFC-001-frontend-architecture.html` (linha 1167). |
 | Mitigação de força bruta em `/api/bff/session` | **Pendente — condição já registrada** | `docs/development/01-project-structure.md` (seção "Decision: Security Finding") registra risco aceito formalmente apenas para uso interno/piloto, com condição explícita e obrigatória antes de qualquer deploy além desse escopo: rate limiting + throttling por IP na rota de login do BFF, com testes e documentação. Verificado nesta revisão: `web/app/api/bff/session/route.ts` ainda não implementa nenhuma dessas mitigações. **Deploy para clientes externos/produção pública não deve ocorrer antes desta condição ser atendida** — este runbook cobre apenas o cenário já aprovado (uso interno/piloto). |
@@ -47,10 +47,17 @@ explicitamente onde uma decisão de infraestrutura ainda não foi tomada.
 # 2. Build das imagens novas (backend + frontend), com a identidade de release
 #    (W7-5 Etapa 3 -- commit SHA, exposto em GET /health de ambos os servicos)
 GIT_SHA=$(git rev-parse HEAD) docker compose build api web
-docker compose up -d --build api web database
 
-# 3. Confirmar que a migracao foi aplicada (o comando do servico api ja roda
-#    "alembic upgrade head" antes do uvicorn subir -- isto so confirma o resultado)
+# 3. Migracao como etapa explicita e separada, ANTES de subir a aplicacao
+#    (W7-5 Etapa 5, Migration Discipline -- nao faz mais parte do comando de
+#    start do servico api). Uma falha aqui interrompe o deploy: nao
+#    prosseguir para o passo 4 se este comando sair com erro.
+docker compose run --rm api alembic upgrade head
+
+# 4. Subida da aplicacao (backend + frontend) sobre o schema ja migrado
+docker compose up -d api web database
+
+# 5. Confirmar a revisao aplicada (o passo 3 ja a aplicou -- isto so confirma o resultado)
 docker compose run --rm api alembic current
 ```
 
@@ -69,9 +76,9 @@ docker compose up -d --no-build api   # com a tag anterior configurada na imagem
 
 Rollback de uma migração de schema (não apenas da imagem da aplicação) sempre passa por
 restaurar o backup pré-deploy, nunca por um `alembic downgrade` manual em produção — o
-repositório tem hoje uma única migração (`alembic/versions/0001_initial.py`), então este
-cenário é hipotético até que uma segunda migração exista, mas o procedimento vale a
-partir da primeira migração adicional.
+repositório tem hoje 20 migrations reais (`alembic/versions/0001_initial.py` a
+`0020_w5_0_document_ingestion.py`), então este cenário deixou de ser hipotético: qualquer
+deploy que aplique uma migration nova precisa deste procedimento se o deploy for revertido.
 
 ## 4. Validação pós-deploy
 
