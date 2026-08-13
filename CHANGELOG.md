@@ -2321,3 +2321,15 @@ Antes do provisionamento real, fechamento dos 4 gaps de deployment identificados
 **Missão:** GO tecnicamente para Provision Staging -- gaps de D-178 fechados e comprovados, sem regressao. Provisionamento real ainda condicionado aos Gates Externos ja registrados em D-178. Nenhum outro Epic da Wave 7 foi iniciado.
 
 **Decision Log:** D-179.
+
+## W7-1 Staging Deployment Readiness ratificada -- W7-1 permanece OPEN (2026-08-13)
+
+Registro de governanca puro -- sem codigo, sem novo Architecture Review/Technical Design/plano de validacao.
+
+**Ratificado**
+- D-179 (Executive Evidence do Staging Deployment Readiness) APPROVED: os 4 deployment gaps de D-178 estao CLOSED; Deployment Contract tecnicamente pronto para staging; Postgres nao deve ser exposto externamente; credenciais default de dev proibidas fora de DEV; DEV preservado via docker-compose override nativo; nenhum blocker tecnico adicional antes do Provision Staging.
+- W7-1 permanece OPEN. Proximo estagio: execucao real do protocolo ja definido em W7-1-STAGING-PRODUCTION-AI-VALIDATION-PLAN.md (D-178) -- ainda nao autorizada. Nao autorizado: provisionar staging, deployment externo, credenciais reais, chamadas Anthropic/Voyage, dado corporativo real a providers, outro Epic da Wave 7.
+- Gates Externos reconfirmados, todos PENDING: A. Staging Host, B. Voyage API Credential, C. Anthropic API Credential, D. Data/DPA Approval (nao impede validacao tecnica sintetica).
+- D-178/D-179 nao alterados retroativamente.
+
+**Decision Log:** D-180.

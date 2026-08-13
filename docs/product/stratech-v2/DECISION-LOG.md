@@ -2099,6 +2099,16 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Restrições respeitadas integralmente:** nenhum staging provisionado (`docker compose config` apenas renderiza/valida, nunca sobe containers); nenhuma credencial real usada (valor sintético de teste, nunca persistido); nenhuma chamada real a Anthropic/Voyage; nenhum outro Epic da Wave 7 iniciado.
 - **Recomendação: GO tecnicamente para `Provision Staging`** — os 4 gaps de D-178 estão fechados e comprovados, sem regressão. O provisionamento real permanece condicionado aos Gates Externos já registrados em D-178 (Staging Host, Voyage/Anthropic credentials, Data/DPA), nenhum resolvido por esta missão. Nenhum trabalho subsequente inicia automaticamente. Retornando obrigatoriamente para Executive Review.
 
+### D-180 — W7-1 Staging Deployment Readiness ratificada (D-179 APPROVED); W7-1 permanece OPEN, execução real ainda não autorizada
+
+- **Contexto:** "Founder Decision — W7-1 Staging Deployment Readiness Approval". A Executive Evidence do W7-1 Staging Deployment Readiness (D-179) está **APPROVED**.
+- **Ratificado formalmente:** (1) os quatro deployment gaps identificados em D-178 estão **CLOSED**; (2) o Deployment Contract está tecnicamente pronto para staging; (3) PostgreSQL não deve ser exposto externamente em staging/produção; (4) credenciais default de desenvolvimento são proibidas fora de DEV; (5) DEV permanece preservado através do mecanismo nativo de `docker-compose` override; (6) nenhum blocker técnico adicional permanece antes do `Provision Staging`.
+- **W7-1 permanece OPEN.** Próximo estágio: execução real do protocolo já definido em `docs/product/governance/W7-1-STAGING-PRODUCTION-AI-VALIDATION-PLAN.md` (D-178) — **ainda não autorizada nesta missão**. Explicitamente não autorizado: provisionar staging; executar deployment externo; utilizar credenciais reais; realizar chamadas Anthropic; realizar chamadas Voyage; enviar dados corporativos a providers externos; iniciar qualquer outro Epic da Wave 7.
+- **Gates Externos reconfirmados, todos ainda PENDING:** A. Staging Host; B. Voyage API Credential; C. Anthropic API Credential; D. Data/DPA Approval (não impede validação técnica com conteúdo exclusivamente sintético, per D-178, mas continua obrigatório antes de qualquer dado corporativo real a um provider).
+- **Missão restrita exclusivamente a este registro de governança** — sem novo Architecture Review, sem novo Technical Design, sem implementação de código adicional, sem novo plano de validação, sem início de outro Epic. `D-178` e `D-179` **não foram alterados retroativamente**.
+- **Verificação:** missão exclusivamente de governança — nenhuma alteração em `src/`/`tests/`/`docs/architecture/`/`docs/product/governance/` (exceto este registro) além deste próprio `DECISION-LOG.md`/`CHANGELOG.md`/`mission-control-data.ts`.
+- **Estado oficial do W7-1:** OPEN — Staging Deployment Readiness concluída e aprovada (D-179); execução real do protocolo (`W7-1-STAGING-PRODUCTION-AI-VALIDATION-PLAN.md`) é a próxima ação, condicionada à resolução dos Gates A-C pelo Founder/procurement. Nenhum trabalho posterior inicia automaticamente. Retornando obrigatoriamente para Executive Review.
+
 ---
 
 ## Convenção
