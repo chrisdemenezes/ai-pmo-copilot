@@ -143,6 +143,13 @@ class KnowledgeRepository:
                         chunk_index=chunk_index,
                         text=chunk_text,
                         embedding=self._embedding_provider.embed(chunk_text),
+                        # Minimal provenance (Founder Decision D-175/D-177):
+                        # every provider self-reports its own identity --
+                        # no domain interpretation of "which provider" is
+                        # added here, just a pass-through of what the
+                        # injected EmbeddingProvider already exposes.
+                        embedding_provider=self._embedding_provider.provider_name,
+                        embedding_model=self._embedding_provider.model_name,
                     )
                 )
             session.commit()

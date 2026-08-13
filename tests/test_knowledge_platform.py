@@ -4,7 +4,7 @@ PostgreSQL with pgvector (`tests/db.py`).
 """
 import pytest
 
-from src.database.models import KNOWLEDGE_EMBEDDING_DIM, EventRecord
+from src.database.models import KNOWLEDGE_EMBEDDING_DIM, Chunk, EventRecord
 from src.database.repository import AnalysisRepository
 from src.services.events.dispatcher import EventDispatcher
 from src.services.events.in_process_publisher import InProcessEventPublisher
@@ -177,7 +177,21 @@ class TestKnowledgeRepository:
         assert refreshed.chunk_count == 1
 
         versions = knowledge_repository.list_versions(org_id, document.id)
+
         assert versions[0].chunk_count == 1
+
+    def test_index_persists_embedding_provenance(self, repo, knowledge_repository):
+        """Founder Decision D-175/D-177: every Chunk records which provider
+        and model produced its embedding -- pass-through of whatever the
+        injected EmbeddingProvider self-reports, no domain interpretation."""
+        org_id = repo.enterprise.create_organization("Org A")
+        document = knowledge_repository.ingest(org_id, "notes.md", "hello world")
+        knowledge_repository.index(document.id, CORRELATION_ID)
+
+        with repo.SessionLocal() as session:
+            chunk = session.query(Chunk).filter(Chunk.document_version_id == document.version_id).one()
+        assert chunk.embedding_provider == "mock"
+        assert chunk.embedding_model == "mock"
 
     def test_list_documents_scoped_by_organization(self, repo, knowledge_repository):
         org_a = repo.enterprise.create_organization("Org A")
