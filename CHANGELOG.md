@@ -2344,3 +2344,18 @@ Missao exclusivamente de analise arquitetural -- sem codigo, sem infraestrutura,
 **Missão:** GO para as Founder Decisions (RTO/RPO/TD-002/staging relationship/ownership/autorizacao da Etapa 1). GO tecnico condicional para a Etapa 1 (Backup Contract, nao depende de staging). NO-GO para execucao real de backup/restore/drill e para encerramento do W7-3.
 
 **Decision Log:** D-181.
+
+## W7-3 Etapa 1 -- Backup Contract implementado (2026-08-13)
+
+Founder aprovou RTO=8h/RPO=24h, a estrategia pg_dump/pg_restore/Alembic, Option A (staging tambem serve de DR Drill), modelo de ownership de 4 papeis, e autorizou exclusivamente as Etapas 1-4 (Drill/encerramento nao autorizados).
+
+**Adicionado**
+- `src/database/backup.py` -- `create_backup()`: pg_dump -Fc + sidecar JSON de metadata (environment/release_sha/alembic_revision/created_at/size_bytes/database redigido), verificacao objetiva via `pg_restore --list`, falha explicita (BackupError) sem deixar artefato parcial. CLI executavel via `python -m src.database.backup`.
+- `tests/test_backup.py` -- 6 testes (artefato valido, 3 cenarios de falha explicita, metadata identificavel, ausencia de credenciais persistidas).
+
+**Testes**
+- `pytest tests/test_backup.py`: 6 passed. `ruff` limpo nos arquivos alterados.
+
+**Missão:** Etapa 1 concluida -- IMPLEMENTED/TESTED LOCALLY, NOT YET EXERCISED IN REAL DR DRILL. Prosseguindo para Etapa 2.
+
+**Decision Log:** D-182.
