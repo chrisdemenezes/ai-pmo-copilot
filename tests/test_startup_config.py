@@ -54,7 +54,8 @@ class TestStagingAndProductionValid:
         monkeypatch.setenv("API_KEY", "real-key")
         monkeypatch.setenv("LLM_PROVIDER", "anthropic")
         monkeypatch.setenv("ANTHROPIC_API_KEY", "real-anthropic-key")
-        monkeypatch.setenv("EMBEDDING_PROVIDER", "anthropic")
+        monkeypatch.setenv("EMBEDDING_PROVIDER", "voyage")
+        monkeypatch.setenv("VOYAGE_API_KEY", "real-voyage-key")
         monkeypatch.setenv("CORS_ALLOWED_ORIGINS", "https://app.example.com")
 
     def test_no_problems(self, monkeypatch: pytest.MonkeyPatch, environment: str) -> None:
@@ -70,7 +71,8 @@ class TestStagingAndProductionInvalid:
         monkeypatch.setenv("API_KEY", "real-key")
         monkeypatch.setenv("LLM_PROVIDER", "anthropic")
         monkeypatch.setenv("ANTHROPIC_API_KEY", "real-anthropic-key")
-        monkeypatch.setenv("EMBEDDING_PROVIDER", "anthropic")
+        monkeypatch.setenv("EMBEDDING_PROVIDER", "voyage")
+        monkeypatch.setenv("VOYAGE_API_KEY", "real-voyage-key")
         monkeypatch.setenv("CORS_ALLOWED_ORIGINS", "https://app.example.com")
 
     def test_missing_database_url(self, monkeypatch: pytest.MonkeyPatch, environment: str) -> None:
@@ -111,6 +113,13 @@ class TestStagingAndProductionInvalid:
         monkeypatch.setenv("EMBEDDING_PROVIDER", "mock")
         problems = collect_startup_config_problems(environment)
         assert any("EMBEDDING_PROVIDER=mock is not permitted" in p for p in problems)
+
+    def test_voyage_without_api_key(self, monkeypatch: pytest.MonkeyPatch, environment: str) -> None:
+        self._set_valid_env(monkeypatch)
+        monkeypatch.setenv("EMBEDDING_PROVIDER", "voyage")
+        monkeypatch.delenv("VOYAGE_API_KEY", raising=False)
+        problems = collect_startup_config_problems(environment)
+        assert any("VOYAGE_API_KEY is not set" in p for p in problems)
 
     def test_missing_cors_allowed_origins(self, monkeypatch: pytest.MonkeyPatch, environment: str) -> None:
         self._set_valid_env(monkeypatch)

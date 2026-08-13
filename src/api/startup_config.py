@@ -51,6 +51,8 @@ def collect_startup_config_problems(environment: Environment) -> list[str]:
     embedding_provider = os.getenv("EMBEDDING_PROVIDER", "mock").strip().lower()
     if embedding_provider == "mock":
         problems.append("EMBEDDING_PROVIDER=mock is not permitted outside dev.")
+    elif embedding_provider == "voyage" and not os.getenv("VOYAGE_API_KEY"):
+        problems.append("EMBEDDING_PROVIDER=voyage but VOYAGE_API_KEY is not set.")
 
     if not os.getenv("CORS_ALLOWED_ORIGINS"):
         problems.append("CORS_ALLOWED_ORIGINS is not set (no browser origin would be allowed).")

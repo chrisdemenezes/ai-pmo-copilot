@@ -4,17 +4,21 @@ PostgreSQL with pgvector (`tests/db.py`).
 """
 import pytest
 
-from src.database.models import EventRecord
+from src.database.models import KNOWLEDGE_EMBEDDING_DIM, EventRecord
 from src.database.repository import AnalysisRepository
 from src.services.events.dispatcher import EventDispatcher
 from src.services.events.in_process_publisher import InProcessEventPublisher
 from src.services.knowledge_platform.embedding_provider import (
     EmbeddingProviderConfigError,
     MockEmbeddingProvider,
+    VoyageEmbeddingProvider,
     get_embedding_provider,
 )
 from src.services.knowledge_platform.knowledge_repository import KnowledgeRepository
-from src.services.knowledge_platform.vector_repository import PgVectorRepository, VectorRepositoryError
+from src.services.knowledge_platform.vector_repository import (
+    PgVectorRepository,
+    VectorRepositoryError,
+)
 from tests.db import temp_database_url
 
 CORRELATION_ID = "test-correlation-id"
@@ -35,13 +39,25 @@ class TestMockEmbeddingProvider:
 
     def test_vector_has_expected_dimension(self):
         provider = MockEmbeddingProvider()
-        assert len(provider.embed("hello world")) == 16
+        assert len(provider.embed("hello world")) == KNOWLEDGE_EMBEDDING_DIM
+
+    def test_reports_its_own_provenance(self):
+        provider = MockEmbeddingProvider()
+        assert provider.provider_name == "mock"
+        assert provider.model_name == "mock"
 
 
 class TestGetEmbeddingProvider:
     def test_defaults_to_mock(self, monkeypatch):
         monkeypatch.delenv("EMBEDDING_PROVIDER", raising=False)
         assert isinstance(get_embedding_provider(), MockEmbeddingProvider)
+
+    def test_voyage_returns_voyage_provider(self, monkeypatch):
+        monkeypatch.setenv("EMBEDDING_PROVIDER", "voyage")
+        provider = get_embedding_provider()
+        assert isinstance(provider, VoyageEmbeddingProvider)
+        assert provider.provider_name == "voyage"
+        assert provider.model_name == "voyage-4"
 
     def test_unknown_provider_raises(self, monkeypatch):
         monkeypatch.setenv("EMBEDDING_PROVIDER", "some-future-real-backend")
@@ -82,7 +98,7 @@ class TestPgVectorRepository:
 
     def test_upsert_vector_raises_for_unknown_chunk(self, vector_repository):
         with pytest.raises(VectorRepositoryError):
-            vector_repository.upsert_vector(999999, [0.0] * 16)
+            vector_repository.upsert_vector(999999, [0.0] * KNOWLEDGE_EMBEDDING_DIM)
 
     def test_similarity_search_never_crosses_organizations(self, repo, knowledge_repository):
         org_a = repo.enterprise.create_organization("Org A")
