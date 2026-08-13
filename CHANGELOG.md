@@ -2196,3 +2196,28 @@ AR-18 aprovada; W7-9 absorvido (TD-002 -> W7-3, TD-011 -> W7-1, sem encerramento
 **Missão:** GO para implementacao incremental, condicionado a decisao de hospedagem de frontend (Etapa 4) e a nova autorizacao explicita do Founder para iniciar a implementacao. Nenhum codigo escrito, nenhum ambiente provisionado. W7-1/W7-3/W7-4/W7-7 permanecem nao autorizados.
 
 **Decision Log:** D-171.
+
+## W7-5 -- Implementacao completa: Configuration Contract, Readiness, Release Identity, Frontend Containerizado, Migration Discipline, Smoke Test Parametrizavel (2026-08-13)
+
+Hospedagem de frontend decidida pelo Founder (containerizada, mesma disciplina do backend); implementacao incremental das 6 etapas autorizadas, cada uma com commit proprio, testes e verificacao de regressao.
+
+**Adicionado**
+- `src/api/startup_config.py` + `web/lib/startup-config.ts`/`web/instrumentation.ts` -- Configuration Contract: variavel `ENVIRONMENT` (dev/staging/production); DEV permanece permissivo; staging/production falham explicitamente no boot se config critica (DATABASE_URL/API_KEY/LLM_PROVIDER+ANTHROPIC_API_KEY/EMBEDDING_PROVIDER/CORS_ALLOWED_ORIGINS) estiver ausente ou invalida -- DATABASE_URL nunca mais cai silenciosamente para SQLite fora do dev.
+- `GET /ready` (`src/main.py`) -- distinto de `GET /health` (liveness, inalterado); reutiliza o Configuration Contract e testa conectividade real com o banco; nunca crasheia, sempre reporta 503 com a lista de problemas.
+- Release Identity (`Dockerfile`, `src/main.py`) -- `ARG GIT_SHA` + `ENV RELEASE_SHA`, exposto aditivamente em `GET /health` como `"release"`.
+- Frontend containerizado (`web/Dockerfile`, `web/next.config.ts` output standalone, `web/app/api/health/route.ts`, `docker-compose.yml` servico `web`) -- artefato separado do backend, mesma disciplina de release e health.
+- Migration Discipline (`docker-compose.yml`, `PRI-009`) -- migracao deixa de ser parte do comando de start do `api`, vira etapa explicita e separada (`docker compose run --rm api alembic upgrade head`), alinhada ao Deployment Contract.
+- Smoke test parametrizavel (`web/playwright.config.ts`, `web/e2e/smoke.spec.ts`) -- `PLAYWRIGHT_BASE_URL` permite apontar para um ambiente real em vez de assumir localhost; 4 checks essenciais, nenhuma credencial hardcoded.
+
+**Revisao de PRI-008/PRI-009 contra o schema V2 real (20 migrations, nao 1)**
+- PRI-008 descrevia a imagem do banco como `postgres:16` -- corrigido para `pgvector/pgvector:pg16`.
+- Gap real elevado, nao mascarado: a validacao pos-restauracao (PRI-008 Secao 4) checava apenas `analysis_records` (unica tabela da V1) -- o schema V2 real tem ~20 tabelas. A restauracao em si nao tem essa lacuna (`pg_restore` restaura o dump inteiro); apenas a validacao. Documentado como gap explicito, nao resolvido silenciosamente -- nao e redesenho de Disaster Recovery.
+
+**Testes**
+- Backend: suite completa 900 passed (25 novos cenarios de Configuration Contract, 4 de readiness, 2 de release identity).
+- Frontend: tsc/eslint limpos; vitest 567 passed.
+- E2E: suite completa (mobile/md/lg) 322 passed, 0 failed, 8 skipped (esperados).
+
+**Missão:** GO para o encerramento de W7-5. Nenhum trabalho do W7-1 foi iniciado.
+
+**Decision Log:** D-172.
