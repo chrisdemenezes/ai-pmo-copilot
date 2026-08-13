@@ -2221,3 +2221,14 @@ Hospedagem de frontend decidida pelo Founder (containerizada, mesma disciplina d
 **Missão:** GO para o encerramento de W7-5. Nenhum trabalho do W7-1 foi iniciado.
 
 **Decision Log:** D-172.
+
+## W7-5 encerrado + W7-1 aberto institucionalmente: Technical Design + Staging Validation Plan (2026-08-13)
+
+W7-5 encerrado oficialmente com base na Executive Evidence (D-172), sem revisao retroativa de D-170 em diante. Abertura institucional do W7-1 autorizada exclusivamente para producao de Technical Design + Staging Validation Plan -- nenhum staging provisionado, nenhum deployment executado, nenhuma credencial de producao usada, nenhuma validacao real de LLM/embedding iniciada.
+
+**Adicionado**
+- `docs/architecture/TECHNICAL-DESIGN-W7-1-STAGING-PRODUCTION-LLM-EMBEDDING-VALIDATION.md` -- fundado no que o W7-5 realmente entregou (Configuration Contract, Readiness, Release Identity, Deployment Contract, Migration Discipline, Smoke Test, todos reutilizados). Responde as 5 perguntas mandatadas: onde hospedar staging (requisito arquitetural + 3 opcoes, escolha do provedor real elevada como Founder Decision); topologia minima (mesmos 3 servicos do docker-compose.yml, isolados); servicos/dependencias necessarios (catalogados contra o codigo real -- LLM provider real pronto mas nunca executado, embedding provider de producao nao existe no codigo); secrets/config necessarios (catalogo derivado do Configuration Contract, sem secrets manager novo); protocolo de validacao com LLM+embeddings reais em 5 camadas, definido mas nao executado. Bloqueio real elevado: backend de embedding de producao continua nao escolhido (TD-011, absorvido em W7-1) -- validacao de embedding bloqueada ate essa decisao, validacao de LLM nao depende dela.
+
+**Missão:** GO para que o Founder decida o host de staging. Validacao de embedding real permanece bloqueada ate a escolha do backend de producao. Nenhum provisionamento/deployment/validacao real inicia automaticamente.
+
+**Decision Log:** D-173.
