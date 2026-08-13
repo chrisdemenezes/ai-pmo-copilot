@@ -29,12 +29,12 @@ from pgvector.sqlalchemy import Vector
 
 from src.database.base import Base
 
-# Wave 3, Enterprise Knowledge Platform Fase 1 (Foundation). Placeholder
-# dimension for the Mock embedding provider proving the pgvector wiring --
-# the real production dimension is chosen when a real embedding backend is
-# selected (Fase 2, deferred per DOMAIN-BLUEPRINT-ENTERPRISE-KNOWLEDGE-PLATFORM.md
-# §1.4), and this constant moves with it.
-KNOWLEDGE_EMBEDDING_DIM = 16
+# Production Embedding Provider Approval (Founder Decision, D-177):
+# Voyage AI, model voyage-4, dimension 1024 -- replaces the Mock
+# placeholder dimension (16) that only proved the pgvector wiring.
+# Migration 0021 carries its own frozen copy of this value (never
+# imports this constant, per this repo's migration discipline).
+KNOWLEDGE_EMBEDDING_DIM = 1024
 
 
 def _utcnow() -> datetime:
@@ -427,6 +427,12 @@ class Chunk(Base):
     chunk_index = Column(Integer, nullable=False)
     text = Column(String, nullable=False)
     embedding = Column(Vector(KNOWLEDGE_EMBEDDING_DIM), nullable=False)
+    # Minimal provenance (Founder Decision D-175/D-177): which provider/
+    # model produced this vector -- nullable, no versioning table, no
+    # multi-model coexistence mechanism (rejected as unneeded abstraction
+    # in TECHNICAL-DESIGN-PRODUCTION-EMBEDDING-CONTRACT-VECTOR-MIGRATION.md).
+    embedding_provider = Column(String(length=64), nullable=True)
+    embedding_model = Column(String(length=64), nullable=True)
 
 
 class MemoryRecord(Base):

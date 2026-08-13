@@ -45,7 +45,11 @@ def test_0016_upgrade_creates_tables_and_downgrade_removes_them():
             assert _table_exists(conn, "document_versions") is False
             assert _table_exists(conn, "chunks") is False
 
-        _alembic(env, "upgrade", "head")
+        # Pinned to "0016" specifically, not "head" -- this test proves
+        # 0016's own historical shape (dimension 16), which must stay
+        # true forever regardless of what later migrations (e.g. 0021,
+        # Production Embedding Provider) do to the *current* schema.
+        _alembic(env, "upgrade", "0016")
         with engine.connect() as conn:
             assert _table_exists(conn, "documents") is True
             assert _table_exists(conn, "document_versions") is True

@@ -57,7 +57,11 @@ class MockEmbeddingProvider:
     def embed(self, text: str) -> list[float]:
         normalized = " ".join(text.split()).lower()
         digest = hashlib.sha256(normalized.encode("utf-8")).digest()
-        return [(digest[i] / 127.5) - 1.0 for i in range(KNOWLEDGE_EMBEDDING_DIM)]
+        # SHA-256 only yields 32 bytes -- cycle through them (`% len(digest)`)
+        # to fill KNOWLEDGE_EMBEDDING_DIM regardless of its value, instead of
+        # indexing past the digest's own length (correct at 16, an
+        # IndexError at any dimension above 32, including the current 1024).
+        return [(digest[i % len(digest)] / 127.5) - 1.0 for i in range(KNOWLEDGE_EMBEDDING_DIM)]
 
 
 @dataclass
