@@ -2359,3 +2359,19 @@ Founder aprovou RTO=8h/RPO=24h, a estrategia pg_dump/pg_restore/Alembic, Option 
 **Missão:** Etapa 1 concluida -- IMPLEMENTED/TESTED LOCALLY, NOT YET EXERCISED IN REAL DR DRILL. Prosseguindo para Etapa 2.
 
 **Decision Log:** D-182.
+
+## W7-3 Etapa 2 -- Restore Validation implementado, gap historico do PRI-008 corrigido (2026-08-13)
+
+**Adicionado**
+- `src/database/restore_validation.py` -- `validate_restore()`: tabelas esperadas derivadas de `Base.metadata` (nunca hardcoded), revisao Alembic vs head real, integridade referencial (programs/document_versions/chunks), contrato de embedding (vector_dims=1024), tabelas CRITICAL nao vazias quando `expect_populated=True` (nunca exigido de tabelas RECONSTRUCTABLE).
+- `tests/test_restore_validation.py` -- 6 testes: round-trip real backup->restore->validacao, restore incompleto detectado, schema incompativel detectado, dados CRITICAL truncados detectados, health/readiness apos restore via TestClient real.
+
+**Corrigido**
+- `PRI-008` SS4 -- gap historico (validacao cobria so `analysis_records`) substituido por 4 checks reais (health/readiness/validate_restore completo das 21 tabelas/smoke test).
+
+**Testes**
+- `pytest tests/test_restore_validation.py tests/test_backup.py`: 12 passed. `ruff` limpo nos arquivos alterados.
+
+**Missão:** Etapa 2 concluida -- IMPLEMENTED/TESTED LOCALLY, NOT YET EXERCISED IN REAL DR DRILL. Prosseguindo para Etapa 3 (TD-002).
+
+**Decision Log:** D-183.

@@ -107,45 +107,51 @@ ao ar.
 
 ## 4. Validação pós-restauração
 
-Nenhuma restauração é considerada concluída sem os 3 checks abaixo:
+**Gap histórico corrigido (W7-3 Etapa 2, Founder Decision):** os 3 checks que este runbook
+documentava até então validavam apenas `analysis_records`, a única tabela que existia
+quando o runbook foi escrito — o schema real tem hoje 21 tabelas. `src/database/restore_validation.py`
+(`validate_restore()`) substitui definitivamente essa cobertura parcial: deriva as tabelas
+esperadas de `Base.metadata` (nunca uma contagem hardcoded, per Founder), confirma a
+revisão Alembic aplicada contra o head real do repositório, confirma integridade
+referencial (nenhuma linha órfã em `programs`→`portfolios`, `document_versions`→`documents`,
+`chunks`→`document_versions`), confirma que todo `chunks.embedding` restaurado tem a
+dimensão de produção (`vector_dims(embedding) = 1024`), e, quando o backup usado é
+conhecidamente de uma fonte populada (`expect_populated=True`), confirma que as tabelas
+CRITICAL (`organizations`, `users`, `audit_logs`, `events`) não ficaram vazias — nunca
+exige isso de tabelas RECONSTRUCTABLE (`roles`/`permissions`/`invitations`), que podem
+legitimamente estar vazias sem indicar uma restauração incompleta. Nenhuma restauração é
+considerada concluída sem os 4 checks abaixo:
 
 ```bash
 # 1. Health check da API
 curl -sf http://localhost:8000/health
-# esperado (W7-5 Etapa 3, Release Identity -- "release" faz parte do
-# contrato real de /health desde então, corrigido nesta revisão):
+# esperado (W7-5 Etapa 3, Release Identity):
 # {"status":"healthy","service":"AI PMO Copilot","release":"<git-sha-do-deploy>"}
 
-# 2. Contagem de registros restaurados é maior que zero e plausível
-docker compose -f docker-compose.yml exec -T database \
-  psql -U "${POSTGRES_USER:-aipmo}" -d "${POSTGRES_DB:-aipmo}" -c "SELECT COUNT(*) FROM analysis_records;"
+# 2. Readiness (Configuration Contract + conectividade real ao banco)
+curl -sf http://localhost:8000/ready
+# esperado: {"status":"ready"}
 
-# 3. O registro mais recente restaurado corresponde ao esperado (mesma
-#    data/hora do momento em que o backup usado foi gerado, nunca mais recente)
-docker compose -f docker-compose.yml exec -T database \
-  psql -U "${POSTGRES_USER:-aipmo}" -d "${POSTGRES_DB:-aipmo}" -c \
-  "SELECT project_name, kind, created_at FROM analysis_records ORDER BY created_at DESC, id DESC LIMIT 5;"
+# 3. Validação estrutural + funcional completa das 21 tabelas (W7-3 Etapa 2)
+docker compose -f docker-compose.yml run --rm api python -c \
+  "from sqlalchemy import create_engine; import os; \
+   from src.database.restore_validation import validate_restore; \
+   result = validate_restore(create_engine(os.environ['DATABASE_URL']), expect_populated=True); \
+   print(result); \
+   raise SystemExit(0 if result.ok else 1)"
+
+# 4. Smoke test (Seção 5 abaixo) contra o ambiente restaurado
 ```
 
-Se qualquer um dos 3 falhar, não promover a restauração como concluída — repetir a partir
+Se qualquer um dos 4 falhar, não promover a restauração como concluída — repetir a partir
 de um backup anterior (Seção 2, retenção de 7 diários + 4 semanais existe exatamente para
 esse cenário).
 
-**Gap elevado (revisão W7-5 Etapa 5, não mascarado):** os 3 checks acima validam apenas
-`analysis_records`, a única tabela que existia quando este runbook foi escrito. O schema
-real hoje (`alembic/versions/0001_initial.py` a `0020_w5_0_document_ingestion.py`, 20
-migrations) tem cerca de 20 tabelas cobrindo Identity/RBAC (`organizations`, `users`,
-`roles`, `permissions`, `sessions`, `api_keys`, `invitations`), o Enterprise Domain
-(`portfolios`, `programs`, `projects`) e a Enterprise Knowledge Platform (`documents`,
-`chunks` — com os embeddings `pgvector` colocados nessa mesma tabela, `memory_records`,
-`event`/`workflow_executions` — ver `AR-18-WAVE-7-ENTERPRISE-READINESS-ARCHITECTURE-REVIEW.md`).
-`pg_restore` já restaura o dump inteiro (todas as tabelas, por ser um backup lógico do
-banco `aipmo` completo — Seção 1), então a **restauração em si não tem essa lacuna**; é
-apenas a validação pós-restauração (esta Seção 4) que ainda reflete a superfície de dados
-da V1. Antes de qualquer restauração real em produção, este passo 2 deve ser expandido
-para incluir pelo menos uma contagem de linhas por domínio crítico (ex.: `organizations`,
-`users`, `chunks`). Este runbook registra a lacuna e não a resolve por si só — não é um
-redesenho de Disaster Recovery (RTO/RPO permanecem fora do escopo desta revisão).
+**Estado desta correção:** `IMPLEMENTED`/`TESTED LOCALLY` (`tests/test_restore_validation.py`,
+ciclo real backup→restore→validação contra Postgres real, incluindo detecção de restore
+incompleto e de schema incompatível) — `NOT YET EXERCISED IN REAL DR DRILL`. O DR Drill
+real (Technical Design Seção 11, Etapa 5 — não autorizada nesta missão) é o único evento
+que pode declarar este mecanismo comprovado em produção.
 
 ## 5. Recuperação após falha
 
