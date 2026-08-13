@@ -2265,3 +2265,25 @@ Verificacao factual contra documentacao oficial dos fornecedores, antes de qualq
 **Missão:** NO-GO para registrar o provider como decisao definitiva nesta missao. Fatos entregues para o Executive Review do Founder.
 
 **Decision Log:** D-176.
+
+## Production Embedding Provider aprovado e implementado: Voyage AI, voyage-4, dimensao 1024 (2026-08-13)
+
+Decisao oficial: Production Embedding Provider = Voyage AI, Model = voyage-4, Vector Dimension = 1024 -- substitui a recomendacao preliminar voyage-multilingual-2, sem revisao retroativa. Implementacao tecnica em 6 etapas, sem provisionar staging, sem credenciais reais, sem chamadas reais a API.
+
+**Adicionado**
+- `src/services/knowledge_platform/embedding_provider.py`: VoyageEmbeddingProvider (via httpx direto, evitando ~30 dependencias transitivas do SDK oficial), EmbeddingProviderUnavailableError, proveniencia minima (provider_name/model_name) no Protocol.
+- `alembic/versions/0021_production_embedding_provider.py`: vector(16) -> vector(1024) + colunas embedding_provider/embedding_model; linhas mock existentes deletadas (sem valor semantico, sem conversao possivel).
+- `src/database/models.py`: KNOWLEDGE_EMBEDDING_DIM = 1024.
+- `src/services/knowledge_platform/knowledge_repository.py`: index() persiste a proveniencia.
+- `docker-compose.yml`/`.env.example`/`PRI-009`: EMBEDDING_PROVIDER/VOYAGE_API_KEY propagados ao servico api.
+- Corrigido bug real exposto pela mudanca de dimensao: MockEmbeddingProvider indexava um hash SHA-256 (32 bytes) diretamente por posicao, IndexError acima de 32 -- corrigido para ciclar pelo digest.
+
+**Testes**
+- 12 testes novos (provider Voyage com doubles/fakes, migration 0021, provenance, retrieval compatibility). Suite backend completa: 912 passed.
+
+**Governança**
+- `docs/product/governance/W7-1-PRODUCTION-EMBEDDING-EXECUTIVE-EVIDENCE.md` -- as 10 provas mandatadas verificadas individualmente. Preservacao arquitetural confirmada mecanicamente (zero alteracao em AdvisorFramework/AIContextEngine/RecommendationEngine/ExecutiveOrchestrator/8 Advisors/Workflow Runtime/Event Pipeline/Enterprise Domain).
+
+**Missão:** GO tecnicamente para Provision Staging -- mas o provisionamento em si nao esta autorizado nesta missao, condicionado a gates externos pendentes (Data/DPA, host de staging, credencial real). Nenhum outro Epic da Wave 7 foi iniciado.
+
+**Decision Log:** D-177.
