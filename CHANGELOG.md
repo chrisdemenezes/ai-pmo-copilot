@@ -2243,3 +2243,14 @@ Analise tecnica exclusiva para fechar as 2 decisoes elevadas pelo Technical Desi
 **Missão:** Aguardar escolha do Founder (Decision Brief) antes de qualquer provisionamento. Nenhum trabalho de execucao do W7-1 inicia automaticamente.
 
 **Decision Log:** D-174.
+
+## Staging Architecture aprovada + Embedding Provider Gate: Technical Design de contrato/migracao (2026-08-13)
+
+Staging Architecture (VM Linux dedicada, 2 vCPU/4GB/20-40GB, Docker+Compose, isolamento, Deployment Contract do W7-5) APROVADA. Voyage AI registrado como PREFERRED CANDIDATE, ainda NAO aprovado como Production Embedding Provider -- condicionado a resolucao do achado de dimensao fixa 16.
+
+**Adicionado**
+- `docs/architecture/TECHNICAL-DESIGN-PRODUCTION-EMBEDDING-CONTRACT-VECTOR-MIGRATION.md` -- contrato atual do EmbeddingProvider (Protocol embed(text)->list[float]), dimensao 16 confirmada em exatamente 2 lugares, confirmado que nao vaza para camadas provider-agnostic. Comparacao de 4 candidatos (Voyage AI, OpenAI, Cohere, self-hosted) em 13 criterios, nenhuma escolha feita. Vector Schema Strategy: dimensao fixa pelo modelo escolhido + colunas minimas de proveniencia recomendadas; dimensao normalizada/configurável e versionamento pleno avaliados e rejeitados por overengineering. Migration & Reembedding Plan: cutover limpo por embeddings atuais serem 100% mock sem valor a preservar; achado operacional sobre duplicacao de chunks em reindex() ingenuo registrado para cenarios futuros com dados reais; compatibilidade app/schema ja coberta pela Migration Discipline do W7-5. Provider Switching respondido objetivamente por tabela. Sequencia de execucao do W7-1 verificada e confirmada sem alteracao.
+
+**Missão:** GO para o Founder decidir o Production Embedding Provider. NO-GO para qualquer implementacao/migration/provisionamento ate essa decisao.
+
+**Decision Log:** D-175.
