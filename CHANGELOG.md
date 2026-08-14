@@ -2469,3 +2469,18 @@ Founder autorizou exclusivamente eliminar F1/F2/F4 -- Controlled Pilot Security 
 **Missão:** F4 CLOSED. Todos os 3 findings autorizados (F1/F2/F4) fechados. Prosseguindo para Security Regression Validation + Controlled Pilot Security Gate + Executive Evidence.
 
 **Decision Log:** D-190.
+
+## W7-4 Controlled Pilot Security Baseline -- Executive Evidence consolidada (2026-08-14)
+
+F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar controles ja adequados, comprovar mecanicamente o fechamento, STOP -- sem DR Drill, sem encerrar W7-4.
+
+**Adicionado**
+- `docs/product/governance/W7-4-CONTROLLED-PILOT-SECURITY-BASELINE-EXECUTIVE-EVIDENCE.md` -- estado inicial, implementacao de F1/F2/F4, decisoes tecnicas, 31 testes novos (25 Python + 6 TypeScript, todas as 26 letras A-Z cobertas), regressao de seguranca de 11 dimensoes (108 passed), findings restantes classificados, preservacao arquitetural confirmada, riscos residuais, Controlled Pilot Security Gate comprovado mecanicamente.
+
+**Testes**
+- Backend completo: 957 passed, 0 failed (baseline 932 + 25 novos). Frontend completo: 577 passed, 0 failed (78 arquivos). ruff/tsc/eslint limpos. E2E avaliado e nao executado (backend mockado, nao exercitaria as mudancas), justificativa registrada.
+- Correcao de contagem elevada com transparencia: D-188 registrou 8 testes no arquivo de guard unitario, contagem real confirmada e 9 -- D-188 nao editado retroativamente, correcao registrada aqui.
+
+**Missão:** CONTROLLED PILOT SECURITY BASELINE = SATISFIED. GO -- security dimension for Controlled User Pilot (nao autoriza o piloto em si, outros gates independentes). NO-GO para encerrar o W7-4 -- F3/F5/F6/F7 permanecem OPEN.
+
+**Decision Log:** D-191.
