@@ -2550,3 +2550,19 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** Etapa 4 CLOSED quanto a cobertura mandatada. Prosseguindo para Etapa 5 (Program Management/Project Delivery).
 
 **Decision Log:** D-197.
+
+## W7-7 Etapa 5 -- Program Management e Project Delivery classificados IN PILOT BASELINE (2026-08-14)
+
+**Decisao registrada**
+- Program Management = IN PILOT BASELINE. Project Delivery = IN PILOT BASELINE. Evidencia: ambas sao Capabilities reais (hooks reais, sem mock, sem CRUD por design), presentes em NAV_ITEMS sob a regra de entrada explicita do proprio arquivo ("no disabled/hidden/placeholder entries"), posicionadas na sequencia de uso diario junto de Projetos/Acoes/Decisoes, com dados que alimentam a propria consolidacao de KPIs do Dashboard. Nenhuma documentacao de escopo de piloto as excluia.
+
+**Adicionado**
+- `web/e2e/program-management.spec.ts` e `web/e2e/project-delivery.spec.ts` -- 2 testes cada (redirect nao autenticado + agrupamento correto Program/Project sob o Portfolio/Program pai), cobertura minima, reusando fixtures ja existentes em mock-backend.mjs.
+
+**Testes**
+- Achado corrigido durante a implementacao, com transparencia: a primeira versao localizava secoes via `getByRole("heading")`, assumindo que `CardTitle` expunha role heading -- nao expoe (e um `<div>` puro). Falha deterministica nos 3 viewports (6 failed), corrigida localizando por `hasText`. Comportamento de produto nao alterado -- o defeito era do teste, nao da pagina.
+- 12 passed, 0 failed nos 3 viewports apos a correcao. eslint/tsc limpos.
+
+**Missão:** Etapa 5 CLOSED. As 5 Etapas mandatadas estao implementadas. Prosseguindo para Final Validation e Executive Evidence.
+
+**Decision Log:** D-198.
