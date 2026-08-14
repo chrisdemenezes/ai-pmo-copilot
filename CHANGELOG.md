@@ -2627,3 +2627,17 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** W7-1 real execution NAO iniciada. CONTROLLED USER PILOT = NO-GO (inalterado, agora por Gates tecnicamente verificados indisponiveis). REAL CORPORATE DATA = NOT AUTHORIZED. Nenhum outro Epic iniciado.
 
 **Decision Log:** D-202.
+
+## Local V1 User Validation Plan (2026-08-14)
+
+**Adicionado**
+- `docs/product/governance/LOCAL-V1-USER-VALIDATION-PLAN.md` -- analise grounded (8 perguntas), Matriz de Validacao de 21 itens (classes A-F), 3 AI Validation Levels, Local User Journey, requisitos de maquina Windows, instalacao limpa, Pre-flight Checklist, Test Session Protocol de 13 etapas, Evidence Model, Exit Criteria.
+
+**Achados**
+- Confirmado empiricamente (nao presumido): migrations falham no SQLite ja na 0010 (Wave 2), muito antes da Knowledge Platform -- PostgreSQL e o unico caminho local viavel hoje. demo/start-demo.sh/README ainda descrevem SQLite como viavel -- desatualizado, Documentation Defect/LOW, nao corrigido nesta missao.
+- make dev e o Demo Mode do DPS-01 sao o mesmo mecanismo. Demo Mode cobre apenas os 3 analistas originais, sem cobertura para Advisors/Decision Support/Executive Narrative (que degradam graciosamente para conteudo placeholder sem credencial real, nunca crasham).
+- Nenhuma Capability classificada F (staging obrigatorio) -- toda a jornada e mecanicamente exercitavel localmente. Nenhuma alteracao de codigo necessaria.
+
+**Missão:** Plano entregue para aprovacao do Founder. Nenhuma implementacao, nenhuma sessao de usuario, nenhum piloto, nenhum Epic iniciado. Fronteira de preservacao registrada: W7-1/Gates A-D inalterados.
+
+**Decision Log:** D-203.
