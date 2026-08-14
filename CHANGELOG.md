@@ -2484,3 +2484,15 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** CONTROLLED PILOT SECURITY BASELINE = SATISFIED. GO -- security dimension for Controlled User Pilot (nao autoriza o piloto em si, outros gates independentes). NO-GO para encerrar o W7-4 -- F3/F5/F6/F7 permanecem OPEN.
 
 **Decision Log:** D-191.
+
+## W7-4 ratificado + W7-7 (Cross-Browser & CI Completion) aberto institucionalmente (2026-08-14)
+
+**Ratificado**
+- F1/F2/F4 = CLOSED, Controlled Pilot Security Baseline = SATISFIED, Security Dimension for Controlled User Pilot = GO. W7-4 = OPEN (F3/F5/F6/F7 fora de escopo, F8/F9/F10 ACCEPTED). Enterprise Production Security = NOT YET CLOSED.
+
+**Adicionado**
+- `docs/architecture/TECHNICAL-DESIGN-W7-7-CROSS-BROWSER-CI-COMPLETION.md` -- assessment mecanico completo. Achado central: os 3 projects do Playwright (mobile/md/lg) sao todos Chromium, apenas perfis de viewport, nunca engines diferentes; CI roda so o project lg; Firefox/WebKit nunca validados; nenhum browser declarado suportado em nenhuma documentacao. Matriz de 18 fluxos criticos: 13 COVERED, 1 PARTIALLY COVERED (Session -- logout nunca exercitado por E2E), 4 NOT COVERED (Program Management/Project Delivery/Documents/Mission Control -- apenas link de nav verificado, distincao TEST EXISTS vs BEHAVIOR IS ACTUALLY EXERCISED aplicada). CI mapeado com precisao -- branch protection real nao verificavel por codigo, registrado como GAP. 3 skips legitimos, zero retries, zero flakes documentados. Controlled Pilot Browser Baseline: Chromium/Chrome ja suficiente, nenhum engine novo necessario -- menor delta e rodar mobile/md em CI + fechar gaps de cobertura. 9 findings classificados, nenhum CRITICAL. Estrategia incremental de 5+3 etapas propostas, nenhuma implementada.
+
+**Missão:** GO para o Founder avaliar a estrategia incremental. GO tecnico condicional para implementacao (nenhum engine/infra nova necessaria), mediante nova autorizacao. Nenhuma implementacao nesta missao.
+
+**Decision Log:** D-192, D-193.
