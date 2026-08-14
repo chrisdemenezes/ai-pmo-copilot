@@ -2612,3 +2612,18 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** NO-GO hoje para o piloto, exclusivamente por dependencias externas (Gates A/B/C/D) -- nenhuma dependencia tecnica remanescente. Nenhum codigo adicional escrito. Nenhum outro Epic iniciado.
 
 **Decision Log:** D-201.
+
+## External Gates Resolution -- Gate Check executado, A/B/C NOT AVAILABLE (2026-08-14)
+
+**Verificado**
+- Gate Check executado como primeira acao, antes de qualquer codigo/deploy/migration/chamada externa, per mandato explicito. GATE A (Staging Host) = NOT AVAILABLE (sessao roda em container efemero, nenhum host provisionado). GATE B (Voyage API Credential) = NOT AVAILABLE (VOYAGE_API_KEY ausente). GATE C (Anthropic API Credential) = NOT AVAILABLE (ANTHROPIC_API_KEY da aplicacao ausente -- distinto e nao confundido com o ANTHROPIC_BASE_URL da propria infraestrutura do Claude Code). GATE D (Data/DPA) = NOT APPROVED, nao exigido nesta fase (dado sintetico apenas).
+
+**Adicionado**
+- `docs/product/governance/EXTERNAL-GATES-RESOLUTION-CHECKLIST.md` -- exatamente o que o Founder precisa prover para os 3 Gates tecnicos, reaproveitando integralmente os contratos ja aprovados (D-175 arquitetura de staging, D-177 embedding, PRI-009 deployment).
+
+**STOP Rule aplicada**
+- Nenhum deploy, nenhuma migration em staging, nenhuma chamada real a Anthropic/Voyage, nenhuma simulacao apresentada como staging, nenhum mock apresentado como validacao real, nenhuma declaracao de W7-1 Delivered, nenhuma evidencia fabricada.
+
+**Missão:** W7-1 real execution NAO iniciada. CONTROLLED USER PILOT = NO-GO (inalterado, agora por Gates tecnicamente verificados indisponiveis). REAL CORPORATE DATA = NOT AUTHORIZED. Nenhum outro Epic iniciado.
+
+**Decision Log:** D-202.
