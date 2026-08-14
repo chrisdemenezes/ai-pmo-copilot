@@ -283,6 +283,14 @@ let nextAdminUserId = 1000;
 const ADMIN_API_KEYS = [];
 let nextAdminApiKeyId = 1;
 
+// W7-7 Etapa 2 -- Document Ingestion (Wave 5, Epic W5-0). Mirrors
+// src/api/routes/knowledge.py's DocumentResponse shape and its two real
+// validation rules (empty file / non-UTF-8 file -> 422), the only invalid
+// inputs the real route rejects today. Reset via resetAdminFixtures(), same
+// as every other admin fixture.
+const ADMIN_DOCUMENTS = [];
+let nextAdminDocumentId = 1;
+
 function omitHashedSecret(apiKey) {
   const copy = { ...apiKey };
   delete copy.hashed_secret;
@@ -331,6 +339,8 @@ function resetAdminFixtures() {
   nextAdminSessionSeq = 1;
   ADMIN_INVITATIONS.length = 0;
   nextAdminInvitationId = 1;
+  ADMIN_DOCUMENTS.length = 0;
+  nextAdminDocumentId = 1;
 }
 resetAdminFixtures();
 
@@ -567,6 +577,35 @@ function send(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
+// W7-7 Etapa 2 -- minimal multipart/form-data reader for the Document
+// Ingestion upload route (the only multipart endpoint any spec exercises).
+// latin1 round-trips every byte 1:1, so binary/non-UTF-8 file content
+// survives the split intact for the UTF-8 validity check below.
+function parseMultipart(buffer, contentType) {
+  const boundaryMatch = /boundary=(?:"([^"]+)"|([^;]+))/.exec(contentType ?? "");
+  if (!boundaryMatch) return null;
+  const boundary = `--${boundaryMatch[1] ?? boundaryMatch[2]}`;
+  const raw = buffer.toString("latin1").split(boundary).slice(1, -1);
+  const fields = {};
+  const files = {};
+  for (const rawPart of raw) {
+    const part = rawPart.replace(/^\r\n/, "").replace(/\r\n$/, "");
+    const headerEnd = part.indexOf("\r\n\r\n");
+    if (headerEnd === -1) continue;
+    const headers = part.slice(0, headerEnd);
+    const body = part.slice(headerEnd + 4);
+    const nameMatch = /name="([^"]+)"/.exec(headers);
+    if (!nameMatch) continue;
+    const filenameMatch = /filename="([^"]*)"/.exec(headers);
+    if (filenameMatch) {
+      files[nameMatch[1]] = { filename: filenameMatch[1], content: Buffer.from(body, "latin1") };
+    } else {
+      fields[nameMatch[1]] = body;
+    }
+  }
+  return { fields, files };
+}
+
 function applyScenario(res, key) {
   const current = workspaceScenario[key];
   if (current === "timeout") {
@@ -678,6 +717,62 @@ const server = http.createServer((req, res) => {
   }
   if (url.pathname === "/api/projects-delivery") {
     return send(res, 200, DOMAIN_PROJECTS);
+  }
+
+  // Document Ingestion (Wave 5, Epic W5-0) -- mirrors
+  // src/api/routes/knowledge.py: GET/POST /api/documents,
+  // POST /api/documents/{id}/reindex. The BFF forwards multipart bodies
+  // byte-for-byte (web/app/api/bff/admin/documents/route.ts), so this is the
+  // only mock route that has to actually parse multipart/form-data.
+  if (req.method === "GET" && url.pathname === "/api/documents") {
+    return send(res, 200, ADMIN_DOCUMENTS);
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/documents") {
+    const chunks = [];
+    req.on("data", (chunk) => chunks.push(chunk));
+    req.on("end", () => {
+      const parsed = parseMultipart(Buffer.concat(chunks), req.headers["content-type"]);
+      const file = parsed?.files?.file;
+      if (!file) {
+        return send(res, 422, { detail: "file é obrigatório" });
+      }
+      // Same UTF-8 validity check as upload_document() (src/api/routes/
+      // knowledge.py): a byte sequence that isn't valid UTF-8 decodes with
+      // U+FFFD replacement characters that a latin1 round-trip never
+      // produces on its own.
+      const text = file.content.toString("utf8");
+      const looksInvalidUtf8 =
+        text.includes("�") && !file.content.toString("latin1").includes("�");
+      if (looksInvalidUtf8) {
+        return send(res, 422, { detail: "File must be UTF-8 encoded text/markdown" });
+      }
+      if (!text.trim()) {
+        return send(res, 422, { detail: "File is empty" });
+      }
+      const sourceName = parsed.fields.source_name?.trim() || file.filename || "documento";
+      const document = {
+        document_id: nextAdminDocumentId++,
+        source_name: sourceName,
+        project_id: null,
+        version_id: 1,
+        chunk_count: Math.max(1, Math.ceil(text.length / 500)),
+        status: "indexed",
+        created_at: new Date().toISOString(),
+      };
+      ADMIN_DOCUMENTS.push(document);
+      return send(res, 201, document);
+    });
+    return;
+  }
+
+  const documentReindexMatch = url.pathname.match(/^\/api\/documents\/(\d+)\/reindex$/);
+  if (documentReindexMatch && req.method === "POST") {
+    const documentId = Number(documentReindexMatch[1]);
+    const document = ADMIN_DOCUMENTS.find((d) => d.document_id === documentId);
+    if (!document) return send(res, 404, { detail: "Document not found" });
+    document.status = "indexed";
+    return send(res, 200, document);
   }
 
   // User Management (Enterprise Administration Capability) -- mirrors

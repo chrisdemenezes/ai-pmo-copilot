@@ -2291,6 +2291,18 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Verificação:** execução real e completa da suíte E2E (não apenas leitura de config), diagnóstico da única falha antes de qualquer decisão de correção — nenhuma correção foi necessária (falha não é defeito de produto).
 - **Recomendação:** Etapa 1 CLOSED — mobile/md/lg comprovadamente executáveis e majoritariamente verdes em CI. Prosseguindo para a Etapa 2 (Documents E2E), per autorização já concedida.
 
+### D-195 — W7-7 Etapa 2: Documents E2E implementado
+
+- **Contexto:** mesma Founder Decision de D-194. Documents mandatado como fluxo obrigatório do Controlled Pilot Browser Baseline.
+- **Comportamento real inspecionado antes de escrever qualquer teste:** `web/app/administracao/documentos/page.tsx` (listagem real via `useAdminDocuments()`, sem mock), `upload-document-dialog.tsx` (upload `.txt`/`.md` apenas, campo nome opcional, erro exibido via `role="alert"`), `reindex-document-button.tsx`, `src/api/routes/knowledge.py` (as únicas 2 validações reais de input inválido no backend: arquivo vazio → 422 "File is empty"; não-UTF-8 → 422 "File must be UTF-8 encoded text/markdown" — nenhuma outra validação de conteúdo existe, nenhuma inventada), `web/app/api/bff/admin/documents/route.ts` (BFF encaminha multipart byte-a-byte para `${BACKEND_URL}/api/documents`).
+- **Achado de infraestrutura de teste:** `web/e2e/mock-backend.mjs` nunca teve rotas para `/api/documents` — nenhum spec anterior cobria Documents além do `href` do nav (`shell.spec.ts`). Adicionado um parser mínimo de `multipart/form-data` (`parseMultipart()`, baseado em `latin1` round-trip, sem dependência nova) e as 3 rotas reais (`GET`/`POST /api/documents`, `POST /api/documents/:id/reindex`), replicando exatamente as 2 validações do backend real — nenhum comportamento de produto inventado.
+- **`web/e2e/documents-admin.spec.ts` criado, 5 testes:** acesso via nav; redirecionamento não autenticado; estado vazio; upload válido com feedback de sucesso (fechamento do dialog) e documento visível na listagem depois; rejeição de arquivo vazio com a mensagem real do backend (`"File is empty"`).
+- **Fronteira de evidência declarada explicitamente (mandatória, não mascarada):** esta suíte roda contra `mock-backend.mjs`, nunca o backend FastAPI real, nunca um pipeline real de embedding/indexação. Prova a integração Frontend → BFF → contrato da rota real, não prova ingestão/chunking/indexação vetorial reais — essas são provadas pela suíte pytest do backend (`tests/test_document_upload_size_limit.py`, testes do Knowledge Platform), nunca reprovadas aqui.
+- **Executado e comprovado nos 3 viewports:** `npx playwright test --project=mobile --project=md --project=lg e2e/documents-admin.spec.ts` — **15 passed, 0 failed** (24.6s). Regressão amostral contra specs pré-existentes que também usam `mock-backend.mjs` (`shell`/`dashboard`/`api-keys-admin`/`sessions-admin`) — sem alteração de comportamento fora do escopo de Documents.
+- **Preservação arquitetural confirmada:** alteração exclusiva a `web/e2e/mock-backend.mjs` (fixtures de teste) + `web/e2e/documents-admin.spec.ts` (novo) — nenhum arquivo de `src/`/`web/app/`/`web/lib/` tocado, nenhum comportamento de produto alterado.
+- **Verificação:** `npx eslint` limpo nos arquivos novos/alterados; `npx tsc --noEmit` limpo.
+- **Recomendação:** Etapa 2 CLOSED. Prosseguindo para a Etapa 3 (Mission Control E2E), per autorização já concedida.
+
 ---
 
 ## Convenção

@@ -2509,3 +2509,17 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** Etapa 1 CLOSED. Prosseguindo para Etapa 2 (Documents E2E).
 
 **Decision Log:** D-194.
+
+## W7-7 Etapa 2 -- Documents E2E implementado (2026-08-14)
+
+**Adicionado**
+- Rotas `/api/documents` (GET/POST) e `/api/documents/:id/reindex` em `web/e2e/mock-backend.mjs`, com um parser minimo de multipart/form-data (`parseMultipart()`, sem dependencia nova), replicando exatamente as 2 validacoes reais de `src/api/routes/knowledge.py` (arquivo vazio -> 422; nao-UTF-8 -> 422). Nenhum comportamento de produto inventado.
+- `web/e2e/documents-admin.spec.ts` -- 5 testes: acesso via nav, redirect nao autenticado, estado vazio, upload valido com feedback de sucesso e listagem, rejeicao de arquivo vazio com a mensagem real do backend.
+
+**Testes**
+- 15 passed, 0 failed nos 3 viewports (mobile/md/lg). Regressao amostral de specs pre-existentes que usam o mesmo mock server, sem alteracao de comportamento fora do escopo de Documents. eslint/tsc limpos.
+- Fronteira de evidencia declarada: suite roda contra mock, nao prova ingestao/embedding real -- isso e provado pela suite pytest do backend.
+
+**Missão:** Etapa 2 CLOSED. Prosseguindo para Etapa 3 (Mission Control E2E).
+
+**Decision Log:** D-195.
