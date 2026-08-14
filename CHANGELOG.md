@@ -2496,3 +2496,16 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** GO para o Founder avaliar a estrategia incremental. GO tecnico condicional para implementacao (nenhum engine/infra nova necessaria), mediante nova autorizacao. Nenhuma implementacao nesta missao.
 
 **Decision Log:** D-192, D-193.
+
+## W7-7 Etapa 1 -- CI Viewport Coverage implementado (2026-08-14)
+
+**Alterado**
+- `.github/workflows/ci.yml` -- job `frontend`, step `E2E test` passa a rodar os 3 projects Playwright ja existentes (`mobile`/`md`/`lg`), antes so `lg`. Nenhum project novo, nenhum viewport alterado, `web/playwright.config.ts` intocado.
+
+**Testes**
+- Suite E2E completa executada e comprovada localmente antes do commit: 330 testes (110 x 3 viewports) -- 321 passed, 1 failed, 8 skipped. A 1 falha (`actions.spec.ts` redirect nao autenticado, primeiro teste do run, `mobile`) diagnosticada como corrida de compilacao on-demand do Next dev server no primeiro `page.goto` de um run frio -- reproduzida isolada (passou em 1.1s), nao e defeito de produto, nao mascarada com retry/timeout/skip. 8 skips legitimos e pre-existentes (mobile-only check + smoke sem backend real), contagem batendo exatamente.
+- Branch protection real do GitHub nao verificavel pelas ferramentas MCP disponiveis nesta sessao -- registrado como `UNVERIFIED`, nao presumido.
+
+**Missão:** Etapa 1 CLOSED. Prosseguindo para Etapa 2 (Documents E2E).
+
+**Decision Log:** D-194.
