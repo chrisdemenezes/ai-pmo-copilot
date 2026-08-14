@@ -2535,3 +2535,18 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** Etapa 3 CLOSED. Prosseguindo para Etapa 4 (Logout E2E).
 
 **Decision Log:** D-196.
+
+## W7-7 Etapa 4 -- Logout E2E implementado -- achado real registrado (2026-08-14)
+
+**Achado (nao corrigido silenciosamente, elevado para o Founder)**
+- Nao existe nenhum controle de logout em nenhuma UI da STRATECH hoje (`web/components/shell/sidebar.tsx`/`header.tsx` -- sem "Sair", sem menu de usuario). `DELETE /api/bff/session` e real e testado a nivel de unidade, mas nada no browser o chama. Esta missao NAO adiciona um botao de logout -- mudanca de produto/UX fora do escopo de uma missao de baseline E2E/CI.
+
+**Adicionado**
+- `web/e2e/logout.spec.ts` -- exercita o mecanismo real de logout diretamente do browser (a chamada que um futuro controle faria), provando as duas metades exigidas: frontend state cleared (redirect para /entrar) e server-side session invalidated (sessao desaparece da lista ativa do backend, verificado independente do cookie).
+
+**Testes**
+- 3 passed, 0 failed nos 3 viewports. eslint/tsc limpos.
+
+**Missão:** Etapa 4 CLOSED quanto a cobertura mandatada. Prosseguindo para Etapa 5 (Program Management/Project Delivery).
+
+**Decision Log:** D-197.
