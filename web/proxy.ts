@@ -52,6 +52,9 @@ export function proxy(request: NextRequest) {
   // Emergency kill switch (TIP-001 §7 rollback strategy): if the session
   // gate misbehaves in production, disable it without reverting the whole
   // feature. Isolated to this one check -- the rest of /dashboard is unaffected.
+  // W7-4 Security Hardening, Etapa 2 (F2 -- Founder Decision): setting this
+  // true outside dev now fails the boot (web/lib/startup-config.ts) -- this
+  // switch stays available only where its use is genuinely safe.
   if (process.env.DISABLE_WORKSPACE_SESSION_GATE === "true") {
     return NextResponse.next();
   }

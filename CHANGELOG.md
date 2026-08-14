@@ -2443,3 +2443,15 @@ Founder autorizou exclusivamente eliminar F1/F2/F4 -- Controlled Pilot Security 
 **Missão:** F1 CLOSED. Prosseguindo para Etapa 2 (F2).
 
 **Decision Log:** D-188.
+
+## W7-4 Etapa 2 -- F2 (kill switch fail-fast) fechado (2026-08-13)
+
+**Corrigido**
+- `web/lib/startup-config.ts` -- `collectStartupConfigProblems()` ganha checagem: `DISABLE_WORKSPACE_SESSION_GATE=true` fora de dev e problema critico, reusando o Configuration Contract/hook de boot ja existente (`web/instrumentation.ts`). Nenhum mecanismo paralelo. Session gate em si (`web/proxy.ts`) nao alterado -- so ganhou um comentario cruzado.
+
+**Testes**
+- `web/lib/startup-config.test.ts` estendido com as 6 letras mandatadas (M-R). 29 testes no arquivo, todos verdes. Regressao: session.test.ts + proxy.test.ts -- 24 passed. tsc/eslint limpos.
+
+**Missão:** F2 CLOSED. Prosseguindo para Etapa 3 (F4).
+
+**Decision Log:** D-189.

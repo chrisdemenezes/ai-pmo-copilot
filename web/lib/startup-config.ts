@@ -39,6 +39,16 @@ export function collectStartupConfigProblems(environment: Environment): string[]
   if (!process.env.API_KEY) {
     problems.push("API_KEY is not set (the BFF cannot authenticate to the real API).");
   }
+  // W7-4 Security Hardening, Etapa 2 (F2 -- Founder Decision): the emergency
+  // kill switch (`proxy.ts`) disables the workspace session gate for every
+  // protected route -- safe only where its use is explicitly intended
+  // (local development/testing). Outside dev, this must fail the boot, not
+  // silently run with authentication off.
+  if (process.env.DISABLE_WORKSPACE_SESSION_GATE === "true") {
+    problems.push(
+      "DISABLE_WORKSPACE_SESSION_GATE=true is not permitted outside dev (it disables all workspace authentication).",
+    );
+  }
 
   return problems;
 }
