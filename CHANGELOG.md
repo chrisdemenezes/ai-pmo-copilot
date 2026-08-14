@@ -2652,3 +2652,20 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** gap de documentacao CLOSED. Prosseguindo para o Local V1 Validation Rehearsal.
 
 **Decision Log:** D-204.
+
+## Local V1 Validation Rehearsal -- LOCAL V1 USER SESSION = GO (2026-08-14)
+
+**Adicionado**
+- `docs/product/governance/LOCAL-V1-VALIDATION-REHEARSAL-EVIDENCE.md` -- execucao tecnica real (Linux desta sessao, nao a maquina Windows do Founder): pre-flight, clean install, database validation (PostgreSQL+pgvector real, nunca SQLite), application startup, jornada humana completa via browser real contra o stack local real, AI Boundary, backup safety point.
+
+**Achados (0 BLOCKER/HIGH, 2 MEDIUM, 2 LOW, nenhuma correcao de codigo de produto)**
+- Correcao transparente de D-201: WORKSPACE_PASSWORD e ativamente consumido pelo backend (bootstrap_demo_user), verificacao anterior era incompleta (so frontend).
+- demo/seed_demo_data.py falha (headers de identidade ausentes, script desatualizado desde a Identity Foundation) -- CONFIGURATION/MEDIUM.
+- demo/README.md nao documenta slug de organizacao/e-mail do login -- DOCUMENTATION/LOW, causou falha real de primeira tentativa nesta missao.
+- Cache .next (Turbopack) obsoleto causou 404 persistente em rotas admin -- ENVIRONMENT, nao PRODUCT, resolvido nesta sessao.
+- Usuario demo so tem papel viewer (RBAC correto, nao defeito) -- papel pmo atribuido para o rehearsal.
+- Refinamento transparente de D-203: Advisors/Decision Support/Executive Narrative retornam 502 com mock LLM -- confirmado como fail-closed correto (AdvisorFramework recusa saida nao-estruturada), nao um defeito.
+
+**Missão:** Documents/Advisors/Decision Support/Executive Narrative mechanism/Backup = PASS. AI CONTENT QUALITY = NOT VALIDATED (Gates B/C inalterados). LOCAL V1 USER SESSION = GO. W7-1/External Gates A-D inalterados. Nenhuma Production AI Validation, nenhum dado real, nenhum outro Epic iniciado.
+
+**Decision Log:** D-205.
