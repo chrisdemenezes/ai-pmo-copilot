@@ -2580,3 +2580,19 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** CONTROLLED PILOT BROWSER BASELINE = SATISFIED. GO -- browser/frontend dimension for Controlled User Pilot (nao autoriza o piloto em si, outros gates independentes). W7-7 permanece OPEN -- Enterprise Production Browser Certification (Firefox/WebKit) nao avaliada nesta missao. Nenhum outro Epic iniciado.
 
 **Decision Log:** D-199.
+
+## Logout UI Gap corrigido -- Controlled Pilot UX/Session Gap (2026-08-14)
+
+**Adicionado**
+- `web/components/shell/sidebar.tsx` -- controle "Sair" real em ambos os landmarks responsivos (rail + barra inferior mobile), reusando exatamente `DELETE /api/bff/session` + `router.push`/`refresh`, mesmo padrao do login. Nenhum mecanismo novo de autenticacao/sessao/RBAC.
+
+**Corrigido**
+- Achado durante a implementacao: rotulo "Sair" ficava oculto no breakpoint md (mesmo padrao dos itens de nav regulares), deixando o botao sem nome acessivel -- corrigido com aria-label explicito nos 2 botoes.
+
+**Testes**
+- `sidebar.test.tsx` (+2 testes unitarios). `e2e/logout.spec.ts` atualizado -- de workaround via page.evaluate (D-197, quando nenhum controle existia) para clique real no botao.
+- Frontend completo: 579 passed, 0 failed (577 baseline + 2 novos). E2E logout: 3 passed nos 3 viewports. Regressao shell.spec.ts: 13 passed, 2 skips legitimos. E2E completo (366 testes, 122x3 viewports): 358 passed, 0 failed, 8 skipped legitimos -- nenhum flake, nenhuma regressao.
+
+**Missão:** CONTROLLED PILOT UX/SESSION GAP CLOSED. Nenhum problema arquitetural/seguranca encontrado, nenhum STOP necessario.
+
+**Decision Log:** D-200.

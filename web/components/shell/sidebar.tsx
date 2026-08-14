@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Sparkles } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { LogOut, Sparkles } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS } from "./navigation";
@@ -15,6 +15,18 @@ import { NAV_ITEMS } from "./navigation";
  */
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  // Same DELETE /api/bff/session + router.push/refresh pattern already used
+  // by the POST at login (app/entrar/page.tsx) -- the only session mutation
+  // this app has. The cookie is always expired server-side regardless of
+  // the fetch outcome (web/app/api/bff/session/route.ts DELETE, best-effort
+  // backend revocation), so navigation never depends on the response.
+  async function handleLogout() {
+    await fetch("/api/bff/session", { method: "DELETE" });
+    router.push("/entrar");
+    router.refresh();
+  }
 
   return (
     <>
@@ -31,7 +43,7 @@ export function Sidebar() {
           </span>
         </div>
 
-        <nav aria-label="Navegação principal" className="flex flex-col gap-1 p-2">
+        <nav aria-label="Navegação principal" className="flex flex-1 flex-col gap-1 p-2">
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
@@ -53,6 +65,18 @@ export function Sidebar() {
             );
           })}
         </nav>
+
+        <div className="border-t border-border p-2">
+          <button
+            type="button"
+            onClick={handleLogout}
+            aria-label="Sair"
+            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-2 hover:text-ink"
+          >
+            <LogOut className="size-5 shrink-0" aria-hidden="true" />
+            <span className="hidden lg:inline" aria-hidden="true">Sair</span>
+          </button>
+        </div>
       </div>
 
       <nav
@@ -78,6 +102,15 @@ export function Sidebar() {
             </Link>
           );
         })}
+        <button
+          type="button"
+          onClick={handleLogout}
+          aria-label="Sair"
+          className="flex min-w-0 flex-1 flex-col items-center gap-1 py-2 text-xs font-medium text-ink-muted"
+        >
+          <LogOut className="size-5 shrink-0" aria-hidden="true" />
+          <span className="w-full truncate text-center" aria-hidden="true">Sair</span>
+        </button>
       </nav>
     </>
   );

@@ -4,6 +4,7 @@ const MOCK_BACKEND_URL = "http://localhost:4100";
 const E2E_ORGANIZATION = "e2e-organization";
 const E2E_EMAIL = "e2e@stratech.local";
 const WORKSPACE_PASSWORD = "e2e-workspace-password";
+const MOBILE_BREAKPOINT = 768;
 
 async function resetFixtures() {
   const ctx = await playwrightRequest.newContext();
@@ -33,33 +34,39 @@ test.beforeEach(async () => {
 });
 
 /**
- * Logout (W7-7 Etapa 4, Founder Decision, Controlled Pilot Browser
- * Baseline).
+ * Logout (W7-7 Etapa 4 + Logout UI Gap correction, Founder Decision —
+ * W7-7 Checkpoint Ratification + Controlled User Pilot Readiness Review).
  *
- * Real, registered finding from this Etapa's mandatory pre-implementation
- * inspection: the product has no logout control anywhere in its UI today
- * (`components/shell/sidebar.tsx`/`header.tsx` -- no "Sair" action, no user
- * menu). `DELETE /api/bff/session` is real, implemented, and unit-tested
- * (`web/lib/session.test.ts`), but nothing in the browser ever calls it. Per
- * the Architectural Preservation mandate ("STOP, diagnose, present the
- * finding, do NOT fix silently"), this mission does not add a logout
- * button -- that would be a product/UX change outside an E2E-baseline
- * mission's scope. This test instead exercises the real, already-shipped
- * logout mechanism directly from the browser context (the exact call a
- * future "Sair" control would make), and proves both halves the Founder
- * asked to distinguish:
+ * W7-7 Etapa 4 found that the product had no logout control anywhere in
+ * its UI (`components/shell/sidebar.tsx` — no "Sair" action). That finding
+ * was registered, not fixed silently, and escalated to the Founder. The
+ * Founder authorized a minimal correction reusing the existing session
+ * mechanism (`DELETE /api/bff/session`, already implemented since W7-4)
+ * — `components/shell/sidebar.tsx` now renders a real "Sair" button in
+ * both the desktop rail and the mobile bottom nav. This test exercises
+ * that real button (a genuine click, not a `page.evaluate` workaround),
+ * proving both halves the Founder asked to distinguish:
  *   - frontend state cleared: a protected route redirects to /entrar
  *     afterwards;
  *   - server-side session invalidated: the session row minted at login is
  *     gone from the backend's active-session list afterwards (verified
  *     directly against the mock backend, independent of the browser).
  */
-test("logout invalidates the session both in the browser and server-side", async ({ page }) => {
+test("clicking Sair invalidates the session both in the browser and server-side", async ({
+  page,
+}) => {
   await login(page);
   expect(await activeSessionCount()).toBe(1);
 
-  await page.evaluate(() => fetch("/api/bff/session", { method: "DELETE" }));
+  // Both landmarks render a "Sair" button (desktop rail + mobile bottom
+  // nav), only one visible per breakpoint -- same selection pattern every
+  // other spec uses for nav links (e.g. api-keys-admin.spec.ts).
+  const visibleNav = (await page.viewportSize())!.width < MOBILE_BREAKPOINT
+    ? page.getByTestId("bottom-nav")
+    : page.getByTestId("sidebar-nav");
+  await visibleNav.getByRole("button", { name: "Sair" }).click();
 
+  await expect(page).toHaveURL(/\/entrar/);
   await page.goto("/dashboard");
   await expect(page).toHaveURL(/\/entrar/);
 
