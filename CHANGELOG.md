@@ -2596,3 +2596,19 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** CONTROLLED PILOT UX/SESSION GAP CLOSED. Nenhum problema arquitetural/seguranca encontrado, nenhum STOP necessario.
 
 **Decision Log:** D-200.
+
+## Controlled User Pilot Readiness Review (2026-08-14)
+
+**Adicionado**
+- `docs/product/governance/CONTROLLED-USER-PILOT-READINESS-REVIEW.md` -- estado real reconstruido mecanicamente (nao assumido): 29 dimensoes classificadas, reavaliacao de W7-1 (Gates A-D) e W7-3 (DR minimo), minimos de Observability/Performance, User Pilot Journey, Pilot Blocker Register (4 itens, todos externos), Go-Live Checklist (18 itens), 8 Stop Conditions.
+
+**Achados**
+- 27 de 29 dimensoes READY FOR PILOT ou READY WITH ACCEPTED LIMITATION. As 4 BLOCKED (Advisors/Executive Intelligence/Decision Support/Executive Narrative) tem codigo completo e 326 testes verdes -- bloqueadas exclusivamente pelo Gate C (credencial Anthropic real).
+- Knowledge/RAG: recuperacao real contra Postgres+pgvector real, mas embedding sempre mock em todo lugar -- qualidade semantica real nao comprovada (READY WITH ACCEPTED LIMITATION, nao BLOCKED).
+- DR Drill completo classificado NOT REQUIRED FOR PILOT (requisito de Enterprise Production, com justificativa de risco explicita) -- backup/restore/procedimento/validacao ja READY FOR PILOT.
+- Gate D (Data/DPA) mantido obrigatorio exclusivamente para dado corporativo real, nao relaxado.
+- 2 achados cosmeticos registrados (WORKSPACE_PASSWORD vestigial; PRI-009 desatualizado sobre contagem de migrations).
+
+**Missão:** NO-GO hoje para o piloto, exclusivamente por dependencias externas (Gates A/B/C/D) -- nenhuma dependencia tecnica remanescente. Nenhum codigo adicional escrito. Nenhum outro Epic iniciado.
+
+**Decision Log:** D-201.
