@@ -2341,6 +2341,19 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Verificação:** `npx eslint`/`npx tsc --noEmit` limpos.
 - **Recomendação:** Etapa 5 CLOSED. As 5 Etapas mandatadas estão implementadas. Prosseguindo para Final Validation (Seção 9 do mandato) e Executive Evidence.
 
+### D-199 — W7-7 Controlled Pilot Browser Baseline: Executive Evidence consolidada — SATISFIED
+
+- **Contexto:** checkpoint final da mesma Founder Decision de D-194, após as 5 Etapas (D-194 a D-198) implementadas e comprovadas individualmente.
+- **`docs/product/governance/W7-7-CONTROLLED-PILOT-BROWSER-BASELINE-EXECUTIVE-EVIDENCE.md` produzido** — 14 seções, cobrindo etapas/commits, browser/engine final, cobertura de viewport, evidência de Documents/Mission Control/Logout, classificação de Program Management/Project Delivery, achados corrigidos, Branch Protection, verificação final de suítes completas, preservação arquitetural, riscos residuais, critério de encerramento, GO/NO-GO, status oficial.
+- **Verificação final executada e comprovada** (não apenas Etapas individuais): backend completo **957 passed, 0 failed** (idêntico ao baseline pré-missão, zero alteração em `src/`); frontend completo **577 passed, 0 failed**, 78 arquivos (idêntico ao baseline); `ruff`/`tsc`/`eslint` limpos; `npm run build` bem-sucedido (checagem adicional de paridade com CI). E2E completo (todos os specs, 366 testes = 122 × 3 viewports): **357 passed, 1 failed, 8 skipped**. A 1 falha (`documents-admin.spec.ts` "navigates from the sidebar to Documentos", `mobile`, dentro do run completo de ~10min) diagnosticada como flake ambiental — o mesmo teste passou limpo em `md`/`lg` no mesmo run e havia passado limpo nos 3 viewports quando a Etapa 2 rodou isolada; **reproduzido isoladamente 1 vez adicional, passou em 2.6s** — não é defeito determinístico. Nenhum retry configurado, nenhuma falha mascarada.
+- **`BRANCH PROTECTION ENFORCEMENT = UNVERIFIED`** — nenhuma ferramenta MCP GitHub disponível expõe configuração real de branch protection; registrado como gap de governança, não presumido.
+- **Preservação arquitetural confirmada mecanicamente:** `git diff --stat` do intervalo completo (`fbad941..18c667e`) confirma zero alteração em `src/`/`web/app/`/`web/components/` — apenas `.github/workflows/ci.yml`, `web/e2e/*` (5 specs novos + `mock-backend.mjs`), e governança (`DECISION-LOG.md`/`CHANGELOG.md`/`mission-control-data.ts`).
+- **Um achado de produto real encontrado nesta missão** (ausência de controle de logout na UI, D-197) — registrado explicitamente para decisão do Founder, **não corrigido silenciosamente**, per Preservação Arquitetural (Seção 11 do mandato).
+- **`CONTROLLED PILOT BROWSER BASELINE = SATISFIED`.** Isso significa exclusivamente que a dimensão Browser/Frontend deixou de ser um gap de cobertura para um piloto controlado em Chromium/Chrome — **não** significa Enterprise Production Browser Certification, **não** resolve o achado de logout, **não** verifica Branch Protection real.
+- **GO — BROWSER/FRONTEND DIMENSION FOR CONTROLLED USER PILOT.** Não é autorização para iniciar o piloto — outros gates da Wave 7 permanecem pendentes e são decisões independentes do Founder.
+- **W7-7 permanece `OPEN`** — o Baseline satisfeito não encerra o Epic inteiro; as 3 etapas de Enterprise Production Browser Certification (Firefox/WebKit) propostas no Technical Design (D-193) permanecem `OPEN`, não avaliadas nesta missão.
+- **Nenhum outro Epic da Wave 7 iniciado.** Nenhum trabalho posterior inicia automaticamente. Retornando obrigatoriamente para Executive Review.
+
 ---
 
 ## Convenção

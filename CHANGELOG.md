@@ -2566,3 +2566,17 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** Etapa 5 CLOSED. As 5 Etapas mandatadas estao implementadas. Prosseguindo para Final Validation e Executive Evidence.
 
 **Decision Log:** D-198.
+
+## W7-7 Controlled Pilot Browser Baseline -- Executive Evidence consolidada -- SATISFIED (2026-08-14)
+
+**Adicionado**
+- `docs/product/governance/W7-7-CONTROLLED-PILOT-BROWSER-BASELINE-EXECUTIVE-EVIDENCE.md` -- 14 secoes: etapas/commits, browser/engine final, cobertura de viewport, evidencia de Documents/Mission Control/Logout, classificacao de Program Management/Project Delivery, achados corrigidos, Branch Protection, verificacao final, preservacao arquitetural, riscos residuais, criterio de encerramento, GO/NO-GO, status oficial.
+
+**Testes**
+- Backend completo: 957 passed, 0 failed (identico ao baseline, zero alteracao em src/). Frontend completo: 577 passed, 0 failed, 78 arquivos (identico ao baseline). ruff/tsc/eslint limpos. npm run build bem-sucedido.
+- E2E completo (todos os specs, 366 testes = 122 x 3 viewports): 357 passed, 1 failed, 8 skipped. A falha (documents-admin.spec.ts, mobile, dentro do run completo) diagnosticada como flake ambiental -- passou limpo em md/lg no mesmo run e reproduzida como passing isoladamente. Nenhum retry configurado, nenhuma falha mascarada.
+- Branch protection real do GitHub UNVERIFIED (nao verificavel pelas ferramentas disponiveis).
+
+**Missão:** CONTROLLED PILOT BROWSER BASELINE = SATISFIED. GO -- browser/frontend dimension for Controlled User Pilot (nao autoriza o piloto em si, outros gates independentes). W7-7 permanece OPEN -- Enterprise Production Browser Certification (Firefox/WebKit) nao avaliada nesta missao. Nenhum outro Epic iniciado.
+
+**Decision Log:** D-199.
