@@ -2523,3 +2523,15 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** Etapa 2 CLOSED. Prosseguindo para Etapa 3 (Mission Control E2E).
 
 **Decision Log:** D-195.
+
+## W7-7 Etapa 3 -- Mission Control E2E implementado (2026-08-14)
+
+**Adicionado**
+- `web/e2e/mission-control.spec.ts` -- 2 testes (deliberadamente minimo): redirect nao autenticado, acesso autenticado com renderizacao das secoes executivas essenciais e asserçao do estado real de permissao (ainda nao restrito a Founder, RBAC e o Epico 3). Pagina e inteiramente dado mock estatico, sem loading/erro/vazio a provar.
+
+**Testes**
+- 6 passed, 0 failed nos 3 viewports. eslint/tsc limpos.
+
+**Missão:** Etapa 3 CLOSED. Prosseguindo para Etapa 4 (Logout E2E).
+
+**Decision Log:** D-196.

@@ -2303,6 +2303,16 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Verificação:** `npx eslint` limpo nos arquivos novos/alterados; `npx tsc --noEmit` limpo.
 - **Recomendação:** Etapa 2 CLOSED. Prosseguindo para a Etapa 3 (Mission Control E2E), per autorização já concedida.
 
+### D-196 — W7-7 Etapa 3: Mission Control E2E implementado
+
+- **Contexto:** mesma Founder Decision de D-194. Mission Control deve ter cobertura E2E suficiente para provar comportamento pilot/admin necessário, sem expandir em bateria redundante.
+- **Comportamento real inspecionado antes de escrever qualquer teste:** `web/app/mission-control/page.tsx` é inteiramente dado mock estático (`web/lib/mock/mission-control-data.ts`), sem `fetch`/hook algum — não há estado de loading/erro/vazio a provar, diferente de toda outra página já coberta. O único fato de permissão real hoje é documentado no próprio docstring da página: acesso é "autenticado", ainda não restrito a Founder (RBAC é o Épico 3, Not Started).
+- **`web/e2e/mission-control.spec.ts` criado, 2 testes (deliberadamente mínimo, per mandato "não transformar em bateria extensa"):** redirecionamento não autenticado; acesso autenticado com renderização das seções executivas essenciais (heading "Painel do Founder", Product Pulse, Enterprise Program — Waves, Decision Log) e asserção explícita do texto real de permissão ("Acesso não restrito ainda — RBAC no Épico 3") — documentando o estado real, não uma restrição inventada que o produto ainda não tem.
+- **Executado e comprovado nos 3 viewports:** `npx playwright test --project=mobile --project=md --project=lg e2e/mission-control.spec.ts` — **6 passed, 0 failed** (15.6s).
+- **Preservação arquitetural confirmada:** apenas `web/e2e/mission-control.spec.ts` (novo) — nenhum arquivo de `src/`/`web/app/`/`web/lib/` tocado, nenhum comportamento de produto alterado.
+- **Verificação:** `npx eslint`/`npx tsc --noEmit` limpos.
+- **Recomendação:** Etapa 3 CLOSED. Prosseguindo para a Etapa 4 (Logout E2E), per autorização já concedida.
+
 ---
 
 ## Convenção
