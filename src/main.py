@@ -18,6 +18,7 @@ from src.api.routes.knowledge import router as knowledge_router
 from src.api.routes.portfolio import router as portfolio_router
 from src.api.routes.program import router as program_router
 from src.api.routes.project_delivery import router as project_delivery_router
+from src.api.security import MaxUploadSizeMiddleware
 from src.api.startup_config import (
     collect_startup_config_problems,
     resolve_environment,
@@ -75,6 +76,10 @@ app.add_middleware(
     allow_headers=["Content-Type", "X-API-Key"],
 )
 app.add_middleware(RequestIDMiddleware)
+# W7-4 Security Hardening, Etapa 3 (F4): rejects an oversized document
+# upload before Starlette's multipart parser ever reads the body -- scoped
+# to POST /api/documents only (src/api/security.py).
+app.add_middleware(MaxUploadSizeMiddleware)
 
 app.include_router(intelligence_router, prefix="/api", tags=["intelligence"])
 app.include_router(auth_router, prefix="/api", tags=["identity"])

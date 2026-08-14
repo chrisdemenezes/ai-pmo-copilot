@@ -22,7 +22,7 @@ from src.api.dependencies import build_repository
 from src.api.identity_context import get_request_context
 from src.api.rate_limiter import enforce_rate_limit
 from src.api.routes.intelligence import build_knowledge_repository
-from src.api.security import verify_api_key
+from src.api.security import max_upload_size_bytes, verify_api_key
 from src.database.repository import AnalysisRepository
 from src.services.identity.models import RequestContext
 from src.services.knowledge_platform.document_ingestion_service import (
@@ -94,7 +94,19 @@ def upload_document(
     service: DocumentIngestionService = Depends(build_document_ingestion_service),
     _permission: None = Depends(require_permission("knowledge.write")),
 ) -> DocumentResponse:
-    raw_bytes = file.file.read()
+    # W7-4 Security Hardening, Etapa 3 (F4 -- Founder Decision): bounded
+    # read -- this application never materializes more than
+    # max_upload_size_bytes() + 1 bytes in memory, regardless of the real
+    # size of the underlying file, independent of whatever a client-supplied
+    # Content-Length header claims (MaxUploadSizeMiddleware's own check is
+    # the early, cheap rejection; this is the authoritative one). No
+    # decoding, no ingestion, no persistence happens before this check.
+    limit = max_upload_size_bytes()
+    raw_bytes = file.file.read(limit + 1)
+    if len(raw_bytes) > limit:
+        raise HTTPException(
+            status_code=413, detail=f"File exceeds the maximum upload size of {limit} bytes."
+        )
     try:
         text = raw_bytes.decode("utf-8")
     except UnicodeDecodeError as exc:

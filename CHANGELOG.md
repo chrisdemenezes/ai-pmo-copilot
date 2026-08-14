@@ -2455,3 +2455,17 @@ Founder autorizou exclusivamente eliminar F1/F2/F4 -- Controlled Pilot Security 
 **Missão:** F2 CLOSED. Prosseguindo para Etapa 3 (F4).
 
 **Decision Log:** D-189.
+
+## W7-4 Etapa 3 -- F4 (document upload size limit) fechado (2026-08-13)
+
+**Adicionado**
+- `MaxUploadSizeMiddleware` (`src/api/security.py`, ASGI puro, mesmo padrao de RequestIDMiddleware) -- rejeita 413 antes do parser multipart processar o corpo, com base no Content-Length declarado + folga de 8192 bytes para overhead de multipart (achado corrigido durante a implementacao: Content-Length mede o envelope inteiro, nao so o arquivo -- primeira versao rejeitava incorretamente arquivos pequenos). Escopado exclusivamente a POST /api/documents.
+- Leitura limitada (`file.file.read(max_upload_size_bytes() + 1)`) em `upload_document()` -- a camada precisa/definitiva, nunca materializa mais que limite+1 bytes em memoria, independente do header. MAX_UPLOAD_SIZE_BYTES configuravel, default 10 MiB.
+- `tests/test_document_upload_size_limit.py` -- 8 testes cobrindo as letras mandatadas S-Z.
+
+**Testes**
+- 8 novos + regressao (RBAC/tenant isolation/knowledge platform/readiness/CORS/api security/document advisor/documents api): 78 passed, 0 failed. ruff limpo.
+
+**Missão:** F4 CLOSED. Todos os 3 findings autorizados (F1/F2/F4) fechados. Prosseguindo para Security Regression Validation + Controlled Pilot Security Gate + Executive Evidence.
+
+**Decision Log:** D-190.
