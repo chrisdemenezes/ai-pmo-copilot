@@ -2428,3 +2428,18 @@ Missao exclusivamente de Architecture Review + Security Readiness Assessment + T
 **Missão:** GO para o Founder decidir a Estrategia Incremental. GO/NO-GO atual para CONTROLLED USER PILOT: NO-GO condicional (3 findings HIGH a fechar antes de expor a usuarios reais externos). NO-GO para implementacao nesta missao. Nenhum outro Epic iniciado.
 
 **Decision Log:** D-187.
+
+## W7-4 Etapa 1 -- F1 (login brute-force protection) fechado (2026-08-13)
+
+Founder autorizou exclusivamente eliminar F1/F2/F4 -- Controlled Pilot Security Baseline, nao o W7-4 inteiro.
+
+**Adicionado**
+- `LoginBruteForceGuard` (`src/api/rate_limiter.py`) -- chave = organization+email (escopada a uma unica identidade, distinta do rate limiter generico ja existente que compartilha por toda a organizacao). record_failure() roda uniformemente em toda causa de falha (senha errada/usuario inexistente/organizacao inexistente/inativo), impedindo enumeracao. Wired em `POST /auth/login` (`src/api/routes/auth.py`) -- check() antes de authenticate(), 429 generico se bloqueado. Valores documentados: 5 tentativas/15min, lockout 15min, configuraveis via env. Mecanismo process-local/single-instance, limitacao documentada explicitamente, nao apresentado como solucao Enterprise Production.
+- `tests/test_login_brute_force_guard.py` (8 testes unitarios) + `tests/test_login_brute_force_api.py` (8 testes via TestClient real) -- 16 testes novos cobrindo as 12 letras mandatadas (A-L).
+
+**Testes**
+- 16 novos + regressao (RBAC/tenant isolation/auth/rate limiter existente): 30 passed, 0 failed. ruff limpo (unicos achados sao padroes pre-existentes UP035/B008).
+
+**Missão:** F1 CLOSED. Prosseguindo para Etapa 2 (F2).
+
+**Decision Log:** D-188.
