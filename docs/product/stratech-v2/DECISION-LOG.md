@@ -2409,6 +2409,18 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Preservação confirmada:** nenhuma alteração a `src/`/`web/`/`docker-compose.yml`/migrations — missão exclusivamente documental. O único comando executado foi um diagnóstico read-only (`alembic upgrade head` contra um SQLite descartável, em `/tmp`, apagado ao final) para confirmar empiricamente o achado da pergunta 1, não uma implementação. Nenhum outro Epic iniciado (W7-1 execução real, W7-2, W7-3 Drill, W7-4 Enterprise, W7-7 Enterprise Browser, W7-8/9/10).
 - **Recomendação:** plano entregue para aprovação do Founder antes de qualquer execução da sessão de validação humana. Nenhuma sessão de usuário iniciada, nenhum piloto iniciado, nenhuma nova Wave/Epic iniciada. Retornando obrigatoriamente para Executive Review.
 
+### D-204 — Documentação desatualizada sobre SQLite corrigida + `demo/.env.example` completado
+
+- **Contexto:** "Founder Decision — Local V1 Validation Rehearsal", Seção 1 — antes do rehearsal, corrigir exclusivamente a documentação/configuração de exemplo afetada pelos 2 gaps encontrados em D-203 (claims obsoletos de suporte SQLite; `demo/.env.example` sem as variáveis de embedding/Voyage). Reconfirmados no `HEAD` antes de corrigir, não presumidos.
+- **Achado adicional confirmado durante a reconfirmação (não presumido, elevado com transparência):** `tests/db.py` já documenta explicitamente que a suíte de testes **também não usa mais SQLite** ("Every test that used to create its own throwaway SQLite file now creates an equally isolated, equally throwaway Postgres database instead") — a alegação em `.env.example` de que o fallback SQLite era "kept... for the test suite's isolated per-test databases" já estava igualmente desatualizada, mesma categoria de achado, corrigida na mesma missão.
+- **Corrigido, exclusivamente texto/configuração de exemplo, nenhuma alteração de comportamento/arquitetura:**
+  - `.env.example` — comentário do `DATABASE_URL` reescrito: declara PostgreSQL + pgvector como único datastore suportado da V1 atual, cita o achado empírico de D-203 (migration `0010`), remove a alegação stale sobre a suíte de testes.
+  - `demo/start-demo.sh` — comentário de cabeçalho reescrito (não descreve mais SQLite como "no Docker/Postgres needed"); rótulo `DB_LABEL` do caso `sqlite://*`/vazio ajustado para alertar explicitamente que é não suportado desde a migration `0010` — **nenhuma mudança de comportamento**, o fallback de código permanece exatamente como estava (per mandato: "não introduza suporte novo a SQLite... não altere arquitetura").
+  - `demo/.env.example` — adicionadas as variáveis `DATABASE_URL` (comentada, com exemplo Postgres), `EMBEDDING_PROVIDER`/`VOYAGE_API_KEY` (comentadas), documentando exatamente como habilitar Voyage AI real na Demo, espelhando o padrão já usado para `ANTHROPIC_API_KEY` no mesmo arquivo.
+- **Verificação:** `bash -n demo/start-demo.sh` — sintaxe válida. Nenhum teste automatizado afetado (arquivos `.env.example`/comentários não são exercitados por `pytest`/`vitest`/E2E).
+- **Preservação confirmada:** nenhuma alteração a `src/`/`web/`/migrations/`docker-compose.yml` — exclusivamente os 3 arquivos de documentação/exemplo listados acima.
+- **Recomendação:** gap de documentação CLOSED. Prosseguindo para o Local V1 Validation Rehearsal (Seções 2-12 da Founder Decision), per autorização já concedida.
+
 ---
 
 ## Convenção

@@ -1,10 +1,16 @@
 #!/usr/bin/env bash
 # DPS-01 Sprint 1 — single command to bring up the demo environment.
 #
-# Starts the real backend (uvicorn, SQLite, no Docker/Postgres needed) and the
-# real frontend (next dev) exactly as documented in README.md / web/README.md.
-# Creates no new architecture: this is orchestration only, reusing the same
-# commands a developer already runs by hand.
+# Starts the real backend (uvicorn) and the real frontend (next dev) exactly
+# as documented in README.md / web/README.md. Creates no new architecture:
+# this is orchestration only, reusing the same commands a developer already
+# runs by hand.
+#
+# PostgreSQL + pgvector is required -- confirmed empirically (Local V1 User
+# Validation Plan, D-203): the migration chain fails against SQLite at
+# 0010_security_hardening.py, well before the Knowledge Platform's pgvector
+# requirement (0016). Set DATABASE_URL to a real PostgreSQL instance before
+# running this script (`make dev` already does, via db-create + migrate).
 set -euo pipefail
 
 DEMO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -46,7 +52,7 @@ mkdir -p "$LOG_DIR"
 
 case "${DATABASE_URL:-}" in
   postgresql://*|postgres://*) DB_LABEL="PostgreSQL" ;;
-  ""|sqlite://*) DB_LABEL="SQLite, no Docker" ;;
+  ""|sqlite://*) DB_LABEL="SQLite (unsupported since migration 0010 -- set DATABASE_URL to PostgreSQL)" ;;
   *) DB_LABEL="DATABASE_URL=${DATABASE_URL}" ;;
 esac
 

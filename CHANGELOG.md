@@ -2641,3 +2641,14 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** Plano entregue para aprovacao do Founder. Nenhuma implementacao, nenhuma sessao de usuario, nenhum piloto, nenhum Epic iniciado. Fronteira de preservacao registrada: W7-1/Gates A-D inalterados.
 
 **Decision Log:** D-203.
+
+## Documentacao desatualizada sobre SQLite corrigida (2026-08-14)
+
+**Corrigido (apenas texto/configuracao de exemplo, nenhuma alteracao de comportamento)**
+- `.env.example` -- comentario do DATABASE_URL declara PostgreSQL+pgvector como unico datastore suportado, remove alegacao stale sobre a suite de testes (tests/db.py ja nao usa SQLite, achado adicional confirmado nesta missao).
+- `demo/start-demo.sh` -- comentario de cabecalho e DB_LABEL corrigidos, sem mudanca de comportamento (fallback de codigo inalterado).
+- `demo/.env.example` -- adicionadas DATABASE_URL/EMBEDDING_PROVIDER/VOYAGE_API_KEY (comentadas, documentadas).
+
+**Missão:** gap de documentacao CLOSED. Prosseguindo para o Local V1 Validation Rehearsal.
+
+**Decision Log:** D-204.
