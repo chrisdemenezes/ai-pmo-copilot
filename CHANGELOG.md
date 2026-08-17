@@ -2690,3 +2690,25 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** nenhuma alteracao de codigo/comportamento/arquitetura -- apenas os 2 documentos novos. W7-1/Gates A-D inalterados. Fronteira de evidencia mantida: esta sessao nao tem acesso a maquina fisica Windows do Founder -- alegacao maxima permitida e "WINDOWS PROCEDURE READY FOR EXECUTION", nunca "maquina validada". Nenhuma sessao humana/staging/DR Drill/outro Epic iniciado.
 
 **Decision Log:** D-207.
+
+## Local V1 Pilot Dataset Completion -- demo/seed_demo_data.py corrigido (2026-08-17)
+
+**Corrigido**
+- `demo/seed_demo_data.py` -- autentica via POST /api/auth/login (mesmo contrato de todo login humano) como o Administrator bootstrapado (STRATECH_ADMIN_EMAIL/STRATECH_ADMIN_PASSWORD), reutiliza a identidade real para montar os 3 headers institucionais em toda chamada. Adicionadas 6 chamadas a /api/meetings/analyze (Acoes), 1 risco + 1 acao recorrentes em 3 projetos cada (gatilho real de Aprendizados, MIN_OCCURRENCES=3), upload de 1 documento sintetico novo (Documents).
+
+**Achado novo (nao presumido, confirmado ao vivo):** mesmo com os headers corretos, o usuario demo bootstrapado (papel viewer, por design) nao tem intelligence.write/knowledge.write, e nenhuma API real permite eleva-lo dentro de "Demo Organization" (nenhum admin existe la por padrao). A unica identidade de escrita local real e o Administrator bootstrapado, que vive em "Organizacao Principal" -- dai o dataset novo aparecer nessa organizacao, nao em "Demo Organization" (login viewer preservado, ilustra RBAC restrito).
+
+**Adicionado**
+- `demo/synthetic-document.md` -- documento sintetico minimo, rotulado DEMO.
+- `tests/test_seed_demo_data.py` -- 7 testes de integracao real (Postgres real, migrations reais, TestClient real) cobrindo autenticacao/organizacao/usuario corretos, tenant isolation, Projects/Actions/Decisions/Learnings disponiveis, 2a execucao previsivel, nenhuma credencial impressa, fail-fast sem credenciais.
+- `docs/product/governance/LOCAL-V1-PILOT-DATASET-EXECUTIVE-EVIDENCE.md` -- causa raiz, correcao, dataset final, 1a/2a execucao, testes, preservacao arquitetural, limitacoes, GO/NO-GO.
+
+**Atualizado em consequencia**
+- `.env.example`/`demo/.env.example` -- STRATECH_ADMIN_EMAIL/STRATECH_ADMIN_PASSWORD documentados (mecanismo ja existente desde a Identity Foundation, nunca antes documentado).
+- `demo/README.md` -- checklist com as 2 organizacoes/logins reais explicados.
+- `docs/operations/LOCAL-V1-WINDOWS-RUNBOOK.md` -- passo 3.8 (seed) novo, login renumerado 3.9 com as 2 opcoes, Environment Contract Local atualizado.
+- `docs/product/governance/LOCAL-V1-USER-SESSION-PROTOCOL.md` -- Secao 1/Blocos B/E/F/Session-Day Checklist reescritos para o dataset real corrigido (correcao elevada com transparencia, D-205/D-206/D-207 nao reescritos retroativamente).
+
+**Missão:** zero alteracao em src/web/alembic/docker-compose.yml (confirmado por git diff --stat). RBAC/Tenant Isolation/Authentication/Session/Enterprise Domain/AdvisorFramework/AIContextEngine/ExecutiveOrchestrator/Advisors/Executive Intelligence/Knowledge Platform inalterados. W7-1/Gates A-D inalterados. LOCAL PILOT DATASET = READY. Nenhuma sessao humana/staging/DR Drill/outro Epic iniciado.
+
+**Decision Log:** D-208.

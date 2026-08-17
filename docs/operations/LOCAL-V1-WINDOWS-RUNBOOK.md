@@ -117,9 +117,21 @@ curl -s http://localhost:8000/ready
 ```
 **Resultado esperado:** `{"status":"healthy",...}` e `{"status":"ready"}`.
 
-### 3.8 Login
+### 3.8 Seed do Pilot Dataset
 
-Abrir `http://localhost:3000/entrar` no browser. Organização: `demo-organization`. E-mail: `demo@stratech.local`. Senha: valor de `WORKSPACE_PASSWORD` em `demo/.env` (gerado na primeira execução do passo 3.6).
+```bash
+python3 demo/seed_demo_data.py
+```
+**Resultado esperado:** `All calls produced structured output.` — popula Projetos/Ações/Decisões/Aprendizados/Documents (Founder Decision, "Local V1 Pilot Dataset Completion"). Autentica como o Administrator bootstrapado (`STRATECH_ADMIN_EMAIL`/`STRATECH_ADMIN_PASSWORD`, já preenchidos em `demo/.env.example`) — o usuário demo (`WORKSPACE_PASSWORD`) é deliberadamente somente-leitura e não pode executar este passo.
+**Erro:** `STRATECH_ADMIN_EMAIL / STRATECH_ADMIN_PASSWORD are not set` — confirmar que `demo/.env` tem essas 2 variáveis (herdadas de `demo/.env.example`); `HTTP 400`/`401` no login — confirmar que o backend (passo 3.6) terminou de inicializar antes de rodar este passo. Ver `docs/product/governance/LOCAL-V1-PILOT-DATASET-EXECUTIVE-EVIDENCE.md` para o diagnóstico completo.
+
+### 3.9 Login
+
+Duas organizações reais, per o passo 3.8:
+- **Login recomendado (jornada completa, dataset populado):** organização `organizacao-principal`, e-mail = valor de `STRATECH_ADMIN_EMAIL`, senha = valor de `STRATECH_ADMIN_PASSWORD` (`demo/.env`).
+- **Login somente-leitura (ilustra RBAC restrito, Projetos/Ações/Decisões/Aprendizados/Documents vazios nesta organização):** organização `demo-organization`, e-mail `demo@stratech.local`, senha = valor de `WORKSPACE_PASSWORD` (`demo/.env`).
+
+Abrir `http://localhost:3000/entrar` no browser e usar um dos dois.
 **Resultado esperado:** redirecionamento a `/dashboard`.
 
 ---
@@ -133,7 +145,8 @@ Abrir `http://localhost:3000/entrar` no browser. Organização: `demo-organizati
 | `API_KEY` | REQUIRED | qualquer segredo local, ex. `local-pilot-secret-key` | Nunca um valor de produção real |
 | `LLM_PROVIDER` | REQUIRED | `mock` | `anthropic` só quando o Gate C for resolvido — fora de escopo desta missão |
 | `EMBEDDING_PROVIDER` | REQUIRED | `mock` | `voyage` só quando o Gate B for resolvido — fora de escopo desta missão |
-| `WORKSPACE_PASSWORD` | REQUIRED | qualquer valor não vazio | Consumido pelo backend para criar o usuário demo real (achado de D-205) |
+| `WORKSPACE_PASSWORD` | REQUIRED | qualquer valor não vazio | Consumido pelo backend para criar o usuário demo real, somente-leitura (achado de D-205) |
+| `STRATECH_ADMIN_EMAIL` / `STRATECH_ADMIN_PASSWORD` | REQUIRED | qualquer par não vazio, ex. `admin@stratech.local` / valor local | Consumido pelo backend para criar o Administrator real em "Organização Principal" — a única identidade local com `intelligence.write`/`knowledge.write`; sem isso, `demo/seed_demo_data.py` (passo 3.8) falha (Founder Decision, "Local V1 Pilot Dataset Completion") |
 | `SESSION_SECRET` | REQUIRED | gerado automaticamente por `demo/start-demo.sh` na primeira execução | Nunca reutilizar entre ambientes |
 | `ANTHROPIC_API_KEY` | NOT USED WITHOUT AI CREDENTIALS | deixar vazio | Só lido se `LLM_PROVIDER=anthropic` |
 | `VOYAGE_API_KEY` | NOT USED WITHOUT AI CREDENTIALS | deixar vazio | Só lido se `EMBEDDING_PROVIDER=voyage` |
@@ -170,7 +183,7 @@ bash demo/stop-demo.sh
 rm -rf web/.next
 ```
 
-**Não apagar `.venv`, `web/node_modules`, ou qualquer dado do banco** — apenas o cache de build do Next.js. Depois, repetir os passos 3.6-3.8. Se nenhuma sessão `next dev` anterior rodou nesta máquina, este passo é desnecessário (não presumir a necessidade sem o sintoma real: erros `404` inesperados em rotas que deveriam existir).
+**Não apagar `.venv`, `web/node_modules`, ou qualquer dado do banco** — apenas o cache de build do Next.js. Depois, repetir os passos 3.6-3.9 (o passo 3.8, seed, é idempotente per `docs/product/governance/LOCAL-V1-PILOT-DATASET-EXECUTIVE-EVIDENCE.md` — seguro repetir). Se nenhuma sessão `next dev` anterior rodou nesta máquina, este passo é desnecessário (não presumir a necessidade sem o sintoma real: erros `404` inesperados em rotas que deveriam existir).
 
 ---
 

@@ -1,30 +1,35 @@
 # Local V1 User Session Protocol
 
-**Autorização:** "Founder Decision — Local V1 Windows Pilot Preparation". Companion de `docs/operations/LOCAL-V1-WINDOWS-RUNBOOK.md` — aquele cobre a preparação técnica da máquina, este cobre o conteúdo/roteiro/critérios da sessão humana em si. **Não** é Controlled User Pilot formal, W7-1 Staging Validation, Production AI Validation, ou Enterprise Readiness. Gates A/B/C = `NOT AVAILABLE`, Gate D = `NOT APPROVED` — inalterados.
+**Autorização:** "Founder Decision — Local V1 Windows Pilot Preparation" + "Founder Decision — Local V1 Pilot Dataset Completion". Companion de `docs/operations/LOCAL-V1-WINDOWS-RUNBOOK.md` — aquele cobre a preparação técnica da máquina, este cobre o conteúdo/roteiro/critérios da sessão humana em si. **Não** é Controlled User Pilot formal, W7-1 Staging Validation, Production AI Validation, ou Enterprise Readiness. Gates A/B/C = `NOT AVAILABLE`, Gate D = `NOT APPROVED` — inalterados.
+
+**Correção elevada com transparência:** a Seção 1 original (Founder Decision "Local V1 Windows Pilot Preparation") registrava Projetos/Ações/Decisões/Aprendizados/Documents como vazios por design, com a correção de `seed_demo_data.py` explicitamente fora de escopo. Uma missão seguinte ("Local V1 Pilot Dataset Completion") autorizou e executou exatamente essa correção — ver `docs/product/governance/LOCAL-V1-PILOT-DATASET-EXECUTIVE-EVIDENCE.md`. Esta seção é reescrita para refletir o estado real corrigido; a versão anterior não é apagada da história do repositório (Decision Log D-207 não é reescrito retroativamente).
 
 ---
 
-## 1. Pilot Dataset — achado real, não presumido
+## 1. Pilot Dataset — achado real, verificado após a correção
 
-Verificado diretamente (screenshots do Local V1 Validation Rehearsal, D-205) contra um banco recém-migrado (`alembic upgrade head`, sem `seed_demo_data.py`): **a STRATECH tem 2 modelos de dado paralelos, com estados de seed muito diferentes.**
+Verificado diretamente contra um banco recém-migrado + `python3 demo/seed_demo_data.py` (corrigido): **a STRATECH tem 2 modelos de dado paralelos — ambos agora populados, mas por 2 identidades/organizações distintas, uma consequência arquitetural real, não uma escolha de conveniência (ver `LOCAL-V1-PILOT-DATASET-EXECUTIVE-EVIDENCE.md` Seção 1).**
 
-| Superfície | Fonte de dado | Estado com o seed atual |
+| Superfície | Fonte de dado | Estado após a correção |
 |---|---|---|
-| Priorização (Portfolio) | Enterprise Domain (`portfolios`/`programs`/`projects`, migrations `0002`+`0008`) | **Populado** — 2 organizations, 6 portfolios, 8 programs, 14 projects reais |
+| Priorização (Portfolio) | Enterprise Domain (`portfolios`/`programs`/`projects`, migrations `0002`+`0008`) | **Populado** — em ambas as organizações |
 | Program Management | idem | **Populado** |
 | Project Delivery | idem | **Populado** |
 | Dashboard — KPIs de Portfólio/Programa | idem | **Populado** |
 | Mission Control | Dado estático por design (`web/lib/mock/mission-control-data.ts`) | **Populado** (sempre, por arquitetura) |
-| Administration (Usuários/Chaves/Sessões/Convites) | Tabelas de admin, criadas no boot (usuário demo) | **Populado minimamente** (1 usuário demo) |
-| **Projetos** (legado, `/projects`, `usePortfolioSummary`) | `analysis_records` (`project_status`/`risk_review`/`meeting_intelligence`) | **VAZIO** — "Nenhum projeto com análise registrada ainda" |
-| **Ações** | idem (derivado de `meeting_intelligence`) | **VAZIO** — "Nenhuma ação registrada em reuniões ainda" |
-| **Decisões** | idem (derivado de `risk_review`) | **VAZIO** — "Nenhuma decisão pendente" |
-| **Aprendizados** | idem (agregação de Ações+Decisões) | **VAZIO** — "Nenhum aprendizado organizacional identificado" |
+| Administration (Usuários/Chaves/Sessões/Convites) | Tabelas de admin, criadas no boot | **Populado** (usuário demo + Administrator bootstrapado) |
+| **Projetos** (legado, `/projects`, `usePortfolioSummary`) | `analysis_records` (`project_status`/`risk_review`/`meeting_intelligence`) | **Populado em "Organização Principal"** (6 projetos) — **vazio em "Demo Organization"** |
+| **Ações** | idem (derivado de `meeting_intelligence`) | **Populado em "Organização Principal"** (8 itens) — vazio em "Demo Organization" |
+| **Decisões** | idem (deriva de status `red`/`yellow` + riscos de alta atenção) | **Populado em "Organização Principal"** — vazio em "Demo Organization" |
+| **Aprendizados** | idem (recorrência exata, `MIN_OCCURRENCES=3`) | **Populado em "Organização Principal"** (1 risco recorrente + 1 ação recorrente) — vazio em "Demo Organization" |
+| Documents | Knowledge Platform | **Populado em "Organização Principal"** (1 documento sintético, indexado) — vazio em "Demo Organization" |
 | Dashboard — Decision Center/Actions Center/Recent Activity/AI Recommendations | Dado simulado embutido no componente (rótulo explícito "demonstração, Sprint 1, dados simulados") | **Populado, mas explicitamente rotulado como simulação** — não confundir com dado real |
 
-**A causa raiz da coluna "VAZIO" é o mesmo achado já registrado em D-206:** o único mecanismo que popularia `analysis_records` com conteúdo realista sem credencial Anthropic real (`demo/seed_demo_data.py`, via Demo Mode/`MOCK_LLM_RESPONSE_FILE`) está atualmente quebrado — falha com `HTTP 400` porque não envia o contexto de identidade institucional que as rotas `/api/*/analyze` passaram a exigir. **Corrigir esse script exigiria uma alteração de código (adicionar os 3 headers `X-Stratech-*` às chamadas do script), fora do escopo autorizado nesta missão** (Seção 17 do mandato autoriza apenas correções documentais). Registrado aqui como um gap real, não mascarado — se o Founder quiser um dataset mais rico para a sessão (Projetos/Ações/Decisões/Aprendizados populados), a correção de `seed_demo_data.py` precisaria ser autorizada explicitamente em uma missão futura.
+**Por que 2 organizações, não 1:** o usuário demo (`demo@stratech.local`, "Demo Organization") tem papel `viewer` reafirmado a cada boot do backend, por design (`bootstrap_demo_user()`, "Demo Mode demonstrates, never mutates") — corretamente sem `intelligence.write`/`knowledge.write`. Nenhuma API real permite elevar essa permissão de dentro de "Demo Organization" (nenhum administrador existe lá por padrão, nenhuma rota de auto-registro). A única identidade de escrita local disponível é o Administrator bootstrapado (`STRATECH_ADMIN_EMAIL`/`STRATECH_ADMIN_PASSWORD`), que vive em **"Organização Principal"** — daí o dataset populado estar lá, não em "Demo Organization". Achado mecânico, não presumido — diagnóstico completo em `LOCAL-V1-PILOT-DATASET-EXECUTIVE-EVIDENCE.md`.
 
-**Dataset mínimo confirmado disponível hoje, reutilizando exclusivamente o seed já existente (nenhum dado novo criado):** Organization (`demo-organization` + `Demo Organization`, 2 orgs reais), User (usuário demo, papel `viewer` por padrão — atribuir `pmo` se Documents estiver no roteiro, ver Seção 3), Portfolio (3-6, variando pela organização), Program (4-8), Projects (7-14). **Actions/Decisions/Learnings devem ser tratados como telas vazias esperadas nesta sessão** — não um defeito a ser investigado ao vivo. Um documento sintético (`.md`/`.txt`) deve ser preparado previamente para o passo de Documents (Seção 3, bloco F).
+**Login recomendado para a sessão completa:** organização `organizacao-principal`, e-mail = `STRATECH_ADMIN_EMAIL`, senha = `STRATECH_ADMIN_PASSWORD` (`demo/.env`) — vê o dataset completo. **Login somente-leitura, preservado, útil para ilustrar RBAC restrito:** `demo-organization`/`demo@stratech.local`/`WORKSPACE_PASSWORD` — mesmo Enterprise Domain, mas Projetos/Ações/Decisões/Aprendizados/Documents vazios (não um defeito, RBAC funcionando como projetado).
+
+Um documento sintético já existe e é reutilizado automaticamente pelo passo de seed (`demo/synthetic-document.md`) — nenhuma preparação manual adicional necessária para o Bloco F.
 
 ---
 
@@ -48,11 +53,11 @@ Verificado diretamente (screenshots do Local V1 Validation Rehearsal, D-205) con
 | Bloco | Duração | Objetivo | Tarefa do usuário | O que observar |
 |---|---|---|---|---|
 | **A. Contexto** | 5 min | Explicar o propósito da sessão: validação de produto, não demonstração guiada | Ouvir; ler o AI Boundary (Seção 2) resumido em 2 frases | — |
-| **B. Login / primeira impressão** | 5 min | Autenticação real | Fazer login sozinho com as credenciais fornecidas (organização `demo-organization`, e-mail `demo@stratech.local`, senha comunicada separadamente) | Login PASS/FAIL; primeira reação à tela |
+| **B. Login / primeira impressão** | 5 min | Autenticação real | Fazer login sozinho (organização `organizacao-principal`, e-mail = `STRATECH_ADMIN_EMAIL`, senha comunicada separadamente — ver Seção 1) | Login PASS/FAIL; primeira reação à tela |
 | **C. Dashboard** | 10 min | KPIs reais + limites de IA | Explorar o Dashboard livremente | KPIs de Portfólio/Programa fazem sentido; ao alcançar Decision Support/Narrativa Executiva, aplicar a Seção 2 |
 | **D. Portfolio/Program/Projects** | 10 min | Domínio real | Navegar Priorização → Program Management → Project Delivery, abrir 1-2 itens | Dados coerentes entre as 3 telas (mesma origem, Enterprise Domain) |
-| **E. Actions/Decisions/Learnings** | 10 min | Honestidade sobre o dataset | Navegar as 3 telas | **Esperado: vazias** (Seção 1) — explicar antes de o usuário chegar lá, para não ser lido como defeito |
-| **F. Documents** | 10 min | Upload real | Enviar o documento sintético preparado previamente | Upload → "Indexado" → visível na listagem (papel `pmo`/`organization_admin` necessário — ver Runbook) |
+| **E. Actions/Decisions/Learnings** | 10 min | Dataset real, incluindo Aprendizados | Navegar as 3 telas | Ações/Decisões/Aprendizados populados (Seção 1) — Aprendizados mostra exatamente 1 risco recorrente + 1 ação recorrente (limiar real do produto, `MIN_OCCURRENCES=3`, não mais itens que isso) |
+| **F. Documents** | 10 min | Upload real | Enviar um segundo documento sintético (o primeiro já foi populado pelo seed) ou apenas revisar o já indexado | Upload → "Indexado" → visível na listagem (papel `organization_admin`, já ativo neste login) |
 | **G. Navigation/discoverability** | 5 min | Usabilidade da navegação | Pedir para o usuário achar 2-3 itens específicos sem indicação | Tempo até achar; hesitação |
 | **H. Mission Control/Admin** | 5 min | Painel executivo + administração básica | Explorar Mission Control; olhar Administração (Usuários) | Renderização correta |
 | **I. Feedback livre** | 10-20 min | Captura de opinião não guiada | Falar livremente sobre a experiência | Registrar tudo per Seção 4 |
@@ -102,14 +107,14 @@ Para cada achado durante a sessão, registrar:
 - [ ] PostgreSQL (`docker compose ps` → `database` healthy)
 - [ ] pgvector (extensão confirmada disponível)
 - [ ] Migrations (`alembic current` → `0021 (head)`)
-- [ ] Synthetic/demo data (Enterprise Domain visível; documento sintético do bloco F preparado)
 - [ ] Backend (`demo/logs/backend.log` sem erro na inicialização)
 - [ ] `/health` (200, sem erro)
 - [ ] `/ready` (200)
+- [ ] `python3 demo/seed_demo_data.py` executado, `All calls produced structured output.` (Enterprise Domain + Projetos/Ações/Decisões/Aprendizados/Documents populados em "Organização Principal", ver Seção 1)
 - [ ] Frontend (`demo/logs/frontend.log` sem erro na inicialização)
-- [ ] Login (testado manualmente uma vez antes da sessão)
+- [ ] Login (testado manualmente uma vez antes da sessão, organização `organizacao-principal`)
 - [ ] Navigation (os 14 itens acessíveis)
-- [ ] Documents (papel `pmo`/`organization_admin` confirmado no usuário de sessão)
+- [ ] Documents (papel `organization_admin` confirmado no usuário de sessão — já ativo pelo login recomendado)
 - [ ] Disk (espaço livre confirmado)
 - [ ] Ports (8000/3000/5432 livres antes de iniciar)
 - [ ] Logs (arquivos limpos/rotacionados, prontos para captura de evidência real da sessão)
