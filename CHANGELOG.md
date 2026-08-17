@@ -2680,3 +2680,13 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** gaps documentais CLOSED. Nenhum arquivo .bat alterado em comportamento. Prosseguindo para o Windows Runbook e User Session Protocol.
 
 **Decision Log:** D-206.
+
+## Windows Preflight/Runbook + User Session Protocol -- WINDOWS PROCEDURE READY FOR EXECUTION (2026-08-17)
+
+**Adicionado**
+- `docs/operations/LOCAL-V1-WINDOWS-RUNBOOK.md` -- Windows Preflight de 18 itens (CHECK/EXPECTED RESULT/FAILURE ACTION), determinacao do caminho Windows (opcao B .bat descartada, opcao D escolhida: Docker Desktop so para PostgreSQL+pgvector + Git Bash nativo para backend/frontend, make confirmado nao necessario), Clean Install Runbook em comandos exatos, Environment Contract Local, Release Baseline, Pre-Session Reset, Pre-Flight Automation Assessment.
+- `docs/product/governance/LOCAL-V1-USER-SESSION-PROTOCOL.md` -- Pilot Dataset (achado real: Enterprise Domain populado, analysis_records-driven vazio, mesma causa de D-206, nao corrigido nesta missao documental), AI Boundary (Advisors/Decision Support/Executive Narrative = TECHNICAL MECHANISM PRESENT / REAL AI CONTENT = NOT AVAILABLE), User Session Script de 8 blocos (60-90min), Feedback Model, Exit Criteria, Session-Day Checklist de 19 itens.
+
+**Missão:** nenhuma alteracao de codigo/comportamento/arquitetura -- apenas os 2 documentos novos. W7-1/Gates A-D inalterados. Fronteira de evidencia mantida: esta sessao nao tem acesso a maquina fisica Windows do Founder -- alegacao maxima permitida e "WINDOWS PROCEDURE READY FOR EXECUTION", nunca "maquina validada". Nenhuma sessao humana/staging/DR Drill/outro Epic iniciado.
+
+**Decision Log:** D-207.
