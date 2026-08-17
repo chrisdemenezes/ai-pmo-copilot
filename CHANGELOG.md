@@ -2669,3 +2669,14 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** Documents/Advisors/Decision Support/Executive Narrative mechanism/Backup = PASS. AI CONTENT QUALITY = NOT VALIDATED (Gates B/C inalterados). LOCAL V1 USER SESSION = GO. W7-1/External Gates A-D inalterados. Nenhuma Production AI Validation, nenhum dado real, nenhum outro Epic iniciado.
 
 **Decision Log:** D-205.
+
+## Gaps documentais do rehearsal corrigidos + achado novo: fluxo .bat/SQLite stale (2026-08-14)
+
+**Corrigido (apenas texto)**
+- demo/seed_demo_data.py -- mensagem de erro imprecisa corrigida.
+- demo/README.md -- login checklist completado com slug de organizacao/e-mail fixos, nota sobre a limitacao real do script de seed.
+- README.md -- claim de que setup.bat/start.bat/stop.bat (fluxo "V1-era" SQLite) "still works unchanged" removido. Achado novo: esse fluxo nunca roda migrations, nunca cria Enterprise Domain/RBAC/Knowledge Platform -- fatia muito mais antiga do produto, nao uma forma valida de validar a STRATECH V1 atual apesar do nome compartilhado. Claim adjacente sobre fallback SQLite via create_all() tambem corrigida.
+
+**Missão:** gaps documentais CLOSED. Nenhum arquivo .bat alterado em comportamento. Prosseguindo para o Windows Runbook e User Session Protocol.
+
+**Decision Log:** D-206.

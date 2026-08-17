@@ -26,8 +26,21 @@ bash demo/stop-demo.sh
 
 1. `bash demo/start-demo.sh` — aguardar as duas mensagens "is up".
 2. `python3 demo/seed_demo_data.py` — popula o portfólio fictício do DPS-01
-   (Implantação SAP S/4HANA + 5 projetos de apoio) via Demo Mode.
-3. Abrir `http://localhost:3000/entrar`, senha em `demo/.env` (`WORKSPACE_PASSWORD`).
+   (Implantação SAP S/4HANA + 5 projetos de apoio) via Demo Mode. **Limitação
+   conhecida** (confirmada empiricamente, Local V1 Validation Rehearsal,
+   D-205): este script chama o backend diretamente apenas com `X-API-Key`,
+   sem o contexto de identidade institucional (`X-Stratech-User-Id`/
+   `X-Stratech-Organization-Id`/`X-Stratech-Session-Id`) que as rotas
+   `/api/*/analyze` passaram a exigir depois que este script foi escrito
+   (predata a Identity Foundation) — cada chamada falha hoje com
+   `HTTP 400`. O dado de domínio real (Organizations/Roles/Portfolios/
+   Programs/Projects, migrations `0002`+`0008`) já está seedado
+   independentemente deste passo; ele é aditivo, não um pré-requisito.
+3. Abrir `http://localhost:3000/entrar`. O usuário demo é criado no boot
+   (`bootstrap_demo_user`, `src/services/identity/auth_service.py`) com 3
+   valores fixos: organização `demo-organization` (não "Demo Organization"
+   — o formulário exige o slug), e-mail `demo@stratech.local`, e a senha em
+   `demo/.env` (`WORKSPACE_PASSWORD`).
 4. Abrir `http://localhost:3000/dashboard` — seguir o roteiro do DPS-01, Seção 8.
 5. Ao final: `bash demo/stop-demo.sh`.
 

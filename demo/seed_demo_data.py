@@ -275,7 +275,7 @@ if __name__ == "__main__":
     failure_count = seed()
     if failure_count:
         print(f"\n{failure_count} call(s) did not produce structured output.")
-        print("See demo/README.md -- Impedimento conhecido (provedor LLM).")
+        print("See demo/README.md -- Limitacao conhecida (script nao envia o contexto de identidade institucional).")
         sys.exit(1)
     print("\nAll calls produced structured output. Check the dashboard:")
     print(f"  curl -H 'X-API-Key: {API_KEY}' {BACKEND_URL}/api/portfolio/summary")
