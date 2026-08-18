@@ -92,13 +92,14 @@ bash scripts/rc2-db.sh create
 
 ### 3.5 Migrations
 
+**Correção documental (Local Windows Revalidation, D-211/D-212):** desde o F4 (Local V1 Pilot Hardening), `demo/start-demo.sh` (Seção 3.6) já aplica `alembic upgrade head` automaticamente e sem exigir o contorno manual usado em D-209 — o script resolve `PYTHON_BIN` explicitamente (`.venv/bin/python3` no Linux/macOS, `.venv/Scripts/python.exe` no Windows) antes de rodar a migration. Isso não é comportamento novo do F4 em si (o script sempre aplicou migrations por conta própria, de forma idempotente); o F4 corrigiu apenas qual interpretador é usado para isso. **Não execute uma migration manual separada aqui** — rodá-la antes da Seção 3.6 não quebra nada (`alembic upgrade head` é idempotente), mas mascara a prova de que a Seção 3.6, sozinha, resolve `PYTHON_BIN` e aplica as migrations corretamente no Windows.
+
+**Verificação explícita (rodar depois da Seção 3.6, nunca confiar apenas no exit code do script):**
 ```bash
-export DATABASE_URL="postgresql://aipmo:aipmo@localhost:5432/aipmo"
-.venv/Scripts/python -m alembic upgrade head
 .venv/Scripts/python -m alembic current
 ```
 **Resultado esperado:** `0021 (head)`.
-**Erro:** qualquer traceback do Alembic — **STOP**, não prosseguir; diagnosticar antes de corrigir (per disciplina já estabelecida nesta missão institucional).
+**Erro:** qualquer resultado diferente de `0021 (head)`, ou qualquer traceback — **STOP**, não prosseguir; diagnosticar antes de corrigir (per disciplina já estabelecida nesta missão institucional).
 
 ### 3.6 Backend + Frontend (Demo Mode)
 
