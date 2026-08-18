@@ -2770,3 +2770,39 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** commits individuais por etapa (4125272, fe68917, ead39df, d6baae0), nenhum agrupando correcoes nao relacionadas. Regressao: pytest do arquivo tocado 26/26, vitest 579/579, tsc/eslint limpos, next build sem erros, E2E completo 360/360 (ultima execucao). Preservacao arquitetural confirmada -- RBAC/Tenant Isolation/AdvisorFramework/ExecutiveOrchestrator/Advisors/Knowledge Platform/Enterprise Domain inalterados, Decision Support byte-a-byte inalterado. GO FOR LOCAL WINDOWS REVALIDATION. NO-GO para a sessao humana permanece inalterado ate a revalidacao fisica. W7-1 OPEN, Gates A-D inalterados, nenhuma Production AI Validation, nenhum dado corporativo real, nenhum outro Epic/staging/DR Drill iniciado.
 
 **Decision Log:** D-211.
+
+## Local V1 Pilot Navigation Blocker -- /administracao/* sem AppShell, corrigido e revalidado (2026-08-18)
+
+**Adicionado**
+- `web/app/administracao/layout.tsx` -- reaproveita AppShell (mesmo padrao de toda outra rota), aplicado automaticamente as 5 rotas administrativas via nested layouts do Next.js.
+- 3 testes novos em `web/e2e/users-admin.spec.ts` -- Dashboard -> Administracao -> Usuarios -> Dashboard; -> Projetos; Sair de dentro de Administracao. Provados falhando pre-fix, passando pos-fix, nos 3 breakpoints.
+- `tests/shell/test_stop_demo_port_fallback.sh` -- extrai o bloco real de fallback de porta do stop-demo.sh, testa contra lsof/netstat/nenhum, PATH totalmente isolado.
+
+**Corrigido**
+- BLOCKER real: as 5 rotas /administracao/* (usuarios, api-keys, sessoes, convites, documentos) nunca tiveram layout.tsx proprio -- nenhuma navegacao institucional ao entrar (sem sidebar, sem bottom-nav, sem breadcrumb, sem botao voltar). Causa raiz: AppShell ja existia (commit 0f44b50) antes da primeira pagina administrativa (Wave 2, commit 9b4a6c7) -- omissao desde a origem, nao regressao. Corrigido com 1 layout.tsx novo, sem novo sistema de navegacao, sem submenu.
+- `demo/stop-demo.sh` -- dependia de lsof (ausente no Windows/Git Bash), fallback silenciosamente inoperante. Corrigido com fallback via netstat -ano -p tcp, mesmo padrao de deteccao de plataforma do F4. Confirmado funcional na maquina fisica real (processos efetivamente encerrados via tasklist).
+
+**Missão:** vitest 579/579, tsc/eslint limpos, next build sem erros, E2E completo 2 rodadas (368/369, 369/369 -- flake unico nao reproduziu isoladamente). Testes shell revalidados na maquina fisica Windows real. Preservacao arquitetural confirmada -- RBAC/Tenant Isolation/Advisors/ExecutiveOrchestrator inalterados. BLOCKER fechado, revalidacao retomada do checkpoint (Etapa 9) sem reabrir Etapas 0-8.
+
+**Decision Log:** D-212.
+
+## Local V1 Windows Revalidation -- LOCAL WINDOWS ENVIRONMENT = REVALIDATED (2026-08-18)
+
+**Adicionado**
+- `docs/product/governance/LOCAL-V1-WINDOWS-REVALIDATION-EXECUTIVE-EVIDENCE.md` -- revalidacao fisica completa de F3/F4/F6/F7 na maquina Windows do Founder, todos PASS/CLOSED ON WINDOWS. Sanity Journey 13/13 PASS. Backup real validado (237 TOC entries).
+
+**F3/F4/F6/F7 revalidados na maquina fisica**
+- F3 PASS: prepare-env.sh do zero, sem erro de pip.
+- F4 PASS: start-demo.sh fluxo oficial, sem workaround manual, migrations confirmadas em 0021 (head).
+- F6 PASS: sidebar fixa confirmada em lg/md/mobile, indicador do Next.js sem colisao.
+- F7: pergunta oficial corrigida produziu 502 real (fail-closed documentado), nao mais "Base insuficiente" -- confirmado via log.
+
+**Backend regression: 3 rodadas de diagnostico incremental**
+- 610 errors/51 failed -> 309 errors/9 failed -> 0 errors/8 failed/958 passed.
+- Causas resolvidas operacionalmente (sem codigo): servico nativo do Windows ocupando porta 5432 acidentalmente; extensao pgvector nunca criada no banco template1 desta instancia Docker fresca.
+- 8 falhas finais: 7 = F8 ja conhecido (pg_dump ausente), 1 = anomalia isolada de teste (comportamento real do produto confirmado correto).
+- ruff: 285 erros pre-existentes, identicos, nenhum novo.
+
+**Missão:** vitest 579/579, tsc/eslint limpos, next build sem erros, backup real e integro. Preservacao arquitetural confirmada. Achado operacional novo registrado (pgvector-no-template1), recomendado para o Runbook em missao futura, nao implementado agora. LOCAL WINDOWS ENVIRONMENT = REVALIDATED. GO FOR LOCAL V1 HUMAN USER SESSION -- sessao humana NAO iniciada automaticamente, retornando para Founder Executive Review. W7-1 OPEN, Gates A-D inalterados, nenhuma Production AI Validation, nenhum dado corporativo real, nenhum outro Epic/staging/DR Drill iniciado.
+
+**Decision Log:** D-213.
