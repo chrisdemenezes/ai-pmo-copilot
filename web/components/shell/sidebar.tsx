@@ -32,7 +32,7 @@ export function Sidebar() {
     <>
       <div
         data-testid="sidebar-nav"
-        className="hidden shrink-0 flex-col border-r border-border bg-surface md:flex md:w-14 lg:w-[220px]"
+        className="hidden shrink-0 flex-col border-r border-border bg-surface md:sticky md:top-0 md:flex md:h-screen md:w-14 md:overflow-y-auto lg:w-[220px]"
       >
         <div className="flex items-center gap-3 border-b border-border p-3 md:justify-center lg:justify-start">
           <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-accent text-white">
