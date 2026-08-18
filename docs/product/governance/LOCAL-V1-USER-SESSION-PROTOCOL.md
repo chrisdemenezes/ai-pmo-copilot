@@ -33,9 +33,26 @@ Um documento sintético já existe e é reutilizado automaticamente pelo passo d
 
 ---
 
-## 2. AI Boundary — obrigatório, per achado do rehearsal (D-205)
+## 2. AI Boundary — obrigatório, per achado do rehearsal (D-205) e diagnóstico F7 (D-211)
 
 **Confirmado mecanicamente (D-205):** sem `ANTHROPIC_API_KEY` real, Advisors/Decision Support/Executive Narrative retornam `HTTP 502` — comportamento **fail-closed correto e desejável** (o `AdvisorFramework` recusa corretamente fabricar uma recomendação a partir de uma resposta não estruturada do `MockLLMProvider`), não um defeito de produto.
+
+**Correção F7 (Local V1 Pilot Hardening Review, D-210/D-211):** a validação física na máquina Windows (D-209) usou a pergunta de teste "Quero fazer um teste com esta função" em Decision Support e observou **"Base insuficiente para responder a esta pergunta com o escopo selecionado"** em vez do `502` documentado acima. Diagnóstico definitivo (D-210): essa pergunta não contém nenhum termo do `VOCABULARY` de nenhum dos 8 Advisors (`src/services/executive_orchestrator/catalog.py`) — `evaluate_selection_rule()` (função pura, determinística) retorna `selected=()`, e `ExecutiveOrchestrator.run()` devolve `insufficient_basis(SELECTION_EMPTY)` **antes** de qualquer coleta de evidência ou chamada de LLM. Não é uma máscara de indisponibilidade de IA — é o comportamento correto e deliberado do contrato (`InsufficientBasisReason`, Domain Blueprint §4, D-138) diante de uma pergunta sem vocabulário de domínio. **A pergunta de teste, não o produto, estava incorreta.**
+
+**Pergunta de teste recomendada para a sessão (substitui a usada em D-209):**
+
+> "Quais são os principais riscos ativos que exigem atenção da liderança?"
+
+Verificado mecanicamente contra `evaluate_selection_rule()` (sem precisar de backend/LLM real — função pura):
+
+| Escopo | Advisors selecionados |
+|---|---|
+| Organização | `risk_advisor`, `executive_advisor` |
+| Projeto (qualquer um dos 7 projetos do Enterprise Domain) | `risk_advisor` |
+
+Atende aos 5 critérios do mandato: usa o tema do dataset sintético (o seed criou 1 risco recorrente real); representa um caso de uso real de PMO; é compreensível por um usuário não técnico; ativa deterministicamente pelo menos 1 Advisor elegível em qualquer escopo testado; não exige dado corporativo real. Com essa pergunta, Decision Support **não** deve mais retornar `insufficient_basis(SELECTION_EMPTY)` por falta de vocabulário — o resultado real observado (evidência suficiente vs. `COLLECTION_EMPTY` vs. o `502` fail-closed de sempre) depende do estado real dos dados e da credencial de IA no momento da sessão, e deve ser registrado como observado, não presumido.
+
+**Observação não bloqueante, registrada, não implementada nesta missão:** o backend já retorna `insufficient_basis_reason` (`SELECTION_EMPTY` ou `COLLECTION_EMPTY`) no corpo da resposta (`src/api/routes/intelligence.py`), mas a UI (`web/components/dashboard/decision-support-panel.tsx`) descarta esse campo e sempre mostra a mesma mensagem genérica "Base insuficiente para responder a esta pergunta com o escopo selecionado", independentemente da causa real. Isso não afeta a pergunta recomendada acima (que evita `SELECTION_EMPTY`), mas facilitadores devem saber que, se `insufficient_basis` aparecer por outro motivo durante a sessão, a UI não distingue "nenhum Advisor selecionado" de "Advisor selecionado, mas sem evidência coletável" — apenas Decision Log/D-210 documenta a distinção. Nenhuma alteração de UI foi autorizada ou feita para isso.
 
 **Regra obrigatória para a sessão:**
 

@@ -235,6 +235,40 @@ class TestExplicitScopeEligibility:
         }
 
 
+class TestLocalV1SessionProtocolQuestion:
+    """F7 (Local V1 Pilot Hardening Review, D-210/D-211): the AI Boundary
+    test question used during the physical Windows validation (D-209),
+    "Quero fazer um teste com esta função", matched no Advisor vocabulary at
+    all and deterministically produced selected=() -- insufficient_basis
+    (SELECTION_EMPTY) before any evidence gathering or LLM call, not a
+    masking of AI unavailability. LOCAL-V1-USER-SESSION-PROTOCOL.md Section
+    2 now recommends a domain-vocabulary question instead; this pins that
+    documented guarantee so a future VOCABULARY change cannot silently
+    invalidate it without failing a test."""
+
+    RECOMMENDED_QUESTION = "Quais são os principais riscos ativos que exigem atenção da liderança?"
+
+    def test_recommended_question_selects_advisors_under_organization_scope(self):
+        outcome = evaluate_selection_rule(
+            SelectionSignals(question=self.RECOMMENDED_QUESTION, scope=OrchestrationScope())
+        )
+
+        assert {identity.name for identity in outcome.selected} == {
+            "risk_advisor",
+            "executive_advisor",
+        }
+
+    def test_recommended_question_selects_risk_advisor_under_project_scope(self):
+        outcome = evaluate_selection_rule(
+            SelectionSignals(
+                question=self.RECOMMENDED_QUESTION,
+                scope=OrchestrationScope(project_name="Implantação SAP S/4HANA"),
+            )
+        )
+
+        assert [identity.name for identity in outcome.selected] == ["risk_advisor"]
+
+
 class TestSelectionTraceEntry:
     def test_trace_entry_records_explicit_signals_and_selected_names(self):
         outcome = evaluate_selection_rule(SelectionSignals(explicit=frozenset({"risco"})))
