@@ -2712,3 +2712,23 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** zero alteracao em src/web/alembic/docker-compose.yml (confirmado por git diff --stat). RBAC/Tenant Isolation/Authentication/Session/Enterprise Domain/AdvisorFramework/AIContextEngine/ExecutiveOrchestrator/Advisors/Executive Intelligence/Knowledge Platform inalterados. W7-1/Gates A-D inalterados. LOCAL PILOT DATASET = READY. Nenhuma sessao humana/staging/DR Drill/outro Epic iniciado.
 
 **Decision Log:** D-208.
+
+## Local V1 Windows Environment Validation -- LOCAL WINDOWS ENVIRONMENT = VALIDATED (2026-08-18)
+
+**Adicionado**
+- `docs/product/governance/LOCAL-V1-WINDOWS-ENVIRONMENT-VALIDATION-EVIDENCE.md` -- execucao real do Runbook Windows na maquina fisica do Founder (hostname CRM_Consultoria), conduzida interativamente passo a passo. WSL2+Docker Desktop instalados, PostgreSQL+pgvector via Docker, migrations ate 0021, dataset do piloto executado com sucesso, backend/frontend iniciados, autenticacao funcional, Sanity Journey completa 12/12 capabilities PASS, upload manual de documento sintetico confirmado, backup real criado e validado.
+
+**9 findings reais, nenhum corrigido no codigo (missao autoriza so contorno operacional/registro)**
+- F1 ENVIRONMENT: PostgreSQL nativo do Founder ja ocupava porta 5432 -- contornado com porta 5433 (override externo ao repositorio), Postgres nativo preservado com autorizacao explicita.
+- F2 DOCUMENTATION: Runbook manda rodar scripts/rc2-db.sh create, script recomenda pular no caminho Docker -- divergencia real.
+- F3 PRODUCT: scripts/prepare-env.sh chama pip install --upgrade pip direto, falha no Windows -- contornado com python -m pip.
+- F4 PRODUCT -- Windows venv detection defect in demo/start-demo.sh: so detecta .venv/bin, nunca .venv/Scripts, usa Python errado no Windows. NAO RESOLVIDO -- contornado com comandos explicitos.
+- F5 PROCEDURE/TEST: primeira sessao de login caiu na organizacao/usuario errados (viewer/Demo Organization) -- corrigido com logout+login correto, nao e defeito de produto.
+- F6 PRODUCT (UX): botao Sair nao fica fixo na tela, so visivel rolando a pagina inteira -- sugestao do Founder registrada.
+- F7 DATASET/PRODUCT: Decision Support retorna "Base insuficiente" em vez do 502 fail-closed documentado, em qualquer escopo -- muda o que a sessao humana vai observar na Fronteira de IA, roteiro precisa atualizacao futura.
+- F8 ENVIRONMENT: pg_dump/psql ausentes no Windows (instalador EDB nao permite selecao granular) -- contornado via docker compose exec, backup real produzido e validado (237 TOC entries).
+- F9 DOCUMENTATION: Runbook Secao 5 com SHA desatualizado -- nao corrigido (fora do escopo de governanca autorizado).
+
+**Missão:** zero alteracao de codigo confirmada -- todos os findings contornados operacionalmente ou apenas registrados. RBAC/Tenant Isolation/Authentication/Session/Enterprise Domain inalterados (RBAC e tenant isolation, alias, comprovados corretos ao vivo -- viewer bloqueado corretamente, admin com acesso correto). LOCAL WINDOWS ENVIRONMENT = VALIDATED. GO FOR LOCAL V1 HUMAN USER SESSION, condicionado a repetir os contornos de F1/F3/F4/F8 e atualizar a explicacao da Fronteira de IA (F7) para o facilitador. W7-1/Gates A-D inalterados, nenhuma Production AI Validation, nenhum dado corporativo real.
+
+**Decision Log:** D-209.
