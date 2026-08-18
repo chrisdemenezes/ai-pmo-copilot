@@ -62,8 +62,10 @@ fi
 # shellcheck disable=SC1090,SC1091
 source "$ACTIVATE_SCRIPT"
 echo "Installing backend dependencies (requirements.txt) ..."
-pip install --quiet --upgrade pip
-pip install --quiet -r "$ROOT_DIR/requirements.txt"
+# python -m pip (not a bare `pip` call): on Windows, pip cannot overwrite its
+# own running executable, which a direct `pip install --upgrade pip` requires.
+python -m pip install --quiet --upgrade pip
+python -m pip install --quiet -r "$ROOT_DIR/requirements.txt"
 
 # 3. Frontend: npm install (skip if node_modules already present).
 if [ ! -d "$ROOT_DIR/web/node_modules" ]; then
