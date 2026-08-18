@@ -2747,3 +2747,26 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** zero alteracao em src/web/alembic/docker-compose.yml (diagnostico via leitura de codigo apenas). Arquitetura/RBAC/Tenant Isolation/Advisors/ExecutiveOrchestrator inalterados. GO para implementar o Hardening (F3+F4+documentacao de F7) condicionado a nova Founder Decision explicita. NO-GO para a sessao humana inalterado desde D-209. W7-1/Gates A-D inalterados, nenhuma Production AI Validation, nenhum dado corporativo real, nenhum outro Epic/staging/DR Drill iniciado.
 
 **Decision Log:** D-210.
+
+## Local V1 Pilot Hardening -- F3/F4/F6/F7 implementados (2026-08-18)
+
+**Adicionado**
+- `docs/product/governance/LOCAL-V1-PILOT-HARDENING-EXECUTIVE-EVIDENCE.md` -- before/after de F3/F4/F6/F7, arquivos alterados, testes, resultados das suites, preservacao arquitetural, achados novos, riscos residuais, necessidade de revalidacao fisica Windows.
+- `tests/shell/test_prepare_env_pip_upgrade.sh` -- guarda estatica + prova comportamental para F3.
+- `tests/shell/test_start_demo_venv_detection.sh` -- 6 cenarios (A-F) para F4, extrai o bloco real do script.
+- `TestLocalV1SessionProtocolQuestion` em `tests/test_executive_orchestrator_selection_rule.py` -- pina a pergunta de teste recomendada para F7 contra evaluate_selection_rule() real.
+- Teste E2E novo em `web/e2e/shell.spec.ts` -- forca overflow real dentro do AppShell e confirma a sidebar/botao Sair permanece fixo em md/lg.
+
+**Corrigido**
+- F3: `scripts/prepare-env.sh` -- `pip install --upgrade pip` (falha no Windows) trocado por `python -m pip install --upgrade pip`.
+- F4: `demo/start-demo.sh` -- resolucao explicita de PYTHON_BIN (.venv/bin/python3 -> .venv/Scripts/python.exe -> fallback python3), usado na chamada alembic.
+- F6: `web/components/shell/app-shell.tsx` (min-h-full -> min-h-screen) + `web/components/shell/sidebar.tsx` (md:sticky md:top-0 md:h-screen md:overflow-y-auto) -- menu completo fixo durante rolagem. Achado real descoberto e corrigido dentro da mesma etapa: colisao do indicador de dev do Next.js com o canto inferior-esquerdo, corrigida via `web/next.config.ts` (devIndicators.position: "bottom-right").
+- F7 (documentacao): `docs/product/governance/LOCAL-V1-USER-SESSION-PROTOCOL.md` Secao 2 -- pergunta de teste recomendada com vocabulario de dominio real, substituindo a que causou SELECTION_EMPTY em D-209. Decision Support nao alterado.
+
+**Achados ambientais registrados, nao corrigidos (fora do escopo autorizado)**
+- pytest completo do backend inexecutavel nesta sessao remota (Docker ausente) -- 610 errors + 50 failed, 100% em testes dependentes de PostgreSQL real, nenhum tocado por esta missao.
+- ruff check src tests reporta 285 erros pre-existentes em arquivos nunca tocados por esta missao.
+
+**Missão:** commits individuais por etapa (4125272, fe68917, ead39df, d6baae0), nenhum agrupando correcoes nao relacionadas. Regressao: pytest do arquivo tocado 26/26, vitest 579/579, tsc/eslint limpos, next build sem erros, E2E completo 360/360 (ultima execucao). Preservacao arquitetural confirmada -- RBAC/Tenant Isolation/AdvisorFramework/ExecutiveOrchestrator/Advisors/Knowledge Platform/Enterprise Domain inalterados, Decision Support byte-a-byte inalterado. GO FOR LOCAL WINDOWS REVALIDATION. NO-GO para a sessao humana permanece inalterado ate a revalidacao fisica. W7-1 OPEN, Gates A-D inalterados, nenhuma Production AI Validation, nenhum dado corporativo real, nenhum outro Epic/staging/DR Drill iniciado.
+
+**Decision Log:** D-211.
