@@ -19,9 +19,19 @@ ENV_FILE="$DEMO_DIR/.env"
 
 # Prefer the project venv (uvicorn, alembic) regardless of whether the
 # caller already activated it -- covers both direct invocation and
-# `make dev`, which calls this script in its own subshell.
-if [ -d "$ROOT_DIR/.venv/bin" ]; then
+# `make dev`, which calls this script in its own subshell. venv layout
+# differs by platform: POSIX python puts binaries in bin/, Windows
+# (including Git Bash on Windows, still a Windows-built venv) puts them in
+# Scripts/ and names the interpreter python.exe, never python3.exe -- so
+# PYTHON_BIN must be resolved explicitly rather than assuming `python3`.
+if [ -f "$ROOT_DIR/.venv/bin/python3" ]; then
   PATH="$ROOT_DIR/.venv/bin:$PATH"
+  PYTHON_BIN="$ROOT_DIR/.venv/bin/python3"
+elif [ -f "$ROOT_DIR/.venv/Scripts/python.exe" ]; then
+  PATH="$ROOT_DIR/.venv/Scripts:$PATH"
+  PYTHON_BIN="$ROOT_DIR/.venv/Scripts/python.exe"
+else
+  PYTHON_BIN="python3"
 fi
 
 if [ ! -f "$ENV_FILE" ]; then
@@ -62,7 +72,7 @@ esac
 # this is also where the Enterprise Domain seed (migrations 0002 + 0008:
 # Organizations, Roles, Portfolios, Programs, Projects) is applied.
 echo "Applying database migrations ($DB_LABEL) ..."
-(cd "$ROOT_DIR" && DATABASE_URL="${DATABASE_URL:-}" python3 -m alembic upgrade head)
+(cd "$ROOT_DIR" && DATABASE_URL="${DATABASE_URL:-}" "$PYTHON_BIN" -m alembic upgrade head)
 
 echo "Starting backend on :$BACKEND_PORT ($DB_LABEL) ..."
 (
