@@ -37,19 +37,32 @@ trap 'rm -rf "$TMP_BIN"' EXIT
 
 BASH_BIN="$(command -v bash)"
 
-# Real lsof happens to be installed on this test machine -- a scenario bin
-# dir alone is not enough to make it "absent" if PATH still falls through to
-# the system's own /usr/bin. Each scenario gets an isolated bin dir with
-# symlinks to only the real external tools the block actually needs (awk,
-# sort, xargs), so `command -v lsof`/`command -v netstat` can only ever find
-# what the scenario itself stubs in -- never the real system binaries.
+# Real lsof/netstat may already be reachable on this test machine's normal
+# PATH -- a scenario bin dir alone is not enough to make either "absent" if
+# PATH still falls through to the system's own directories. Each scenario
+# gets an isolated bin dir containing only the real external tools the
+# block actually needs (awk, sort, xargs, ...), so `command -v lsof`/
+# `command -v netstat` can only ever find what the scenario itself stubs
+# in -- never a real system binary.
+#
+# Thin exec wrapper scripts, not symlinks: on Windows/Git Bash, a symlink to
+# an MSYS binary breaks its shared-library (DLL) resolution, which is
+# relative to the executable's own real directory -- confirmed live during
+# the Local Windows Revalidation ("awk: error while loading shared
+# libraries"). A wrapper script has no such dependency; it just execs the
+# real binary by its original absolute path.
 make_isolated_bin() {
   local dir="$1"
   mkdir -p "$dir"
   for tool in awk sort xargs env bash cat; do
     local real_path
     real_path="$(command -v "$tool")"
-    ln -s "$real_path" "$dir/$tool"
+    # Absolute-path shebang (not `#!/usr/bin/env bash`): env is itself one
+    # of the wrapped tools here, and Git Bash resolves a shebang's
+    # interpreter via its own PATH search, which would otherwise chase its
+    # own tail through this directory's env wrapper.
+    printf '#!%s\nexec "%s" "$@"\n' "$BASH_BIN" "$real_path" > "$dir/$tool"
+    chmod +x "$dir/$tool"
   done
 }
 
