@@ -53,6 +53,65 @@ test("navigates from the sidebar to Administração", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Usuários" })).toBeVisible();
 });
 
+/**
+ * Local V1 Pilot Navigation Blocker (Founder Decision, D-212): app/
+ * administracao/ never had a layout.tsx wiring it into AppShell, so every
+ * page under /administracao/* rendered with no sidebar/bottom-nav at all --
+ * entering Administração was a navigational dead end (no way back to the
+ * rest of STRATECH except the browser's own Back button). The previous test
+ * above only proved entry (clicking the link while still on a page that DID
+ * have the sidebar); it never asserted the sidebar exists once you've
+ * actually landed on the administrative page, which is exactly the gap that
+ * let this regression through undetected. These 2 tests fail against that
+ * prior behavior and pass only once app/administracao/layout.tsx reuses the
+ * same AppShell every other route already does.
+ */
+test("Dashboard -> Administração -> Usuários -> Dashboard, via institutional navigation only", async ({
+  page,
+}) => {
+  await login(page);
+  const isMobile = (await page.viewportSize())!.width < MOBILE_BREAKPOINT;
+  const visibleNav = () => (isMobile ? page.getByTestId("bottom-nav") : page.getByTestId("sidebar-nav"));
+
+  await visibleNav().locator('a[href="/administracao/usuarios"]').click();
+  await expect(page).toHaveURL(/\/administracao\/usuarios/);
+
+  // The sidebar/bottom-nav must exist on the administrative page itself --
+  // not just on the page you clicked the link from.
+  await expect(visibleNav()).toBeVisible();
+
+  await visibleNav().locator('a[href="/dashboard"]').click();
+  await expect(page).toHaveURL(/\/dashboard/);
+  await expect(page.getByRole("heading", { name: "Dashboard Executivo" })).toBeVisible();
+});
+
+test("Dashboard -> Administração -> Usuários -> Projetos, via institutional navigation only", async ({
+  page,
+}) => {
+  await login(page);
+  const isMobile = (await page.viewportSize())!.width < MOBILE_BREAKPOINT;
+  const visibleNav = () => (isMobile ? page.getByTestId("bottom-nav") : page.getByTestId("sidebar-nav"));
+
+  await visibleNav().locator('a[href="/administracao/usuarios"]').click();
+  await expect(page).toHaveURL(/\/administracao\/usuarios/);
+  await expect(visibleNav()).toBeVisible();
+
+  await visibleNav().locator('a[href="/projects"]').click();
+  await expect(page).toHaveURL(/\/projects/);
+});
+
+test("Sair works from inside Administração, not just from Dashboard", async ({ page }) => {
+  await login(page);
+  const isMobile = (await page.viewportSize())!.width < MOBILE_BREAKPOINT;
+  const visibleNav = () => (isMobile ? page.getByTestId("bottom-nav") : page.getByTestId("sidebar-nav"));
+
+  await visibleNav().locator('a[href="/administracao/usuarios"]').click();
+  await expect(page).toHaveURL(/\/administracao\/usuarios/);
+
+  await visibleNav().getByRole("button", { name: "Sair" }).click();
+  await expect(page).toHaveURL(/\/entrar/);
+});
+
 test("lists the seeded users with name, email, status and roles", async ({ page }) => {
   await login(page);
   await page.goto("/administracao/usuarios");
