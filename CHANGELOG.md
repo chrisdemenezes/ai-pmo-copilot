@@ -2732,3 +2732,18 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** zero alteracao de codigo confirmada -- todos os findings contornados operacionalmente ou apenas registrados. RBAC/Tenant Isolation/Authentication/Session/Enterprise Domain inalterados (RBAC e tenant isolation, alias, comprovados corretos ao vivo -- viewer bloqueado corretamente, admin com acesso correto). LOCAL WINDOWS ENVIRONMENT = VALIDATED. GO FOR LOCAL V1 HUMAN USER SESSION, condicionado a repetir os contornos de F1/F3/F4/F8 e atualizar a explicacao da Fronteira de IA (F7) para o facilitador. W7-1/Gates A-D inalterados, nenhuma Production AI Validation, nenhum dado corporativo real.
 
 **Decision Log:** D-209.
+
+## Local V1 Pilot Hardening Review -- diagnostico definitivo de F4/F6/F7, nenhuma correcao implementada (2026-08-18)
+
+**Adicionado**
+- `docs/product/governance/LOCAL-V1-PILOT-HARDENING-REVIEW.md` -- revalidacao dos 9 findings de D-209, diagnostico definitivo de F4 (demo/start-demo.sh, delta minimo proposto), F7 (Decision Support "Base insuficiente" -- rastreamento completo confirma SELECTION_EMPTY, nao masking de indisponibilidade de IA), F6 (botao Sair, causa raiz em app-shell.tsx), Pilot Hardening Matrix consolidada, zero implementacao.
+
+**Revalidacao dos 9 findings (nenhuma classificacao alterada silenciosamente)**
+- MUST FIX BEFORE PILOT: F3 (pip install --upgrade pip falha no Windows, delta de 1 linha), F4 (venv detection defect, delta de 2 blocos pequenos no script de orquestracao).
+- SHOULD FIX BEFORE PILOT: F7 (documentacao do roteiro -- pergunta de teste sem vocabulario de dominio real causou SELECTION_EMPTY, nao e masking de IA indisponivel), F1/F8 (documentacao recomendada).
+- ACCEPTED FOR PILOT: F5 (nao e defeito de produto), F6 (recomendado, nao bloqueante), F8 (contorno via docker compose exec valido).
+- DOCUMENTATION UPDATE: F1, F2, F5 (opcional), F6 (se nao corrigido em codigo), F7, F8, F9.
+
+**Missão:** zero alteracao em src/web/alembic/docker-compose.yml (diagnostico via leitura de codigo apenas). Arquitetura/RBAC/Tenant Isolation/Advisors/ExecutiveOrchestrator inalterados. GO para implementar o Hardening (F3+F4+documentacao de F7) condicionado a nova Founder Decision explicita. NO-GO para a sessao humana inalterado desde D-209. W7-1/Gates A-D inalterados, nenhuma Production AI Validation, nenhum dado corporativo real, nenhum outro Epic/staging/DR Drill iniciado.
+
+**Decision Log:** D-210.
