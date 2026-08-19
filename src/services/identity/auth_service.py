@@ -213,11 +213,11 @@ def bootstrap_identities(auth_service: AuthService) -> None:
 
 
 __all__ = [
-    "AuthService",
-    "bootstrap_identities",
     "DEFAULT_ORGANIZATION_NAME",
     "DEFAULT_ORGANIZATION_SLUG",
     "DEMO_ORGANIZATION_NAME",
     "DEMO_ORGANIZATION_SLUG",
     "DEMO_USER_EMAIL",
+    "AuthService",
+    "bootstrap_identities",
 ]

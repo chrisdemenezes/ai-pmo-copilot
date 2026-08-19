@@ -30,7 +30,6 @@ from src.services.knowledge_platform.vector_repository import PgVectorRepository
 from src.workflows import document_indexed_workflow
 from src.workflows.execution_tracking import ExecutionTracker
 from src.workflows.runtime import WorkflowRuntime
-
 from tests.db import temp_database_url
 
 
@@ -41,6 +40,7 @@ def _alembic(env, *args):
         env=env,
         capture_output=True,
         text=True,
+        check=False,
     )
     assert result.returncode == 0, result.stderr
     return result

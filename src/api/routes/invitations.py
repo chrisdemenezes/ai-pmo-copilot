@@ -21,7 +21,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, field_validator
 
 from src.api.authorization import require_permission
-from src.api.dependencies import build_event_publisher, build_notification_provider, build_repository
+from src.api.dependencies import (
+    build_event_publisher,
+    build_notification_provider,
+    build_repository,
+)
 from src.api.identity_context import get_request_context
 from src.api.rate_limiter import enforce_rate_limit
 from src.api.security import verify_api_key

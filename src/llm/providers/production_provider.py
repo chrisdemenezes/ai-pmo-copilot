@@ -1,7 +1,11 @@
 import os
 from dataclasses import dataclass, field
 
-from src.llm.providers.base import ProviderConfigError, ProviderUnavailableError, TokenUsage
+from src.llm.providers.base import (
+    ProviderConfigError,
+    ProviderUnavailableError,
+    TokenUsage,
+)
 
 
 @dataclass

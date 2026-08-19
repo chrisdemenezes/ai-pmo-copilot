@@ -2,9 +2,9 @@ import logging
 import os
 import time
 from collections import defaultdict
+from collections.abc import Callable
 from functools import lru_cache
 from threading import Lock
-from typing import Callable
 
 from fastapi import Depends, Header, HTTPException
 

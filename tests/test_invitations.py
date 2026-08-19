@@ -30,6 +30,7 @@ def _alembic(env, *args):
         env=env,
         capture_output=True,
         text=True,
+        check=False,
     )
     assert result.returncode == 0, result.stderr
 
@@ -187,7 +188,7 @@ class TestPreviewAndAccept:
         assert "viewer" in roles
 
     def test_accept_audits_invitation_accepted(self, service, repository, org_id, actor_id):
-        invitation, token = service.create_invitation(org_id, "n@e.com", "viewer", actor_id, correlation_id=CORRELATION_ID)
+        _invitation, token = service.create_invitation(org_id, "n@e.com", "viewer", actor_id, correlation_id=CORRELATION_ID)
         service.accept_invitation(token, "N", "pw-123456")
         actions = [e.action for e in repository.administration.list_audit_log(org_id)]
         assert "invitation.accepted" in actions

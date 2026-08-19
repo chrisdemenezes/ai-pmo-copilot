@@ -18,7 +18,10 @@ from src.services.executive_orchestrator.catalog import (
     ADVISOR_NAMES_REQUIRING_PORTFOLIO_ID,
     VOCABULARY,
 )
-from src.services.executive_orchestrator.types import AdvisorIdentity, SelectionTraceEntry
+from src.services.executive_orchestrator.types import (
+    AdvisorIdentity,
+    SelectionTraceEntry,
+)
 
 
 @dataclass(frozen=True)
@@ -75,9 +78,8 @@ def _scope_type(scope: OrchestrationScope) -> str:
 
 
 def _meets_structural_precondition(advisor_name: str, scope: OrchestrationScope) -> bool:
-    if advisor_name in ADVISOR_NAMES_REQUIRING_PORTFOLIO_ID:
-        if scope.portfolio_id is None:
-            return False
+    if advisor_name in ADVISOR_NAMES_REQUIRING_PORTFOLIO_ID and scope.portfolio_id is None:
+        return False
     return _scope_type(scope) in ADVISOR_ELIGIBLE_SCOPES[advisor_name]
 
 

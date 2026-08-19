@@ -22,7 +22,6 @@ from src.database.repository import AnalysisRepository
 from src.main import app
 from src.services.administration_service import AdministrationService
 from src.services.authorization.checker import SqlPermissionChecker
-
 from tests.db import temp_database_url
 
 
@@ -33,6 +32,7 @@ def _alembic(env, *args):
         env=env,
         capture_output=True,
         text=True,
+        check=False,
     )
     assert result.returncode == 0, result.stderr
     return result

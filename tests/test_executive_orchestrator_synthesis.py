@@ -11,7 +11,12 @@ import json
 import pytest
 
 from src.prompts.registry import PromptRegistry
-from src.services.ai_foundation.types import Evidence, Explanation, Recommendation, SessionContext
+from src.services.ai_foundation.types import (
+    Evidence,
+    Explanation,
+    Recommendation,
+    SessionContext,
+)
 from src.services.executive_orchestrator import synthesis as synthesis_module
 from src.services.executive_orchestrator.synthesis import synthesize
 from src.services.executive_orchestrator.types import AttributedExplanation

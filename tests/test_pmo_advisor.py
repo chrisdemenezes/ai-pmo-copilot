@@ -339,7 +339,7 @@ class TestScenarioK_IsolamentoOrganizacional:
 
 class TestScenarioL_NenhumaChamadaAoLlmSemEvidencia:
     def test_no_llm_call_when_evidence_is_empty(self, repo, domain_service):
-        org_id, program_id = _org_with_project(domain_service, repo)
+        org_id, _program_id = _org_with_project(domain_service, repo)
         # No projects at all -- organization is entirely empty.
 
         framework = _framework(repo, _ExplodingProvider())

@@ -10,11 +10,10 @@ module uses (`portfolio.py`, `program.py`, `project_delivery.py`,
 """
 import logging
 from datetime import datetime
-
 from typing import Literal
 
-from pydantic import BaseModel, Field, field_validator, model_validator
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from src.agents.delivery_advisor.agent import DeliveryAdvisorAgent
 from src.agents.document_advisor.agent import DocumentAdvisorAgent
@@ -24,48 +23,51 @@ from src.agents.executive_advisor.evidence_assembler import (
     ExecutiveEvidenceAssembler,
 )
 from src.agents.governance_advisor.agent import GovernanceAdvisorAgent
+from src.agents.meeting_intelligence.agent import MeetingIntelligenceAgent
 from src.agents.pmo_advisor.agent import PMOAdvisorAgent
 from src.agents.pmo_advisor.evidence_assembler import (
     PMOAssemblyResult,
     PMOEvidenceAssembler,
-)
-from src.agents.strategy_advisor.agent import StrategyAdvisorAgent
-from src.agents.strategy_advisor.evidence_assembler import (
-    StrategyAssemblyResult,
-    StrategyEvidenceAssembler,
 )
 from src.agents.portfolio_advisor.agent import PortfolioAdvisorAgent
 from src.agents.portfolio_advisor.evidence_assembler import (
     PortfolioAssemblyResult,
     PortfolioEvidenceAssembler,
 )
-from src.agents.meeting_intelligence.agent import MeetingIntelligenceAgent
 from src.agents.project_status.agent import ProjectStatusAgent
 from src.agents.risk_advisor.agent import RiskAdvisorAgent
 from src.agents.risk_review.agent import RiskReviewAgent
+from src.agents.strategy_advisor.agent import StrategyAdvisorAgent
+from src.agents.strategy_advisor.evidence_assembler import (
+    StrategyAssemblyResult,
+    StrategyEvidenceAssembler,
+)
 from src.api.authorization import require_permission
 from src.api.dependencies import build_event_publisher, build_repository
-from src.api.routes.portfolio import build_domain_service
 from src.api.identity_context import get_request_context
 from src.api.rate_limiter import enforce_rate_limit
+from src.api.routes.portfolio import build_domain_service
 from src.api.security import verify_api_key
 from src.database.enterprise_repository import (
     AmbiguousProjectNameError,
     ProjectNotFoundError,
     ProjectReferenceMismatchError,
 )
+from src.database.repository import AnalysisRepository, analysis_display_name
 from src.llm.providers.base import LLMProvider
 from src.llm.providers.factory import get_provider
 from src.prompts.registry import PromptRegistry
-from src.database.repository import AnalysisRepository, analysis_display_name
 from src.services.advisor_framework.framework import AdvisorFramework
 from src.services.advisor_framework.types import AdvisorExecutionError
-from src.services.domain_service import DomainService
 from src.services.ai_foundation.types import Evidence, SessionContext
+from src.services.domain_service import DomainService
 from src.services.events.interfaces import EventPublisher
 from src.services.executive_orchestrator.catalog import ADVISOR_IDENTITY_CATALOG
 from src.services.executive_orchestrator.orchestrator import ExecutiveOrchestrator
-from src.services.executive_orchestrator.selection_rule import OrchestrationScope, SelectionSignals
+from src.services.executive_orchestrator.selection_rule import (
+    OrchestrationScope,
+    SelectionSignals,
+)
 from src.services.executive_orchestrator.types import Capability
 from src.services.identity.models import RequestContext
 from src.services.knowledge_platform.embedding_provider import get_embedding_provider

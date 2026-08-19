@@ -9,7 +9,10 @@ judgment remains exclusively human (Vision, Princípio 5).
 """
 from itertools import combinations
 
-from src.services.executive_orchestrator.types import AttributedExplanation, CorrelationFinding
+from src.services.executive_orchestrator.types import (
+    AttributedExplanation,
+    CorrelationFinding,
+)
 
 # Static, versioned pairs of Advisor Identities whose own declared
 # institutional identities represent structurally distinct perspectives on

@@ -12,6 +12,7 @@ EnterpriseRepository -- never bypass it for writes to these tables.
 """
 from datetime import datetime, timezone
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     JSON,
     Boolean,
@@ -25,7 +26,6 @@ from sqlalchemy import (
     UniqueConstraint,
     text,
 )
-from pgvector.sqlalchemy import Vector
 
 from src.database.base import Base
 

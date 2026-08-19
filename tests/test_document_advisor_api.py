@@ -15,7 +15,6 @@ import subprocess
 import sys
 
 import pytest
-
 from fastapi.testclient import TestClient
 
 from src.api import authorization as authorization_module
@@ -29,7 +28,6 @@ from src.services.events.in_process_publisher import InProcessEventPublisher
 from src.services.knowledge_platform.embedding_provider import MockEmbeddingProvider
 from src.services.knowledge_platform.knowledge_repository import KnowledgeRepository
 from src.services.knowledge_platform.vector_repository import PgVectorRepository
-
 from tests.db import temp_database_url
 
 CORRELATION_ID = "test-correlation-id"
@@ -42,6 +40,7 @@ def _alembic(env, *args):
         env=env,
         capture_output=True,
         text=True,
+        check=False,
     )
     assert result.returncode == 0, result.stderr
     return result

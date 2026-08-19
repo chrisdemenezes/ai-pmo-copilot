@@ -16,7 +16,6 @@ import sys
 from datetime import datetime, timedelta, timezone
 
 import pytest
-
 from fastapi.testclient import TestClient
 
 from src.api import authorization as authorization_module
@@ -25,7 +24,6 @@ from src.database.repository import AnalysisRecord, AnalysisRepository
 from src.main import app
 from src.services.authorization.checker import SqlPermissionChecker
 from src.services.domain_service import DomainService
-
 from tests.db import temp_database_url
 
 CORRELATION_ID = "test-correlation-id"
@@ -60,6 +58,7 @@ def client():
             env=env,
             capture_output=True,
             text=True,
+            check=False,
         )
         assert result.returncode == 0, result.stderr
 
@@ -305,7 +304,7 @@ class TestScenarioJ_IsolamentoOrganizacional:
 class TestRbac:
     def test_user_with_no_role_is_denied(self, client):
         test_client, repo, domain_service = client
-        org_id, user_id, program_id = _org_with_program(domain_service, repo)
+        org_id, _user_id, _program_id = _org_with_program(domain_service, repo)
         no_role_id = repo.enterprise.create_user(org_id, "norole@example.com", "No Role")
 
         response = test_client.post(
@@ -318,7 +317,7 @@ class TestRbac:
         assert response.json()["detail"] == "missing permission: intelligence.read"
 
     def test_viewer_can_ask(self, client):
-        test_client, repo, domain_service = client
+        test_client, repo, _domain_service = client
         org_id = repo.enterprise.create_organization("Org Viewer")
         viewer_id = _actor(repo, org_id, "viewer")
 
@@ -356,7 +355,7 @@ class TestMalformedResponse:
 class TestAuditTrail:
     def test_records_an_audit_entry_without_the_llm_answer(self, client):
         test_client, repo, domain_service = client
-        org_id, user_id, program_id = _org_with_program(domain_service, repo)
+        org_id, user_id, _program_id = _org_with_program(domain_service, repo)
 
         response = test_client.post(
             "/api/executive-advisor/ask",

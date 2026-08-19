@@ -13,7 +13,6 @@ import subprocess
 import sys
 
 import pytest
-
 from fastapi.testclient import TestClient
 
 from src.api import authorization as authorization_module
@@ -25,7 +24,6 @@ from src.services.authorization.checker import SqlPermissionChecker
 from src.services.domain_service import DomainService
 from src.services.events.dispatcher import EventDispatcher
 from src.services.events.in_process_publisher import InProcessEventPublisher
-
 from tests.db import temp_database_url
 
 
@@ -36,6 +34,7 @@ def _alembic(env, *args):
         env=env,
         capture_output=True,
         text=True,
+        check=False,
     )
     assert result.returncode == 0, result.stderr
     return result

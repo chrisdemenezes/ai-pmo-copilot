@@ -7,7 +7,7 @@ immediately after `get_request_context` -- exactly the seam
 changing any route's signature otherwise.
 """
 import logging
-from typing import Callable
+from collections.abc import Callable
 
 from fastapi import Depends, HTTPException
 

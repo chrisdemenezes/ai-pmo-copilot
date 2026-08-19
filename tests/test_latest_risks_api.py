@@ -14,7 +14,7 @@ class _UnseededEnterprise:
 
     def resolve_project_reference(self, organization_id, project_id=None, project_name=None):
         if project_id is None and (project_name is None or project_name.strip() == ""):
-            return None
+            return
         raise ProjectNotFoundError("no Project rows in this stub")
 
 

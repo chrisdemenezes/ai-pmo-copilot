@@ -57,8 +57,8 @@ def test_protected_route_returns_200_when_api_key_header_is_correct(monkeypatch)
         def has_permission(self, user_id, permission):
             return True
 
-    from src.api.routes import intelligence
     from src.api import authorization as authorization_module
+    from src.api.routes import intelligence
 
     app.dependency_overrides[intelligence.build_repository] = lambda: FakeRepository()
     app.dependency_overrides[authorization_module.build_permission_checker] = (

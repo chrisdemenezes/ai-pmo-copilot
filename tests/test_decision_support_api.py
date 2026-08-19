@@ -20,7 +20,6 @@ import subprocess
 import sys
 
 import pytest
-
 from fastapi.testclient import TestClient
 
 from src.api import authorization as authorization_module
@@ -29,7 +28,6 @@ from src.database.repository import AnalysisRepository
 from src.main import app
 from src.services.authorization.checker import SqlPermissionChecker
 from src.services.domain_service import DomainService
-
 from tests.db import temp_database_url
 
 CORRELATION_ID = "test-correlation-id"
@@ -94,6 +92,7 @@ def client():
             env=env,
             capture_output=True,
             text=True,
+            check=False,
         )
         assert result.returncode == 0, result.stderr
 
@@ -193,7 +192,7 @@ class TestFullChainWithRealCitations:
 
 class TestInsufficientBasis:
     def test_irrelevant_question_declares_selection_empty_with_zero_llm_calls(self, client):
-        test_client, repo, domain_service = client
+        test_client, repo, _domain_service = client
         org_id = repo.enterprise.create_organization("Org A")
         user_id = _actor(repo, org_id)
 
@@ -378,7 +377,7 @@ class Test10MandatoryScopeScenarios:
         test_client, repo, domain_service = client
         org_id = repo.enterprise.create_organization("Org A")
         user_id = _actor(repo, org_id)
-        portfolio, program, project_a = _build_project(
+        _portfolio, program, project_a = _build_project(
             domain_service, org_id, user_id, project_name="Aurora", portfolio_code="PF-A"
         )
         domain_service.create_project(org_id, program.id, "Boreal", user_id, correlation_id=CORRELATION_ID)

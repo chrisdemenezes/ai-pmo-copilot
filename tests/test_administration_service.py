@@ -73,7 +73,7 @@ class TestAuthenticateApiKey:
     def test_rejects_a_key_with_the_right_prefix_but_wrong_secret(
         self, service, org_id, actor_id
     ):
-        api_key, plaintext_key = service.create_api_key(org_id, "CI pipeline", actor_id)
+        _api_key, plaintext_key = service.create_api_key(org_id, "CI pipeline", actor_id)
         tampered = plaintext_key[:-1] + ("a" if plaintext_key[-1] != "a" else "b")
 
         assert service.authenticate_api_key(tampered) is None

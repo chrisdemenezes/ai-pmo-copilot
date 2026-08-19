@@ -25,7 +25,10 @@ from src.services.ai_foundation.types import SessionContext
 from src.services.domain_service import DomainService
 from src.services.executive_orchestrator.correlation import correlate
 from src.services.executive_orchestrator.provisioning import provision
-from src.services.executive_orchestrator.selection_rule import SelectionSignals, evaluate_selection_rule
+from src.services.executive_orchestrator.selection_rule import (
+    SelectionSignals,
+    evaluate_selection_rule,
+)
 from src.services.executive_orchestrator.synthesis import synthesize
 from src.services.executive_orchestrator.types import (
     AttributedExplanation,

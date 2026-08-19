@@ -15,12 +15,13 @@ inserted after `get_request_context`, exactly the seam
 signature or response shape changed to add it.
 """
 import logging
+from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from datetime import date
 
 from src.api.authorization import require_permission
+from src.api.dependencies import build_event_publisher, build_repository
 from src.api.identity_context import get_request_context
 from src.api.rate_limiter import enforce_rate_limit
 from src.api.security import verify_api_key
@@ -28,7 +29,6 @@ from src.database.repository import AnalysisRepository
 from src.services.domain_service import DomainService
 from src.services.events.interfaces import EventPublisher
 from src.services.identity.models import RequestContext
-from src.api.dependencies import build_event_publisher, build_repository
 
 logger = logging.getLogger(__name__)
 

@@ -17,7 +17,6 @@ import sys
 from datetime import datetime, timezone
 
 import pytest
-
 from fastapi.testclient import TestClient
 
 from src.api import authorization as authorization_module
@@ -26,7 +25,6 @@ from src.database.repository import AnalysisRecord, AnalysisRepository
 from src.main import app
 from src.services.authorization.checker import SqlPermissionChecker
 from src.services.domain_service import DomainService
-
 from tests.db import temp_database_url
 
 CORRELATION_ID = "test-correlation-id"
@@ -60,6 +58,7 @@ def client():
             env=env,
             capture_output=True,
             text=True,
+            check=False,
         )
         assert result.returncode == 0, result.stderr
 

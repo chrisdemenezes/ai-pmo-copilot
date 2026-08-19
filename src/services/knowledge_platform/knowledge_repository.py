@@ -12,7 +12,11 @@ from sqlalchemy.orm import sessionmaker
 from src.database.models import Chunk, Document, DocumentVersion
 from src.services.events.interfaces import EventPublisher
 from src.services.knowledge_platform.embedding_provider import EmbeddingProvider
-from src.services.knowledge_platform.types import DocumentVersionInfo, IngestedDocument, ScoredChunk
+from src.services.knowledge_platform.types import (
+    DocumentVersionInfo,
+    IngestedDocument,
+    ScoredChunk,
+)
 from src.services.knowledge_platform.vector_repository import VectorRepository
 
 logger = logging.getLogger(__name__)

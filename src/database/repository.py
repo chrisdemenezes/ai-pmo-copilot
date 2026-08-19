@@ -1,19 +1,22 @@
 import logging
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, JSON
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship, sessionmaker
 
-from src.database.base import Base
-from src.database.engine import build_engine, resolve_database_url
 # Imported for its side effect: registers the Enterprise Foundation tables on
 # Base.metadata so create_all provisions the full schema on installs that do
 # not run alembic (the SQLite/demo path).
 from src.database import models  # noqa: F401
-from src.database.enterprise_repository import EnterpriseRepository, ProjectNotFoundError
-from src.database.domain_repository import DomainRepository
 from src.database.administration_repository import AdministrationRepository
+from src.database.base import Base
+from src.database.domain_repository import DomainRepository
+from src.database.engine import build_engine, resolve_database_url
+from src.database.enterprise_repository import (
+    EnterpriseRepository,
+    ProjectNotFoundError,
+)
 from src.database.project_identity import FALLBACK_PROJECT_NAME
-from sqlalchemy.orm import relationship, sessionmaker
 
 logger = logging.getLogger(__name__)
 

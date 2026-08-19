@@ -25,7 +25,10 @@ from src.services.executive_orchestrator import orchestrator as orchestrator_mod
 from src.services.executive_orchestrator import provisioning as provisioning_module
 from src.services.executive_orchestrator.orchestrator import ExecutiveOrchestrator
 from src.services.executive_orchestrator.selection_rule import SelectionSignals
-from src.services.executive_orchestrator.types import Capability, InsufficientBasisReason
+from src.services.executive_orchestrator.types import (
+    Capability,
+    InsufficientBasisReason,
+)
 from src.services.knowledge_platform.embedding_provider import MockEmbeddingProvider
 from src.services.knowledge_platform.knowledge_repository import KnowledgeRepository
 from src.services.knowledge_platform.rag_pipeline import RagPipeline

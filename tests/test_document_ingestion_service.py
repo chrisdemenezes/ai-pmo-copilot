@@ -6,8 +6,8 @@ composition the `/documents` HTTP routes call -- `KnowledgeRepository`
 import pytest
 from sqlalchemy import select
 
-from src.database.repository import AnalysisRepository
 from src.database.models import WorkflowExecution
+from src.database.repository import AnalysisRepository
 from src.services.events.dispatcher import EventDispatcher
 from src.services.events.in_process_publisher import InProcessEventPublisher
 from src.services.knowledge_platform.document_ingestion_service import (
@@ -22,7 +22,6 @@ from src.services.knowledge_platform.vector_repository import PgVectorRepository
 from src.workflows import document_indexed_workflow
 from src.workflows.execution_tracking import ExecutionTracker
 from src.workflows.runtime import WorkflowRuntime
-
 from tests.db import temp_database_url
 
 CORRELATION_ID = "w5-0-test-correlation"

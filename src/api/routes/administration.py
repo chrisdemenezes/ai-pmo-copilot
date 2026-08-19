@@ -34,9 +34,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from src.api.authorization import require_permission
+from src.api.dependencies import build_repository
 from src.api.identity_context import get_request_context
 from src.api.rate_limiter import enforce_rate_limit
-from src.api.dependencies import build_repository
 from src.api.security import verify_api_key
 from src.database.enterprise_repository import (
     EmailConflictError,
