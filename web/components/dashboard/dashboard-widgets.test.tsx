@@ -5,18 +5,18 @@ import { PortfolioSummaryStrip } from "./portfolio-summary-strip";
 import { ProjectHealthGrid } from "./project-health-grid";
 import { HealthStatusDistribution } from "./health-status-distribution";
 import { RiskConcentrationRanking } from "./risk-concentration-ranking";
-import type { ProjectSummary } from "@/lib/dashboard/types";
+import type { ProjectIntelligenceSummary } from "@/lib/project/intelligence-summary";
 
-const projects: ProjectSummary[] = [
+const projects: ProjectIntelligenceSummary[] = [
   {
-    project_name: "Multilift",
+    project_name: "Multilift", project_id: 1,
     total_analyses: 5,
     open_risks: 3,
     pending_action_items: 2,
     latest_health_status: "red",
   },
   {
-    project_name: "Aurora",
+    project_name: "Aurora", project_id: 1,
     total_analyses: 2,
     open_risks: 0,
     pending_action_items: 0,
@@ -89,7 +89,7 @@ describe("ProjectHealthGrid", () => {
       <ProjectHealthGrid
         projects={[
           {
-            project_name: "Implantacao SAP S/4HANA",
+            project_name: "Implantacao SAP S/4HANA", project_id: 1,
             total_analyses: 2,
             open_risks: 4,
             pending_action_items: 0,

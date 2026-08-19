@@ -18,6 +18,7 @@ def test_alembic_upgrade_head_matches_sqlalchemy_model():
             env=env,
             capture_output=True,
             text=True,
+            check=False,
         )
         assert result.returncode == 0, result.stderr
 
@@ -27,14 +28,26 @@ def test_alembic_upgrade_head_matches_sqlalchemy_model():
         assert "analysis_records" in inspector.get_table_names()
 
         columns = {col["name"]: col for col in inspector.get_columns("analysis_records")}
-        assert set(columns) == {"id", "kind", "project_name", "project_id", "payload", "created_at"}
+        # TD-008 Fase 3b, Etapa 4b: the legacy project_name column was dropped
+        # by migration 0015; project_id is the sole, mandatory identity key.
+        assert set(columns) == {
+            "id",
+            "kind",
+            "project_id",
+            "organization_id",
+            "payload",
+            "created_at",
+        }
         assert not columns["id"]["nullable"]
         assert not columns["kind"]["nullable"]
-        assert columns["project_name"]["nullable"]
-        # Nullable during the Release 0.1 transition; NOT NULL lands in Épico 4.
-        assert columns["project_id"]["nullable"]
+        # project_id is NOT NULL since migration 0015 (Etapa 4b).
+        assert not columns["project_id"]["nullable"]
+        # NOT NULL since migration 0010 (Security Hardening Gate, C-2).
+        assert not columns["organization_id"]["nullable"]
         assert not columns["payload"]["nullable"]
 
         index_names = {idx["name"] for idx in inspector.get_indexes("analysis_records")}
-        assert "ix_analysis_records_project_name" in index_names
+        # ix_analysis_records_project_name dropped with the column (0015).
+        assert "ix_analysis_records_project_name" not in index_names
         assert "ix_analysis_records_project_id" in index_names
+        assert "ix_analysis_records_organization_id" in index_names

@@ -51,13 +51,11 @@ test("shows a Persistiu Executive Memory Insight when the same attention status 
 // parte de "yellow" (id 301, a mais recente antes da submissão) -- a
 // mudança real de estado deve aparecer como Insight, não apenas no badge.
 //
-// Compartilha uma raridade intermitente já documentada na Decision Center
-// (TIP-009): se o fetch inicial de "workspace-latest"/"workspace-recent"
-// ainda está em voo no instante em que a mutação invalida as queries, o
-// React Query não dispara um segundo fetch (já há um em voo) -- a
-// invalidação é "engolida" pela resolução do fetch obsoleto. Pré-existente
-// (mesmo mecanismo do use-workspace-latest.ts do TIP-004/005), não
-// introduzido por este Incremento -- fora de escopo reabrir aqui.
+// A raridade intermitente que existia aqui (TD-006, mesmo mecanismo do
+// TD-004/005) foi fechada em useSubmitProjectStatus (use-submit-project-
+// status.ts): `cancelQueries` roda antes de `invalidateQueries` em
+// "workspace-latest"/"workspace-recent" para que um fetch inicial ainda em
+// voo não engula mais a invalidação.
 test("shows a Mudou Executive Memory Insight right after Analisar Projeto changes the health status", async ({
   page,
 }) => {

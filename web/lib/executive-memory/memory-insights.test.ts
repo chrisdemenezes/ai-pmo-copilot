@@ -10,6 +10,7 @@ function statusAnalysis(
   return {
     id: 1,
     kind: "status",
+    project_id: 1,
     project_name: "Aurora",
     created_at: "2026-07-14T00:00:00Z",
     payload: {
@@ -84,6 +85,7 @@ function riskAnalysis(
   return {
     id: 1,
     kind: "risk",
+    project_id: 1,
     project_name: "Aurora",
     created_at: "2026-07-14T00:00:00Z",
     payload: {

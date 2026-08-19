@@ -28,7 +28,7 @@ describe("proxy", () => {
   });
 
   it("passes /dashboard through with a valid session cookie", async () => {
-    const { token } = createSessionToken(1, 1);
+    const { token } = createSessionToken(1, 1, "test-session");
     const response = proxy(requestFor("/dashboard", token));
     expect(response.status).toBe(200);
   });
@@ -62,7 +62,7 @@ describe("proxy", () => {
   });
 
   it("passes /workspace/:projectName through with a valid session cookie", async () => {
-    const { token } = createSessionToken(1, 1);
+    const { token } = createSessionToken(1, 1, "test-session");
     const response = proxy(requestFor("/workspace/Aurora", token));
     expect(response.status).toBe(200);
   });
@@ -75,7 +75,7 @@ describe("proxy", () => {
   });
 
   it("passes /projects through with a valid session cookie", async () => {
-    const { token } = createSessionToken(1, 1);
+    const { token } = createSessionToken(1, 1, "test-session");
     const response = proxy(requestFor("/projects", token));
     expect(response.status).toBe(200);
   });
@@ -88,7 +88,7 @@ describe("proxy", () => {
   });
 
   it("passes /actions through with a valid session cookie", async () => {
-    const { token } = createSessionToken(1, 1);
+    const { token } = createSessionToken(1, 1, "test-session");
     const response = proxy(requestFor("/actions", token));
     expect(response.status).toBe(200);
   });
@@ -101,7 +101,7 @@ describe("proxy", () => {
   });
 
   it("passes /decisions through with a valid session cookie", async () => {
-    const { token } = createSessionToken(1, 1);
+    const { token } = createSessionToken(1, 1, "test-session");
     const response = proxy(requestFor("/decisions", token));
     expect(response.status).toBe(200);
   });
@@ -114,7 +114,7 @@ describe("proxy", () => {
   });
 
   it("passes /portfolio through with a valid session cookie", async () => {
-    const { token } = createSessionToken(1, 1);
+    const { token } = createSessionToken(1, 1, "test-session");
     const response = proxy(requestFor("/portfolio", token));
     expect(response.status).toBe(200);
   });
@@ -127,7 +127,7 @@ describe("proxy", () => {
   });
 
   it("passes /aprendizados through with a valid session cookie", async () => {
-    const { token } = createSessionToken(1, 1);
+    const { token } = createSessionToken(1, 1, "test-session");
     const response = proxy(requestFor("/aprendizados", token));
     expect(response.status).toBe(200);
   });

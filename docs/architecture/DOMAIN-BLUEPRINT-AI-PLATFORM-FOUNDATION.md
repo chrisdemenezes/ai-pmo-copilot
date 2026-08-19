@@ -1,3 +1,5 @@
+> **Nota de superação (2026-07-23, D-047):** o Founder redefiniu permanentemente o escopo do Epic W3-2 nesta mesma data, sob uma nova decisão estratégica ("STRATECH é um Executive Decision Operating System"). A avaliação abaixo permanece correta para o escopo que avaliou (Provider Strategy/Model Registry/Model Routing/Prompt Versioning — nenhum consumidor real hoje). O novo escopo do W3-2 ("Digital PMO Intelligence Foundation") foi implementado — ver `DOMAIN-BLUEPRINT-W3-2-Digital-PMO-Intelligence-Foundation.md`, `AR-3-W3-2-DIGITAL-PMO-FOUNDATION-REVIEW.md`, `TECHNICAL-DESIGN-W3-2-DIGITAL-PMO-FOUNDATION.md` e `docs/product/governance/W3-2-DIGITAL-PMO-FOUNDATION-EXECUTIVE-REPORT.md`. Este documento é preservado sem edição além desta nota, per a disciplina de nunca reescrever retroativamente uma decisão já registrada.
+
 # Domain Blueprint — Epic W3-2: AI Platform Foundation
 
 **Wave:** 3, Epic W3-2 (liberado pela AR-2).

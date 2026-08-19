@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AnalysisDetailDialog } from "@/components/workspace/analysis-history";
 import { useActionItems } from "@/lib/hooks/use-action-items";
+import { useResolvedProjectId } from "@/lib/hooks/use-resolved-project-id";
 import {
   URGENCY_ORDER,
   attentionHeadline,
@@ -25,7 +26,10 @@ import type { ActionItemView } from "@/lib/workspace/types";
  * independentes dos demais painéis (padrão Executive Brief).
  */
 export function ActionsSection({ projectName }: { projectName: string }) {
-  const actionItems = useActionItems(projectName);
+  // TD-008 Fase 3b, Etapa 3: chave exata pelo project_id resolvido (summary
+  // deduplicado); fallback por nome enquanto não resolvido.
+  const projectId = useResolvedProjectId(projectName);
+  const actionItems = useActionItems(projectName, projectId);
 
   return (
     <section className="flex flex-col gap-3" aria-labelledby="actions-heading">

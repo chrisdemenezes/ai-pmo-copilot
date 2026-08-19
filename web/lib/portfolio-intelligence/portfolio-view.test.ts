@@ -2,11 +2,26 @@ import { describe, expect, it } from "vitest";
 
 import { buildExecutivePortfolioView } from "./portfolio-view";
 import type { ExecutiveDecision } from "@/lib/decision-center/decision-queue";
-import type { ProjectSummary } from "@/lib/dashboard/types";
+import type { ProjectIntelligenceSummary } from "@/lib/project/intelligence-summary";
 
-function project(overrides: Partial<ProjectSummary>): ProjectSummary {
+// Stable project_name -> project_id registry so a project and its decision
+// sharing a name share an identity key, and distinct names get distinct ids
+// (TD-008 Fase 3b, Etapa 4a: portfolio joins are by project_id).
+const PROJECT_IDS = new Map<string, number>();
+let nextProjectId = 1;
+function pidFor(name: string): number {
+  const existing = PROJECT_IDS.get(name);
+  if (existing !== undefined) return existing;
+  const id = nextProjectId++;
+  PROJECT_IDS.set(name, id);
+  return id;
+}
+
+function project(overrides: Partial<ProjectIntelligenceSummary>): ProjectIntelligenceSummary {
+  const project_name = overrides.project_name ?? "Aurora";
   return {
-    project_name: "Aurora",
+    project_id: pidFor(project_name),
+    project_name,
     total_analyses: 1,
     open_risks: 0,
     pending_action_items: 0,
@@ -16,8 +31,10 @@ function project(overrides: Partial<ProjectSummary>): ProjectSummary {
 }
 
 function decision(overrides: Partial<ExecutiveDecision>): ExecutiveDecision {
+  const project_name = overrides.project_name ?? "Aurora";
   return {
-    project_name: "Aurora",
+    project_id: pidFor(project_name),
+    project_name,
     source: "status",
     window: "hoje",
     context: "Status: Crítico",
@@ -179,5 +196,27 @@ describe("buildExecutivePortfolioView", () => {
       "risk_to_monitor",
       "no_signal",
     ]);
+  });
+
+  // TD-008 Fase 3b, Etapa 4a: the project<->decision join is by project_id.
+  it("joins a decision to its project by id even when the display names differ", () => {
+    const portfolio = [project({ project_id: 42, project_name: "Projeto SAP", latest_health_status: "red" })];
+    const decisions = [decision({ project_id: 42, project_name: "SAP", window: "hoje" })];
+
+    const [item] = buildExecutivePortfolioView(portfolio, decisions);
+
+    expect(item.layer).toBe("decision_today");
+    expect(item.project_name).toBe("Projeto SAP");
+  });
+
+  it("does not join a decision whose id differs, even with an identical display name", () => {
+    const portfolio = [project({ project_id: 42, project_name: "SAP", open_risks: 0, latest_health_status: "green" })];
+    const decisions = [decision({ project_id: 43, project_name: "SAP", window: "hoje" })];
+
+    const [item] = buildExecutivePortfolioView(portfolio, decisions);
+
+    // The decision belongs to a different identity -> the project falls to
+    // no_signal, not decision_today.
+    expect(item.layer).toBe("no_signal");
   });
 });

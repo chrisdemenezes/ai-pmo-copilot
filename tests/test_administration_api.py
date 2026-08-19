@@ -4,7 +4,6 @@ import subprocess
 import sys
 
 import pytest
-
 from fastapi.testclient import TestClient
 
 from src.api import authorization as authorization_module
@@ -13,7 +12,6 @@ from src.database.repository import AnalysisRepository
 from src.main import app
 from src.services.administration_service import AdministrationService
 from src.services.authorization.checker import SqlPermissionChecker
-
 from tests.db import temp_database_url
 
 
@@ -24,6 +22,7 @@ def _alembic(env, *args):
         env=env,
         capture_output=True,
         text=True,
+        check=False,
     )
     assert result.returncode == 0, result.stderr
     return result
@@ -189,6 +188,8 @@ class TestRoles:
             "portfolio.read",
             "program.read",
             "project_delivery.read",
+            "intelligence.read",
+            "knowledge.read",
         }
 
     def test_assign_role(self, client):
@@ -544,9 +545,11 @@ class TestAuditLog:
 
         from src.api.routes import portfolio as portfolio_routes
         from src.services.domain_service import DomainService
+        from src.services.events.dispatcher import EventDispatcher
+        from src.services.events.in_process_publisher import InProcessEventPublisher
 
         app.dependency_overrides[portfolio_routes.build_domain_service] = (
-            lambda: DomainService(repo)
+            lambda: DomainService(repo, InProcessEventPublisher(repo.SessionLocal, EventDispatcher(repo.SessionLocal)))
         )
         try:
             create_response = test_client.post(
@@ -598,5 +601,203 @@ class TestSecurity:
         viewer_id = _actor(repo, org_id, "viewer")
 
         response = test_client.get("/api/admin/security", headers=_headers(org_id, viewer_id))
+
+        assert response.status_code == 403
+
+
+class TestApiKeys:
+    """D-051 -- a foundational Enterprise Administration credential, not an
+    Integration Hub artifact (DOMAIN-BLUEPRINT-API-KEYS.md)."""
+
+    def test_create_api_key_returns_the_plaintext_key_exactly_once(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        admin_id = _actor(repo, org_id)
+
+        response = test_client.post(
+            "/api/admin/api-keys",
+            headers=_headers(org_id, admin_id),
+            json={"name": "CI pipeline"},
+        )
+
+        assert response.status_code == 201
+        body = response.json()
+        assert body["name"] == "CI pipeline"
+        assert body["plaintext_key"].startswith("sk_live_")
+        assert body["key_prefix"] == body["plaintext_key"][: len(body["key_prefix"])]
+        assert body["revoked_at"] is None
+        assert body["last_used_at"] is None
+        assert "hashed_secret" not in body
+
+    def test_list_api_keys_never_includes_the_plaintext_key(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        admin_id = _actor(repo, org_id)
+        test_client.post(
+            "/api/admin/api-keys", headers=_headers(org_id, admin_id), json={"name": "Key A"}
+        )
+
+        response = test_client.get("/api/admin/api-keys", headers=_headers(org_id, admin_id))
+
+        assert response.status_code == 200
+        [key] = response.json()
+        assert key["name"] == "Key A"
+        assert "plaintext_key" not in key
+        assert "hashed_secret" not in key
+
+    def test_list_api_keys_is_scoped_by_organization(self, client):
+        test_client, repo = client
+        org_a = repo.enterprise.create_organization("Org A")
+        org_b = repo.enterprise.create_organization("Org B")
+        admin_a = _actor(repo, org_a)
+        admin_b = _actor(repo, org_b)
+        test_client.post(
+            "/api/admin/api-keys", headers=_headers(org_a, admin_a), json={"name": "Key A"}
+        )
+        test_client.post(
+            "/api/admin/api-keys", headers=_headers(org_b, admin_b), json={"name": "Key B"}
+        )
+
+        response = test_client.get("/api/admin/api-keys", headers=_headers(org_a, admin_a))
+
+        assert [k["name"] for k in response.json()] == ["Key A"]
+
+    def test_revoke_api_key(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        admin_id = _actor(repo, org_id)
+        created = test_client.post(
+            "/api/admin/api-keys", headers=_headers(org_id, admin_id), json={"name": "Key A"}
+        ).json()
+
+        response = test_client.delete(
+            f"/api/admin/api-keys/{created['id']}", headers=_headers(org_id, admin_id)
+        )
+
+        assert response.status_code == 200
+        assert response.json()["revoked_at"] is not None
+        [key] = test_client.get(
+            "/api/admin/api-keys", headers=_headers(org_id, admin_id)
+        ).json()
+        assert key["revoked_at"] is not None
+
+    def test_revoke_unknown_api_key_returns_404(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        admin_id = _actor(repo, org_id)
+
+        response = test_client.delete(
+            "/api/admin/api-keys/999999", headers=_headers(org_id, admin_id)
+        )
+
+        assert response.status_code == 404
+
+    def test_cannot_revoke_an_api_key_from_another_organization(self, client):
+        test_client, repo = client
+        org_a = repo.enterprise.create_organization("Org A")
+        org_b = repo.enterprise.create_organization("Org B")
+        admin_a = _actor(repo, org_a)
+        admin_b = _actor(repo, org_b)
+        created = test_client.post(
+            "/api/admin/api-keys", headers=_headers(org_a, admin_a), json={"name": "Key A"}
+        ).json()
+
+        response = test_client.delete(
+            f"/api/admin/api-keys/{created['id']}", headers=_headers(org_b, admin_b)
+        )
+
+        assert response.status_code == 404
+
+    def test_viewer_cannot_manage_api_keys(self, client):
+        """api_keys.manage is organization_admin only (migration 0011) --
+        issuing a credential that authenticates as its creator is at least
+        as sensitive as administration.write."""
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        viewer_id = _actor(repo, org_id, "viewer")
+
+        response = test_client.get("/api/admin/api-keys", headers=_headers(org_id, viewer_id))
+
+        assert response.status_code == 403
+
+    def test_pmo_cannot_manage_api_keys(self, client):
+        """Unlike administration.read (organization_admin + pmo),
+        api_keys.manage is organization_admin only."""
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        pmo_id = _actor(repo, org_id, "pmo")
+
+        response = test_client.post(
+            "/api/admin/api-keys", headers=_headers(org_id, pmo_id), json={"name": "Key A"}
+        )
+
+        assert response.status_code == 403
+
+
+class TestSessions:
+    """Item 5 -- server-side sessions (resolves TD-010)."""
+
+    def test_list_sessions_returns_only_active_scoped_by_organization(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        admin_id = _actor(repo, org_id)
+        repo.administration.create_session("sess-active", admin_id, org_id)
+        repo.administration.create_session("sess-revoked", admin_id, org_id)
+        repo.administration.revoke_session("sess-revoked")
+
+        response = test_client.get("/api/admin/sessions", headers=_headers(org_id, admin_id))
+
+        assert response.status_code == 200
+        body = response.json()
+        assert [s["id"] for s in body] == ["sess-active"]
+        assert body[0]["user_id"] == admin_id
+
+    def test_revoke_session_returns_200_with_the_revoked_row(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        admin_id = _actor(repo, org_id)
+        repo.administration.create_session("sess-1", admin_id, org_id)
+
+        response = test_client.delete(
+            "/api/admin/sessions/sess-1", headers=_headers(org_id, admin_id)
+        )
+
+        assert response.status_code == 200
+        assert response.json()["revoked_at"] is not None
+        assert repo.administration.is_session_revoked("sess-1") is True
+
+    def test_revoke_unknown_session_returns_404(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        admin_id = _actor(repo, org_id)
+
+        response = test_client.delete(
+            "/api/admin/sessions/does-not-exist", headers=_headers(org_id, admin_id)
+        )
+
+        assert response.status_code == 404
+
+    def test_cannot_revoke_a_session_from_another_organization(self, client):
+        test_client, repo = client
+        org_a = repo.enterprise.create_organization("Org A")
+        org_b = repo.enterprise.create_organization("Org B")
+        admin_a = _actor(repo, org_a)
+        admin_b = _actor(repo, org_b)
+        repo.administration.create_session("sess-a", admin_a, org_a)
+
+        response = test_client.delete(
+            "/api/admin/sessions/sess-a", headers=_headers(org_b, admin_b)
+        )
+
+        assert response.status_code == 404
+        assert repo.administration.is_session_revoked("sess-a") is False
+
+    def test_viewer_cannot_manage_sessions(self, client):
+        """sessions.manage is organization_admin only (migration 0012)."""
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        viewer_id = _actor(repo, org_id, "viewer")
+
+        response = test_client.get("/api/admin/sessions", headers=_headers(org_id, viewer_id))
 
         assert response.status_code == 403

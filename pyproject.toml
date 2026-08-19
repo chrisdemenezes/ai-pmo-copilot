@@ -1,2 +1,8 @@
 [tool.pytest.ini_options]
 pythonpath = ["."]
+
+[tool.ruff.lint]
+# B008 flags `Depends(...)` as a default-argument function call, but that is
+# FastAPI's own dependency-injection idiom (used throughout src/api/*); every
+# hit is this pattern, not a real defect.
+ignore = ["B008"]

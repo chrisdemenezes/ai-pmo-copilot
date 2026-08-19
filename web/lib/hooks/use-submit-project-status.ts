@@ -31,13 +31,20 @@ async function submitProjectStatus(
  * Context Preservation exige refletir a realidade imediata, não um cache
  * antigo) -- prefixo de 3 partes casa com a queryKey completa (que inclui
  * limit) por padrão do React Query (exact: false).
+ *
+ * TD-006: mesma corrida de fetch em voo do TD-004/005 -- `cancelQueries`
+ * antes de invalidar "workspace-latest"/"workspace-recent" para que o
+ * primeiro fetch (ainda em voo no mount) não engula esta invalidação e
+ * deixe o Executive Memory Insight "Mudou" desatualizado.
  */
 export function useSubmitProjectStatus(projectName: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (projectContext: string) => submitProjectStatus(projectName, projectContext),
-    onSuccess: () => {
+    onSuccess: async () => {
+      await queryClient.cancelQueries({ queryKey: ["workspace-latest", projectName, "status"] });
+      await queryClient.cancelQueries({ queryKey: ["workspace-recent", projectName, "status"] });
       queryClient.invalidateQueries({ queryKey: ["workspace-summary", projectName] });
       queryClient.invalidateQueries({ queryKey: ["workspace-latest", projectName, "status"] });
       queryClient.invalidateQueries({ queryKey: ["workspace-recent", projectName, "status"] });

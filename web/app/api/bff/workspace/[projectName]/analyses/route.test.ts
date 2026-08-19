@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { authenticatedRequest } from "@/lib/bff/test-support";
+
 import { GET } from "./route";
 
 const SAMPLE = [
@@ -15,11 +17,24 @@ describe("GET /api/bff/workspace/[projectName]/analyses", () => {
   beforeEach(() => {
     vi.stubEnv("BACKEND_URL", "http://backend.test");
     vi.stubEnv("API_KEY", "secret-key");
+    vi.stubEnv("SESSION_SECRET", "test-secret");
   });
 
   afterEach(() => {
     vi.unstubAllEnvs();
     vi.restoreAllMocks();
+  });
+
+  it("returns 401 when there is no session cookie", async () => {
+    const response = await GET(
+      new Request("http://localhost/api/bff/workspace/Aurora/analyses"),
+      paramsFor("Aurora"),
+    );
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({
+      error: "unauthorized",
+      detail: "Sessão inválida ou expirada.",
+    });
   });
 
   it("proxies a successful backend response verbatim", async () => {
@@ -29,7 +44,7 @@ describe("GET /api/bff/workspace/[projectName]/analyses", () => {
     );
 
     const response = await GET(
-      new Request("http://localhost/api/bff/workspace/Aurora/analyses"),
+      authenticatedRequest("http://localhost/api/bff/workspace/Aurora/analyses"),
       paramsFor("Aurora"),
     );
     expect(response.status).toBe(200);
@@ -43,7 +58,7 @@ describe("GET /api/bff/workspace/[projectName]/analyses", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     await GET(
-      new Request(
+      authenticatedRequest(
         "http://localhost/api/bff/workspace/Implantacao%20SAP%20S%2F4HANA/analyses?kind=risk&limit=1",
       ),
       paramsFor("Implantacao SAP S/4HANA"),
@@ -57,6 +72,22 @@ describe("GET /api/bff/workspace/[projectName]/analyses", () => {
     expect(url.searchParams.get("limit")).toBe("1");
   });
 
+  it("forwards project_id alongside project_name when the client provides it (dual-key, Etapa 2)", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify(SAMPLE), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await GET(
+      authenticatedRequest("http://localhost/api/bff/workspace/Aurora/analyses?kind=risk&project_id=42"),
+      paramsFor("Aurora"),
+    );
+
+    const url = new URL(String(fetchMock.mock.calls[0][0]));
+    expect(url.searchParams.get("project_name")).toBe("Aurora");
+    expect(url.searchParams.get("project_id")).toBe("42");
+  });
+
   it("does not forward unrecognized query params", async () => {
     const fetchMock = vi
       .fn()
@@ -64,7 +95,7 @@ describe("GET /api/bff/workspace/[projectName]/analyses", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     await GET(
-      new Request("http://localhost/api/bff/workspace/Aurora/analyses?evil=1"),
+      authenticatedRequest("http://localhost/api/bff/workspace/Aurora/analyses?evil=1"),
       paramsFor("Aurora"),
     );
 
@@ -73,11 +104,32 @@ describe("GET /api/bff/workspace/[projectName]/analyses", () => {
     expect(url.searchParams.get("evil")).toBeNull();
   });
 
+  it("sends institutional headers resolved from the session cookie", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify(SAMPLE), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await GET(
+      authenticatedRequest(
+        "http://localhost/api/bff/workspace/Aurora/analyses",
+        {},
+        { userId: 7, organizationId: 3 },
+      ),
+      paramsFor("Aurora"),
+    );
+
+    const [, init] = fetchMock.mock.calls[0];
+    const headers = init.headers as Record<string, string>;
+    expect(headers["X-Stratech-User-Id"]).toBe("7");
+    expect(headers["X-Stratech-Organization-Id"]).toBe("3");
+  });
+
   it("returns 502 without leaking the key when the backend errors", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("boom", { status: 500 })));
 
     const response = await GET(
-      new Request("http://localhost/api/bff/workspace/Aurora/analyses"),
+      authenticatedRequest("http://localhost/api/bff/workspace/Aurora/analyses"),
       paramsFor("Aurora"),
     );
     expect(response.status).toBe(502);

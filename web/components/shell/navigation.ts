@@ -1,4 +1,4 @@
-import { ClipboardList, Folder, Gavel, LayoutDashboard, Lightbulb, ListOrdered, Network, Radar, Rocket, Users } from "lucide-react";
+import { ClipboardList, FileText, Folder, Gavel, KeyRound, LayoutDashboard, Lightbulb, ListOrdered, Mail, MonitorSmartphone, Network, Radar, Rocket, Users } from "lucide-react";
 
 import type { NavItem } from "./types";
 
@@ -37,6 +37,23 @@ export const NAV_ITEMS: NavItem[] = [
   // primeira tela administrativa real (rota, dado, estados e testes),
   // mesma regra de entrada da navegação usada por toda Capability.
   { label: "Administração", href: "/administracao/usuarios", icon: Users },
+  // D-051 -- API Keys (Enterprise Administration): a foundational
+  // credential, not an Integration Hub artifact. Same nav entry-rule as
+  // every other Capability: real route, real data, full states, tests.
+  { label: "Chaves de API", href: "/administracao/api-keys", icon: KeyRound },
+  // Sessões (item 5 do Wave Completion Review retrospectivo, resolve TD-010):
+  // painel real de listagem/revogação de sessões server-side, mesma regra de
+  // entrada da navegação (rota, dado, estados, testes).
+  { label: "Sessões", href: "/administracao/sessoes", icon: MonitorSmartphone },
+  // Convites (item 6 do Wave Completion Review retrospectivo, D-054):
+  // painel real de emissão/cancelamento de convites de onboarding, mesma
+  // regra de entrada da navegação (rota, dado, estados, testes).
+  { label: "Convites", href: "/administracao/convites", icon: Mail },
+  // Document Ingestion (Wave 5, Epic W5-0, D-089/D-090): fluxo funcional
+  // real de upload/status da Knowledge Platform, mesma regra de entrada da
+  // navegação. Exclusivamente Knowledge Platform -- não é o Document
+  // Advisor (W5-1, ainda não autorizado).
+  { label: "Documentos", href: "/administracao/documentos", icon: FileText },
   // Mission Control (Sprint 1, Diretriz Complementar) -- painel do Founder.
   // Acesso hoje é apenas "autenticado" (proxy.ts), não "Founder" de fato --
   // RBAC funcional (Épico 3) ainda não existe. Limitação documentada, não

@@ -105,6 +105,14 @@ test("shows the safe error state when the backend is unavailable", async ({ page
 test("navigates via the Priorização nav item to the Executive Portfolio View", async ({ page }) => {
   await login(page);
 
+  // Next.js dev-mode indicator (nextjs-portal, absent from production builds)
+  // intermittently overlaps the mobile bottom tab bar and intercepts clicks --
+  // same dev-tooling artifact documented in workspace.spec.ts. That test
+  // sidesteps it by scoping to an in-page link instead of the nav; this test
+  // specifically exercises the bottom-nav link itself, so it can't do the
+  // same -- hide the overlay instead, it plays no role in this assertion.
+  await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
+
   await page.locator('a[href="/portfolio"]').filter({ visible: true }).first().click();
   await expect(page).toHaveURL(/\/portfolio/);
   await expect(page.getByRole("heading", { name: "Portfólio" })).toBeVisible();

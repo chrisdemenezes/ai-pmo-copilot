@@ -9,8 +9,16 @@ import {
 import type { LatestRiskItem } from "@/lib/decision-center/types";
 import type { ActionItemView } from "@/lib/workspace/types";
 
+const PROJECT_IDS: Record<string, number> = {};
+let nextProjectId = 1;
+function pidFor(name: string | null): number | null {
+  if (name === null) return null;
+  return (PROJECT_IDS[name] ??= nextProjectId++);
+}
+
 function risk(description: string, projectName: string | null): LatestRiskItem {
   return {
+    project_id: pidFor(projectName),
     project_name: projectName,
     description,
     probability: "high",
@@ -24,6 +32,7 @@ function risk(description: string, projectName: string | null): LatestRiskItem {
 
 function action(description: string, projectName: string | null): ActionItemView {
   return {
+    project_id: pidFor(projectName),
     project_name: projectName,
     description,
     owner: null,

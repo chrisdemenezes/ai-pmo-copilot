@@ -1,5 +1,5 @@
 import { healthStatusLabel } from "@/components/ui/badge";
-import type { ProjectSummary } from "@/lib/dashboard/types";
+import type { ProjectIntelligenceSummary } from "@/lib/project/intelligence-summary";
 import { suggestedDecision } from "@/lib/workspace/decision-momentum";
 import { RISK_NEXT_STEP_FALLBACK, isHighAttentionRisk, suggestedRiskDecision } from "@/lib/workspace/risk-momentum";
 import type { LatestRiskItem } from "./types";
@@ -23,6 +23,10 @@ export type DecisionSource = "status" | "risk";
 export type DecisionWindow = "hoje" | "esta_semana";
 
 export interface ExecutiveDecision {
+  // project_id is the identity key used to join decisions to their project
+  // across surfaces (Decision Center, Portfolio View); project_name is
+  // display only (TD-008 Fase 3b, Etapa 4a).
+  project_id: number | null;
   project_name: string;
   source: DecisionSource;
   window: DecisionWindow;
@@ -61,12 +65,13 @@ const CONSEQUENCE_TEXT: Record<DecisionSource, string> = {
   risk: "Nada muda sozinho: estes riscos permanecem na zona de atenção até uma nova Avaliação de Riscos ser executada.",
 };
 
-function statusDecision(project: ProjectSummary): ExecutiveDecision | null {
+function statusDecision(project: ProjectIntelligenceSummary): ExecutiveDecision | null {
   const status = project.latest_health_status;
   if (status !== "red" && status !== "yellow") return null;
 
   const decision = suggestedDecision(status);
   return {
+    project_id: project.project_id,
     project_name: project.project_name,
     source: "status",
     window: status === "red" ? "hoje" : "esta_semana",
@@ -96,14 +101,15 @@ function isAttentionRisk(risk: LatestRiskItem): boolean {
   });
 }
 
-function riskDecision(projectName: string, risks: LatestRiskItem[]): ExecutiveDecision | null {
+function riskDecision(project: ProjectIntelligenceSummary, risks: LatestRiskItem[]): ExecutiveDecision | null {
   const attentionCount = risks.filter(isAttentionRisk).length;
   if (attentionCount === 0) return null;
 
   const nextStep = risks.find((risk) => risk.escalation_recommendation)?.escalation_recommendation;
 
   return {
-    project_name: projectName,
+    project_id: project.project_id,
+    project_name: project.project_name,
     source: "risk",
     window: "hoje",
     context: `${attentionCount} risco(s) na zona de atenção`,
@@ -128,8 +134,8 @@ function byWindowThenProject(a: ExecutiveDecision, b: ExecutiveDecision): number
  * quando nenhum dado de risco ainda foi carregado.
  */
 export function buildExecutiveDecisionQueue(
-  portfolio: ProjectSummary[],
-  latestRisksByProject: Map<string, LatestRiskItem[]> = new Map(),
+  portfolio: ProjectIntelligenceSummary[],
+  latestRisksByProject: Map<number, LatestRiskItem[]> = new Map(),
 ): ExecutiveDecision[] {
   const decisions: ExecutiveDecision[] = [];
 
@@ -137,9 +143,11 @@ export function buildExecutiveDecisionQueue(
     const status = statusDecision(project);
     if (status) decisions.push(status);
 
-    const risks = latestRisksByProject.get(project.project_name);
+    // Join risks to the project by project_id (identity), never by name
+    // (TD-008 Fase 3b, Etapa 4a). A project with no id can't be joined.
+    const risks = project.project_id !== null ? latestRisksByProject.get(project.project_id) : undefined;
     if (risks) {
-      const risk = riskDecision(project.project_name, risks);
+      const risk = riskDecision(project, risks);
       if (risk) decisions.push(risk);
     }
   }
@@ -148,19 +156,20 @@ export function buildExecutiveDecisionQueue(
 }
 
 /**
- * Agrupa a lista plana de GET /api/risks/latest por projeto -- mesma
- * forma exigida por buildExecutiveDecisionQueue. Itens sem project_name
- * (nunca esperados na visão de portfólio) são ignorados.
+ * Agrupa a lista plana de GET /api/risks/latest por project_id -- a chave de
+ * identidade exigida pelo join de buildExecutiveDecisionQueue (TD-008 Fase
+ * 3b, Etapa 4a). Itens sem project_id (nunca esperados na visão de
+ * portfólio) são ignorados.
  */
-export function groupLatestRisksByProject(risks: LatestRiskItem[]): Map<string, LatestRiskItem[]> {
-  const grouped = new Map<string, LatestRiskItem[]>();
+export function groupLatestRisksByProject(risks: LatestRiskItem[]): Map<number, LatestRiskItem[]> {
+  const grouped = new Map<number, LatestRiskItem[]>();
   for (const risk of risks) {
-    if (!risk.project_name) continue;
-    const existing = grouped.get(risk.project_name);
+    if (risk.project_id === null) continue;
+    const existing = grouped.get(risk.project_id);
     if (existing) {
       existing.push(risk);
     } else {
-      grouped.set(risk.project_name, [risk]);
+      grouped.set(risk.project_id, [risk]);
     }
   }
   return grouped;

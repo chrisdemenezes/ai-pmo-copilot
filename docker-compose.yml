@@ -1,10 +1,31 @@
 services:
   api:
-    build: .
+    build:
+      context: .
+      # W7-5 Release Identity: bakes the running commit into the image
+      # (exposed at GET /health as "release") -- `${GIT_SHA:-unknown}` so a
+      # plain `docker compose build` still works without the caller having
+      # to export anything, same default behavior `Dockerfile`'s own
+      # `ARG GIT_SHA=unknown` already has.
+      args:
+        GIT_SHA: ${GIT_SHA:-unknown}
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://aipmo:aipmo@database:5432/aipmo
+      # W7-5 Configuration Contract: docker-compose.yml is the deployment
+      # vehicle for staging/production (PRI-009), so it defaults ENVIRONMENT
+      # to "production" explicitly -- never inherits the "dev" default that
+      # `resolve_environment()` uses for local/demo entry points that never
+      # set this variable at all.
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      # W7-1 Staging Deployment Readiness (Founder Decision, D-179): built
+      # from the same POSTGRES_USER/POSTGRES_PASSWORD/POSTGRES_DB the
+      # `database` service itself uses below, instead of a literal
+      # `aipmo:aipmo` credential -- overriding those three variables (real
+      # secret, never committed) changes both sides consistently. Local dev
+      # is unaffected: all three default to `aipmo`, reproducing the exact
+      # same DATABASE_URL as before this change.
+      DATABASE_URL: postgresql://${POSTGRES_USER:-aipmo}:${POSTGRES_PASSWORD:-aipmo}@database:5432/${POSTGRES_DB:-aipmo}
       DB_POOL_SIZE: ${DB_POOL_SIZE:-5}
       DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-10}
       DB_POOL_TIMEOUT_SECONDS: ${DB_POOL_TIMEOUT_SECONDS:-30}
@@ -12,6 +33,11 @@ services:
       DB_POOL_PRE_PING: ${DB_POOL_PRE_PING:-true}
       LLM_PROVIDER: ${LLM_PROVIDER:-mock}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      # Production Embedding Provider Approval (Founder Decision, D-177):
+      # Voyage AI, model voyage-4 -- same fail-fast pattern as LLM_PROVIDER/
+      # ANTHROPIC_API_KEY above (src/api/startup_config.py).
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-mock}
+      VOYAGE_API_KEY: ${VOYAGE_API_KEY:-}
       API_KEY: ${API_KEY:-}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-}
       RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-60}
@@ -19,20 +45,62 @@ services:
     depends_on:
       database:
         condition: service_healthy
-    command: sh -c "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8000"
+    # W7-5 Etapa 5, Migration Discipline: migration is no longer bundled
+    # into the app's own start command. It is now an explicit, separately
+    # failable deploy step (`docker compose run --rm api alembic upgrade
+    # head`) that runs BEFORE this service starts -- see PRI-009 Secao 2.
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000
+
+  web:
+    # W7-5 Etapa 4 (Founder Decision -- Frontend Hosting, D-171/D-172):
+    # containerized, same deployment discipline as `api` -- separate
+    # artifact, common release/rollback model, no single container mixing
+    # frontend and backend.
+    build:
+      context: ./web
+      args:
+        GIT_SHA: ${GIT_SHA:-unknown}
+    ports:
+      - "3000:3000"
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      BACKEND_URL: ${BACKEND_URL:-http://api:8000}
+      API_KEY: ${API_KEY:-}
+      SESSION_SECRET: ${SESSION_SECRET:-}
+      WORKSPACE_PASSWORD: ${WORKSPACE_PASSWORD:-}
+    depends_on:
+      - api
 
   database:
-    image: postgres:16
+    # pgvector/pgvector:pg16 = the official postgres:16 image with the
+    # pgvector extension binary pre-installed (Wave 3, Enterprise Knowledge
+    # Platform Fase 1). POSTGRES_USER is created as the container's
+    # superuser by this image, same as plain postgres:16, so migration
+    # 0016's `CREATE EXTENSION IF NOT EXISTS vector` just works here.
+    image: pgvector/pgvector:pg16
     environment:
-      POSTGRES_DB: aipmo
-      POSTGRES_USER: aipmo
-      POSTGRES_PASSWORD: aipmo
-    ports:
-      - "5432:5432"
+      # W7-1 Staging Deployment Readiness (Founder Decision, D-179):
+      # defaults preserve the exact local/dev experience (`aipmo`/`aipmo`/
+      # `aipmo`, unchanged). Staging/production MUST override
+      # POSTGRES_PASSWORD (and, if desired, POSTGRES_USER/POSTGRES_DB) with
+      # a real secret via the host's environment -- never committed, never
+      # left at this default outside dev (enforced at boot by
+      # `src/api/startup_config.py`'s Configuration Contract).
+      POSTGRES_DB: ${POSTGRES_DB:-aipmo}
+      POSTGRES_USER: ${POSTGRES_USER:-aipmo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aipmo}
+    # No `ports:` mapping here on purpose (W7-1 Staging Deployment
+    # Readiness, D-179): Postgres must never be reachable from outside the
+    # Compose network in staging/production. Local dev regains host access
+    # to 5432 via `docker-compose.override.yml`, which `docker compose up`
+    # merges automatically when invoked without an explicit `-f` -- staging/
+    # production deploys always pass `-f docker-compose.yml` explicitly
+    # (see `docs/operations/PRI-009-production-deployment-runbook.md` §2),
+    # which excludes it.
     volumes:
       - aipmo_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U aipmo -d aipmo"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aipmo} -d ${POSTGRES_DB:-aipmo}"]
       interval: 5s
       timeout: 5s
       retries: 10

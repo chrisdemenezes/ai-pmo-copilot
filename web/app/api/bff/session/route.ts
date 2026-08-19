@@ -77,12 +77,17 @@ export async function POST(request: Request) {
       );
     }
 
-    const { user_id: userId, organization_id: organizationId } = (await backendResponse.json()) as {
+    const {
+      user_id: userId,
+      organization_id: organizationId,
+      session_id: sessionId,
+    } = (await backendResponse.json()) as {
       user_id: number;
       organization_id: number;
+      session_id: string;
     };
 
-    const { token, expiresAt } = createSessionToken(userId, organizationId);
+    const { token, expiresAt } = createSessionToken(userId, organizationId, sessionId);
     const response = NextResponse.json({ authenticated: true });
     response.cookies.set(SESSION_COOKIE_NAME, token, {
       httpOnly: true,

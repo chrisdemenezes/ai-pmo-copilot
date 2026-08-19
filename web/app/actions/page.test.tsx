@@ -25,6 +25,7 @@ function daysFromNow(days: number): string {
 
 const MULTI_PROJECT_ITEMS: ActionItemView[] = [
   {
+    project_id: 1,
     project_name: "Aurora",
     description: "Cobrar plano de contingência do fornecedor",
     owner: "Bruno",
@@ -33,6 +34,7 @@ const MULTI_PROJECT_ITEMS: ActionItemView[] = [
     source_created_at: "2026-07-05T10:00:00Z",
   },
   {
+    project_id: 2,
     project_name: "Implantacao SAP S/4HANA",
     description: "Validar plano de cutover com o cliente",
     owner: "Carla",

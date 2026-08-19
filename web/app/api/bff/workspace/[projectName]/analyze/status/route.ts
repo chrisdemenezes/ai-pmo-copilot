@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { institutionalHeaders, readSessionIdentity } from "@/lib/bff/domain-proxy";
 import type { AnalyzeProjectStatusResponse, WorkspaceErrorBody } from "@/lib/workspace/types";
 
 // Reused from demo/seed_demo_data.py's httpx client timeout -- the LLM call
@@ -30,6 +31,13 @@ export async function POST(
 
   // Same single-decode rule as every other BFF route in this Workspace
   // (TIP-004): Next.js hands this route the raw, still-encoded segment.
+  // Security Hardening Gate (C-1/C-2): the backend now requires RBAC +
+  // organization scope on this route.
+  const identity = readSessionIdentity(request);
+  if (identity === null) {
+    return errorResponse({ error: "unauthorized", detail: "Sessão inválida ou expirada." }, 401);
+  }
+
   const { projectName: rawProjectName } = await params;
   const projectName = decodeURIComponent(rawProjectName);
 
@@ -67,7 +75,11 @@ export async function POST(
   try {
     const backendResponse = await fetch(`${backendUrl}/api/projects/analyze`, {
       method: "POST",
-      headers: { "X-API-Key": apiKey, "Content-Type": "application/json" },
+      headers: {
+        "X-API-Key": apiKey,
+        "Content-Type": "application/json",
+        ...institutionalHeaders(identity),
+      },
       body: JSON.stringify({ project_context: projectContext, project_name: projectName }),
       signal: controller.signal,
       cache: "no-store",

@@ -25,8 +25,15 @@ function hookState(overrides: Partial<Record<string, unknown>>) {
   } as never;
 }
 
+const PROJECT_IDS: Record<string, number> = {};
+let nextProjectId = 1;
+function pidFor(name: string): number {
+  return (PROJECT_IDS[name] ??= nextProjectId++);
+}
+
 function risk(description: string, projectName: string): LatestRiskItem {
   return {
+    project_id: pidFor(projectName),
     project_name: projectName,
     description,
     probability: "high",
@@ -40,6 +47,7 @@ function risk(description: string, projectName: string): LatestRiskItem {
 
 function action(description: string, projectName: string): ActionItemView {
   return {
+    project_id: pidFor(projectName),
     project_name: projectName,
     description,
     owner: null,

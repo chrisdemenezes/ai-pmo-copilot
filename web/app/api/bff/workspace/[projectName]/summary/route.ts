@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
-import type { WorkspaceErrorBody, WorkspaceSummary } from "@/lib/workspace/types";
+import { institutionalHeaders, readSessionIdentity } from "@/lib/bff/domain-proxy";
+import type { WorkspaceErrorBody, ProjectIntelligenceSummary } from "@/lib/workspace/types";
 
 const BACKEND_TIMEOUT_MS = 8_000;
 
@@ -9,7 +10,7 @@ function errorResponse(body: WorkspaceErrorBody, status: number) {
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ projectName: string }> },
 ) {
   const backendUrl = process.env.BACKEND_URL;
@@ -20,6 +21,13 @@ export async function GET(
       { error: "bff_not_configured", detail: "BACKEND_URL ou API_KEY não configurados." },
       503,
     );
+  }
+
+  // Security Hardening Gate (C-1/C-2): the backend now requires RBAC +
+  // organization scope on this route.
+  const identity = readSessionIdentity(request);
+  if (identity === null) {
+    return errorResponse({ error: "unauthorized", detail: "Sessão inválida ou expirada." }, 401);
   }
 
   // Next.js hands this route the raw (still URL-encoded) segment, same as
@@ -35,13 +43,22 @@ export async function GET(
   // matching the already-working /api/analyses BFF route.
   const backendUrlObj = new URL(`${backendUrl}/api/projects/summary`);
   backendUrlObj.searchParams.set("project_name", projectName);
+  // TD-008 Fase 3b, Etapa 2 (dual-key): quando o cliente já conhece o
+  // project_id resolvido (a saída do resolver, devolvida por este mesmo
+  // endpoint), encaminha-o junto com o nome. Aditivo -- ausente, o
+  // comportamento é idêntico ao anterior; presente, o backend valida que
+  // id e nome apontam para o mesmo Project e filtra pela chave exata.
+  const projectId = new URL(request.url).searchParams.get("project_id");
+  if (projectId !== null) {
+    backendUrlObj.searchParams.set("project_id", projectId);
+  }
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), BACKEND_TIMEOUT_MS);
 
   try {
     const backendResponse = await fetch(backendUrlObj, {
-      headers: { "X-API-Key": apiKey },
+      headers: { "X-API-Key": apiKey, ...institutionalHeaders(identity) },
       signal: controller.signal,
       cache: "no-store",
     });
@@ -56,7 +73,7 @@ export async function GET(
       );
     }
 
-    const data = (await backendResponse.json()) as WorkspaceSummary;
+    const data = (await backendResponse.json()) as ProjectIntelligenceSummary;
     return NextResponse.json(data);
   } catch (reason) {
     if (reason instanceof Error && reason.name === "AbortError") {

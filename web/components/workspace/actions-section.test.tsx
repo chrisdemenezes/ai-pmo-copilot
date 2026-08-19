@@ -8,6 +8,10 @@ import { useWorkspaceAnalysisDetail } from "@/lib/hooks/use-workspace-analysis-d
 import type { ActionItemView } from "@/lib/workspace/types";
 
 vi.mock("@/lib/hooks/use-action-items", () => ({ useActionItems: vi.fn() }));
+// TD-008 Fase 3b, Etapa 3: resolução nome->id compartilhada (mockada).
+vi.mock("@/lib/hooks/use-resolved-project-id", () => ({
+  useResolvedProjectId: vi.fn(() => undefined),
+}));
 // AnalysisDetailDialog (drill-down para a análise de origem) chama este hook.
 vi.mock("@/lib/hooks/use-workspace-analysis-detail", () => ({
   useWorkspaceAnalysisDetail: vi.fn(),
@@ -28,6 +32,7 @@ function daysFromNow(days: number): string {
 
 function item(overrides: Partial<ActionItemView>): ActionItemView {
   return {
+    project_id: 1,
     project_name: "Aurora",
     description: "Atualizar cronograma",
     owner: "Ana",
@@ -70,7 +75,7 @@ describe("ActionsSection (Workspace)", () => {
   it("scopes the hook to the project it renders", () => {
     mockedActionItems.mockReturnValue(PENDING);
     render(<ActionsSection projectName="Implantacao SAP S/4HANA" />);
-    expect(mockedActionItems).toHaveBeenCalledWith("Implantacao SAP S/4HANA");
+    expect(mockedActionItems).toHaveBeenCalledWith("Implantacao SAP S/4HANA", undefined);
   });
 
   it("renders items grouped by urgency with a real attention headline", () => {

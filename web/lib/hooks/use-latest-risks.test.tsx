@@ -46,6 +46,21 @@ describe("useLatestRisks", () => {
     expect(result.current.data).toEqual(SAMPLE);
   });
 
+  it("forwards project_id alongside project_name when given (dual-key, Etapa 2)", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify(SAMPLE), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { wrapper } = makeWrapper();
+    const { result } = renderHook(() => useLatestRisks("Aurora", 42), { wrapper });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/bff/risks/latest?project_name=Aurora&project_id=42",
+    );
+  });
+
   it("fetches the portfolio view when projectName is omitted", async () => {
     const fetchMock = vi
       .fn()
@@ -69,7 +84,7 @@ describe("useLatestRisks", () => {
     const { result } = renderHook(() => useLatestRisks("Multilift"), { wrapper });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(queryClient.getQueryData(["latest-risks", "Multilift"])).toEqual(SAMPLE);
+    expect(queryClient.getQueryData(["latest-risks", "Multilift", null])).toEqual(SAMPLE);
   });
 
   it("caches under ['latest-risks', 'portfolio'] for the portfolio view", async () => {
@@ -82,7 +97,7 @@ describe("useLatestRisks", () => {
     const { result } = renderHook(() => useLatestRisks(), { wrapper });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(queryClient.getQueryData(["latest-risks", "portfolio"])).toEqual(SAMPLE);
+    expect(queryClient.getQueryData(["latest-risks", "portfolio", null])).toEqual(SAMPLE);
   });
 
   it("surfaces the BFF error body when the request fails", async () => {

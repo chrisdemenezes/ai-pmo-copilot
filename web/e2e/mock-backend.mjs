@@ -36,6 +36,9 @@ let nextAnalysisId = 1000;
 
 const SAMPLE = [
   {
+    // project_id is the identity key the real ProjectSummaryResponse carries
+    // (TD-008 Fase 3b); the frontend joins decisions/risks by it, never by name.
+    project_id: 3,
     project_name: "Multilift",
     total_analyses: 5,
     open_risks: 3,
@@ -43,6 +46,7 @@ const SAMPLE = [
     latest_health_status: "red",
   },
   {
+    project_id: 1,
     project_name: "Aurora",
     total_analyses: 2,
     open_risks: 0,
@@ -54,6 +58,7 @@ const SAMPLE = [
   // Kept in the default portfolio so the Workspace's encodeURIComponent
   // chain has a real project to exercise end-to-end.
   {
+    project_id: 2,
     project_name: "Implantacao SAP S/4HANA",
     total_analyses: 2,
     open_risks: 1,
@@ -273,18 +278,79 @@ const ADMIN_USERS = [];
 const ADMIN_USER_ROLES = {};
 let nextAdminUserId = 1000;
 
+// D-051 -- API Keys (Enterprise Administration): a foundational
+// credential, not an Integration Hub artifact.
+const ADMIN_API_KEYS = [];
+let nextAdminApiKeyId = 1;
+
+// W7-7 Etapa 2 -- Document Ingestion (Wave 5, Epic W5-0). Mirrors
+// src/api/routes/knowledge.py's DocumentResponse shape and its two real
+// validation rules (empty file / non-UTF-8 file -> 422), the only invalid
+// inputs the real route rejects today. Reset via resetAdminFixtures(), same
+// as every other admin fixture.
+const ADMIN_DOCUMENTS = [];
+let nextAdminDocumentId = 1;
+
+function omitHashedSecret(apiKey) {
+  const copy = { ...apiKey };
+  delete copy.hashed_secret;
+  return copy;
+}
+
+// Item 5 -- server-side sessions (resolves TD-010). Login mints one, logout
+// and the admin DELETE revoke it, GET lists the active (non-revoked) ones.
+const ADMIN_SESSIONS = [];
+let nextAdminSessionSeq = 1;
+
+// Item 6 -- Convites (D-054). A foundational onboarding credential; the
+// invite token is returned once at creation. State is derived from the
+// timestamps (accepted_at/cancelled_at/expires_at), same as the backend.
+const ADMIN_INVITATIONS = [];
+let nextAdminInvitationId = 1;
+
+function omitHashedToken(invitation) {
+  const copy = { ...invitation };
+  delete copy.hashed_token;
+  delete copy.plaintext_token;
+  return copy;
+}
+
+function invitationStatus(invitation) {
+  if (invitation.cancelled_at !== null) return "cancelled";
+  if (invitation.accepted_at !== null) return "accepted";
+  if (new Date(invitation.expires_at).getTime() <= Date.now()) return "expired";
+  return "pending";
+}
+
+function invitationResponse(invitation) {
+  const base = omitHashedToken(invitation);
+  return { ...base, status: invitationStatus(invitation) };
+}
+
 function resetAdminFixtures() {
   ADMIN_USERS.length = 0;
   ADMIN_USERS.push(...JSON.parse(JSON.stringify(PRISTINE_ADMIN_USERS)));
   for (const key of Object.keys(ADMIN_USER_ROLES)) delete ADMIN_USER_ROLES[key];
   Object.assign(ADMIN_USER_ROLES, JSON.parse(JSON.stringify(PRISTINE_ADMIN_USER_ROLES)));
   nextAdminUserId = 1000;
+  ADMIN_API_KEYS.length = 0;
+  nextAdminApiKeyId = 1;
+  ADMIN_SESSIONS.length = 0;
+  nextAdminSessionSeq = 1;
+  ADMIN_INVITATIONS.length = 0;
+  nextAdminInvitationId = 1;
+  ADMIN_DOCUMENTS.length = 0;
+  nextAdminDocumentId = 1;
 }
 resetAdminFixtures();
 
 const WORKSPACE_SUMMARY = {
   Aurora: {
     project_name: "Aurora",
+    // project_id: a saída do resolver (TD-008 Fase 3b, Etapa 1) que o
+    // /api/projects/summary real devolve; o Workspace o reaproveita como
+    // chave exata nas leituras irmãs (Etapa 2, dual-key coexistente).
+    project_id: 1,
     total_analyses: 2,
     open_risks: 0,
     pending_action_items: 1,
@@ -292,12 +358,23 @@ const WORKSPACE_SUMMARY = {
   },
   "Implantacao SAP S/4HANA": {
     project_name: "Implantacao SAP S/4HANA",
+    project_id: 2,
     total_analyses: 2,
     open_risks: 1,
     pending_action_items: 1,
     latest_health_status: "yellow",
   },
 };
+
+// TD-008 Fase 3b, Etapa 4a: the real backend derives project_id from the
+// resolved Project and returns it on every analyses/action-items/risks row.
+// The mock mirrors that -- the display name maps back to the same identity
+// key the summaries carry, so the frontend's id-joins work end-to-end.
+function projectIdForName(name) {
+  if (name && WORKSPACE_SUMMARY[name]) return WORKSPACE_SUMMARY[name].project_id;
+  const inSample = SAMPLE.find((p) => p.project_name === name);
+  return inSample ? inSample.project_id : null;
+}
 
 const ANALYSES = [
   {
@@ -500,6 +577,35 @@ function send(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
+// W7-7 Etapa 2 -- minimal multipart/form-data reader for the Document
+// Ingestion upload route (the only multipart endpoint any spec exercises).
+// latin1 round-trips every byte 1:1, so binary/non-UTF-8 file content
+// survives the split intact for the UTF-8 validity check below.
+function parseMultipart(buffer, contentType) {
+  const boundaryMatch = /boundary=(?:"([^"]+)"|([^;]+))/.exec(contentType ?? "");
+  if (!boundaryMatch) return null;
+  const boundary = `--${boundaryMatch[1] ?? boundaryMatch[2]}`;
+  const raw = buffer.toString("latin1").split(boundary).slice(1, -1);
+  const fields = {};
+  const files = {};
+  for (const rawPart of raw) {
+    const part = rawPart.replace(/^\r\n/, "").replace(/\r\n$/, "");
+    const headerEnd = part.indexOf("\r\n\r\n");
+    if (headerEnd === -1) continue;
+    const headers = part.slice(0, headerEnd);
+    const body = part.slice(headerEnd + 4);
+    const nameMatch = /name="([^"]+)"/.exec(headers);
+    if (!nameMatch) continue;
+    const filenameMatch = /filename="([^"]*)"/.exec(headers);
+    if (filenameMatch) {
+      files[nameMatch[1]] = { filename: filenameMatch[1], content: Buffer.from(body, "latin1") };
+    } else {
+      fields[nameMatch[1]] = body;
+    }
+  }
+  return { fields, files };
+}
+
 function applyScenario(res, key) {
   const current = workspaceScenario[key];
   if (current === "timeout") {
@@ -564,7 +670,16 @@ const server = http.createServer((req, res) => {
         email === E2E_USER.email &&
         password === E2E_USER.password
       ) {
-        return send(res, 200, { user_id: 1, organization_id: 1 });
+        const sessionId = `e2e-session-${nextAdminSessionSeq++}`;
+        ADMIN_SESSIONS.push({
+          id: sessionId,
+          user_id: 1,
+          organization_id: 1,
+          created_at: new Date().toISOString(),
+          last_seen_at: null,
+          revoked_at: null,
+        });
+        return send(res, 200, { user_id: 1, organization_id: 1, session_id: sessionId });
       }
       return send(res, 401, { detail: "Invalid organization, email or password" });
     });
@@ -575,7 +690,11 @@ const server = http.createServer((req, res) => {
     let body = "";
     req.on("data", (chunk) => (body += chunk));
     req.on("end", () => {
-      JSON.parse(body); // {session_id, user_id} -- acknowledged, nothing persisted
+      const { session_id: sessionId } = JSON.parse(body);
+      const session = ADMIN_SESSIONS.find((s) => s.id === sessionId);
+      if (session && session.revoked_at === null) {
+        session.revoked_at = new Date().toISOString();
+      }
       return send(res, 200, { acknowledged: true });
     });
     return;
@@ -598,6 +717,62 @@ const server = http.createServer((req, res) => {
   }
   if (url.pathname === "/api/projects-delivery") {
     return send(res, 200, DOMAIN_PROJECTS);
+  }
+
+  // Document Ingestion (Wave 5, Epic W5-0) -- mirrors
+  // src/api/routes/knowledge.py: GET/POST /api/documents,
+  // POST /api/documents/{id}/reindex. The BFF forwards multipart bodies
+  // byte-for-byte (web/app/api/bff/admin/documents/route.ts), so this is the
+  // only mock route that has to actually parse multipart/form-data.
+  if (req.method === "GET" && url.pathname === "/api/documents") {
+    return send(res, 200, ADMIN_DOCUMENTS);
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/documents") {
+    const chunks = [];
+    req.on("data", (chunk) => chunks.push(chunk));
+    req.on("end", () => {
+      const parsed = parseMultipart(Buffer.concat(chunks), req.headers["content-type"]);
+      const file = parsed?.files?.file;
+      if (!file) {
+        return send(res, 422, { detail: "file é obrigatório" });
+      }
+      // Same UTF-8 validity check as upload_document() (src/api/routes/
+      // knowledge.py): a byte sequence that isn't valid UTF-8 decodes with
+      // U+FFFD replacement characters that a latin1 round-trip never
+      // produces on its own.
+      const text = file.content.toString("utf8");
+      const looksInvalidUtf8 =
+        text.includes("�") && !file.content.toString("latin1").includes("�");
+      if (looksInvalidUtf8) {
+        return send(res, 422, { detail: "File must be UTF-8 encoded text/markdown" });
+      }
+      if (!text.trim()) {
+        return send(res, 422, { detail: "File is empty" });
+      }
+      const sourceName = parsed.fields.source_name?.trim() || file.filename || "documento";
+      const document = {
+        document_id: nextAdminDocumentId++,
+        source_name: sourceName,
+        project_id: null,
+        version_id: 1,
+        chunk_count: Math.max(1, Math.ceil(text.length / 500)),
+        status: "indexed",
+        created_at: new Date().toISOString(),
+      };
+      ADMIN_DOCUMENTS.push(document);
+      return send(res, 201, document);
+    });
+    return;
+  }
+
+  const documentReindexMatch = url.pathname.match(/^\/api\/documents\/(\d+)\/reindex$/);
+  if (documentReindexMatch && req.method === "POST") {
+    const documentId = Number(documentReindexMatch[1]);
+    const document = ADMIN_DOCUMENTS.find((d) => d.document_id === documentId);
+    if (!document) return send(res, 404, { detail: "Document not found" });
+    document.status = "indexed";
+    return send(res, 200, document);
   }
 
   // User Management (Enterprise Administration Capability) -- mirrors
@@ -749,6 +924,142 @@ const server = http.createServer((req, res) => {
     }
   }
 
+  if (req.method === "GET" && url.pathname === "/api/admin/api-keys") {
+    return send(res, 200, ADMIN_API_KEYS.map(omitHashedSecret));
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/admin/api-keys") {
+    let raw = "";
+    req.on("data", (chunk) => (raw += chunk));
+    req.on("end", () => {
+      const { name } = JSON.parse(raw);
+      const id = nextAdminApiKeyId++;
+      const plaintextKey = `sk_live_e2e-mock-key-${id}`;
+      const apiKey = {
+        id,
+        name,
+        key_prefix: plaintextKey.slice(0, 16),
+        hashed_secret: "mock-hash",
+        created_at: new Date().toISOString(),
+        last_used_at: null,
+        revoked_at: null,
+      };
+      ADMIN_API_KEYS.push(apiKey);
+      return send(res, 201, { ...omitHashedSecret(apiKey), plaintext_key: plaintextKey });
+    });
+    return;
+  }
+
+  const apiKeyMatch = url.pathname.match(/^\/api\/admin\/api-keys\/(\d+)$/);
+  if (apiKeyMatch && req.method === "DELETE") {
+    const apiKeyId = Number(apiKeyMatch[1]);
+    const apiKey = ADMIN_API_KEYS.find((k) => k.id === apiKeyId);
+    if (!apiKey) return send(res, 404, { detail: "API key not found" });
+    apiKey.revoked_at = new Date().toISOString();
+    // 200 with the revoked resource, not a bare 204 -- the real backend's
+    // route returns the same shape (forwardDomainRequest always parses a
+    // JSON body, which a body-less 204 can't satisfy).
+    return send(res, 200, omitHashedSecret(apiKey));
+  }
+
+  // Sessions (item 5, resolves TD-010).
+  if (req.method === "GET" && url.pathname === "/api/admin/sessions") {
+    return send(res, 200, ADMIN_SESSIONS.filter((s) => s.revoked_at === null));
+  }
+
+  const sessionMatch = url.pathname.match(/^\/api\/admin\/sessions\/([^/]+)$/);
+  if (sessionMatch && req.method === "DELETE") {
+    const sessionId = decodeURIComponent(sessionMatch[1]);
+    const session = ADMIN_SESSIONS.find((s) => s.id === sessionId);
+    if (!session || session.revoked_at !== null) {
+      return send(res, 404, { detail: "Session not found" });
+    }
+    session.revoked_at = new Date().toISOString();
+    // 200 with the revoked resource, not a bare 204 (same reason as api-keys).
+    return send(res, 200, session);
+  }
+
+  // Invitations (item 6, Convites -- D-054).
+  if (req.method === "GET" && url.pathname === "/api/admin/invitations") {
+    return send(res, 200, ADMIN_INVITATIONS.map(invitationResponse));
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/admin/invitations") {
+    let raw = "";
+    req.on("data", (chunk) => (raw += chunk));
+    req.on("end", () => {
+      const { email, role_name } = JSON.parse(raw);
+      if (!ADMIN_ROLES.some((r) => r.name === role_name)) {
+        return send(res, 400, { detail: `Role '${role_name}' does not exist` });
+      }
+      const id = nextAdminInvitationId++;
+      const plaintextToken = `inv_e2e-mock-token-${id}`;
+      const now = Date.now();
+      const invitation = {
+        id,
+        email,
+        role_name,
+        token_prefix: plaintextToken.slice(0, 12),
+        hashed_token: "mock-hash",
+        created_at: new Date(now).toISOString(),
+        expires_at: new Date(now + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        accepted_at: null,
+        cancelled_at: null,
+      };
+      ADMIN_INVITATIONS.push(invitation);
+      return send(res, 201, {
+        ...invitationResponse(invitation),
+        plaintext_token: plaintextToken,
+      });
+    });
+    return;
+  }
+
+  const invitationMatch = url.pathname.match(/^\/api\/admin\/invitations\/(\d+)$/);
+  if (invitationMatch && req.method === "DELETE") {
+    const invitationId = Number(invitationMatch[1]);
+    const invitation = ADMIN_INVITATIONS.find((i) => i.id === invitationId);
+    if (!invitation || invitationStatus(invitation) !== "pending") {
+      return send(res, 404, { detail: "Invitation not found or not pending" });
+    }
+    invitation.cancelled_at = new Date().toISOString();
+    // 200 with the cancelled resource, not a bare 204 (same reason as api-keys).
+    return send(res, 200, invitationResponse(invitation));
+  }
+
+  // Public invitation flow (no session -- the token is the authorization).
+  const invitationPreviewMatch = url.pathname.match(/^\/api\/invitations\/([^/]+)$/);
+  if (invitationPreviewMatch && req.method === "GET") {
+    const token = decodeURIComponent(invitationPreviewMatch[1]);
+    const invitation = ADMIN_INVITATIONS.find(
+      (i) => `inv_e2e-mock-token-${i.id}` === token,
+    );
+    if (!invitation) return send(res, 404, { detail: "Invalid invitation" });
+    return send(res, 200, {
+      organization_name: "e2e-organization",
+      role_name: invitation.role_name,
+      status: invitationStatus(invitation),
+      email: invitation.email,
+    });
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/invitations/accept") {
+    let raw = "";
+    req.on("data", (chunk) => (raw += chunk));
+    req.on("end", () => {
+      const { token } = JSON.parse(raw);
+      const invitation = ADMIN_INVITATIONS.find(
+        (i) => `inv_e2e-mock-token-${i.id}` === token,
+      );
+      if (!invitation || invitationStatus(invitation) !== "pending") {
+        return send(res, 404, { detail: "Invalid, expired, or already-used invitation" });
+      }
+      invitation.accepted_at = new Date().toISOString();
+      return send(res, 200, { user_id: 9000 + invitation.id, organization_id: 1 });
+    });
+    return;
+  }
+
   // project_name is a query param here, not a path segment -- matches the
   // real backend's route shape after the TIP-004 follow-up migration
   // (GET /api/projects/{name}/summary could never actually serve a "/" in
@@ -776,6 +1087,7 @@ const server = http.createServer((req, res) => {
     const page = items.slice(offset, offset + limit).map(({ id, kind: k, project_name, created_at }) => ({
       id,
       kind: k,
+      project_id: projectIdForName(project_name),
       project_name,
       created_at,
     }));
@@ -802,6 +1114,7 @@ const server = http.createServer((req, res) => {
       for (const item of modelOutput.action_items ?? []) {
         if (typeof item?.description !== "string") continue;
         items.push({
+          project_id: projectIdForName(record.project_name),
           project_name: record.project_name,
           description: item.description,
           owner: typeof item.owner === "string" ? item.owner : null,
@@ -826,13 +1139,15 @@ const server = http.createServer((req, res) => {
       .slice()
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
+    // Dedup by project_id (identity), TD-008 Fase 3b, Etapa 4a.
     const seenProjects = new Set();
     const items = [];
     for (const record of risksAnalyses) {
-      if (seenProjects.has(record.project_name)) continue;
+      const projectId = projectIdForName(record.project_name);
+      if (seenProjects.has(projectId)) continue;
       const modelOutput = record.payload?.model_output;
       if (!modelOutput || modelOutput.structured !== true) continue;
-      seenProjects.add(record.project_name);
+      seenProjects.add(projectId);
       const escalationRecommendation =
         typeof modelOutput.escalation_recommendation === "string"
           ? modelOutput.escalation_recommendation
@@ -840,6 +1155,7 @@ const server = http.createServer((req, res) => {
       for (const risk of modelOutput.risks ?? []) {
         if (typeof risk?.description !== "string") continue;
         items.push({
+          project_id: projectId,
           project_name: record.project_name,
           description: risk.description,
           probability: risk.probability ?? null,
@@ -988,6 +1304,323 @@ const server = http.createServer((req, res) => {
         agent: "risk_review",
         project_name: projectName,
         model_output: modelOutput,
+      });
+    });
+    return;
+  }
+
+  // Epic W3-3 -- Risk Advisor: read-only synthesis over the latest risk
+  // analysis already stored for the project, mirroring
+  // src/api/routes/intelligence.py's POST /api/risk-advisor/ask. No new
+  // analysis is created here -- ANALYSES is only ever read.
+  if (req.method === "POST" && url.pathname === "/api/risk-advisor/ask") {
+    let raw = "";
+    req.on("data", (chunk) => (raw += chunk));
+    req.on("end", () => {
+      const { project_name: projectName, question } = JSON.parse(raw);
+      if (!question || question.trim().length < 3) {
+        return send(res, 422, { detail: "question inválida" });
+      }
+
+      const latestRisk = ANALYSES.filter(
+        (a) => a.kind === "risk" && a.project_name === projectName,
+      ).sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+
+      if (!latestRisk) {
+        return send(res, 200, {
+          answer: "Nenhum risco identificado ainda para este projeto.",
+          cited_analyses: [],
+        });
+      }
+
+      const firstRisk = latestRisk.payload.model_output.risks[0];
+      return send(res, 200, {
+        answer: `O risco mais crítico identificado é: ${firstRisk.description}.`,
+        cited_analyses: [
+          { source_analysis_id: latestRisk.id, source_created_at: latestRisk.created_at },
+        ],
+      });
+    });
+    return;
+  }
+
+  // Wave 6 -- Decision Support: first production consumer of the Executive
+  // Orchestrator, mirroring src/api/routes/intelligence.py's
+  // POST /api/decision-support/ask (TECHNICAL-DESIGN-DECISION-SUPPORT.md).
+  // This mock proves the UI wiring end-to-end (BFF -> hook -> panel), never
+  // re-implements Selection Rule/Correlation/Síntese -- those are proven
+  // exhaustively by the real pytest suite (tests/test_decision_support_api.py).
+  if (req.method === "POST" && url.pathname === "/api/decision-support/ask") {
+    let raw = "";
+    req.on("data", (chunk) => (raw += chunk));
+    req.on("end", () => {
+      const { question, scope } = JSON.parse(raw);
+      if (!question || question.trim().length < 3) {
+        return send(res, 422, { detail: "question inválida" });
+      }
+      if (!scope || typeof scope !== "object" || !scope.type) {
+        return send(res, 422, { detail: "scope é obrigatório" });
+      }
+
+      // Scope-agnostic on purpose: this mock proves the UI wiring
+      // (BFF -> hook -> panel) end-to-end, never per-Advisor evidence
+      // correctness by scope -- that is proven exhaustively by the real
+      // pytest suite (tests/test_decision_support_api.py, 18 tests +
+      // TestExplicitScopeEligibility).
+      const latestRisk = ANALYSES.filter((a) => a.kind === "risk").sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at),
+      )[0];
+
+      if (scope.type === "organization" && /previs.o do tempo/i.test(question)) {
+        return send(res, 200, {
+          capability: "decision_support",
+          insufficient_basis: true,
+          insufficient_basis_reason: "selection_empty",
+          answer: null,
+          advisors_used: [],
+          citations: [],
+          composition_trace: {
+            selection_signals: [question],
+            selected_advisor_names: [],
+            advisors_used: [],
+            correlations: [],
+            synthesis_source_advisor_names: null,
+          },
+        });
+      }
+
+      const firstRisk = latestRisk?.payload?.model_output?.risks?.[0];
+      return send(res, 200, {
+        capability: "decision_support",
+        insufficient_basis: false,
+        insufficient_basis_reason: null,
+        answer: `Existe risco de escalação (${firstRisk ? firstRisk.description : "ver histórico"}) e a entrega do projeto Multilift está em andamento.`,
+        advisors_used: ["risk_advisor", "delivery_advisor"],
+        citations: firstRisk
+          ? [
+              {
+                advisor_names: ["risk_advisor"],
+                source_type: "analysis_record",
+                source_id: latestRisk.id,
+                source_label: `Análise de risco #${latestRisk.id}`,
+              },
+            ]
+          : [],
+        composition_trace: {
+          selection_signals: [question],
+          selected_advisor_names: ["risk_advisor", "delivery_advisor"],
+          advisors_used: [
+            { advisor_name: "risk_advisor", had_evidence: true },
+            { advisor_name: "delivery_advisor", had_evidence: true },
+          ],
+          correlations: [
+            { advisor_names: ["delivery_advisor", "risk_advisor"], is_structural_pair: true },
+          ],
+          synthesis_source_advisor_names: ["risk_advisor", "delivery_advisor"],
+        },
+      });
+    });
+    return;
+  }
+
+  // Wave 6 -- Executive Narrative: second production consumer of the
+  // Executive Orchestrator, mirroring src/api/routes/intelligence.py's
+  // POST /api/executive-narrative/generate
+  // (TECHNICAL-DESIGN-EXECUTIVE-NARRATIVE.md). This mock proves the UI
+  // wiring end-to-end (BFF -> hook -> panel) and the scope-driven
+  // selection contract (no `question` field, distinct advisor set per
+  // scope), never re-implements Selection Rule/Correlation/Síntese --
+  // those are proven exhaustively by the real pytest suite
+  // (tests/test_executive_narrative_api.py).
+  if (req.method === "POST" && url.pathname === "/api/executive-narrative/generate") {
+    let raw = "";
+    req.on("data", (chunk) => (raw += chunk));
+    req.on("end", () => {
+      const { scope } = JSON.parse(raw);
+      if (!scope || typeof scope !== "object" || !scope.type) {
+        return send(res, 422, { detail: "scope é obrigatório" });
+      }
+
+      // Deliberately distinct advisor sets per scope, matching
+      // ADVISOR_ELIGIBLE_SCOPES (catalog.py) -- proves, at the UI level,
+      // that the three scopes produce structurally different results, and
+      // that this set never matches Decision Support's own (narrower,
+      // lexically-selected) set for the same underlying data.
+      if (scope.type === "portfolio") {
+        return send(res, 200, {
+          capability: "executive_narrative",
+          scope,
+          insufficient_basis: false,
+          insufficient_basis_reason: null,
+          narrative:
+            "O portfólio Cloud Modernization está equilibrado, sem sobreposição relevante entre os projetos ativos.",
+          advisors_used: ["portfolio_advisor"],
+          citations: [],
+          composition_trace: {
+            selection_signals: [
+              "risk_advisor",
+              "delivery_advisor",
+              "portfolio_advisor",
+              "pmo_advisor",
+              "executive_advisor",
+              "strategy_advisor",
+              "document_advisor",
+              "governance_advisor",
+            ],
+            selected_advisor_names: ["portfolio_advisor"],
+            advisors_used: [{ advisor_name: "portfolio_advisor", had_evidence: true }],
+            correlations: [],
+            synthesis_source_advisor_names: ["portfolio_advisor"],
+          },
+        });
+      }
+
+      const latestRisk = ANALYSES.filter((a) => a.kind === "risk").sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at),
+      )[0];
+      const firstRisk = latestRisk?.payload?.model_output?.risks?.[0];
+
+      if (scope.type === "organization") {
+        return send(res, 200, {
+          capability: "executive_narrative",
+          scope,
+          insufficient_basis: false,
+          insufficient_basis_reason: null,
+          narrative:
+            "Estado executivo da organização: risco de escalação sob acompanhamento, entregas em andamento, processo de status seguido pelos projetos, nenhum desvio estratégico identificado.",
+          advisors_used: [
+            "risk_advisor",
+            "delivery_advisor",
+            "pmo_advisor",
+            "executive_advisor",
+            "strategy_advisor",
+            "document_advisor",
+            "governance_advisor",
+          ],
+          citations: firstRisk
+            ? [
+                {
+                  advisor_names: ["risk_advisor"],
+                  source_type: "analysis_record",
+                  source_id: latestRisk.id,
+                  source_label: `Análise de risco #${latestRisk.id}`,
+                },
+              ]
+            : [],
+          composition_trace: {
+            selection_signals: [
+              "risk_advisor",
+              "delivery_advisor",
+              "portfolio_advisor",
+              "pmo_advisor",
+              "executive_advisor",
+              "strategy_advisor",
+              "document_advisor",
+              "governance_advisor",
+            ],
+            selected_advisor_names: [
+              "risk_advisor",
+              "delivery_advisor",
+              "pmo_advisor",
+              "executive_advisor",
+              "strategy_advisor",
+              "document_advisor",
+              "governance_advisor",
+            ],
+            advisors_used: [
+              { advisor_name: "risk_advisor", had_evidence: true },
+              { advisor_name: "delivery_advisor", had_evidence: true },
+              { advisor_name: "pmo_advisor", had_evidence: false },
+              { advisor_name: "executive_advisor", had_evidence: false },
+              { advisor_name: "strategy_advisor", had_evidence: false },
+              { advisor_name: "document_advisor", had_evidence: false },
+              { advisor_name: "governance_advisor", had_evidence: false },
+            ],
+            correlations: [
+              { advisor_names: ["delivery_advisor", "risk_advisor"], is_structural_pair: true },
+            ],
+            synthesis_source_advisor_names: ["risk_advisor", "delivery_advisor"],
+          },
+        });
+      }
+
+      // scope.type === "project". Projects without any seeded ANALYSES
+      // entry (e.g. "Automação de Faturamento", id 2) demonstrate Base
+      // Insuficiente end-to-end -- risk_advisor/delivery_advisor are
+      // selected but neither gathers evidence, exactly the Collection
+      // Empty path already proven at the API layer
+      // (tests/test_executive_narrative_api.py::TestInsufficientBasis).
+      const project = DOMAIN_PROJECTS.find((p) => p.id === scope.project_id);
+      const projectHasEvidence = project && ["Multilift", "Aurora"].includes(project.name);
+      if (!projectHasEvidence) {
+        return send(res, 200, {
+          capability: "executive_narrative",
+          scope,
+          insufficient_basis: true,
+          insufficient_basis_reason: "collection_empty",
+          narrative: null,
+          advisors_used: ["risk_advisor", "delivery_advisor"],
+          citations: [],
+          composition_trace: {
+            selection_signals: [
+              "risk_advisor",
+              "delivery_advisor",
+              "portfolio_advisor",
+              "pmo_advisor",
+              "executive_advisor",
+              "strategy_advisor",
+              "document_advisor",
+              "governance_advisor",
+            ],
+            selected_advisor_names: ["risk_advisor", "delivery_advisor"],
+            advisors_used: [
+              { advisor_name: "risk_advisor", had_evidence: false },
+              { advisor_name: "delivery_advisor", had_evidence: false },
+            ],
+            correlations: [],
+            synthesis_source_advisor_names: null,
+          },
+        });
+      }
+
+      return send(res, 200, {
+        capability: "executive_narrative",
+        scope,
+        insufficient_basis: false,
+        insufficient_basis_reason: null,
+        narrative: `Existe risco de escalação (${firstRisk ? firstRisk.description : "ver histórico"}) e a entrega do projeto Multilift está em andamento.`,
+        advisors_used: ["risk_advisor", "delivery_advisor"],
+        citations: firstRisk
+          ? [
+              {
+                advisor_names: ["risk_advisor"],
+                source_type: "analysis_record",
+                source_id: latestRisk.id,
+                source_label: `Análise de risco #${latestRisk.id}`,
+              },
+            ]
+          : [],
+        composition_trace: {
+          selection_signals: [
+            "risk_advisor",
+            "delivery_advisor",
+            "portfolio_advisor",
+            "pmo_advisor",
+            "executive_advisor",
+            "strategy_advisor",
+            "document_advisor",
+            "governance_advisor",
+          ],
+          selected_advisor_names: ["risk_advisor", "delivery_advisor"],
+          advisors_used: [
+            { advisor_name: "risk_advisor", had_evidence: true },
+            { advisor_name: "delivery_advisor", had_evidence: true },
+          ],
+          correlations: [
+            { advisor_names: ["delivery_advisor", "risk_advisor"], is_structural_pair: true },
+          ],
+          synthesis_source_advisor_names: ["risk_advisor", "delivery_advisor"],
+        },
       });
     });
     return;

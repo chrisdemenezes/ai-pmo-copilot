@@ -26,8 +26,28 @@ bash demo/stop-demo.sh
 
 1. `bash demo/start-demo.sh` — aguardar as duas mensagens "is up".
 2. `python3 demo/seed_demo_data.py` — popula o portfólio fictício do DPS-01
-   (Implantação SAP S/4HANA + 5 projetos de apoio) via Demo Mode.
-3. Abrir `http://localhost:3000/entrar`, senha em `demo/.env` (`WORKSPACE_PASSWORD`).
+   (Implantação SAP S/4HANA + 5 projetos de apoio, incluindo reuniões que
+   geram Ações e um documento sintético) via Demo Mode, autenticado como o
+   Administrator bootstrapado (`STRATECH_ADMIN_EMAIL`/`STRATECH_ADMIN_PASSWORD`
+   em `demo/.env`, já vem preenchido no `.env.example`). Escreve os dados na
+   organização **"Organização Principal"** (slug `organizacao-principal`),
+   não em "Demo Organization" — ver item 3.
+3. Duas organizações reais existem por padrão, cada uma com o mesmo dado
+   base do Enterprise Domain (Organizations/Roles/Portfolios/Programs/
+   Projects, migrations `0002`+`0008`), mas com identidades e permissões
+   diferentes:
+   - **Login recomendado para a sessão completa** (`http://localhost:3000/entrar`):
+     organização `organizacao-principal`, e-mail o valor de
+     `STRATECH_ADMIN_EMAIL`, senha `STRATECH_ADMIN_PASSWORD` (`demo/.env`).
+     Papel `organization_admin` — enxerga tudo, incluindo o dado que o passo
+     2 escreveu (Projetos/Ações/Decisões/Aprendizados/Documents).
+   - **Login somente-leitura, para ilustrar RBAC restrito** (mesma URL):
+     organização `demo-organization`, e-mail `demo@stratech.local`, senha
+     `WORKSPACE_PASSWORD` (`demo/.env`). Papel `viewer` (fixo por design —
+     `bootstrap_demo_user` reafirma esse papel a cada boot do backend). Vê o
+     mesmo Enterprise Domain, mas Projetos/Ações/Decisões/Aprendizados/
+     Documents ficam vazios nesta organização (o passo 2 nunca escreve
+     nela — ver `docs/product/governance/LOCAL-V1-PILOT-DATASET-EXECUTIVE-EVIDENCE.md`).
 4. Abrir `http://localhost:3000/dashboard` — seguir o roteiro do DPS-01, Seção 8.
 5. Ao final: `bash demo/stop-demo.sh`.
 

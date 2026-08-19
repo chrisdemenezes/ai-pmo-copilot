@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { authenticatedRequest } from "@/lib/bff/test-support";
+
 import { GET } from "./route";
 
 const SAMPLE = [
@@ -13,10 +15,13 @@ const SAMPLE = [
   },
 ];
 
+const BASE_URL = "http://localhost/api/bff/action-items";
+
 describe("GET /api/bff/action-items", () => {
   beforeEach(() => {
     vi.stubEnv("BACKEND_URL", "http://backend.test");
     vi.stubEnv("API_KEY", "secret-key");
+    vi.stubEnv("SESSION_SECRET", "test-secret");
   });
 
   afterEach(() => {
@@ -26,10 +31,19 @@ describe("GET /api/bff/action-items", () => {
 
   it("returns 503 without leaking detail when BACKEND_URL or API_KEY are unset", async () => {
     vi.stubEnv("API_KEY", "");
-    const response = await GET(new Request("http://localhost/api/bff/action-items"));
+    const response = await GET(authenticatedRequest(BASE_URL));
     expect(response.status).toBe(503);
     const body = await response.json();
     expect(JSON.stringify(body)).not.toContain("secret-key");
+  });
+
+  it("returns 401 when there is no session cookie", async () => {
+    const response = await GET(new Request(BASE_URL));
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({
+      error: "unauthorized",
+      detail: "Sessão inválida ou expirada.",
+    });
   });
 
   it("proxies a successful backend response verbatim", async () => {
@@ -38,7 +52,7 @@ describe("GET /api/bff/action-items", () => {
       vi.fn().mockResolvedValue(new Response(JSON.stringify(SAMPLE), { status: 200 })),
     );
 
-    const response = await GET(new Request("http://localhost/api/bff/action-items"));
+    const response = await GET(authenticatedRequest(BASE_URL));
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual(SAMPLE);
   });
@@ -49,7 +63,7 @@ describe("GET /api/bff/action-items", () => {
       .mockResolvedValue(new Response(JSON.stringify(SAMPLE), { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
 
-    await GET(new Request("http://localhost/api/bff/action-items"));
+    await GET(authenticatedRequest(BASE_URL));
 
     const [calledUrl] = fetchMock.mock.calls[0];
     const url = new URL(String(calledUrl));
@@ -68,7 +82,7 @@ describe("GET /api/bff/action-items", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     await GET(
-      new Request(`http://localhost/api/bff/action-items?project_name=${encodeURIComponent(name)}`),
+      authenticatedRequest(`${BASE_URL}?project_name=${encodeURIComponent(name)}`),
     );
 
     const [calledUrl] = fetchMock.mock.calls[0];
@@ -76,17 +90,49 @@ describe("GET /api/bff/action-items", () => {
     expect(url.searchParams.get("project_name")).toBe(name);
   });
 
-  it("sends the API key in the X-API-Key header, never in the URL", async () => {
+  it("forwards project_id alongside project_name when both are given (dual-key, Etapa 2)", async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValue(new Response(JSON.stringify([]), { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
 
-    await GET(new Request("http://localhost/api/bff/action-items"));
+    await GET(authenticatedRequest(`${BASE_URL}?project_name=Aurora&project_id=42`));
+
+    const [calledUrl] = fetchMock.mock.calls[0];
+    const url = new URL(String(calledUrl));
+    expect(url.searchParams.get("project_name")).toBe("Aurora");
+    expect(url.searchParams.get("project_id")).toBe("42");
+  });
+
+  it("omits project_id when the client does not supply it (additive)", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify([]), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await GET(authenticatedRequest(`${BASE_URL}?project_name=Aurora`));
+
+    const [calledUrl] = fetchMock.mock.calls[0];
+    const url = new URL(String(calledUrl));
+    expect(url.searchParams.has("project_id")).toBe(false);
+  });
+
+  it("sends the API key and institutional headers, never the key in the URL", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify([]), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await GET(authenticatedRequest(BASE_URL, {}, { userId: 7, organizationId: 3 }));
 
     const [calledUrl, init] = fetchMock.mock.calls[0];
     expect(String(calledUrl)).not.toContain("secret-key");
-    expect((init as RequestInit).headers).toEqual({ "X-API-Key": "secret-key" });
+    expect((init as RequestInit).headers).toEqual({
+      "X-API-Key": "secret-key",
+      "X-Stratech-User-Id": "7",
+      "X-Stratech-Organization-Id": "3",
+      "X-Stratech-Session-Id": expect.any(String),
+    });
   });
 
   it("maps a backend error status to a 502 with the shared error shape", async () => {
@@ -95,7 +141,7 @@ describe("GET /api/bff/action-items", () => {
       vi.fn().mockResolvedValue(new Response(JSON.stringify({ detail: "boom" }), { status: 500 })),
     );
 
-    const response = await GET(new Request("http://localhost/api/bff/action-items"));
+    const response = await GET(authenticatedRequest(BASE_URL));
     expect(response.status).toBe(502);
     expect(await response.json()).toEqual({
       error: "backend_error",
@@ -109,7 +155,7 @@ describe("GET /api/bff/action-items", () => {
       vi.fn().mockRejectedValue(Object.assign(new Error("aborted"), { name: "AbortError" })),
     );
 
-    const response = await GET(new Request("http://localhost/api/bff/action-items"));
+    const response = await GET(authenticatedRequest(BASE_URL));
     expect(response.status).toBe(504);
     expect(await response.json()).toEqual({
       error: "backend_timeout",
@@ -120,7 +166,7 @@ describe("GET /api/bff/action-items", () => {
   it("maps a network failure to a 502 unavailable body", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("ECONNREFUSED")));
 
-    const response = await GET(new Request("http://localhost/api/bff/action-items"));
+    const response = await GET(authenticatedRequest(BASE_URL));
     expect(response.status).toBe(502);
     expect(await response.json()).toEqual({
       error: "backend_unavailable",

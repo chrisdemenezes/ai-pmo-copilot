@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { institutionalHeaders, readSessionIdentity } from "@/lib/bff/domain-proxy";
 import type { ActionItemView, WorkspaceErrorBody } from "@/lib/workspace/types";
 
 const BACKEND_TIMEOUT_MS = 8_000;
@@ -24,14 +25,28 @@ export async function GET(request: Request) {
     );
   }
 
+  // Security Hardening Gate (C-1/C-2): the backend now requires RBAC +
+  // organization scope on this route.
+  const identity = readSessionIdentity(request);
+  if (identity === null) {
+    return errorResponse({ error: "unauthorized", detail: "Sessão inválida ou expirada." }, 401);
+  }
+
   // project_name travels as a query parameter, never a path segment --
   // same reasoning as the workspace summary BFF route: Starlette's path
   // converter can't capture a literal "/" in a project name, query
   // parameters can. URLSearchParams already hands us the decoded value.
-  const projectName = new URL(request.url).searchParams.get("project_name");
+  const incoming = new URL(request.url);
+  const projectName = incoming.searchParams.get("project_name");
+  const projectId = incoming.searchParams.get("project_id");
   const backendUrlObj = new URL(`${backendUrl}/api/action-items`);
   if (projectName !== null) {
     backendUrlObj.searchParams.set("project_name", projectName);
+  }
+  // TD-008 Fase 3b, Etapa 2 (dual-key): encaminha o project_id quando o
+  // cliente o fornece, coexistindo com project_name. Aditivo.
+  if (projectId !== null) {
+    backendUrlObj.searchParams.set("project_id", projectId);
   }
 
   const controller = new AbortController();
@@ -39,7 +54,7 @@ export async function GET(request: Request) {
 
   try {
     const backendResponse = await fetch(backendUrlObj, {
-      headers: { "X-API-Key": apiKey },
+      headers: { "X-API-Key": apiKey, ...institutionalHeaders(identity) },
       signal: controller.signal,
       cache: "no-store",
     });

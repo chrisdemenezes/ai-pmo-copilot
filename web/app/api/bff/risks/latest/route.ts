@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { institutionalHeaders, readSessionIdentity } from "@/lib/bff/domain-proxy";
 import type { LatestRiskItem } from "@/lib/decision-center/types";
 import type { WorkspaceErrorBody } from "@/lib/workspace/types";
 
@@ -25,10 +26,24 @@ export async function GET(request: Request) {
     );
   }
 
-  const projectName = new URL(request.url).searchParams.get("project_name");
+  // Security Hardening Gate (C-1/C-2): the backend now requires RBAC +
+  // organization scope on this route.
+  const identity = readSessionIdentity(request);
+  if (identity === null) {
+    return errorResponse({ error: "unauthorized", detail: "Sessão inválida ou expirada." }, 401);
+  }
+
+  const incoming = new URL(request.url);
+  const projectName = incoming.searchParams.get("project_name");
+  const projectId = incoming.searchParams.get("project_id");
   const backendUrlObj = new URL(`${backendUrl}/api/risks/latest`);
   if (projectName !== null) {
     backendUrlObj.searchParams.set("project_name", projectName);
+  }
+  // TD-008 Fase 3b, Etapa 2 (dual-key): encaminha o project_id quando o
+  // cliente o fornece, coexistindo com project_name. Aditivo.
+  if (projectId !== null) {
+    backendUrlObj.searchParams.set("project_id", projectId);
   }
 
   const controller = new AbortController();
@@ -36,7 +51,7 @@ export async function GET(request: Request) {
 
   try {
     const backendResponse = await fetch(backendUrlObj, {
-      headers: { "X-API-Key": apiKey },
+      headers: { "X-API-Key": apiKey, ...institutionalHeaders(identity) },
       signal: controller.signal,
       cache: "no-store",
     });

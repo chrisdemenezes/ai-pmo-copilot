@@ -125,6 +125,24 @@ test("Riscos and Comunicação sections render real content from the mocked anal
   await expect(page.getByText("Manter cadência atual")).toBeVisible();
 });
 
+// Epic W3-3 -- Risk Advisor: end-to-end proof of the read-only conversational
+// flow (backend -> BFF -> hook -> component), citing the analysis it
+// synthesized from.
+test("Risk Advisor answers a question about Aurora's already-identified risks, citing its source", async ({
+  page,
+}) => {
+  await login(page);
+  await page.goto("/workspace/Aurora");
+
+  const section = page.locator("section", { has: page.locator("#risk-advisor-heading") });
+  await section.scrollIntoViewIfNeeded();
+  await section.getByLabel("Pergunta para o Risk Advisor").fill("Qual o risco mais crítico?");
+  await section.getByRole("button", { name: "Perguntar" }).click();
+
+  await expect(section.getByText("O risco mais crítico identificado é: Atraso na entrega.")).toBeVisible();
+  await expect(section.getByText("Baseado em")).toBeVisible();
+});
+
 // TIP-008, Incremento 1 -- seção "Ações" do Workspace, de ponta a ponta
 // (backend → BFF → hook → action-momentum → componente).
 test("Ações section shows the project's meeting commitments grouped by urgency", async ({

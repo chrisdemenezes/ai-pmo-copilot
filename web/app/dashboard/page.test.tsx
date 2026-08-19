@@ -7,6 +7,8 @@ import { usePortfolios } from "@/lib/hooks/use-portfolios";
 import { usePrograms } from "@/lib/hooks/use-programs";
 import { useProjects } from "@/lib/hooks/use-projects";
 import { useLatestRisks } from "@/lib/hooks/use-latest-risks";
+import { useAskDecisionSupport } from "@/lib/hooks/use-ask-decision-support";
+import { useGenerateExecutiveNarrative } from "@/lib/hooks/use-generate-executive-narrative";
 
 vi.mock("@/lib/hooks/use-portfolio-summary", () => ({
   usePortfolioSummary: vi.fn(),
@@ -23,12 +25,51 @@ vi.mock("@/lib/hooks/use-projects", () => ({
 vi.mock("@/lib/hooks/use-latest-risks", () => ({
   useLatestRisks: vi.fn(),
 }));
+// DecisionSupportPanel (Wave 6) is rendered inside DashboardPage -- its own
+// useMutation() would otherwise require a real QueryClientProvider this
+// test never sets up (every other hook here is a mocked useQuery instead).
+vi.mock("@/lib/hooks/use-ask-decision-support", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/hooks/use-ask-decision-support")>(
+    "@/lib/hooks/use-ask-decision-support",
+  );
+  return { ...actual, useAskDecisionSupport: vi.fn() };
+});
+// Same reason as above -- ExecutiveNarrativePanel (Wave 6) is also rendered
+// inside DashboardPage, with its own real useMutation().
+vi.mock("@/lib/hooks/use-generate-executive-narrative", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/hooks/use-generate-executive-narrative")>(
+    "@/lib/hooks/use-generate-executive-narrative",
+  );
+  return { ...actual, useGenerateExecutiveNarrative: vi.fn() };
+});
 
 const mockedHook = vi.mocked(usePortfolioSummary);
 const mockedPortfolios = vi.mocked(usePortfolios);
 const mockedPrograms = vi.mocked(usePrograms);
 const mockedDeliveryProjects = vi.mocked(useProjects);
 const mockedRisks = vi.mocked(useLatestRisks);
+const mockedDecisionSupportMutation = vi.mocked(useAskDecisionSupport);
+// Default: Decision Support panel idle, no request in flight.
+mockedDecisionSupportMutation.mockReturnValue({
+  mutate: vi.fn(),
+  isPending: false,
+  isError: false,
+  isSuccess: false,
+  data: undefined,
+  error: null,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any);
+const mockedExecutiveNarrativeMutation = vi.mocked(useGenerateExecutiveNarrative);
+// Default: Executive Narrative panel idle, no request in flight.
+mockedExecutiveNarrativeMutation.mockReturnValue({
+  mutate: vi.fn(),
+  isPending: false,
+  isError: false,
+  isSuccess: false,
+  data: undefined,
+  error: null,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any);
 // Default: Risco já resolvido, sem dado -- a maioria dos testes só se
 // importa com o sinal de Status já existente antes do TIP-009.
 mockedRisks.mockReturnValue({

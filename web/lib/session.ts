@@ -44,8 +44,12 @@ function safeEqual(a: string, b: string): boolean {
 export function createSessionToken(
   userId: number,
   organizationId: number,
+  sessionId: string,
 ): { token: string; expiresAt: Date } {
-  const sessionId = crypto.randomUUID();
+  // sessionId is minted by the backend at login (item 5, resolves TD-010)
+  // and passed in here, not generated locally with crypto.randomUUID() as
+  // before -- so the id signed into this cookie is the same one the
+  // backend's `sessions` table tracks and can revoke before natural expiry.
   const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
   const payload = `${sessionId}.${userId}.${organizationId}.${expiresAt.getTime()}`;
   return { token: `${payload}.${sign(payload)}`, expiresAt };

@@ -7,6 +7,14 @@ import { SESSION_COOKIE_NAME, verifySessionToken } from "@/lib/session";
 // session, so it must stay reachable while unauthenticated.
 const LOGIN_ROUTE = "/api/bff/session";
 
+// D-054 (Convites): the public invitation flow (preview + accept) is
+// authenticated by the token itself, not a session -- the invitee has no
+// account yet. These BFF routes must stay reachable while unauthenticated,
+// exactly like LOGIN_ROUTE. Note the trailing slash and the deliberate
+// exclusion of "/api/bff/admin/invitations" -- admin management stays
+// session-gated; only "/api/bff/invitations/" (preview/accept) is public.
+const PUBLIC_INVITATION_PREFIX = "/api/bff/invitations/";
+
 export const config = {
   matcher: [
     "/dashboard",
@@ -29,6 +37,13 @@ export const config = {
     "/aprendizados/:path*",
     "/mission-control",
     "/mission-control/:path*",
+    // D-051 -- Administração (Usuários, Chaves de API) was never in this
+    // matcher: an unauthenticated visitor could load the page shell (data
+    // fetches would still 401 via the BFF gate below, but the page itself
+    // rendered). API Keys makes this gap more consequential -- closing it
+    // for the whole section, not just the new page.
+    "/administracao",
+    "/administracao/:path*",
     "/api/bff/:path*",
   ],
 };
@@ -37,13 +52,16 @@ export function proxy(request: NextRequest) {
   // Emergency kill switch (TIP-001 §7 rollback strategy): if the session
   // gate misbehaves in production, disable it without reverting the whole
   // feature. Isolated to this one check -- the rest of /dashboard is unaffected.
+  // W7-4 Security Hardening, Etapa 2 (F2 -- Founder Decision): setting this
+  // true outside dev now fails the boot (web/lib/startup-config.ts) -- this
+  // switch stays available only where its use is genuinely safe.
   if (process.env.DISABLE_WORKSPACE_SESSION_GATE === "true") {
     return NextResponse.next();
   }
 
   const { pathname } = request.nextUrl;
 
-  if (pathname === LOGIN_ROUTE) {
+  if (pathname === LOGIN_ROUTE || pathname.startsWith(PUBLIC_INVITATION_PREFIX)) {
     return NextResponse.next();
   }
 

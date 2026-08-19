@@ -4,7 +4,6 @@ import subprocess
 import sys
 
 import pytest
-
 from fastapi.testclient import TestClient
 
 from src.api import authorization as authorization_module
@@ -13,7 +12,8 @@ from src.database.repository import AnalysisRepository
 from src.main import app
 from src.services.authorization.checker import SqlPermissionChecker
 from src.services.domain_service import DomainService
-
+from src.services.events.dispatcher import EventDispatcher
+from src.services.events.in_process_publisher import InProcessEventPublisher
 from tests.db import temp_database_url
 
 
@@ -24,6 +24,7 @@ def _alembic(env, *args):
         env=env,
         capture_output=True,
         text=True,
+        check=False,
     )
     assert result.returncode == 0, result.stderr
     return result
@@ -45,7 +46,9 @@ def client():
         _alembic(env, "upgrade", "head")
 
         repo = AnalysisRepository(database_url=database_url)
-        app.dependency_overrides[portfolio_routes.build_domain_service] = lambda: DomainService(repo)
+        app.dependency_overrides[portfolio_routes.build_domain_service] = (
+            lambda: DomainService(repo, InProcessEventPublisher(repo.SessionLocal, EventDispatcher(repo.SessionLocal)))
+        )
         app.dependency_overrides[authorization_module.build_permission_checker] = (
             lambda: SqlPermissionChecker(repo.SessionLocal)
         )

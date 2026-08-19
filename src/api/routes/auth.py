@@ -4,10 +4,16 @@ from functools import lru_cache
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from src.api.rate_limiter import enforce_rate_limit
+from src.api.rate_limiter import (
+    LoginBruteForceGuard,
+    LoginLockedError,
+    build_login_brute_force_guard,
+    enforce_rate_limit,
+)
 from src.api.security import verify_api_key
 from src.database.repository import AnalysisRepository
 from src.services.identity.auth_service import AuthService
+from src.services.identity.email_normalization import normalize_email
 from src.services.identity.password_hashing import Argon2PasswordHasher
 
 logger = logging.getLogger(__name__)
@@ -29,6 +35,10 @@ class LoginRequest(BaseModel):
 class LoginResponse(BaseModel):
     user_id: int
     organization_id: int
+    # Server-minted session id (item 5, resolves TD-010) -- the BFF signs
+    # this into its HMAC cookie instead of generating its own, so the
+    # backend's `sessions` table can list/revoke it before natural expiry.
+    session_id: str
 
 
 class LogoutRequest(BaseModel):
@@ -53,13 +63,45 @@ def build_auth_service() -> AuthService:
     return AuthService(repository.SessionLocal, Argon2PasswordHasher())
 
 
+def _login_identity_key(organization: str, email: str) -> str:
+    """Scoped to a single identity (organization + email), never the whole
+    organization -- deliberately distinct from `enforce_rate_limit`'s
+    `X-API-Key`-keyed budget shared by every user behind one BFF (W7-4 F1)."""
+    return f"{organization.strip().lower()}:{normalize_email(email)}"
+
+
 @router.post("/auth/login", response_model=LoginResponse)
-def login(request: LoginRequest, auth_service: AuthService = Depends(build_auth_service)):
+def login(
+    request: LoginRequest,
+    auth_service: AuthService = Depends(build_auth_service),
+    guard: LoginBruteForceGuard = Depends(build_login_brute_force_guard),
+):
+    identity_key = _login_identity_key(request.organization, request.email)
+    try:
+        guard.check(identity_key)
+    except LoginLockedError as exc:
+        # Deliberately the same response for a real identity as for a
+        # nonexistent one -- record_failure() below fires uniformly on
+        # every authenticate() miss, so a locked-out response never
+        # discloses whether the organization or the user exists.
+        raise HTTPException(
+            status_code=429, detail="Too many login attempts. Try again later."
+        ) from exc
+
     result = auth_service.authenticate(request.organization, request.email, request.password)
     if result is None:
+        guard.record_failure(identity_key)
         raise HTTPException(status_code=401, detail="Invalid organization, email or password")
+    guard.record_success(identity_key)
     user, organization = result
-    return LoginResponse(user_id=user.user_id, organization_id=organization.organization_id)
+    session_id = auth_service.create_session(
+        user_id=user.user_id, organization_id=organization.organization_id
+    )
+    return LoginResponse(
+        user_id=user.user_id,
+        organization_id=organization.organization_id,
+        session_id=session_id,
+    )
 
 
 @router.post("/auth/logout", response_model=LogoutResponse)

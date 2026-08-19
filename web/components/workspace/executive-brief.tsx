@@ -50,12 +50,29 @@ function formatDate(iso: string) {
  */
 export function ExecutiveBrief({ projectName }: { projectName: string }) {
   const summary = useWorkspaceSummary(projectName);
-  const latestStatus = useWorkspaceLatestByKind(projectName, "status");
+  // TD-008 Fase 3b, Etapa 2 (dual-key): o summary é a saída do resolver
+  // nome->id. Assim que ele resolve, reaproveitamos o project_id como chave
+  // exata nas leituras irmãs deste mesmo painel (coexistindo com o nome).
+  // Enquanto o summary está pending (ou o projeto não tem análises, id null),
+  // resolvedProjectId é undefined e as leituras seguem por nome -- nenhum
+  // painel bloqueia o outro, comportamento idêntico ao anterior.
+  const resolvedProjectId = summary.data?.project_id ?? undefined;
+  const latestStatus = useWorkspaceLatestByKind(projectName, "status", resolvedProjectId);
   // Executive Memory (FS-010): silencioso enquanto pending/error -- nunca um
   // estado de carregamento próprio (Silent Intelligence). Se a leitura
   // falhar, o Brief continua exatamente como hoje, sem o Insight.
-  const recentStatus = useRecentAnalysesByKind(projectName, "status", RECENT_STATUS_LIMIT);
-  const recentRisk = useRecentAnalysesByKind(projectName, "risk", RECENT_RISK_LIMIT);
+  const recentStatus = useRecentAnalysesByKind(
+    projectName,
+    "status",
+    RECENT_STATUS_LIMIT,
+    resolvedProjectId,
+  );
+  const recentRisk = useRecentAnalysesByKind(
+    projectName,
+    "risk",
+    RECENT_RISK_LIMIT,
+    resolvedProjectId,
+  );
   const statusInsight = recentStatus.data ? buildStatusInsight(recentStatus.data) : null;
   const riskInsight = recentRisk.data ? buildRiskRecurrenceInsight(recentRisk.data) : null;
   // One Memory Insight Rule (Architecture Review §3): nunca mais de 1 Insight por contexto.

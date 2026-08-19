@@ -106,11 +106,16 @@ troubleshooting) and
 for the formal homologation checklist. `docs/technical/03-development-environment.md` lists every
 `make` target.
 
-Windows: no native `make` — use WSL2, or run the underlying commands by hand after
-`setup.bat`/`setup.ps1` (see the Quick Start above). The V1-era `scripts/rc1-local-start.sh` /
-`start.bat` / `stop.bat` flow (SQLite, no Postgres/Docker) still works unchanged for a
-zero-dependency quick look — see
-[`docs/product/release-candidate/Local-Installation-Guide.html`](docs/product/release-candidate/Local-Installation-Guide.html).
+Windows: no native `make` — use WSL2, or run the underlying `.sh` commands directly via Git Bash
+(see `docs/operations/LOCAL-V1-WINDOWS-RUNBOOK.md` for the exact, verified sequence). **The V1-era
+`scripts/rc1-local-start.sh` / `setup.bat` / `start.bat` / `stop.bat` flow does not validate the
+current STRATECH V1** — confirmed by direct inspection (Local V1 Windows Pilot Preparation): it
+never runs Alembic migrations at all, so it predates Enterprise Domain, RBAC, the Knowledge
+Platform, Program Management, Project Delivery, and Documents entirely, on top of the same SQLite
+incompatibility already documented above (`ALTER COLUMN` fails at migration `0010` when migrations
+*are* run against SQLite). It remains a historical V1 RC-1 artifact — see
+[`docs/product/release-candidate/Local-Installation-Guide.html`](docs/product/release-candidate/Local-Installation-Guide.html)
+for its own scope, not a substitute for `docs/operations/LOCAL-V1-WINDOWS-RUNBOOK.md`.
 
 ### Backend only
 
@@ -127,10 +132,12 @@ alembic upgrade head
 uvicorn src.main:app --reload
 ```
 
-Leaving `DATABASE_URL` unset falls back to a local SQLite file with the schema auto-created (no
-migration, no seed) — useful for a quick look, not a supported deployment target. See
+Leaving `DATABASE_URL` unset falls back to a local SQLite file with the schema auto-created via
+`Base.metadata.create_all()` (no migration, no seed) — not verified against the current schema
+(the Knowledge Platform's `pgvector`-typed columns predate this fallback path having been
+re-checked) and, regardless, never a supported deployment target. See
 `docs/technical/05-database-model.md` and `docs/technical/03-development-environment.md` for
-details.
+details, and `docs/operations/LOCAL-V1-WINDOWS-RUNBOOK.md` for the verified PostgreSQL path.
 
 ## Run with Docker Compose
 

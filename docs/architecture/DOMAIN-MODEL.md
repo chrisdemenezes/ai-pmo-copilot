@@ -19,6 +19,7 @@
 | **Knowledge** *(futuro)* | Camada de inteligência/conhecimento corporativo (Accelerator futuro, Release 0.3+). |
 | **Bounded Context** | Um agrupamento coeso de entidades + regras que evolui junto (ex.: "Project Delivery" = Project + seus objetos de apoio). |
 | **Consolidação** | Regra pela qual uma entidade pai deriva seus indicadores (contagem, progresso, saúde) a partir dos filhos reais, nunca de valores próprios estáticos. |
+| **Workspace** | ⚠️ **Termo de apresentação, NÃO uma entidade de domínio** (auditoria D-055, item 7 do Wave Completion Review retrospectivo). Denota exclusivamente: (a) a **View/UI** `/workspace/:projectName` — a página que reúne os painéis de análise de um único projeto, explicitamente "não representa uma entidade persistida", é a camada de apresentação dos domínios Portfolio/Project Intelligence + AI Intelligence Layer; e (b) por metonímia herdada do RFC-001, a **sessão de autenticação Nível 1** ("sessão de workspace"), hoje realizada pela entidade `Session` (D-053). Não existe — e não deve ser criada — uma entidade "Workspace": ela não possui identidade, ciclo de vida, invariantes, permissões, relacionamentos nem persistência próprios; a necessidade de "agrupar usuários/projetos sob uma sub-unidade da organização" já é servida por Program/Portfolio (entidades reais) e por RBAC com Organization Scope. Ver `DOMAIN-BLUEPRINT-ENTERPRISE-ADMINISTRATION.md` §0.2. |
 
 ## 2. Hierarquia do Domínio
 
@@ -66,10 +67,14 @@ Todas vivem em `web/lib/domain/` — camada de domínio de **frontend**, sem per
 - **Objetos de apoio internos** (ainda não são entidades próprias): `Owner` (name, role), `Milestone` (name, dueDate, status), `Team` (size, leadName).
 - **Invariante:** `Project.create()` recusa um Project sem `programId`.
 - **Comportamento:** `belongsToProgram()`, `belongsToPortfolio(portfolioId, programs)` (deriva via o Program pai), `isOverdue()`, `isAtRisk()`, `completionPercentage()`, `health()`.
-- **Não confundir com** (Decision Log D-019) — dois outros "Project" já existentes no código, nenhum compartilha ID:
-  1. O `Project` real do backend (`src/database/models.py`, Épico 1) — persistido, hoje só usado para organização/membership.
-  2. `ProjectSummary` (`lib/dashboard/types.ts`) — dado real do V1 (BFF), chaveado por `project_name` livre, usado pelo Cockpit "Projetos"/Risk Concentration/Health Distribution.
-  Os três permanecem desconectados até o Épico 4 (unificação de `Project`).
+- **Não confundir com** (Decision Log D-019) — o outro "Project" já existente no código:
+  1. O `Project` real do backend (`src/database/models.py`, Épico 1) — persistido; desde a Fase 3b é a **identidade técnica** e a **única chave de acesso interno** ao Project (`project_id`). `project_name` persiste em `projects.name` apenas como atributo de exibição.
+
+### 3.4 Projeção de inteligência do Project (read-model) — classificação arquitetural
+
+- **`ProjectIntelligenceSummary` (`web/lib/project/intelligence-summary.ts`):** o read-model canônico da *projeção de inteligência* de um Project (`total_analyses`/`open_risks`/`pending_action_items`/`latest_health_status`, agregados sobre `AnalysisRecord`), ancorado em `project_id` (chave) — consolidou os antigos espelhos duplicados `ProjectSummary`/`WorkspaceSummary`, removidos na Etapa 5 (D-059). **Não é** a entidade de Entrega `Project` (§3.3): é uma projeção de leitura sobre uma identidade de Project, um bounded context distinto — fundir os dois seria conflação.
+- **`ProjectSummaryService` / `ProjectSummaryResponse` (`src/`):** classificados explicitamente (Founder, Decisão 2 de D-060) como **projeção de leitura** e **serviço de composição** — o *produtor* legítimo dessa projeção, agrupando por `project_id` desde a Fase 3a. **Não são modelos de domínio paralelos.** Os nomes são mantidos deliberadamente: renomeá-los alteraria o contrato OpenAPI sem ganho arquitetural ou funcional proporcional, e não introduzem uma quarta entidade "Project".
+- **Chave única (TD-008 Fase 3b, Etapa 4b — D-061):** a coluna legada `analysis_records.project_name` foi **removida** (migração 0015) do banco e do ORM. `project_id` é a única chave de acesso interno ao Project; `Project.name` é a única fonte do nome de exibição (as responses de intelligence expõem `project_name` derivado de `Project.name`, nunca de uma coluna própria). O nome jamais volta a funcionar como chave/join/identidade — a UX por nome resolve para um `project_id` no boundary. **TD-008 encerrado.**
 
 ## 4. Relacionamentos
 
@@ -93,9 +98,11 @@ Desde a Capability 03, a cadeia é **transitiva**: o Executive Cockpit primeiro 
 
 ## 6. Estado de implementação (o que é real hoje)
 
-- **Frontend (`web/lib/domain/`):** Portfolio, Program, Project existem como domínio real, com invariantes e comportamento, consumidos pelo Executive Cockpit, Program Management e Project Delivery.
-- **Backend (`src/`):** **nenhuma migração, model ou tabela nova.** CLAUDE.md ("nunca criar arquitetura paralela, nunca duplicar código, nunca novo provider/registry") permanece integralmente respeitado. Este domínio é preparação estrutural, não persistência.
-- **Quando o backend for wireado** (fora do escopo de qualquer Capability até aqui): os acessores `listPortfolios()`/`listPrograms()`/`listProjects()` são repository-shaped (assíncronos) exatamente para que só o corpo dessas 3 funções mude — nenhum hook, componente ou página precisa mudar.
+**Correção de drift documental (Wave 2 Closure Review, 2026-07-27):** esta seção descrevia o estado pré-Wave 2 (domínio de frontend sem persistência real). Isso deixou de ser verdade a partir da Wave 2, Sprint 1 (D-032) e, definitivamente, da Sprint 5 (D-036) — mantido aqui sem correção por várias revisões seguintes; identificado e corrigido nesta revisão de encerramento.
+
+- **Backend (`src/`):** Portfolio/Program persistidos em tabelas reais desde a migração `0005_domain_persistence` (Wave 2, Sprint 1); `Project` estende a tabela `projects` já existente do Épico 1 (sem uma `projects_delivery` separada, per `DOMAIN-BLUEPRINT-PROJECT.md` Opção A). `CrossTenantViolationError` aplicado em toda escrita (`src/database/domain_repository.py`). API REST completa (`GET`/`GET by id`/`POST`) desde a Sprint 2, com RBAC fino desde a Sprint 3.
+- **Frontend (`web/lib/domain/`):** Portfolio, Program, Project existem como domínio real (invariantes e comportamento), consumidos pelo Executive Cockpit, Program Management e Project Delivery. Desde a Wave 2, Sprint 5 (D-036), `listPortfolios()`/`listPrograms()`/`listProjects()` são chamadas reais à API real via BFF — os arrays semeados em memória foram deletados; nenhum hook, componente ou página precisou mudar além do corpo dessas 3 funções, exatamente o seam prometido em D-011.
+- **CLAUDE.md** ("nunca criar arquitetura paralela, nunca duplicar código, nunca novo provider/registry") permanece integralmente respeitado — a persistência estende as tabelas/repositórios já existentes, nenhum componente paralelo foi criado.
 
 ## 7. Preparação para Capabilities futuras
 

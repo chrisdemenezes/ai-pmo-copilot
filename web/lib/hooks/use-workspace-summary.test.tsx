@@ -38,6 +38,18 @@ describe("useWorkspaceSummary", () => {
     );
   });
 
+  it("forwards project_id as a query param when the resolved id is known (dual-key, Etapa 2)", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify(SAMPLE), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { result } = renderHook(() => useWorkspaceSummary("Aurora", 7), { wrapper });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(fetchMock).toHaveBeenCalledWith("/api/bff/workspace/Aurora/summary?project_id=7");
+  });
+
   it("surfaces the BFF error body when the request fails", async () => {
     vi.stubGlobal(
       "fetch",

@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { NAV_ITEMS } from "./navigation";
 
 describe("NAV_ITEMS", () => {
-  it("contains exactly ten entries -- the only fully real modules today (Capability 03, User Management, Mission Control)", () => {
-    expect(NAV_ITEMS).toHaveLength(10);
+  it("contains exactly fourteen entries -- the only fully real modules today (Capability 03, User Management, API Keys, Sessions, Invitations, Document Ingestion, Mission Control)", () => {
+    expect(NAV_ITEMS).toHaveLength(14);
   });
 
   it("points the first entry at the real Dashboard route", () => {
@@ -52,8 +52,28 @@ describe("NAV_ITEMS", () => {
     expect(NAV_ITEMS[8].label).toBe("Administração");
   });
 
-  it("points the tenth entry at Mission Control", () => {
-    expect(NAV_ITEMS[9].href).toBe("/mission-control");
-    expect(NAV_ITEMS[9].label).toBe("Mission Control");
+  it("points the tenth entry at the real Chaves de API (API Keys, D-051) route", () => {
+    expect(NAV_ITEMS[9].href).toBe("/administracao/api-keys");
+    expect(NAV_ITEMS[9].label).toBe("Chaves de API");
+  });
+
+  it("points the eleventh entry at the real Sessões (server-side sessions, TD-010) route", () => {
+    expect(NAV_ITEMS[10].href).toBe("/administracao/sessoes");
+    expect(NAV_ITEMS[10].label).toBe("Sessões");
+  });
+
+  it("points the twelfth entry at the real Convites (Invitations, D-054) route", () => {
+    expect(NAV_ITEMS[11].href).toBe("/administracao/convites");
+    expect(NAV_ITEMS[11].label).toBe("Convites");
+  });
+
+  it("points the thirteenth entry at the real Documentos (Document Ingestion, W5-0) route", () => {
+    expect(NAV_ITEMS[12].href).toBe("/administracao/documentos");
+    expect(NAV_ITEMS[12].label).toBe("Documentos");
+  });
+
+  it("points the fourteenth entry at Mission Control", () => {
+    expect(NAV_ITEMS[13].href).toBe("/mission-control");
+    expect(NAV_ITEMS[13].label).toBe("Mission Control");
   });
 });

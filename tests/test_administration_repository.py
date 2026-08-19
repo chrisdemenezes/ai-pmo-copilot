@@ -23,6 +23,7 @@ def _alembic(env, *args):
         env=env,
         capture_output=True,
         text=True,
+        check=False,
     )
     assert result.returncode == 0, result.stderr
     return result
@@ -79,13 +80,19 @@ class TestRoles:
         roles = {r.name for r in migrated_repo.administration.list_roles()}
         assert roles == {"organization_admin", "pmo", "project_manager", "viewer"}
 
-    def test_list_permissions_for_role_matches_migration_0006(self, migrated_repo):
+    def test_list_permissions_for_role_matches_migration_0006_0010_and_0020(self, migrated_repo):
         roles = {r.name: r.id for r in migrated_repo.administration.list_roles()}
         viewer_permissions = {
             p.name
             for p in migrated_repo.administration.list_permissions_for_role(roles["viewer"])
         }
-        assert viewer_permissions == {"portfolio.read", "program.read", "project_delivery.read"}
+        assert viewer_permissions == {
+            "portfolio.read",
+            "program.read",
+            "project_delivery.read",
+            "intelligence.read",
+            "knowledge.read",
+        }
 
     def test_assign_role_is_idempotent(self, migrated_repo):
         org_id = migrated_repo.enterprise.create_organization("Org A")
@@ -406,3 +413,171 @@ class TestAuditLog:
 
         entries = repo.administration.list_audit_log(org_id)
         assert [e.id for e in entries] == [second_id, first_id]
+
+
+class TestApiKeys:
+    """D-051 -- a foundational Enterprise Administration credential, not an
+    Integration Hub artifact (DOMAIN-BLUEPRINT-API-KEYS.md)."""
+
+    def test_create_and_get_api_key(self, repo):
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = repo.enterprise.create_user(org_id, "admin@example.com", "Admin")
+
+        api_key = repo.administration.create_api_key(
+            org_id, user_id, "CI pipeline", "sk_live_AbCdEfGh", "hashed-value"
+        )
+
+        fetched = repo.administration.get_api_key(api_key.id, org_id)
+        assert fetched.name == "CI pipeline"
+        assert fetched.key_prefix == "sk_live_AbCdEfGh"
+        assert fetched.hashed_secret == "hashed-value"
+        assert fetched.revoked_at is None
+        assert fetched.last_used_at is None
+
+    def test_get_api_key_from_another_organization_returns_none(self, repo):
+        org_a = repo.enterprise.create_organization("Org A")
+        org_b = repo.enterprise.create_organization("Org B")
+        user_a = repo.enterprise.create_user(org_a, "a@example.com", "A")
+
+        api_key = repo.administration.create_api_key(
+            org_a, user_a, "Key A", "sk_live_AAAAAAAA", "hash-a"
+        )
+
+        assert repo.administration.get_api_key(api_key.id, org_b) is None
+
+    def test_list_api_keys_scoped_by_organization_newest_first(self, repo):
+        org_a = repo.enterprise.create_organization("Org A")
+        org_b = repo.enterprise.create_organization("Org B")
+        user_a = repo.enterprise.create_user(org_a, "a@example.com", "A")
+        user_b = repo.enterprise.create_user(org_b, "b@example.com", "B")
+
+        first = repo.administration.create_api_key(org_a, user_a, "First", "sk_live_111", "h1")
+        second = repo.administration.create_api_key(org_a, user_a, "Second", "sk_live_222", "h2")
+        repo.administration.create_api_key(org_b, user_b, "Other org", "sk_live_333", "h3")
+
+        keys = repo.administration.list_api_keys(org_a)
+        assert [k.id for k in keys] == [second.id, first.id]
+
+    def test_revoke_api_key_sets_revoked_at_and_is_idempotent(self, repo):
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = repo.enterprise.create_user(org_id, "admin@example.com", "Admin")
+        api_key = repo.administration.create_api_key(
+            org_id, user_id, "Key", "sk_live_AAAAAAAA", "hash"
+        )
+
+        revoked = repo.administration.revoke_api_key(api_key.id, org_id)
+        assert revoked.revoked_at is not None
+
+        # Revoking an already-revoked key returns None, never a second event.
+        assert repo.administration.revoke_api_key(api_key.id, org_id) is None
+
+    def test_revoke_api_key_from_another_organization_returns_none(self, repo):
+        org_a = repo.enterprise.create_organization("Org A")
+        org_b = repo.enterprise.create_organization("Org B")
+        user_a = repo.enterprise.create_user(org_a, "a@example.com", "A")
+        api_key = repo.administration.create_api_key(
+            org_a, user_a, "Key A", "sk_live_AAAAAAAA", "hash-a"
+        )
+
+        assert repo.administration.revoke_api_key(api_key.id, org_b) is None
+        assert repo.administration.get_api_key(api_key.id, org_a).revoked_at is None
+
+    def test_list_active_api_keys_by_prefix_excludes_revoked_and_other_prefixes(self, repo):
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = repo.enterprise.create_user(org_id, "admin@example.com", "Admin")
+        active = repo.administration.create_api_key(
+            org_id, user_id, "Active", "sk_live_AAAAAAAA", "hash-active"
+        )
+        revoked = repo.administration.create_api_key(
+            org_id, user_id, "Revoked", "sk_live_AAAAAAAA", "hash-revoked"
+        )
+        repo.administration.revoke_api_key(revoked.id, org_id)
+        repo.administration.create_api_key(org_id, user_id, "Other", "sk_live_BBBBBBBB", "hash-b")
+
+        candidates = repo.administration.list_active_api_keys_by_prefix("sk_live_AAAAAAAA")
+
+        assert [c.id for c in candidates] == [active.id]
+
+    def test_touch_api_key_last_used_sets_timestamp(self, repo):
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = repo.enterprise.create_user(org_id, "admin@example.com", "Admin")
+        api_key = repo.administration.create_api_key(
+            org_id, user_id, "Key", "sk_live_AAAAAAAA", "hash"
+        )
+        assert repo.administration.get_api_key(api_key.id, org_id).last_used_at is None
+
+        repo.administration.touch_api_key_last_used(api_key.id)
+
+        assert repo.administration.get_api_key(api_key.id, org_id).last_used_at is not None
+
+
+class TestSessions:
+    """Item 5 -- server-side session store resolving TD-010."""
+
+    def test_create_and_list_active_sessions_newest_first(self, repo):
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = repo.enterprise.create_user(org_id, "admin@example.com", "Admin")
+
+        first = repo.administration.create_session("sess-1", user_id, org_id)
+        second = repo.administration.create_session("sess-2", user_id, org_id)
+
+        active = repo.administration.list_active_sessions(org_id)
+        assert [s.id for s in active] == [second.id, first.id]
+
+    def test_list_active_sessions_scoped_by_organization(self, repo):
+        org_a = repo.enterprise.create_organization("Org A")
+        org_b = repo.enterprise.create_organization("Org B")
+        user_a = repo.enterprise.create_user(org_a, "a@example.com", "A")
+        user_b = repo.enterprise.create_user(org_b, "b@example.com", "B")
+        repo.administration.create_session("sess-a", user_a, org_a)
+        repo.administration.create_session("sess-b", user_b, org_b)
+
+        assert [s.id for s in repo.administration.list_active_sessions(org_a)] == ["sess-a"]
+
+    def test_revoke_session_excludes_it_from_active_list_and_is_idempotent(self, repo):
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = repo.enterprise.create_user(org_id, "admin@example.com", "Admin")
+        repo.administration.create_session("sess-1", user_id, org_id)
+
+        revoked = repo.administration.revoke_session("sess-1")
+        assert revoked.revoked_at is not None
+        assert repo.administration.list_active_sessions(org_id) == []
+
+        # Revoking an already-revoked session returns None, never a second event.
+        assert repo.administration.revoke_session("sess-1") is None
+
+    def test_revoke_unknown_session_returns_none(self, repo):
+        assert repo.administration.revoke_session("does-not-exist") is None
+
+    def test_is_session_revoked_only_true_for_explicitly_revoked_rows(self, repo):
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = repo.enterprise.create_user(org_id, "admin@example.com", "Admin")
+        repo.administration.create_session("sess-active", user_id, org_id)
+        repo.administration.create_session("sess-revoked", user_id, org_id)
+        repo.administration.revoke_session("sess-revoked")
+
+        assert repo.administration.is_session_revoked("sess-revoked") is True
+        assert repo.administration.is_session_revoked("sess-active") is False
+        # An unknown id (predating the store / a fabricated one) is active,
+        # never revoked -- this is what keeps existing sessions from breaking.
+        assert repo.administration.is_session_revoked("never-seen") is False
+
+    def test_get_session_returns_row_including_organization(self, repo):
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = repo.enterprise.create_user(org_id, "admin@example.com", "Admin")
+        repo.administration.create_session("sess-1", user_id, org_id)
+
+        session = repo.administration.get_session("sess-1")
+        assert session.organization_id == org_id
+        assert session.user_id == user_id
+        assert repo.administration.get_session("nope") is None
+
+    def test_touch_session_last_seen_sets_timestamp(self, repo):
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = repo.enterprise.create_user(org_id, "admin@example.com", "Admin")
+        repo.administration.create_session("sess-1", user_id, org_id)
+        assert repo.administration.get_session("sess-1").last_seen_at is None
+
+        repo.administration.touch_session_last_seen("sess-1")
+
+        assert repo.administration.get_session("sess-1").last_seen_at is not None

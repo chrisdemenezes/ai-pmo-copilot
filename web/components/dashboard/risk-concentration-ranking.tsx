@@ -1,9 +1,9 @@
 import { Badge, healthStatusLabel, healthStatusVariant } from "@/components/ui/badge";
 import { rankByRisk } from "@/lib/dashboard/aggregate";
-import type { ProjectSummary } from "@/lib/dashboard/types";
+import type { ProjectIntelligenceSummary } from "@/lib/project/intelligence-summary";
 
 /** W5 -- FS-001 §5. Same payload as W1/W2, client-side sort/slice only. */
-export function RiskConcentrationRanking({ projects }: { projects: ProjectSummary[] }) {
+export function RiskConcentrationRanking({ projects }: { projects: ProjectIntelligenceSummary[] }) {
   const ranked = rankByRisk(projects);
 
   if (ranked.length === 0) {

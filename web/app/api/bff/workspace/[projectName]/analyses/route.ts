@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
 
+import { institutionalHeaders, readSessionIdentity } from "@/lib/bff/domain-proxy";
 import type { AnalysisListItem, WorkspaceErrorBody } from "@/lib/workspace/types";
 
 const BACKEND_TIMEOUT_MS = 8_000;
 
 // Query params this route accepts from the client and forwards as-is to the
 // backend's GET /api/analyses -- no new filter invented, only what
-// src/api/routes/intelligence.py:134 already supports.
-const FORWARDED_PARAMS = ["kind", "limit", "offset", "created_from", "created_to"];
+// src/api/routes/intelligence.py already supports. `project_id` is the
+// dual-key addition (TD-008 Fase 3b, Etapa 2): coexists with the path-derived
+// project_name; when present, the backend validates both and filters by the
+// exact id. Additive -- absent, behaviour is byte-for-byte the same.
+const FORWARDED_PARAMS = ["kind", "limit", "offset", "created_from", "created_to", "project_id"];
 
 function errorResponse(body: WorkspaceErrorBody, status: number) {
   return NextResponse.json(body, { status });
@@ -25,6 +29,13 @@ export async function GET(
       { error: "bff_not_configured", detail: "BACKEND_URL ou API_KEY não configurados." },
       503,
     );
+  }
+
+  // Security Hardening Gate (C-1/C-2): the backend now requires RBAC +
+  // organization scope on this route.
+  const identity = readSessionIdentity(request);
+  if (identity === null) {
+    return errorResponse({ error: "unauthorized", detail: "Sessão inválida ou expirada." }, 401);
   }
 
   // Next.js hands this route the raw (still URL-encoded) segment -- decode
@@ -48,7 +59,7 @@ export async function GET(
 
   try {
     const backendResponse = await fetch(backendUrlObj, {
-      headers: { "X-API-Key": apiKey },
+      headers: { "X-API-Key": apiKey, ...institutionalHeaders(identity) },
       signal: controller.signal,
       cache: "no-store",
     });

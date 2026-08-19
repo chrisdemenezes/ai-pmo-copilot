@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { authenticatedRequest } from "@/lib/bff/test-support";
+
 import { POST } from "./route";
 
 const SAMPLE = {
@@ -17,7 +19,19 @@ function paramsFor(projectName: string) {
   return { params: Promise.resolve({ projectName: encodeURIComponent(projectName) }) };
 }
 
-function requestWith(body: unknown) {
+function requestWith(body: unknown, identity?: { userId: number; organizationId: number }) {
+  return authenticatedRequest(
+    "http://localhost/x",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
+    identity,
+  );
+}
+
+function requestWithoutSession(body: unknown) {
   return new Request("http://localhost/x", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -29,6 +43,7 @@ describe("POST /api/bff/workspace/[projectName]/analyze/status", () => {
   beforeEach(() => {
     vi.stubEnv("BACKEND_URL", "http://backend.test");
     vi.stubEnv("API_KEY", "secret-key");
+    vi.stubEnv("SESSION_SECRET", "test-secret");
   });
 
   afterEach(() => {
@@ -44,6 +59,38 @@ describe("POST /api/bff/workspace/[projectName]/analyze/status", () => {
     );
     expect(response.status).toBe(503);
     expect(JSON.stringify(await response.json())).not.toContain("secret-key");
+  });
+
+  it("returns 401 when there is no session cookie", async () => {
+    const response = await POST(
+      requestWithoutSession({ project_context: "contexto valido com mais de dez caracteres" }),
+      paramsFor("Aurora"),
+    );
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({
+      error: "unauthorized",
+      detail: "Sessão inválida ou expirada.",
+    });
+  });
+
+  it("sends institutional headers resolved from the session cookie", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify(SAMPLE), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await POST(
+      requestWith(
+        { project_context: "contexto valido com mais de dez caracteres" },
+        { userId: 7, organizationId: 3 },
+      ),
+      paramsFor("Aurora"),
+    );
+
+    const [, init] = fetchMock.mock.calls[0];
+    const headers = init.headers as Record<string, string>;
+    expect(headers["X-Stratech-User-Id"]).toBe("7");
+    expect(headers["X-Stratech-Organization-Id"]).toBe("3");
   });
 
   it("rejects context shorter than 10 characters before contacting the backend", async () => {

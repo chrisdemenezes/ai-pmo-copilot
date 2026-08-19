@@ -12,6 +12,7 @@ EnterpriseRepository -- never bypass it for writes to these tables.
 """
 from datetime import datetime, timezone
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     JSON,
     Boolean,
@@ -27,6 +28,13 @@ from sqlalchemy import (
 )
 
 from src.database.base import Base
+
+# Production Embedding Provider Approval (Founder Decision, D-177):
+# Voyage AI, model voyage-4, dimension 1024 -- replaces the Mock
+# placeholder dimension (16) that only proved the pgvector wiring.
+# Migration 0021 carries its own frozen copy of this value (never
+# imports this constant, per this repo's migration discipline).
+KNOWLEDGE_EMBEDDING_DIM = 1024
 
 
 def _utcnow() -> datetime:
@@ -243,6 +251,109 @@ class UserProjectMembership(Base):
     role_in_project = Column(String(50), nullable=False, default="member")
 
 
+class ApiKey(Base):
+    """Enterprise Administration -- organization-scoped credential for
+    programmatic API access (D-051, superseding the original API Keys
+    deferral in `DOMAIN-BLUEPRINT-ENTERPRISE-ADMINISTRATION.md`). A
+    foundational identity primitive alongside Users/Roles/Sessions, not an
+    Integration Hub artifact: it authenticates AS the user who created it
+    (`get_request_context`'s second auth path), reusing every RBAC/audit
+    check that path already has. Any future consumer (Integration Hub or
+    otherwise) authenticates through this, never the reverse."""
+
+    __tablename__ = "api_keys"
+
+    id = Column(Integer, primary_key=True, index=True)
+    organization_id = Column(
+        Integer, ForeignKey("organizations.id"), nullable=False, index=True
+    )
+    created_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    name = Column(String(255), nullable=False)
+    # First characters of the plaintext key, safe to display forever so an
+    # admin can tell keys apart without the full secret ever being shown
+    # again after creation.
+    key_prefix = Column(String(20), nullable=False)
+    hashed_secret = Column(String(255), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
+    last_used_at = Column(DateTime(timezone=True), nullable=True)
+    revoked_at = Column(DateTime(timezone=True), nullable=True)
+
+
+class UserSession(Base):
+    """Enterprise Administration -- server-side record of a login session
+    (item 5 of the Wave Completion Review retrospective, resolving TD-010).
+    Named `UserSession`, not `Session`, to avoid colliding with
+    `sqlalchemy.orm.Session` -- every repository method already uses
+    `session` as the local variable name for the SQLAlchemy ORM session.
+
+    The BFF's HMAC-signed cookie (`web/lib/session.ts`) is unchanged; this
+    table only makes the `session_id` it already carries revocable before
+    its natural 12h expiry -- `id` is that same UUID, minted by the backend
+    at login (`AuthService.create_session`) instead of by the BFF, so the
+    two sides agree on one identifier. `revoked_at` is the only field that
+    matters for enforcement (`AdministrationRepository.is_session_revoked`);
+    an id with no row at all is treated as still active, never as revoked,
+    so sessions that predate this table are never retroactively broken."""
+
+    __tablename__ = "sessions"
+
+    id = Column(String(64), primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
+    last_seen_at = Column(DateTime(timezone=True), nullable=True)
+    revoked_at = Column(DateTime(timezone=True), nullable=True)
+
+
+class Invitation(Base):
+    """Enterprise Administration -- onboarding credential that lets a
+    not-yet-registered person join an organization with a predetermined
+    role (item 6 of the Wave Completion Review retrospective, D-054).
+    A foundational identity primitive alongside Users/Roles/ApiKey/
+    UserSession -- NOT an email artifact: the invitation carries a
+    single-use token deliverable by any channel; email is only the
+    (future, abstracted-away) automatic delivery mechanism
+    (`NotificationProvider`), never a constituent of the domain.
+
+    Reuses the same "narrow by non-secret prefix, then Argon2-verify the
+    secret" discipline as ApiKey (D-051): `hashed_token` is never re-exposed
+    after creation; the plaintext token is returned exactly once, at
+    creation, for manual delivery until a concrete notification provider
+    exists. State (Pendente/Aceito/Expirado/Cancelado) is derived from the
+    timestamps below, never stored as a mutable column -- "Expirado" needs
+    no background job to flip a flag."""
+
+    __tablename__ = "invitations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    organization_id = Column(
+        Integer, ForeignKey("organizations.id"), nullable=False, index=True
+    )
+    email = Column(String(255), nullable=False)
+    role_name = Column(String(100), nullable=False)
+    invited_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    # First characters of the plaintext token, safe to display forever so an
+    # admin can tell invitations apart without the secret being shown again.
+    token_prefix = Column(String(20), nullable=False)
+    hashed_token = Column(String(255), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    accepted_at = Column(DateTime(timezone=True), nullable=True)
+    cancelled_at = Column(DateTime(timezone=True), nullable=True)
+
+    def status(self, now: datetime) -> str:
+        """Derived state (Domain Blueprint §3): terminal transitions win,
+        then expiry by elapsed time. `now` is passed in (not read here) so
+        callers control the clock and the value is deterministic in tests."""
+        if self.cancelled_at is not None:
+            return "cancelled"
+        if self.accepted_at is not None:
+            return "accepted"
+        if self.expires_at <= now:
+            return "expired"
+        return "pending"
+
+
 class AuditLog(Base):
     """Enterprise Administration, Wave 2 (Épico 5, Nível 1 -- auditoria de
     mutações). Doubles as the "Logs" surface (Nível 2,
@@ -264,3 +375,157 @@ class AuditLog(Base):
     entity_id = Column(Integer, nullable=True)
     details = Column(JSON, nullable=True)
     created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False, index=True)
+
+
+class Document(Base):
+    """Enterprise Knowledge Platform, Wave 3 Fase 1 (Foundation).
+
+    `project_id` is an optional metadata pointer, never a key -- the same
+    TD-008 discipline (`project_id`, never a name) already final for
+    `AnalysisRecord`."""
+
+    __tablename__ = "documents"
+
+    id = Column(Integer, primary_key=True, index=True)
+    organization_id = Column(
+        Integer, ForeignKey("organizations.id"), nullable=False, index=True
+    )
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
+    source_name = Column(String(255), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
+
+
+class DocumentVersion(Base):
+    """One row per (re)ingestion of a Document -- never overwritten, per
+    `DOMAIN-BLUEPRINT-ENTERPRISE-KNOWLEDGE-PLATFORM.md` §1.10
+    (Versionamento do conhecimento)."""
+
+    __tablename__ = "document_versions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    document_id = Column(Integer, ForeignKey("documents.id"), nullable=False, index=True)
+    content = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
+
+
+class Chunk(Base):
+    """A retrievable unit of a DocumentVersion, with its embedding vector.
+
+    `organization_id` is denormalized from the owning Document -- the same
+    technique already used by `AnalysisRecord.organization_id` -- so
+    similarity search filters by tenant directly, with no join required."""
+
+    __tablename__ = "chunks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    document_version_id = Column(
+        Integer, ForeignKey("document_versions.id"), nullable=False, index=True
+    )
+    organization_id = Column(
+        Integer, ForeignKey("organizations.id"), nullable=False, index=True
+    )
+    chunk_index = Column(Integer, nullable=False)
+    text = Column(String, nullable=False)
+    embedding = Column(Vector(KNOWLEDGE_EMBEDDING_DIM), nullable=False)
+    # Minimal provenance (Founder Decision D-175/D-177): which provider/
+    # model produced this vector -- nullable, no versioning table, no
+    # multi-model coexistence mechanism (rejected as unneeded abstraction
+    # in TECHNICAL-DESIGN-PRODUCTION-EMBEDDING-CONTRACT-VECTOR-MIGRATION.md).
+    embedding_provider = Column(String(length=64), nullable=True)
+    embedding_model = Column(String(length=64), nullable=True)
+
+
+class MemoryRecord(Base):
+    """Enterprise Memory Model, Wave 3 Fase 2 -- classifies a Document
+    already ingested by the Knowledge Platform into one of the 5 memory
+    categories (`DOMAIN-BLUEPRINT-ENTERPRISE-MEMORY-MODEL.md` §2). Never a
+    second storage of the document's content -- only a reference
+    (`document_id`) plus its classification. Distinct in every dimension
+    (layer, persistence, mechanism, consumer) from `Executive Memory`
+    (`web/lib/executive-memory/`, frontend-only, stateless) -- see that
+    Blueprint's §0 collision checklist."""
+
+    __tablename__ = "memory_records"
+
+    id = Column(Integer, primary_key=True, index=True)
+    organization_id = Column(
+        Integer, ForeignKey("organizations.id"), nullable=False, index=True
+    )
+    document_id = Column(Integer, ForeignKey("documents.id"), nullable=False, index=True)
+    category = Column(String(20), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
+
+
+class EventRecord(Base):
+    """Wave 4, Enterprise Operations, Epic W4-1 -- Event Audit: the durable
+    envelope of every event published via `EventPublisher`
+    (`docs/architecture/TECHNICAL-DESIGN-WAVE-4-ENTERPRISE-OPERATIONS.md`
+    §5.3). Distinct from `AuditLog` (domain mutation audit, Wave 2) --
+    this table answers "what facts were published", never a replacement
+    for domain auditing. `event_id` is the envelope's own identifier
+    (UUID), not the table's primary key surrogate."""
+
+    __tablename__ = "events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    event_id = Column(String(36), nullable=False, unique=True, index=True)
+    event_type = Column(String(100), nullable=False, index=True)
+    correlation_id = Column(String(64), nullable=False, index=True)
+    timestamp = Column(DateTime(timezone=True), nullable=False)
+    organization_id = Column(
+        Integer, ForeignKey("organizations.id"), nullable=False, index=True
+    )
+    origin = Column(String(100), nullable=False)
+    payload_version = Column(Integer, nullable=False)
+    payload = Column(JSON, nullable=False)
+
+
+class DeadLetterEvent(Base):
+    """Wave 4, Enterprise Operations, Epic W4-1 -- minimal Dead Letter
+    Strategy (Technical Design §4): a published event whose dispatch to a
+    registered handler failed `MAX_ATTEMPTS` times. No automatic
+    reprocessing, no administrative interface -- inspection is direct
+    database query only, per the Founder's explicit restriction."""
+
+    __tablename__ = "dead_letter_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    event_id = Column(String(36), ForeignKey("events.event_id"), nullable=False, index=True)
+    organization_id = Column(
+        Integer, ForeignKey("organizations.id"), nullable=False, index=True
+    )
+    correlation_id = Column(String(64), nullable=False, index=True)
+    attempts = Column(Integer, nullable=False)
+    last_error = Column(String(2000), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
+
+
+class WorkflowExecution(Base):
+    """Wave 4, Enterprise Operations, Epic W4-4 -- Execution Tracking
+    (Technical Design §3/§12). Answers "what processes ran, and how" --
+    distinct from `EventRecord` (Event Audit, "what facts were published").
+    `WorkflowRuntime` is the only component aware of this table
+    (`src/workflows/execution_tracking.py::ExecutionTracker`); `EventDispatcher`
+    never reads or writes it (Founder's explicit separation principle).
+
+    `UNIQUE(event_id, workflow_name)` is the idempotency key (§12.4): the
+    same event redispatched by `EventDispatcher`'s own synchronous retry
+    reuses this row (upsert) instead of inserting a second one -- enforced
+    at the database, not only in application code."""
+
+    __tablename__ = "workflow_executions"
+    __table_args__ = (
+        UniqueConstraint("event_id", "workflow_name", name="uq_workflow_executions_event_workflow"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    event_id = Column(String(36), ForeignKey("events.event_id"), nullable=False, index=True)
+    workflow_name = Column(String(200), nullable=False)
+    organization_id = Column(
+        Integer, ForeignKey("organizations.id"), nullable=False, index=True
+    )
+    correlation_id = Column(String(64), nullable=False, index=True)
+    status = Column(String(20), nullable=False)
+    started_at = Column(DateTime(timezone=True), nullable=False)
+    finished_at = Column(DateTime(timezone=True), nullable=True)
+    error = Column(String(500), nullable=True)

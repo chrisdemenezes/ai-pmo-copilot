@@ -46,6 +46,10 @@ def test_login_succeeds_with_correct_credentials(service, monkeypatch):
     body = response.json()
     assert body["user_id"] == 1
     assert "organization_id" in body
+    # Item 5 (TD-010): login now mints a server-side session id the BFF
+    # signs into its cookie, so the session becomes revocable.
+    assert body["session_id"]
+    assert service._administration.is_session_revoked(body["session_id"]) is False
     app.dependency_overrides.pop(auth.build_auth_service, None)
 
 

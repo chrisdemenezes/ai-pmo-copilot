@@ -7,19 +7,13 @@ the established alternative). Covers Épico 5 Nível 1 (Organizations/Users/
 Roles read, Auditoria) and the ratified Nível 2 subset that needed no new
 domain concept (Logs, served by the same audit_logs table as Auditoria).
 
-Nível 2's "Sessões" and "Segurança" are deliberately NOT here:
-`DOMAIN-BLUEPRINT-ENTERPRISE-ADMINISTRATION.md` §2 described Sessões as a
-"painel é só leitura+revogação sobre o que já existe" -- but no
-server-side session store exists (`auth_service.py`'s `logout()`
-docstring: "No server-side session store exists yet, TDS Section 15.2" --
-sessions are a stateless HMAC-signed cookie). Listing/revoking sessions
-the Blueprint described is not buildable without a new session-store
-component, a bigger scope than "extensão de baixo risco" assumed --
-correction registered in the Decision Log, not silently implemented as a
-fake list. "Configurações" stays out per the Blueprint's own deferral
-(needs product scope definition first).
-"""
+"Sessões" (item 5 of the Wave Completion Review retrospective, resolving
+TD-010) is implemented below alongside API Keys -- the session store this
+docstring used to say didn't exist. "Configurações" stays out per the
+Blueprint's own deferral (D-052: no functional scope defined anywhere in
+the repository, not an architectural or business-model block)."""
 import logging
+from datetime import datetime, timezone
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
@@ -31,13 +25,16 @@ from src.database.enterprise_repository import (
     SelfDeactivationError,
 )
 from src.database.models import (
+    ApiKey,
     AuditLog,
+    Invitation,
     Organization,
     Permission,
     Role,
     RolePermission,
     User,
     UserRole,
+    UserSession,
 )
 from src.services.identity.email_normalization import normalize_email
 
@@ -389,12 +386,346 @@ class AdministrationRepository:
             )
             return entry.id
 
-    def list_audit_log(self, organization_id: int, limit: int = 50) -> list[AuditLog]:
+    def list_audit_log(
+        self,
+        organization_id: int,
+        limit: int = 50,
+        entity_type: str | None = None,
+        entity_id: int | None = None,
+    ) -> list[AuditLog]:
         with self._session_factory() as session:
+            query = session.query(AuditLog).filter(AuditLog.organization_id == organization_id)
+            if entity_type is not None:
+                query = query.filter(AuditLog.entity_type == entity_type)
+            if entity_id is not None:
+                query = query.filter(AuditLog.entity_id == entity_id)
             return (
-                session.query(AuditLog)
-                .filter(AuditLog.organization_id == organization_id)
+                query
                 .order_by(AuditLog.created_at.desc())
                 .limit(limit)
                 .all()
             )
+
+    # -- API Keys (D-051) ----------------------------------------------
+
+    def create_api_key(
+        self,
+        organization_id: int,
+        created_by_user_id: int,
+        name: str,
+        key_prefix: str,
+        hashed_secret: str,
+    ) -> ApiKey:
+        with self._session_factory() as session:
+            api_key = ApiKey(
+                organization_id=organization_id,
+                created_by_user_id=created_by_user_id,
+                name=name,
+                key_prefix=key_prefix,
+                hashed_secret=hashed_secret,
+            )
+            session.add(api_key)
+            session.commit()
+            session.refresh(api_key)
+            logger.info(
+                "Created api_key id=%s organization_id=%s created_by_user_id=%s",
+                api_key.id,
+                organization_id,
+                created_by_user_id,
+            )
+            return api_key
+
+    def list_api_keys(self, organization_id: int) -> list[ApiKey]:
+        with self._session_factory() as session:
+            return (
+                session.query(ApiKey)
+                .filter(ApiKey.organization_id == organization_id)
+                .order_by(ApiKey.created_at.desc())
+                .all()
+            )
+
+    def get_api_key(self, api_key_id: int, organization_id: int) -> ApiKey | None:
+        with self._session_factory() as session:
+            return (
+                session.query(ApiKey)
+                .filter(ApiKey.id == api_key_id, ApiKey.organization_id == organization_id)
+                .one_or_none()
+            )
+
+    def revoke_api_key(self, api_key_id: int, organization_id: int) -> ApiKey | None:
+        with self._session_factory() as session:
+            api_key = (
+                session.query(ApiKey)
+                .filter(ApiKey.id == api_key_id, ApiKey.organization_id == organization_id)
+                .one_or_none()
+            )
+            if api_key is None or api_key.revoked_at is not None:
+                return None
+            api_key.revoked_at = datetime.now(timezone.utc)
+            session.commit()
+            session.refresh(api_key)
+            logger.info("Revoked api_key id=%s organization_id=%s", api_key_id, organization_id)
+            return api_key
+
+    def list_active_api_keys_by_prefix(self, key_prefix: str) -> list[ApiKey]:
+        """Candidates for `AuthService`-style credential verification: never
+        looked up by id (the caller doesn't have one, only the raw key), and
+        `hashed_secret` can't be queried by equality -- narrowing by the
+        cheap, non-secret `key_prefix` keeps this to a handful of rows for
+        `Argon2PasswordHasher.verify` to check, exactly like email lookup
+        narrows password verification instead of scanning every user."""
+        with self._session_factory() as session:
+            return (
+                session.query(ApiKey)
+                .filter(ApiKey.key_prefix == key_prefix, ApiKey.revoked_at.is_(None))
+                .all()
+            )
+
+    def touch_api_key_last_used(self, api_key_id: int) -> None:
+        with self._session_factory() as session:
+            api_key = session.get(ApiKey, api_key_id)
+            if api_key is None:
+                return
+            api_key.last_used_at = datetime.now(timezone.utc)
+            session.commit()
+
+    # -- Sessions (item 5, resolves TD-010) -----------------------------
+
+    def create_session(
+        self, session_id: str, user_id: int, organization_id: int
+    ) -> UserSession:
+        with self._session_factory() as db_session:
+            user_session = UserSession(
+                id=session_id, user_id=user_id, organization_id=organization_id
+            )
+            db_session.add(user_session)
+            db_session.commit()
+            db_session.refresh(user_session)
+            logger.info(
+                "Created session id=%s user_id=%s organization_id=%s",
+                session_id,
+                user_id,
+                organization_id,
+            )
+            return user_session
+
+    def list_active_sessions(self, organization_id: int) -> list[UserSession]:
+        with self._session_factory() as db_session:
+            return (
+                db_session.query(UserSession)
+                .filter(
+                    UserSession.organization_id == organization_id,
+                    UserSession.revoked_at.is_(None),
+                )
+                .order_by(UserSession.created_at.desc())
+                .all()
+            )
+
+    def get_session(self, session_id: str) -> UserSession | None:
+        with self._session_factory() as db_session:
+            return db_session.get(UserSession, session_id)
+
+    def revoke_session(self, session_id: str) -> UserSession | None:
+        """Returns None for both "not found" and "already revoked" -- same
+        idempotency guard as `revoke_api_key`. Not organization-scoped at
+        this layer -- `session_id` is a globally unique, unguessable UUID
+        (unlike `ApiKey.id`, a small sequential integer that needs a
+        compound scope); tenant-isolation for the admin-facing revoke route
+        is enforced one level up, in `AdministrationService`, by checking
+        `get_session(...).organization_id` before calling this."""
+        with self._session_factory() as db_session:
+            user_session = db_session.get(UserSession, session_id)
+            if user_session is None or user_session.revoked_at is not None:
+                return None
+            user_session.revoked_at = datetime.now(timezone.utc)
+            db_session.commit()
+            db_session.refresh(user_session)
+            logger.info("Revoked session id=%s", session_id)
+            return user_session
+
+    def is_session_revoked(self, session_id: str) -> bool:
+        """True only when a row exists AND has been explicitly revoked --
+        an unknown session_id (e.g. one that predates this table, or a
+        fabricated id such as a test fixture) is treated as still active,
+        never as revoked. This is what lets revocation enforcement be added
+        to `require_permission` without retroactively breaking any session
+        that isn't tracked by this store."""
+        with self._session_factory() as db_session:
+            user_session = db_session.get(UserSession, session_id)
+            return user_session is not None and user_session.revoked_at is not None
+
+    def touch_session_last_seen(self, session_id: str) -> None:
+        with self._session_factory() as db_session:
+            user_session = db_session.get(UserSession, session_id)
+            if user_session is None:
+                return
+            user_session.last_seen_at = datetime.now(timezone.utc)
+            db_session.commit()
+
+    # -- Invitations (item 6, Convites -- D-054) ------------------------
+
+    def create_invitation(
+        self,
+        organization_id: int,
+        email: str,
+        role_name: str,
+        invited_by_user_id: int,
+        token_prefix: str,
+        hashed_token: str,
+        expires_at: datetime,
+    ) -> Invitation:
+        normalized_email = normalize_email(email)
+        with self._session_factory() as session:
+            # A typo in the role must fail now (400), never create an
+            # invitation that can only fail at accept time -- same explicit
+            # catalog check `create_user` makes.
+            if session.query(Role).filter(Role.name == role_name).one_or_none() is None:
+                raise ValueError(f"Role {role_name!r} does not exist")
+            invitation = Invitation(
+                organization_id=organization_id,
+                email=normalized_email,
+                role_name=role_name,
+                invited_by_user_id=invited_by_user_id,
+                token_prefix=token_prefix,
+                hashed_token=hashed_token,
+                expires_at=expires_at,
+            )
+            session.add(invitation)
+            session.commit()
+            session.refresh(invitation)
+            logger.info(
+                "Created invitation id=%s organization_id=%s role=%s",
+                invitation.id,
+                organization_id,
+                role_name,
+            )
+            return invitation
+
+    def list_invitations(self, organization_id: int) -> list[Invitation]:
+        with self._session_factory() as session:
+            return (
+                session.query(Invitation)
+                .filter(Invitation.organization_id == organization_id)
+                .order_by(Invitation.created_at.desc())
+                .all()
+            )
+
+    def get_invitation(
+        self, invitation_id: int, organization_id: int
+    ) -> Invitation | None:
+        with self._session_factory() as session:
+            return (
+                session.query(Invitation)
+                .filter(
+                    Invitation.id == invitation_id,
+                    Invitation.organization_id == organization_id,
+                )
+                .one_or_none()
+            )
+
+    def cancel_invitation(
+        self, invitation_id: int, organization_id: int
+    ) -> Invitation | None:
+        """Cancels only a still-pending invitation. Returns None if not
+        found or already terminal (accepted/cancelled) -- same idempotency
+        guard as `revoke_api_key`. An expired-but-not-cancelled invitation
+        may still be cancelled (harmless bookkeeping; it's already
+        unusable)."""
+        with self._session_factory() as session:
+            invitation = (
+                session.query(Invitation)
+                .filter(
+                    Invitation.id == invitation_id,
+                    Invitation.organization_id == organization_id,
+                )
+                .one_or_none()
+            )
+            if (
+                invitation is None
+                or invitation.accepted_at is not None
+                or invitation.cancelled_at is not None
+            ):
+                return None
+            invitation.cancelled_at = datetime.now(timezone.utc)
+            session.commit()
+            session.refresh(invitation)
+            logger.info(
+                "Cancelled invitation id=%s organization_id=%s",
+                invitation_id,
+                organization_id,
+            )
+            return invitation
+
+    def list_pending_invitations_by_prefix(self, token_prefix: str) -> list[Invitation]:
+        """Candidates for token verification (narrow-by-prefix, then
+        Argon2-verify the secret -- same discipline as
+        `list_active_api_keys_by_prefix`). Excludes accepted/cancelled;
+        expiry is checked by the caller against the clock, not filtered
+        here, so an expired token still resolves to its invitation and can
+        be reported as Expirado rather than silently 'not found'."""
+        with self._session_factory() as session:
+            return (
+                session.query(Invitation)
+                .filter(
+                    Invitation.token_prefix == token_prefix,
+                    Invitation.accepted_at.is_(None),
+                    Invitation.cancelled_at.is_(None),
+                )
+                .all()
+            )
+
+    def accept_invitation(
+        self, invitation_id: int, display_name: str, password_hash: str
+    ) -> User | None:
+        """Atomically: re-load the invitation FOR UPDATE, re-check it is
+        still pending (not accepted/cancelled/expired), create the user +
+        role in the same transaction, and stamp accepted_at. Returns None if
+        the invitation is no longer acceptable (lost a race, expired between
+        the service's check and here). Maps an email collision to
+        EmailConflictError, same as `create_user`."""
+        now = datetime.now(timezone.utc)
+        with self._session_factory() as session:
+            invitation = (
+                session.query(Invitation)
+                .filter(Invitation.id == invitation_id)
+                .with_for_update()
+                .one_or_none()
+            )
+            if (
+                invitation is None
+                or invitation.accepted_at is not None
+                or invitation.cancelled_at is not None
+                or invitation.expires_at <= now
+            ):
+                return None
+            if (
+                session.query(Role).filter(Role.name == invitation.role_name).one_or_none()
+                is None
+            ):
+                raise ValueError(f"Role {invitation.role_name!r} does not exist")
+            try:
+                user = self._enterprise.create_user_in_session(
+                    session,
+                    organization_id=invitation.organization_id,
+                    email=invitation.email,
+                    display_name=display_name,
+                    password_hash=password_hash,
+                )
+                self._enterprise.assign_role_in_session(
+                    session, user.id, invitation.role_name
+                )
+                invitation.accepted_at = now
+                session.commit()
+            except IntegrityError as exc:
+                session.rollback()
+                raise EmailConflictError(
+                    f"Email {invitation.email!r} already exists in this organization"
+                ) from exc
+            session.refresh(user)
+            logger.info(
+                "Accepted invitation id=%s -> user id=%s organization_id=%s",
+                invitation_id,
+                user.id,
+                invitation.organization_id,
+            )
+            return user

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
-import type { DashboardErrorBody, ProjectSummary } from "@/lib/dashboard/types";
+import type { DashboardErrorBody } from "@/lib/dashboard/types";
+import type { ProjectIntelligenceSummary } from "@/lib/project/intelligence-summary";
 
 export class DashboardFetchError extends Error {
   constructor(public readonly body: DashboardErrorBody) {
@@ -8,13 +9,13 @@ export class DashboardFetchError extends Error {
   }
 }
 
-async function fetchPortfolioSummary(): Promise<ProjectSummary[]> {
+async function fetchPortfolioSummary(): Promise<ProjectIntelligenceSummary[]> {
   const response = await fetch("/api/bff/dashboard");
   const body = await response.json();
   if (!response.ok) {
     throw new DashboardFetchError(body as DashboardErrorBody);
   }
-  return body as ProjectSummary[];
+  return body as ProjectIntelligenceSummary[];
 }
 
 /**

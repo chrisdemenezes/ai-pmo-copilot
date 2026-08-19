@@ -19,6 +19,8 @@ src/
   workflows/
 ```
 
+**Nota sobre `workflows/` (Founder Decision, D-074):** este diretório é reservado para o **Workflow Runtime operacional da Wave 4 — Enterprise Operations** (`docs/architecture/WAVE-4-DOMAIN-BLUEPRINT.md`), não para orquestração multiagente entre Advisors — essa responsabilidade pertence ao `AdvisorFramework` (`src/services/advisor_framework/`). O arquivo `src/workflows/pmo_workflow.py`, hoje presente neste diretório, é classificado como **Historical Superseded Architecture** — preservado apenas por rastreabilidade histórica, não representa a arquitetura vigente, e não deve ser importado, estendido ou usado como base para código novo.
+
 ## Regras
 
 Nunca:

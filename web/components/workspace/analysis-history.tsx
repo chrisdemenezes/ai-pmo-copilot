@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useWorkspaceTimeline } from "@/lib/hooks/use-workspace-timeline";
+import { useResolvedProjectId } from "@/lib/hooks/use-resolved-project-id";
 import { useWorkspaceAnalysisDetail } from "@/lib/hooks/use-workspace-analysis-detail";
 import { analysisKindLabel } from "@/lib/workspace/labels";
 import type { AnalysisListItem } from "@/lib/workspace/types";
@@ -33,9 +34,12 @@ export function AnalysisHistory({ projectName }: { projectName: string }) {
   const [page, setPage] = useState(0);
   const [openAnalysisId, setOpenAnalysisId] = useState<number | null>(null);
 
+  // TD-008 Fase 3b, Etapa 3: reaproveita o project_id resolvido como chave exata.
+  const projectId = useResolvedProjectId(projectName);
   const history = useWorkspaceTimeline(projectName, {
     limit: PAGE_SIZE,
     offset: page * PAGE_SIZE,
+    projectId,
   });
 
   return (

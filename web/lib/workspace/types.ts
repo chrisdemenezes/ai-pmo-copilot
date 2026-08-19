@@ -1,16 +1,17 @@
-/** Mirrors ProjectSummaryResponse in src/api/routes/intelligence.py:64. */
-export interface WorkspaceSummary {
-  project_name: string;
-  total_analyses: number;
-  open_risks: number;
-  pending_action_items: number;
-  latest_health_status: "green" | "yellow" | "red" | null;
-}
+// TD-008 Fase 3b, Etapa 5: `WorkspaceSummary` foi consolidado em
+// `ProjectIntelligenceSummary` (`lib/project/intelligence-summary.ts`) --
+// o mesmo read-model de inteligência do Project usado pelo Dashboard, agora
+// único e ancorado no `project_id`. Re-exportado aqui para os consumidores
+// do Workspace que já importavam o summary deste módulo.
+export type { ProjectIntelligenceSummary } from "@/lib/project/intelligence-summary";
 
-/** Mirrors AnalysisSummary in src/api/routes/intelligence.py:51 -- no payload. */
+/** Mirrors AnalysisSummary in src/api/routes/intelligence.py -- no payload. */
 export interface AnalysisListItem {
   id: number;
   kind: "meeting" | "risk" | "status";
+  // Identity key (TD-008 Fase 3b, Etapa 4a); project_name is display only,
+  // derived server-side from Project.name.
+  project_id: number | null;
   project_name: string | null;
   created_at: string;
 }
@@ -135,6 +136,8 @@ export type ModelOutputForKind<K extends AnalysisListItem["kind"]> = K extends "
  * "sem_prazo" instead of any layer rejecting it.
  */
 export interface ActionItemView {
+  // Identity key (TD-008 Fase 3b, Etapa 4a); project_name is display only.
+  project_id: number | null;
   project_name: string | null;
   description: string;
   owner: string | null;
@@ -167,4 +170,15 @@ export interface AnalyzeMeetingIntelligenceResponse {
   agent: string;
   project_name: string | null;
   model_output: MeetingModelOutput | UnstructuredModelOutput;
+}
+
+/** Mirrors RiskAdvisorResponse (src/api/routes/intelligence.py, Epic W3-3). */
+export interface RiskAdvisorCitedAnalysis {
+  source_analysis_id: number;
+  source_created_at: string;
+}
+
+export interface RiskAdvisorAnswer {
+  answer: string;
+  cited_analyses: RiskAdvisorCitedAnalysis[];
 }

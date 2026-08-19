@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 
+from src.api import authorization as authorization_module
 from src.api.rate_limiter import build_rate_limiter, enforce_rate_limit
 from src.api.routes import intelligence
 from src.api.security import verify_api_key
@@ -11,6 +12,18 @@ class FakeRepository:
         return []
 
 
+class AlwaysAllowChecker:
+    def has_permission(self, user_id, permission):
+        return True
+
+
+INSTITUTIONAL_HEADERS = {
+    "X-Stratech-User-Id": "1",
+    "X-Stratech-Organization-Id": "1",
+    "X-Stratech-Session-Id": "session-1",
+}
+
+
 def test_protected_route_returns_429_after_exceeding_limit(monkeypatch):
     monkeypatch.setenv("API_KEY", "secret-key")
     monkeypatch.setenv("RATE_LIMIT_MAX_REQUESTS", "2")
@@ -20,20 +33,31 @@ def test_protected_route_returns_429_after_exceeding_limit(monkeypatch):
     app.dependency_overrides.pop(verify_api_key, None)
     app.dependency_overrides.pop(enforce_rate_limit, None)
     app.dependency_overrides[intelligence.build_repository] = lambda: FakeRepository()
+    app.dependency_overrides[authorization_module.build_permission_checker] = (
+        lambda: AlwaysAllowChecker()
+    )
 
-    client = TestClient(app)
-    headers = {"X-API-Key": "secret-key"}
+    try:
+        client = TestClient(app)
+        headers = {"X-API-Key": "secret-key", **INSTITUTIONAL_HEADERS}
 
-    first = client.get("/api/analyses", headers=headers)
-    second = client.get("/api/analyses", headers=headers)
-    third = client.get("/api/analyses", headers=headers)
+        first = client.get("/api/analyses", headers=headers)
+        second = client.get("/api/analyses", headers=headers)
+        third = client.get("/api/analyses", headers=headers)
 
-    assert first.status_code == 200
-    assert second.status_code == 200
-    assert third.status_code == 429
-    assert third.json()["detail"] == "Rate limit exceeded"
-
-    build_rate_limiter.cache_clear()
+        assert first.status_code == 200
+        assert second.status_code == 200
+        assert third.status_code == 429
+        assert third.json()["detail"] == "Rate limit exceeded"
+    finally:
+        build_rate_limiter.cache_clear()
+        # Never cleaned up before this fix -- these overrides otherwise
+        # persist for the rest of the pytest process (not reset by
+        # conftest's autouse fixture, which only covers verify_api_key/
+        # enforce_rate_limit), silently breaking any later test that needs
+        # a real repository/permission checker and doesn't override them.
+        app.dependency_overrides.pop(intelligence.build_repository, None)
+        app.dependency_overrides.pop(authorization_module.build_permission_checker, None)
 
 
 def test_rate_limit_tracks_api_keys_independently(monkeypatch):
@@ -48,16 +72,28 @@ def test_rate_limit_tracks_api_keys_independently(monkeypatch):
     app.dependency_overrides[verify_api_key] = lambda: None
     app.dependency_overrides.pop(enforce_rate_limit, None)
     app.dependency_overrides[intelligence.build_repository] = lambda: FakeRepository()
+    app.dependency_overrides[authorization_module.build_permission_checker] = (
+        lambda: AlwaysAllowChecker()
+    )
 
-    client = TestClient(app)
+    try:
+        client = TestClient(app)
 
-    response_key_a = client.get("/api/analyses", headers={"X-API-Key": "key-a"})
-    response_key_a_again = client.get("/api/analyses", headers={"X-API-Key": "key-a"})
-    response_key_b = client.get("/api/analyses", headers={"X-API-Key": "key-b"})
+        response_key_a = client.get(
+            "/api/analyses", headers={"X-API-Key": "key-a", **INSTITUTIONAL_HEADERS}
+        )
+        response_key_a_again = client.get(
+            "/api/analyses", headers={"X-API-Key": "key-a", **INSTITUTIONAL_HEADERS}
+        )
+        response_key_b = client.get(
+            "/api/analyses", headers={"X-API-Key": "key-b", **INSTITUTIONAL_HEADERS}
+        )
 
-    assert response_key_a.status_code == 200
-    assert response_key_a_again.status_code == 429
-    assert response_key_b.status_code == 200
-
-    build_rate_limiter.cache_clear()
-    app.dependency_overrides.pop(verify_api_key, None)
+        assert response_key_a.status_code == 200
+        assert response_key_a_again.status_code == 429
+        assert response_key_b.status_code == 200
+    finally:
+        build_rate_limiter.cache_clear()
+        app.dependency_overrides.pop(verify_api_key, None)
+        app.dependency_overrides.pop(intelligence.build_repository, None)
+        app.dependency_overrides.pop(authorization_module.build_permission_checker, None)

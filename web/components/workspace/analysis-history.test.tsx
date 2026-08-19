@@ -7,6 +7,10 @@ import { useWorkspaceTimeline } from "@/lib/hooks/use-workspace-timeline";
 import { useWorkspaceAnalysisDetail } from "@/lib/hooks/use-workspace-analysis-detail";
 
 vi.mock("@/lib/hooks/use-workspace-timeline", () => ({ useWorkspaceTimeline: vi.fn() }));
+// TD-008 Fase 3b, Etapa 3: resolução nome->id compartilhada (mockada).
+vi.mock("@/lib/hooks/use-resolved-project-id", () => ({
+  useResolvedProjectId: vi.fn(() => undefined),
+}));
 vi.mock("@/lib/hooks/use-workspace-analysis-detail", () => ({
   useWorkspaceAnalysisDetail: vi.fn(),
 }));

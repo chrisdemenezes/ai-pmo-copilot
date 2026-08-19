@@ -172,6 +172,7 @@ def create_project_delivery(
         request.program_id,
         request.name,
         actor_user_id=context.user.user_id,
+        correlation_id=context.request_id,
         **fields,
     )
     if project is None:

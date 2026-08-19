@@ -15,19 +15,20 @@ inserted after `get_request_context`, exactly the seam
 signature or response shape changed to add it.
 """
 import logging
+from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from datetime import date
 
 from src.api.authorization import require_permission
+from src.api.dependencies import build_event_publisher, build_repository
 from src.api.identity_context import get_request_context
 from src.api.rate_limiter import enforce_rate_limit
 from src.api.security import verify_api_key
 from src.database.repository import AnalysisRepository
 from src.services.domain_service import DomainService
+from src.services.events.interfaces import EventPublisher
 from src.services.identity.models import RequestContext
-from src.api.routes.intelligence import build_repository
 
 logger = logging.getLogger(__name__)
 
@@ -36,8 +37,9 @@ router = APIRouter(dependencies=[Depends(verify_api_key), Depends(enforce_rate_l
 
 def build_domain_service(
     repository: AnalysisRepository = Depends(build_repository),
+    publisher: EventPublisher = Depends(build_event_publisher),
 ) -> DomainService:
-    return DomainService(repository=repository)
+    return DomainService(repository=repository, publisher=publisher)
 
 
 class PortfolioResponse(BaseModel):
@@ -139,5 +141,6 @@ def create_portfolio(
         request.name,
         request.code,
         actor_user_id=context.user.user_id,
+        correlation_id=context.request_id,
         **fields,
     )

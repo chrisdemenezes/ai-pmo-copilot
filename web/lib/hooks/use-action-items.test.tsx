@@ -70,7 +70,7 @@ describe("useActionItems", () => {
     const { result } = renderHook(() => useActionItems("Aurora"), { wrapper });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(queryClient.getQueryData(["action-items", "Aurora"])).toEqual(SAMPLE);
+    expect(queryClient.getQueryData(["action-items", "Aurora", null])).toEqual(SAMPLE);
   });
 
   it("caches under ['action-items', 'portfolio'] for the portfolio view", async () => {
@@ -83,7 +83,7 @@ describe("useActionItems", () => {
     const { result } = renderHook(() => useActionItems(), { wrapper });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(queryClient.getQueryData(["action-items", "portfolio"])).toEqual(SAMPLE);
+    expect(queryClient.getQueryData(["action-items", "portfolio", null])).toEqual(SAMPLE);
   });
 
   it("surfaces the BFF error body when the request fails", async () => {

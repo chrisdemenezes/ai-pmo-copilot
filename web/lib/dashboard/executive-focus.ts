@@ -1,5 +1,5 @@
 import { rankByRisk } from "./aggregate";
-import type { ProjectSummary } from "./types";
+import type { ProjectIntelligenceSummary } from "@/lib/project/intelligence-summary";
 
 export interface ExecutiveFocusItem {
   title: string;
@@ -14,7 +14,7 @@ export interface ExecutiveFocusItem {
  * Ranking, W5) -- não é um item mock. Fallback para o primeiro projeto com
  * saúde crítica quando nenhum risco está aberto.
  */
-export function computeExecutiveFocus(projects: ProjectSummary[]): ExecutiveFocusItem | null {
+export function computeExecutiveFocus(projects: ProjectIntelligenceSummary[]): ExecutiveFocusItem | null {
   const [riskiest] = rankByRisk(projects, 1);
   if (riskiest) {
     return {

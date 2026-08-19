@@ -35,7 +35,7 @@ test("redirects the root route to /dashboard when authenticated", async ({ page 
   await expect(page).toHaveURL(/\/dashboard/);
 });
 
-test("renders exactly ten nav items, only Dashboard active on /dashboard", async ({ page }) => {
+test("renders exactly fourteen nav items, only Dashboard active on /dashboard", async ({ page }) => {
   await login(page);
 
   const visibleNav = (await page.viewportSize())!.width < MOBILE_BREAKPOINT
@@ -43,7 +43,7 @@ test("renders exactly ten nav items, only Dashboard active on /dashboard", async
     : page.getByTestId("sidebar-nav");
 
   const links = visibleNav.getByRole("link");
-  await expect(links).toHaveCount(10);
+  await expect(links).toHaveCount(14);
   await expect(links.first()).toHaveAttribute("aria-current", "page");
   await expect(links.first()).toHaveAttribute("href", "/dashboard");
   await expect(links.nth(1)).not.toHaveAttribute("aria-current", "page");
@@ -63,7 +63,15 @@ test("renders exactly ten nav items, only Dashboard active on /dashboard", async
   await expect(links.nth(8)).not.toHaveAttribute("aria-current", "page");
   await expect(links.nth(8)).toHaveAttribute("href", "/administracao/usuarios");
   await expect(links.nth(9)).not.toHaveAttribute("aria-current", "page");
-  await expect(links.nth(9)).toHaveAttribute("href", "/mission-control");
+  await expect(links.nth(9)).toHaveAttribute("href", "/administracao/api-keys");
+  await expect(links.nth(10)).not.toHaveAttribute("aria-current", "page");
+  await expect(links.nth(10)).toHaveAttribute("href", "/administracao/sessoes");
+  await expect(links.nth(11)).not.toHaveAttribute("aria-current", "page");
+  await expect(links.nth(11)).toHaveAttribute("href", "/administracao/convites");
+  await expect(links.nth(12)).not.toHaveAttribute("aria-current", "page");
+  await expect(links.nth(12)).toHaveAttribute("href", "/administracao/documentos");
+  await expect(links.nth(13)).not.toHaveAttribute("aria-current", "page");
+  await expect(links.nth(13)).toHaveAttribute("href", "/mission-control");
 });
 
 test("shows the sidebar shape appropriate to the current breakpoint", async ({ page }) => {
@@ -96,4 +104,68 @@ test("the bottom nav bar does not overlap the last scrollable content on mobile"
   // Sanity check that the bottom bar sits at the foot of the viewport, not
   // stacked on top of page content.
   expect(bottomNavBox!.y).toBeGreaterThan(headingBox!.y);
+});
+
+/**
+ * F6 (Local V1 Pilot Hardening Review, D-210/D-211): the desktop sidebar
+ * (md/lg) used to grow past the viewport along with page content -- "Sair"
+ * was only reachable by scrolling the entire page, not just the sidebar.
+ * AppShell's outer container now caps at min-h-screen (was min-h-full) and
+ * the sidebar is md:sticky md:top-0 md:h-screen. This test forces real
+ * page-content overflow (independent of any one page's current fixture
+ * data, which can change size over time) and proves the sidebar -- and the
+ * "Sair" button inside it -- never leaves the viewport while the page
+ * itself scrolls, on every affected breakpoint. Mobile is out of scope
+ * here: it already uses genuine position:fixed, covered by the test above.
+ */
+test("keeps the sidebar pinned to the viewport while page content scrolls (md/lg)", async ({
+  page,
+}) => {
+  const width = (await page.viewportSize())!.width;
+  test.skip(width < MOBILE_BREAKPOINT, "md/lg-only check -- mobile uses position:fixed instead");
+
+  await login(page);
+  const sidebar = page.getByTestId("sidebar-nav");
+  await expect(sidebar).toBeVisible();
+
+  // Force overflow deterministically instead of depending on how much
+  // content any one page happens to render today -- appended inside
+  // app-content (AppShell's real children slot), matching where actual
+  // page content grows, so the AppShell flex row genuinely grows past the
+  // viewport just like it would with real tall content.
+  await page.evaluate(() => {
+    const spacer = document.createElement("div");
+    spacer.setAttribute("data-testid", "e2e-scroll-spacer");
+    spacer.style.height = "3000px";
+    document.querySelector('[data-testid="app-content"]')!.appendChild(spacer);
+  });
+
+  const sidebarBoxBefore = await sidebar.boundingBox();
+  expect(sidebarBoxBefore).not.toBeNull();
+  expect(sidebarBoxBefore!.y).toBe(0);
+
+  // Scroll comfortably inside the spacer (not to the exact bottom of the
+  // page, which would leave only a sliver of it in view and make the
+  // in-viewport check flaky). window.scrollTo (not page.mouse.wheel) so the
+  // scroll always targets the page regardless of cursor position -- the
+  // sidebar itself now carries md:overflow-y-auto, so a wheel event over it
+  // would scroll the sidebar's own (empty) overflow instead of the page.
+  await page.evaluate(() => {
+    const spacer = document.querySelector('[data-testid="e2e-scroll-spacer"]') as HTMLElement;
+    window.scrollTo(0, spacer.offsetTop + 500);
+  });
+  await expect(page.getByTestId("e2e-scroll-spacer")).toBeInViewport();
+
+  // The sidebar must still be pinned at the top of the viewport, not
+  // scrolled away with the rest of the page. Sub-pixel tolerance: browsers
+  // can report a fraction of a pixel of drift on a sticky element depending
+  // on scroll position, with no visible/functional effect.
+  const sidebarBoxAfter = await sidebar.boundingBox();
+  expect(sidebarBoxAfter).not.toBeNull();
+  expect(Math.abs(sidebarBoxAfter!.y)).toBeLessThan(1);
+  await expect(sidebar).toBeVisible();
+
+  const logoutButton = sidebar.getByRole("button", { name: "Sair" });
+  await expect(logoutButton).toBeVisible();
+  await expect(logoutButton).toBeInViewport();
 });

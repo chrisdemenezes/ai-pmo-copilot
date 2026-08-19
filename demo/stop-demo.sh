@@ -23,7 +23,17 @@ for name in backend frontend; do
 done
 
 for port in "$BACKEND_PORT" "$FRONTEND_PORT"; do
-  pids="$(lsof -ti "tcp:$port" 2>/dev/null || true)"
+  if command -v lsof > /dev/null 2>&1; then
+    pids="$(lsof -ti "tcp:$port" 2>/dev/null || true)"
+  elif command -v netstat > /dev/null 2>&1; then
+    # Windows/Git Bash has no lsof; netstat -ano is the portable, already-
+    # on-PATH equivalent (no new dependency) -- same platform-detection
+    # pattern already used in demo/start-demo.sh for PYTHON_BIN (F4). The
+    # PID is netstat's last column on both IPv4 and IPv6 rows.
+    pids="$(netstat -ano -p tcp 2>/dev/null | awk -v port=":$port" '$2 ~ port"$" {print $NF}' | sort -u)"
+  else
+    pids=""
+  fi
   if [ -n "$pids" ]; then
     echo "$pids" | xargs kill 2>/dev/null
     echo "Stopped remaining process(es) on port $port"

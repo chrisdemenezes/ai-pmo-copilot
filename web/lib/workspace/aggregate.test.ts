@@ -27,10 +27,10 @@ describe("buildRiskMatrix", () => {
 describe("groupAnalysesByKind", () => {
   it("splits a mixed list into meeting/risk/status buckets", () => {
     const analyses: AnalysisListItem[] = [
-      { id: 1, kind: "meeting", project_name: "Aurora", created_at: "2026-07-01T00:00:00Z" },
-      { id: 2, kind: "risk", project_name: "Aurora", created_at: "2026-07-02T00:00:00Z" },
-      { id: 3, kind: "status", project_name: "Aurora", created_at: "2026-07-03T00:00:00Z" },
-      { id: 4, kind: "risk", project_name: "Aurora", created_at: "2026-07-04T00:00:00Z" },
+      { id: 1, kind: "meeting", project_id: 1, project_name: "Aurora", created_at: "2026-07-01T00:00:00Z" },
+      { id: 2, kind: "risk", project_id: 1, project_name: "Aurora", created_at: "2026-07-02T00:00:00Z" },
+      { id: 3, kind: "status", project_id: 1, project_name: "Aurora", created_at: "2026-07-03T00:00:00Z" },
+      { id: 4, kind: "risk", project_id: 1, project_name: "Aurora", created_at: "2026-07-04T00:00:00Z" },
     ];
     const grouped = groupAnalysesByKind(analyses);
     expect(grouped.meeting).toHaveLength(1);

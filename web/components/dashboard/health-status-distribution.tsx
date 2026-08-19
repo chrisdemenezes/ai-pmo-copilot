@@ -1,6 +1,6 @@
 import { Badge, healthStatusLabel, healthStatusVariant } from "@/components/ui/badge";
 import { groupByHealthStatus, type HealthStatusKey } from "@/lib/dashboard/aggregate";
-import type { ProjectSummary } from "@/lib/dashboard/types";
+import type { ProjectIntelligenceSummary } from "@/lib/project/intelligence-summary";
 
 const KEY_TO_STATUS: Record<HealthStatusKey, "green" | "yellow" | "red" | null> = {
   green: "green",
@@ -10,7 +10,7 @@ const KEY_TO_STATUS: Record<HealthStatusKey, "green" | "yellow" | "red" | null> 
 };
 
 /** W3 -- FS-001 §5. Same payload as W1/W2, no extra request. */
-export function HealthStatusDistribution({ projects }: { projects: ProjectSummary[] }) {
+export function HealthStatusDistribution({ projects }: { projects: ProjectIntelligenceSummary[] }) {
   const counts = groupByHealthStatus(projects);
   const keys = Object.keys(counts) as HealthStatusKey[];
 

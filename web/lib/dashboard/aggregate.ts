@@ -1,4 +1,4 @@
-import type { ProjectSummary } from "./types";
+import type { ProjectIntelligenceSummary } from "@/lib/project/intelligence-summary";
 
 export interface PortfolioTotals {
   projectCount: number;
@@ -7,7 +7,7 @@ export interface PortfolioTotals {
 }
 
 /** W1 -- Portfolio Summary Strip. Client-side reduce over the same payload as W2/W3/W5. */
-export function aggregatePortfolio(projects: ProjectSummary[]): PortfolioTotals {
+export function aggregatePortfolio(projects: ProjectIntelligenceSummary[]): PortfolioTotals {
   return projects.reduce<PortfolioTotals>(
     (totals, project) => ({
       projectCount: totals.projectCount + 1,
@@ -22,7 +22,7 @@ export type HealthStatusKey = "green" | "yellow" | "red" | "none";
 
 /** W3 -- Health Status Distribution. "none" covers latest_health_status: null. */
 export function groupByHealthStatus(
-  projects: ProjectSummary[],
+  projects: ProjectIntelligenceSummary[],
 ): Record<HealthStatusKey, number> {
   const counts: Record<HealthStatusKey, number> = { green: 0, yellow: 0, red: 0, none: 0 };
   for (const project of projects) {
@@ -33,7 +33,7 @@ export function groupByHealthStatus(
 }
 
 /** W5 -- Risk Concentration Ranking. Only projects with open_risks > 0, highest first. */
-export function rankByRisk(projects: ProjectSummary[], limit = 5): ProjectSummary[] {
+export function rankByRisk(projects: ProjectIntelligenceSummary[], limit = 5): ProjectIntelligenceSummary[] {
   return projects
     .filter((project) => project.open_risks > 0)
     .sort((a, b) => b.open_risks - a.open_risks)
