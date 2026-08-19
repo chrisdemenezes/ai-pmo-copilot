@@ -2567,6 +2567,31 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Evidência completa:** `docs/product/governance/LOCAL-V1-WINDOWS-REVALIDATION-EXECUTIVE-EVIDENCE.md`.
 - **Recomendação:** **LOCAL WINDOWS ENVIRONMENT = REVALIDATED.** **GO FOR LOCAL V1 HUMAN USER SESSION** — todos os critérios da regra de decisão satisfeitos (F3/F4/F6 PASS, F7 compreendido e documentado, Sanity Journey PASS, nenhuma regressão crítica/high remanescente, ambiente íntegro). Per mandato explícito, a sessão humana **não é iniciada automaticamente** — retornando para Founder Executive Review. W7-1 `OPEN`. External Gates A-D inalterados. Nenhuma Production AI Validation, nenhum dado corporativo real, nenhum outro Epic/staging/DR Drill iniciado.
 
+### D-214 — Main Consolidation: branch validada integrada em `main` via PR #46, 2 achados de CI corrigidos
+
+- **Contexto:** Founder Mandate "STRATECH V1: Auditoria Final → Consolidação da Main → Correções Necessárias → Validação Final → Pilot Baseline → Readiness para Sessão Humana" (modo autônomo). `main` estava congelada em `d8ff04d` (baseline de D-044) enquanto 187 commits reais (Waves 3–7) existiam apenas em `claude/stratech-permanent-principles-yjnm74` @ `88334b9`.
+- **Auditoria (Fases 0–4):** 536 arquivos alterados, 0 deleções, cadeia de migrations `0010`–`0021` puramente aditiva, zero sobreposição arquitetural (`ExecutiveOrchestrator`/`AdvisorFramework` não existiam na `main` antiga), continuidade de governança D-044→D-213 sem decisão conflitante. **Gate 1 — Main Integration Readiness = GO.**
+- **Achado operacional novo:** push direto a `main` foi rejeitado pela regra de proteção de branch do repositório (exige Pull Request + 2 status checks obrigatórios) — mesmo mecanismo já usado no precedente de D-044 (PR #45). Resolvido abrindo PR #46 em vez de push direto; não é um STOP CONDITION (não é force push/history rewrite/reset destrutivo).
+- **2 achados de CI corrigidos durante a integração** (commits `95bd75f`, `695ed86`, ambos na branch de origem antes do merge):
+  1. **285 erros de lint pré-existentes** (idênticos aos já registrados em D-213) bloqueavam o check `validate` obrigatório — nunca haviam bloqueado nada porque o gate nunca fora exercido de ponta a ponta contra uma PR para `main` protegida. 182 eram `B008` (idioma `Depends(...)` do FastAPI, falso positivo — ignorado via `pyproject.toml`); os 103 restantes eram estilísticos/mecânicos (ordenação de imports, `check=False` explícito em `subprocess.run`, variáveis não usadas, um `if` aninhado colapsado) — zero mudança de comportamento, reverificado com `tests/test_executive_orchestrator_selection_rule.py` (26/26).
+  2. **Extensão `pgvector` nunca criada em `template1`** — já registrada como achado não implementado em D-213 ("recomendação para o Runbook em missão futura"); implementada nesta missão como correção de código real em `tests/db.py` (`_ensure_vector_extension_on_template()`), eliminando a dependência de um passo manual.
+- **Integração:** PR #46 mesclado via merge commit (preservando histórico, sem squash/rebase) após os 2 checks obrigatórios ficarem verdes. `main` após: `e9b571ad16ae47226e12fcbb2efbfc4ed87d3813`, confirmado idêntico a `origin/main`.
+- **Validação pós-merge sobre `main` (Fase 7):** CI real (run `32245617360`) — backend (`ruff` + `pytest`, cobertura ≥80%) = PASS; frontend (tsc/eslint/vitest/`next build`) = PASS; E2E = 368/369 PASS, 1 flake conhecido e já registrado antes desta missão (`documents-admin.spec.ts`, timing de hidratação do `next dev`, não causado por nenhum commit desta missão).
+- **Fase 8 (Local V1 Critical Path):** F3/F4/F6/F7, correção do BLOCKER de navegação, fallback `netstat` do `stop-demo.sh`, Windows Runbook — todos confirmados presentes e íntegros em `main` por inspeção de código. Revalidação física na máquina Windows real **não reexecutada** nesta missão (fora de escopo).
+- **Fase 9 (Repository Hygiene):** nenhum artefato/cache/`.env`/segredo real rastreado; `README.md` corrigido (status desatualizado "Wave 3 in progress" → estado real). 22 branches remotas obsoletas e 1 PR pré-existente não relacionado (#43) observados, não tocados (fora da autonomia concedida).
+- **Preservação arquitetural confirmada** — nenhuma alteração em RBAC/Tenant Isolation/Authentication/Session/AdvisorFramework/ExecutiveOrchestrator/Advisors/Knowledge Platform além do que já estava na branch validada.
+- **Evidência completa:** `docs/product/governance/LOCAL-V1-PILOT-MAIN-INTEGRATION-EXECUTIVE-EVIDENCE.md`.
+- **Missão:** STRATECH V1 Main Consolidation.
+
+### D-215 — `MAIN = CONSOLIDATED`, `LOCAL V1 PILOT BASELINE = READY`
+
+- **Contexto:** conclusão da missão de Main Consolidation (D-214), após validação completa de `main` pós-merge.
+- **Decisão:** `main` declarada fonte única de verdade do repositório. Baseline oficial do Local V1 Pilot identificada pelo SHA final de `main` após esta entrada de governança ser mesclada (ver `docs/product/governance/LOCAL-V1-PILOT-MAIN-INTEGRATION-EXECUTIVE-EVIDENCE.md`, Seção 29, e o CHANGELOG desta mesma entrada para o SHA exato). Migration head `0021`. Tag anotada `v1.0.0-pilot.1` criada apontando para esse SHA (convenção `vMAJOR.MINOR.PATCH-suffix.N`, já usada por `v1.0.0-rc.1`/`v1.0.0-rc.2`).
+- **Fronteira de IA inalterada:** `TECHNICAL AI MECHANISM = PRESENT`, `REAL AI CONTENT = NOT AVAILABLE` (sem credenciais reais Anthropic/Voyage) — não bloqueia o escopo já aprovado da Local V1 Human User Validation sem conteúdo real de IA.
+- **8 falhas de pytest conhecidas (F8 + 1 anomalia isolada) e o flake de E2E conhecido permanecem registrados como débito não-bloqueante — não declarados resolvidos nem "100% verdes".**
+- **Resultado:** `MAIN INTEGRATION = GO`. `MAIN POST-MERGE VALIDATION = PASS`. `REPOSITORY CONSOLIDATION = PASS`. `LOCAL V1 PILOT BASELINE = READY`. `LOCAL V1 HUMAN USER SESSION = AUTHORIZABLE` (autorizável não significa iniciada). Per mandato explícito, esta missão **termina aqui** — a sessão humana não foi iniciada, simulada, nem teve feedback fictício registrado. Retornando para Founder Executive Review.
+- **Missão:** STRATECH V1 Main Consolidation.
+
 ---
 
 ## Convenção
