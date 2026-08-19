@@ -2806,3 +2806,20 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** vitest 579/579, tsc/eslint limpos, next build sem erros, backup real e integro. Preservacao arquitetural confirmada. Achado operacional novo registrado (pgvector-no-template1), recomendado para o Runbook em missao futura, nao implementado agora. LOCAL WINDOWS ENVIRONMENT = REVALIDATED. GO FOR LOCAL V1 HUMAN USER SESSION -- sessao humana NAO iniciada automaticamente, retornando para Founder Executive Review. W7-1 OPEN, Gates A-D inalterados, nenhuma Production AI Validation, nenhum dado corporativo real, nenhum outro Epic/staging/DR Drill iniciado.
 
 **Decision Log:** D-213.
+
+## STRATECH V1 -- Main Consolidation (2026-08-19)
+
+**Integrado**
+- `main` (congelada em `d8ff04d` desde D-044) recebeu os 187 commits de `claude/stratech-permanent-principles-yjnm74` (Waves 3-7) via PR #46 -- merge commit, historico preservado, zero conflitos, zero delecao. 536 arquivos alterados, migrations 0010-0021 (cadeia aditiva sobre o head anterior 0009). Nova `main`: `e9b571ad16ae47226e12fcbb2efbfc4ed87d3813`.
+
+**Corrigido**
+- 285 erros de lint pre-existentes (identicos aos ja registrados em D-213) bloqueavam o check obrigatorio de CI da PR -- 182 eram `B008` (idioma `Depends(...)` do FastAPI, ignorado via config), os 103 restantes eram estilisticos/mecanicos, zero mudanca de comportamento.
+- Extensao `pgvector` nunca criada no banco `template1` (achado ja registrado em D-213 como recomendacao nao implementada) -- corrigido em codigo real (`tests/db.py`), nao mais dependente de passo manual.
+- `README.md` -- linha de status desatualizada ("Wave 3 in progress") corrigida para o estado real (Waves 1-7 fechadas, Local V1 Pilot em andamento).
+
+**Achado operacional novo**
+- Push direto a `main` rejeitado pela regra de protecao de branch (exige Pull Request) -- mesmo mecanismo do precedente D-044 (PR #45), nao um STOP CONDITION.
+
+**Missão:** CI real sobre `main` pos-merge: backend (ruff+pytest, cobertura >=80%) PASS; frontend (tsc/eslint/vitest/build) PASS; E2E 368/369, 1 flake conhecido ja registrado antes desta missao (nao causado por nenhum commit desta missao), nunca declarado "100% verde". Preservacao arquitetural confirmada -- RBAC/Tenant Isolation/AdvisorFramework/ExecutiveOrchestrator/Advisors inalterados. `MAIN = CONSOLIDATED`, `LOCAL V1 PILOT BASELINE = READY`, `LOCAL V1 HUMAN USER SESSION = AUTHORIZABLE` -- sessao humana NAO iniciada, retornando para Founder Executive Review.
+
+**Decision Log:** D-214, D-215.
