@@ -2839,3 +2839,15 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** intencao de uso = SIM; utilidade percebida = 6,5-7/10. Nenhuma STOP CONDITION atingida. Fronteira de IA respeitada (Decision Support/Narrativa apresentados so conceitualmente). GO FOR USER SESSION #2 (condicionado a Pilot Findings Review). NO-GO for Controlled User Pilot Progression. Nenhuma correcao feita durante a sessao -- retornando para Founder Executive Review.
 
 **Decision Log:** D-216.
+
+## Local V1 Pilot Findings Review -- triagem executiva (2026-08-20)
+
+**Revisado**
+- Triagem completa da sessao D-216 contra codigo real, Product Constitution e blueprints -- nenhuma implementacao. Correcao de classificacao: atribuicao de papeis em Administracao JA EXISTE na UI (achado original estava errado, era discoverability, nao Product Gap). Criacao de Organizacoes confirmada como gap real (aprovado institucionalmente, nunca implementado), mas nao bloqueia o piloto (tenants pre-provisionados via migration sao viaveis).
+- Priorizacao (FAIL): causa raiz identificada -- regra de ranking de 4 camadas real e determinística, mas invisivel na UI. Delta minimo de correcao = composicao de UI, sem mudanca de backend.
+- Pedido recorrente de Kanban investigado com evidencia de codigo: rejeitado para Acoes, cosmetico para Decisoes, evidencia insuficiente para Priorizacao.
+- Nenhum P0 identificado. Controlled Pilot Gate definido: 3 itens objetivos (Priorizacao comunicar regra; provisionamento de organizacao documentado; widgets mock do Dashboard distinguidos).
+
+**Missão:** 10 Decision Proposals registradas para decisao do Founder. GO FOR USER SESSION #2 (recomendado priorizar fix de Priorizacao antes). NO-GO for Controlled External Pilot Progression ate o gate de 3 itens fechar. D-216 preservada sem edicao.
+
+**Decision Log:** D-217.
