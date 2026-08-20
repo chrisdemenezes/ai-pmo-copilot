@@ -353,6 +353,89 @@ class TestBootstrapDemoUser:
             assert session.get(Role, role_ids[0]).name == "viewer"
 
 
+class TestBootstrapOrganization:
+    """Local V1 Pilot Findings Review (D-217, Finding 04b) -- Controlled
+    Pilot pre-provisioning. Same coverage shape as TestBootstrapDemoUser
+    above, since bootstrap_organization is a direct generalization of the
+    same transactional/idempotent pattern."""
+
+    def test_creates_organization_with_organization_admin(self, repo, auth_service):
+        org_id = auth_service.bootstrap_organization(
+            "Piloto Externo A", "admin@piloto-a.example", "pilot-admin-password"
+        )
+
+        with repo.SessionLocal() as session:
+            admin = session.query(User).filter(User.email == "admin@piloto-a.example").one()
+            assert admin.organization_id == org_id
+            role_ids = [
+                user_role.role_id
+                for user_role in session.query(UserRole).filter(UserRole.user_id == admin.id)
+            ]
+            assert len(role_ids) == 1
+            assert session.get(Role, role_ids[0]).name == "organization_admin"
+
+    def test_never_shares_organization_with_default_or_demo(self, repo, auth_service):
+        auth_service.bootstrap_administrator("admin@example.com", "admin-password")
+        auth_service.bootstrap_demo_user("demo-password")
+        pilot_org_id = auth_service.bootstrap_organization(
+            "Piloto Externo A", "admin@piloto-a.example", "pilot-admin-password"
+        )
+
+        with repo.SessionLocal() as session:
+            default_admin = session.query(User).filter(User.email == "admin@example.com").one()
+            demo = session.query(User).filter(User.email == DEMO_USER_EMAIL).one()
+            pilot_admin = (
+                session.query(User).filter(User.email == "admin@piloto-a.example").one()
+            )
+            assert pilot_admin.organization_id == pilot_org_id
+            assert pilot_org_id not in (default_admin.organization_id, demo.organization_id)
+
+    def test_second_call_never_recreates(self, repo, auth_service):
+        first_org_id = auth_service.bootstrap_organization(
+            "Piloto Externo A", "admin@piloto-a.example", "first-password"
+        )
+        second_org_id = auth_service.bootstrap_organization(
+            "Piloto Externo A", "admin@piloto-a.example", "second-password"
+        )
+
+        assert first_org_id == second_org_id
+        with repo.SessionLocal() as session:
+            assert (
+                session.query(User).filter(User.email == "admin@piloto-a.example").count() == 1
+            )
+
+        assert (
+            auth_service.authenticate(
+                "piloto-externo-a", "admin@piloto-a.example", "first-password"
+            )
+            is not None
+        )
+        assert (
+            auth_service.authenticate(
+                "piloto-externo-a", "admin@piloto-a.example", "second-password"
+            )
+            is None
+        )
+
+    def test_two_distinct_pilot_organizations_stay_isolated(self, repo, auth_service):
+        """Provisioning a 2nd pilot organization must never touch the 1st
+        -- the exact property a Controlled Pilot with multiple external
+        participants depends on."""
+        org_a_id = auth_service.bootstrap_organization(
+            "Piloto Externo A", "admin@piloto-a.example", "password-a"
+        )
+        org_b_id = auth_service.bootstrap_organization(
+            "Piloto Externo B", "admin@piloto-b.example", "password-b"
+        )
+
+        assert org_a_id != org_b_id
+        with repo.SessionLocal() as session:
+            admin_a = session.query(User).filter(User.email == "admin@piloto-a.example").one()
+            admin_b = session.query(User).filter(User.email == "admin@piloto-b.example").one()
+            assert admin_a.organization_id == org_a_id
+            assert admin_b.organization_id == org_b_id
+
+
 class TestLogout:
     def test_logout_acknowledges_without_raising(self, auth_service):
         # No server-side session store exists yet (TDS Section 15.2) --
