@@ -10,6 +10,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { Portfolio } from "@/lib/domain/portfolio";
+import {
+  computeScheduleStatus,
+  scheduleStatusBadgeVariant,
+  SCHEDULE_STATUS_LABEL,
+} from "@/lib/dashboard/schedule-status";
 
 /**
  * Entrega 2.2 (Sprint 1) -- Situação do Portfólio. Desde a Capability 01
@@ -33,6 +38,7 @@ export function PortfolioSituationGrid({
             <TableRow>
               <TableHead>Portfólio</TableHead>
               <TableHead>Saúde</TableHead>
+              <TableHead>Prazo</TableHead>
               <TableHead>Progresso</TableHead>
               <TableHead>Programas</TableHead>
               <TableHead>Projetos</TableHead>
@@ -40,12 +46,23 @@ export function PortfolioSituationGrid({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {portfolios.map((portfolio) => (
+            {portfolios.map((portfolio) => {
+              const scheduleStatus = computeScheduleStatus(
+                portfolio.plannedEndDate,
+                portfolio.actualEndDate,
+                portfolio.status,
+              );
+              return (
               <TableRow key={portfolio.id}>
                 <TableCell className="font-display font-semibold">{portfolio.name}</TableCell>
                 <TableCell>
                   <Badge variant={healthStatusVariant(portfolio.health)}>
                     {healthStatusLabel(portfolio.health)}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge variant={scheduleStatusBadgeVariant(scheduleStatus)}>
+                    {SCHEDULE_STATUS_LABEL[scheduleStatus]}
                   </Badge>
                 </TableCell>
                 <TableCell className="w-40">
@@ -60,20 +77,32 @@ export function PortfolioSituationGrid({
                 <TableCell className="font-mono tabular-nums">{portfolio.projectCount}</TableCell>
                 <TableCell className="text-ink-muted">{portfolio.executiveOwner}</TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
       </div>
 
       <div data-testid="portfolio-situation-cards" className="flex flex-col gap-3 md:hidden">
-        {portfolios.map((portfolio) => (
+        {portfolios.map((portfolio) => {
+          const scheduleStatus = computeScheduleStatus(
+            portfolio.plannedEndDate,
+            portfolio.actualEndDate,
+            portfolio.status,
+          );
+          return (
           <Card key={portfolio.id}>
             <CardContent className="flex flex-col gap-3 p-4">
               <div className="flex items-start justify-between gap-2">
                 <span className="font-display font-semibold">{portfolio.name}</span>
-                <Badge variant={healthStatusVariant(portfolio.health)}>
-                  {healthStatusLabel(portfolio.health)}
-                </Badge>
+                <div className="flex flex-col items-end gap-1">
+                  <Badge variant={healthStatusVariant(portfolio.health)}>
+                    {healthStatusLabel(portfolio.health)}
+                  </Badge>
+                  <Badge variant={scheduleStatusBadgeVariant(scheduleStatus)}>
+                    {SCHEDULE_STATUS_LABEL[scheduleStatus]}
+                  </Badge>
+                </div>
               </div>
               <Progress value={portfolio.progressPercentage} />
               <div className="grid grid-cols-2 gap-3 text-sm">
@@ -89,7 +118,8 @@ export function PortfolioSituationGrid({
               <p className="text-xs text-ink-muted">{portfolio.executiveOwner}</p>
             </CardContent>
           </Card>
-        ))}
+          );
+        })}
       </div>
     </>
   );

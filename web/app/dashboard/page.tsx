@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -169,12 +170,13 @@ export default function DashboardPage() {
       </section>
 
       <section className="flex flex-col gap-3">
-        <div>
+        <div className="flex flex-wrap items-center gap-2">
           <h2 className="font-display text-lg font-semibold text-ink">
             Demandas, Riscos, Issues e Mudanças
           </h2>
-          <p className="text-sm text-ink-muted">Demonstração — inventário formal de portfólio, ainda não implementado.</p>
+          <DemoDataBadge />
         </div>
+        <p className="text-sm text-ink-muted">Inventário formal de portfólio, ainda não implementado.</p>
         <WorkItemsOverview items={WORK_ITEM_BREAKDOWN} />
       </section>
 
@@ -187,40 +189,38 @@ export default function DashboardPage() {
       </section>
 
       <section className="flex flex-col gap-3">
-        <div>
+        <div className="flex flex-wrap items-center gap-2">
           <h2 className="font-display text-lg font-semibold text-ink">Decision Center</h2>
-          <p className="text-sm text-ink-muted">
-            Quais decisões dependem de mim? — demonstração (Sprint 1, dados simulados).
-          </p>
+          <DemoDataBadge />
         </div>
+        <p className="text-sm text-ink-muted">Quais decisões dependem de mim?</p>
         <DecisionCenterPanel decisions={PENDING_DECISIONS} />
       </section>
 
       <section className="flex flex-col gap-3">
-        <div>
+        <div className="flex flex-wrap items-center gap-2">
           <h2 className="font-display text-lg font-semibold text-ink">Actions Center</h2>
-          <p className="text-sm text-ink-muted">
-            O que devo fazer em seguida? — demonstração (Sprint 1, dados simulados).
-          </p>
+          <DemoDataBadge />
         </div>
+        <p className="text-sm text-ink-muted">O que devo fazer em seguida?</p>
         <ActionsCenterTable actions={PRIORITY_ACTIONS} />
       </section>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="flex flex-col gap-3">
-          <div>
+          <div className="flex flex-wrap items-center gap-2">
             <h2 className="font-display text-lg font-semibold text-ink">Recent Activity</h2>
-            <p className="text-sm text-ink-muted">O que mudou desde meu último acesso?</p>
+            <DemoDataBadge />
           </div>
+          <p className="text-sm text-ink-muted">O que mudou desde meu último acesso?</p>
           <RecentActivityTimeline events={RECENT_ACTIVITY} />
         </div>
         <div className="flex flex-col gap-3">
-          <div>
+          <div className="flex flex-wrap items-center gap-2">
             <h2 className="font-display text-lg font-semibold text-ink">AI Recommendations</h2>
-            <p className="text-sm text-ink-muted">
-              Camada de inteligência futura — demonstração (Sprint 1, dados simulados).
-            </p>
+            <DemoDataBadge />
           </div>
+          <p className="text-sm text-ink-muted">Camada de inteligência futura.</p>
           <AIRecommendationsPanel recommendations={AI_RECOMMENDATIONS} />
         </div>
       </section>
@@ -271,6 +271,19 @@ export default function DashboardPage() {
       )}
     </main>
   );
+}
+
+/**
+ * Local V1 Pilot Findings Review (D-217, Seção 6A): 5 seções do Dashboard
+ * consomem dados de web/lib/mock/cockpit-data.ts, sem distinção visual dos
+ * dados reais das demais seções -- achado real de risco de credibilidade
+ * num piloto com usuário externo. Marca explícita, reutilizando o
+ * componente Badge já existente (variant="outline", o mesmo usado para
+ * rótulos neutros em outras telas), sem esconder as seções nem alterar seu
+ * conteúdo.
+ */
+function DemoDataBadge() {
+  return <Badge variant="outline">Dados demonstrativos</Badge>;
 }
 
 function EmptyState() {
