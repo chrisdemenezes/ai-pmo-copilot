@@ -2620,6 +2620,38 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Recomendação:** GO FOR USER SESSION #2 (recomendado priorizar a correção de Priorização antes de repetir). NO-GO for Controlled External Pilot Progression até o gate de 3 itens ser fechado. D-216 preservada sem edição -- esta é uma nova entrada, não uma correção retroativa.
 - **Missão:** Local V1 Pilot Findings Review.
 
+### D-218 — Local V1 Pilot Readiness Implementation, Etapa 1: Priorização comunica sua regra de ranking
+
+- **Contexto:** Founder Decision "LOCAL V1 PILOT READINESS IMPLEMENTATION", aprovando exclusivamente o pacote mínimo dos 3 itens do Controlled Pilot Gate definidos em D-217.
+- **Correção:** `web/app/portfolio/page.tsx` -- `<h1>` corrigido de "Portfólio" para "Priorização"; adicionada linha explicando a regra de ranking; itens agrupados sob cabeçalhos de camada (Decisão hoje/Decisão esta semana/Risco a monitorar/Sem sinal de atenção), reusando `item.layer` já computado por `buildExecutivePortfolioView` (intocado -- backend/algoritmo sem alteração, nenhum score novo, nenhum Kanban).
+- **Testes:** `web/e2e/portfolio.spec.ts` atualizado (2 asserções renomeadas, 2 novas); `page.test.tsx` 8/8 PASS sem alteração.
+- **Missão:** Local V1 Pilot Readiness Implementation, Etapa 1.
+
+### D-219 — Local V1 Pilot Readiness Implementation, Etapa 2: Dashboard distingue dados simulados e ganha indicador de prazo
+
+- **Contexto:** mesmo mandato de D-218.
+- **Correção:** 5 seções alimentadas por `web/lib/mock/cockpit-data.ts` (Demandas/Riscos/Issues/Mudanças, Decision Center, Actions Center, Recent Activity -- achado incidental não nomeado no D-217 original, incluída por consistência --, AI Recommendations) ganharam badge "Dados demonstrativos", sem ocultar nem alterar conteúdo. Indicador de prazo (No prazo/Atenção/Atrasado) adicionado a Situação do Portfólio via `web/lib/dashboard/schedule-status.ts` (novo), generalizando a lógica já existente de `Project.isOverdue()` -- nenhuma regra de negócio nova, nenhum indicador financeiro, nenhum novo modelo de dados (datas já existentes e já serializadas ponta a ponta).
+- **Testes:** `schedule-status.test.ts` 8/8, `portfolio-situation-grid.test.tsx` (novo) 3/3, `page.test.tsx`/`error.test.tsx` 9/9 sem alteração. Suíte vitest completa: 590/590 PASS, `next build` sucesso.
+- **Missão:** Local V1 Pilot Readiness Implementation, Etapa 2.
+
+### D-220 — Local V1 Pilot Readiness Implementation, Etapa 3: provisionamento de organização pré-piloto
+
+- **Contexto:** mesmo mandato de D-218/D-219. D-217 (Finding 04b) confirmou que não existe endpoint de criação de organização, mas isso não bloqueia o Controlled Pilot desde que tenants sejam pré-provisionados (Cenário A).
+- **Correção:** `AuthService.bootstrap_organization()` (novo método) -- generalização do padrão transacional/idempotente já existente de `bootstrap_administrator()`/`bootstrap_demo_user()`, acionado por 3 variáveis de ambiente opcionais no boot (`PILOT_ORGANIZATION_NAME`/`PILOT_ORGANIZATION_ADMIN_EMAIL`/`PILOT_ORGANIZATION_ADMIN_PASSWORD`), unset por padrão. Nenhum endpoint HTTP novo, nenhuma UI nova -- os 7 passos do Runbook reusam exclusivamente mecanismos reais já existentes.
+- **Runbook:** `docs/operations/LOCAL-V1-PILOT-ORGANIZATION-PROVISIONING-RUNBOOK.md`.
+- **Ensaio (rehearsal):** `tests/test_pilot_organization_provisioning.py` -- 5 testes de integração real (Postgres real, TestClient real, dados sintéticos), provando mecanicamente os 7 critérios do Runbook, incluindo isolamento de tenant (404 cross-tenant). Registrado com transparência: isso valida o mecanismo de ponta a ponta em CI, não substitui um ensaio manual na máquina física antes do piloto externo real -- recomendado como próximo passo operacional, não bloqueante para este gate técnico.
+- **Missão:** Local V1 Pilot Readiness Implementation, Etapa 3.
+
+### D-221 — Controlled External Pilot Technical Gate = SATISFIED; User Session #2 = READY
+
+- **Contexto:** conclusão do pacote mínimo (D-218/D-219/D-220).
+- **Decisão:** os 3 itens do Controlled Pilot Gate (D-217, Seção 21) estão tecnicamente fechados e reverificados -- **CONTROLLED EXTERNAL PILOT TECHNICAL GATE = SATISFIED**. Isso não autoriza ainda o piloto externo -- a User Session #2 deve revalidar a experiência antes da autorização final, conforme o mandato exige explicitamente.
+- **Preservação arquitetural confirmada mecanicamente:** `git diff --stat` contra a ponta real de `origin/main` -- 12 arquivos alterados, exatamente o escopo autorizado; zero arquivo tocado em RBAC/Tenant Isolation/Authentication/Session/AdvisorFramework/AIContextEngine/ExecutiveOrchestrator/Advisors/Executive Intelligence/Knowledge Platform/Enterprise Domain/migrations/W7-1/W7-3/W7-4/W7-7.
+- **User Session #2 = READY.** GO/NO-GO for User Session #2 = **GO**. Perfil recomendado: Founder novamente, ciclo rápido, revalidando especificamente Priorização/Dashboard/provisionamento.
+- **Nenhuma implementação além do pacote mínimo autorizado.** User Session #2 não iniciada automaticamente, piloto externo não iniciado, nenhum outro Epic iniciado -- retornando para Founder Executive Review.
+- **Evidência completa:** `docs/product/governance/LOCAL-V1-PILOT-READINESS-IMPLEMENTATION-EXECUTIVE-EVIDENCE.md`.
+- **Missão:** Local V1 Pilot Readiness Implementation.
+
 ---
 
 ## Convenção
