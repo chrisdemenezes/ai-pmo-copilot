@@ -2823,3 +2823,19 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** CI real sobre `main` pos-merge: backend (ruff+pytest, cobertura >=80%) PASS; frontend (tsc/eslint/vitest/build) PASS; E2E 368/369, 1 flake conhecido ja registrado antes desta missao (nao causado por nenhum commit desta missao), nunca declarado "100% verde". Preservacao arquitetural confirmada -- RBAC/Tenant Isolation/AdvisorFramework/ExecutiveOrchestrator/Advisors inalterados. `MAIN = CONSOLIDATED`, `LOCAL V1 PILOT BASELINE = READY`, `LOCAL V1 HUMAN USER SESSION = AUTHORIZABLE` -- sessao humana NAO iniciada, retornando para Founder Executive Review.
 
 **Decision Log:** D-214, D-215.
+
+## Local V1 Human User Session -- primeira validação funcional humana real (2026-08-19)
+
+**Executado**
+- Primeira sessao real de usuario humano da STRATECH V1 (o proprio Founder, na maquina fisica Windows), sobre a baseline `main` @ `990917f`. Facilitador deu apenas objetivo de tarefa, nunca passo a passo. 10 tarefas mandatadas executadas: 8/10 completas, 1 parcial (Administration), 1 FAIL real (Prioritization -- objetivo da tela nao comunicado).
+
+**Achado operacional (2a ocorrencia de D-213)**
+- Servico nativo do PostgreSQL do Windows ocupando a porta 5432 (Docker Desktop nao estava rodando), causando `UnicodeDecodeError`. Resolvido pelo Founder desinstalando o Postgres nativo da propria maquina -- nenhuma alteracao de codigo/script feita durante a sessao.
+
+**Achados de produto registrados (nenhuma correcao implementada)**
+- Dashboard percebido como poluido para nivel executivo, falta indicadores financeiros/prazo. Pedido recorrente de alternancia lista<->board/Kanban (Acoes/Decisoes/Priorizacao). Decision Support/Narrativa Executiva deveriam ter menu dedicado. Terminologia tecnica exposta sem explicacao ("chunks", coluna "Acoes" em Documentos). Product Gap conhecido de Organization Administration/Onboarding reafirmado.
+- Achados positivos: Acoes e Logout PASS limpo; hierarquia Portfolio->Program->Project entendida corretamente sem explicacao; conexao espontanea de Aprendizados com alimentar as IAs do produto.
+
+**Missão:** intencao de uso = SIM; utilidade percebida = 6,5-7/10. Nenhuma STOP CONDITION atingida. Fronteira de IA respeitada (Decision Support/Narrativa apresentados so conceitualmente). GO FOR USER SESSION #2 (condicionado a Pilot Findings Review). NO-GO for Controlled User Pilot Progression. Nenhuma correcao feita durante a sessao -- retornando para Founder Executive Review.
+
+**Decision Log:** D-216.
