@@ -2606,6 +2606,20 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Recomendação:** GO FOR USER SESSION #2 (condicionado à Pilot Findings Review ter ocorrido antes). NO-GO for Controlled User Pilot Progression (Priorização FAIL + Product Gap de Organization Administration ainda abertos). Sessão encerrada -- nenhuma nova missão iniciada automaticamente, nenhuma correção implementada, retornando para Founder Executive Review.
 - **Missão:** Local V1 Human User Session.
 
+### D-217 — Local V1 Pilot Findings Review: triagem executiva da primeira sessão humana concluída
+
+- **Contexto:** Founder Decision "LOCAL V1 PILOT FINDINGS REVIEW — Triagem Executiva da Primeira Validação Humana", sobre a evidência de D-216. Missão exclusivamente de Product Review + Findings Triage + Decision Proposal -- nenhuma implementação.
+- **Correção de classificação (achado real desta triagem):** o achado original de "Administração sem cadastro de papéis" estava incorreto -- a UI de atribuição de papéis já existe (`UserRolesDialog`, testada em E2E), o usuário da sessão simplesmente não a encontrou. Reclassificado de Product Gap para achado de discoverability/UX. A criação de novas Organizações, por outro lado, foi confirmada como gap real: já aprovada institucionalmente (`DOMAIN-BLUEPRINT-ENTERPRISE-ADMINISTRATION.md`, Nível 1), nunca implementada -- mas não bloqueia o piloto controlado, já que tenants pré-provisionados via migration são operacionalmente viáveis (Cenário A).
+- **Priorização (Task 2, FAIL) -- causa raiz identificada:** a regra de ranking de 4 camadas (`buildExecutivePortfolioView`) é real e determinística, mas totalmente invisível na UI -- sem cabeçalhos de camada, sem explicação da regra, h1 diz "Portfólio" em vez de "Priorização". Delta mínimo de correção: composição de UI (cabeçalhos + explicação), sem mudança de backend/dado.
+- **Dashboard:** tratado como 3 achados distintos -- densidade/mistura de 4 widgets "dados simulados" sem distinção visual (achado real, risco de credibilidade em piloto externo); indicadores financeiros (exige novo modelo de dados, decisão arquitetural explícita, não aprovado nesta triagem); indicador de prazo (dado já existe via `start_date`/`planned_end_date`/`actual_end_date`, delta pequeno).
+- **Pedido recorrente de board/Kanban (Ações/Decisões/Priorização), investigado com evidência de código:** rejeitado para Ações (contraria diretriz de design já registrada na própria Capability -- "nunca um gerenciador de tarefas"), cosmético para Decisões (sem estados reais), evidência insuficiente para Priorização (aguardar resultado da correção de lista+cabeçalho antes de considerar board).
+- **Nenhum P0 identificado** (bloqueador literal de User Session #2) -- o conflito de porta 5432 já foi resolvido pelo próprio Founder fora desta missão.
+- **Controlled Pilot Gate definido, pequeno e objetivo (3 itens):** Priorização comunicar sua regra; provisionamento de organização documentado/ensaiado (Cenário A); widgets mock do Dashboard distinguidos/ocultos para usuários externos.
+- **Nenhuma correção implementada nesta missão**, conforme proibição explícita do mandato. 10 Decision Proposals registradas para decisão do Founder.
+- **Evidência completa:** `docs/product/governance/LOCAL-V1-PILOT-FINDINGS-REVIEW.md`.
+- **Recomendação:** GO FOR USER SESSION #2 (recomendado priorizar a correção de Priorização antes de repetir). NO-GO for Controlled External Pilot Progression até o gate de 3 itens ser fechado. D-216 preservada sem edição -- esta é uma nova entrada, não uma correção retroativa.
+- **Missão:** Local V1 Pilot Findings Review.
+
 ---
 
 ## Convenção
