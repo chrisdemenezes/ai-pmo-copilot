@@ -7,11 +7,15 @@ import { Header } from "@/components/shell/header";
 import { ExecutivePortfolioCard } from "@/components/portfolio-intelligence/executive-portfolio-card";
 import { usePortfolioSummary } from "@/lib/hooks/use-portfolio-summary";
 import { useLatestRisks } from "@/lib/hooks/use-latest-risks";
+import {
+  buildExecutivePortfolioView,
+  type PortfolioIntelligenceItem,
+  type PortfolioLayer,
+} from "@/lib/portfolio-intelligence/portfolio-view";
 import { buildExecutiveDecisionQueue, groupLatestRisksByProject } from "@/lib/decision-center/decision-queue";
-import { buildExecutivePortfolioView } from "@/lib/portfolio-intelligence/portfolio-view";
 
 /**
- * Executive Portfolio View -- página "Portfólio" (TIP-010 Incremento 1:
+ * Executive Portfolio View -- página "Priorização" (TIP-010 Incremento 1:
  * camadas de decisão hoje/esta semana e ausência de sinal; a camada de
  * Risco a Monitorar chega no Incremento 2). Single Decision Source:
  * consome buildExecutiveDecisionQueue() tal como está, nunca recalcula
@@ -19,7 +23,42 @@ import { buildExecutivePortfolioView } from "@/lib/portfolio-intelligence/portfo
  * concentrar meu tempo?" -- distinta da pergunta do Dashboard
  * (Architecture Review §3). Os 2 sinais (Status via usePortfolioSummary,
  * Risco via useLatestRisks) são independentes, mesmo padrão de /decisions.
+ *
+ * Local V1 Pilot Findings Review (D-217, Seção 5): a regra de ranking já
+ * existente em buildExecutivePortfolioView() era invisível na UI -- sem
+ * título "Priorização", sem cabeçalho de camada, sem explicação da regra.
+ * O agrupamento abaixo é puramente de apresentação: reusa item.layer, já
+ * computado, na ordem já determinística devolvida pela função -- nenhuma
+ * lógica de negócio nova, nenhum ranking adicional.
  */
+const LAYER_ORDER: PortfolioLayer[] = [
+  "decision_today",
+  "decision_this_week",
+  "risk_to_monitor",
+  "no_signal",
+];
+
+const LAYER_LABEL: Record<PortfolioLayer, string> = {
+  decision_today: "Decisão hoje",
+  decision_this_week: "Decisão esta semana",
+  risk_to_monitor: "Risco a monitorar",
+  no_signal: "Sem sinal de atenção",
+};
+
+function groupByLayer(
+  items: PortfolioIntelligenceItem[],
+): Map<PortfolioLayer, PortfolioIntelligenceItem[]> {
+  const grouped = new Map<PortfolioLayer, PortfolioIntelligenceItem[]>();
+  for (const item of items) {
+    const existing = grouped.get(item.layer);
+    if (existing) {
+      existing.push(item);
+    } else {
+      grouped.set(item.layer, [item]);
+    }
+  }
+  return grouped;
+}
 export default function PortfolioPage() {
   const summary = usePortfolioSummary();
   const risks = useLatestRisks();
@@ -39,6 +78,7 @@ export default function PortfolioPage() {
   const risksByProject = groupLatestRisksByProject(risks.data ?? []);
   const decisions = buildExecutiveDecisionQueue(summary.data ?? [], risksByProject);
   const items = buildExecutivePortfolioView(summary.data ?? [], decisions);
+  const grouped = groupByLayer(items);
 
   const isFetching = summary.isFetching || risks.isFetching;
   const refetchAll = () => {
@@ -53,7 +93,11 @@ export default function PortfolioPage() {
           <p className="font-mono text-xs font-semibold uppercase tracking-wide text-accent">
             Executive Portfolio View
           </p>
-          <h1 className="font-display text-2xl font-semibold">Portfólio</h1>
+          <h1 className="font-display text-2xl font-semibold">Priorização</h1>
+          <p className="mt-1 text-sm text-ink-muted">
+            Ordenado por prioridade: decisão pendente hoje, depois esta semana, depois risco a
+            monitorar, depois sem sinal de atenção.
+          </p>
         </div>
         <Button variant="ghost" size="sm" onClick={refetchAll} disabled={isFetching}>
           {isFetching ? "Atualizando…" : "Atualizar"}
@@ -68,10 +112,23 @@ export default function PortfolioPage() {
       {items.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="flex flex-col gap-3">
-          {items.map((item) => (
-            <ExecutivePortfolioCard key={item.project_name} item={item} />
-          ))}
+        <div className="flex flex-col gap-6">
+          {LAYER_ORDER.map((layer) => {
+            const layerItems = grouped.get(layer);
+            if (!layerItems || layerItems.length === 0) return null;
+            return (
+              <div key={layer} className="flex flex-col gap-3">
+                <p className="text-xs font-medium uppercase tracking-wide text-ink-muted">
+                  {LAYER_LABEL[layer]}
+                </p>
+                <div className="flex flex-col gap-3">
+                  {layerItems.map((item) => (
+                    <ExecutivePortfolioCard key={item.project_name} item={item} />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </main>

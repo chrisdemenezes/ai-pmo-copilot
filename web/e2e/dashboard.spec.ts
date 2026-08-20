@@ -100,7 +100,7 @@ test("clicking the Projetos KPI navigates to the Executive Portfolio View", asyn
   // ambiguous outside of main.
   await page.locator("main").getByRole("link", { name: /^Projetos/ }).click();
   await expect(page).toHaveURL(/\/portfolio/);
-  await expect(page.getByRole("heading", { name: "Portfólio" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Priorização" })).toBeVisible();
 });
 
 // 5 + 12 (sucesso). Dashboard com dados

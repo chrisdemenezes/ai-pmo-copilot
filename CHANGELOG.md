@@ -2851,3 +2851,18 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** 10 Decision Proposals registradas para decisao do Founder. GO FOR USER SESSION #2 (recomendado priorizar fix de Priorizacao antes). NO-GO for Controlled External Pilot Progression ate o gate de 3 itens fechar. D-216 preservada sem edicao.
 
 **Decision Log:** D-217.
+
+## Local V1 Pilot Readiness Implementation -- pacote minimo do Controlled Pilot Gate (2026-08-20)
+
+**Corrigido**
+- Priorizacao (`/portfolio`): titulo corrigido para "Priorizacao", cabecalhos de camada e explicacao da regra de ranking adicionados -- regra ja existente (buildExecutivePortfolioView) agora comunicada na UI. Backend/algoritmo intocados.
+- Dashboard: 5 secoes alimentadas por dado mock (Demandas/Riscos/Issues/Mudancas, Decision Center, Actions Center, Recent Activity, AI Recommendations) ganharam badge "Dados demonstrativos". Indicador de prazo (No prazo/Atencao/Atrasado) adicionado a Situacao do Portfolio, usando datas ja existentes no dominio -- nenhum indicador financeiro, nenhum novo modelo de dados.
+
+**Adicionado**
+- `AuthService.bootstrap_organization()` -- provisionamento pre-piloto de organizacao, mesmo padrao idempotente ja usado para o Administrator/Demo Mode, acionavel via variaveis de ambiente opcionais. Nenhum endpoint novo, nenhuma UI nova.
+- `docs/operations/LOCAL-V1-PILOT-ORGANIZATION-PROVISIONING-RUNBOOK.md` -- 7 passos, mecanismos ja existentes.
+- `tests/test_pilot_organization_provisioning.py` -- ensaio automatizado (Postgres real, dados sinteticos) provando os 7 criterios do Runbook, incluindo isolamento de tenant.
+
+**Missão:** vitest 590/590 (suite completa), tsc/eslint limpos, next build sucesso, ruff limpo. Preservacao arquitetural confirmada mecanicamente -- 12 arquivos alterados, exatamente o escopo autorizado, zero toque em RBAC/Tenant Isolation/AdvisorFramework/ExecutiveOrchestrator/Advisors/Knowledge Platform/Enterprise Domain/W7-*. CONTROLLED EXTERNAL PILOT TECHNICAL GATE = SATISFIED (nao autoriza o piloto externo ainda). USER SESSION #2 = READY, GO. Nenhuma implementacao alem do pacote minimo -- User Session #2 nao iniciada, piloto externo nao iniciado.
+
+**Decision Log:** D-218, D-219, D-220, D-221.

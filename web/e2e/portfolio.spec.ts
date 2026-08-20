@@ -54,7 +54,18 @@ test("shows the whole portfolio organized in layers, ordered decision-today befo
   await login(page);
   await page.goto("/portfolio");
 
-  await expect(page.getByRole("heading", { name: "Portfólio" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Priorização" })).toBeVisible();
+
+  // Local V1 Pilot Findings Review (D-217, Seção 5): a regra de ranking
+  // precisa ser comunicada -- cabeçalho de camada + explicação da regra,
+  // não só a lista plana de antes.
+  await expect(
+    page.getByText(
+      "Ordenado por prioridade: decisão pendente hoje, depois esta semana, depois risco a monitorar, depois sem sinal de atenção.",
+    ),
+  ).toBeVisible();
+  await expect(page.getByText("Decisão hoje", { exact: true })).toBeVisible();
+  await expect(page.getByText("Decisão esta semana", { exact: true })).toBeVisible();
 
   // Multilift (status red) e Aurora (risco em atenção, status green) -> "hoje";
   // Implantacao SAP (status yellow) -> "esta semana". Nenhum projeto ausente.
@@ -115,5 +126,5 @@ test("navigates via the Priorização nav item to the Executive Portfolio View",
 
   await page.locator('a[href="/portfolio"]').filter({ visible: true }).first().click();
   await expect(page).toHaveURL(/\/portfolio/);
-  await expect(page.getByRole("heading", { name: "Portfólio" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Priorização" })).toBeVisible();
 });

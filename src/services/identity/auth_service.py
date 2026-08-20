@@ -190,6 +190,44 @@ class AuthService:
             session.commit()
             logger.info("Demo user bootstrapped organization_id=%s", org.id)
 
+    def bootstrap_organization(self, organization_name: str, email: str, password: str) -> int:
+        """Provisions a new (or reuses an existing, by name) organization
+        with an `organization_admin` user -- the same transactional,
+        idempotent pattern as `bootstrap_administrator`/`bootstrap_demo_user`
+        above, generalized to an arbitrary organization name instead of the
+        hardcoded default (Local V1 Pilot Findings Review, D-217 Finding 04b:
+        no self-service organization creation exists; this reuses the exact
+        primitives those two methods already call, rather than duplicating
+        them, for Controlled Pilot pre-provisioning -- see
+        docs/operations/LOCAL-V1-PILOT-ORGANIZATION-PROVISIONING-RUNBOOK.md).
+        Returns the organization_id."""
+        with self._session_factory() as session:
+            org = self._repo.get_or_create_organization(session, organization_name)
+            existing = self._repo.get_user_by_email(session, org.id, email)
+            if existing is not None:
+                logger.info(
+                    "Organization admin bootstrap skipped -- already exists "
+                    "organization_id=%s email=%s",
+                    org.id,
+                    email,
+                )
+                return org.id
+
+            user = self._repo.create_user_in_session(
+                session,
+                organization_id=org.id,
+                email=email,
+                display_name="Administrator",
+                password_hash=self._credentials.hash(password),
+                identity_type="standard",
+            )
+            self._repo.assign_role_in_session(session, user.id, "organization_admin")
+            session.commit()
+            logger.info(
+                "Organization bootstrapped organization_id=%s user_id=%s", org.id, user.id
+            )
+            return org.id
+
 
 def bootstrap_identities(auth_service: AuthService) -> None:
     """Entry point called once at backend startup (src/main.py). Reads
@@ -210,6 +248,22 @@ def bootstrap_identities(auth_service: AuthService) -> None:
         auth_service.bootstrap_demo_user(demo_password)
     else:
         logger.info("Demo user bootstrap skipped -- WORKSPACE_PASSWORD not set")
+
+    # Local V1 Pilot Findings Review (D-217, Finding 04b): Controlled Pilot
+    # pre-provisioning of a new organization, same optional/idempotent
+    # boot-time pattern as the two blocks above -- unset by default, so this
+    # never runs for the default local/demo installs. See
+    # docs/operations/LOCAL-V1-PILOT-ORGANIZATION-PROVISIONING-RUNBOOK.md.
+    pilot_org_name = os.getenv("PILOT_ORGANIZATION_NAME")
+    pilot_admin_email = os.getenv("PILOT_ORGANIZATION_ADMIN_EMAIL")
+    pilot_admin_password = os.getenv("PILOT_ORGANIZATION_ADMIN_PASSWORD")
+    if pilot_org_name and pilot_admin_email and pilot_admin_password:
+        auth_service.bootstrap_organization(pilot_org_name, pilot_admin_email, pilot_admin_password)
+    else:
+        logger.info(
+            "Pilot organization bootstrap skipped -- PILOT_ORGANIZATION_NAME/"
+            "PILOT_ORGANIZATION_ADMIN_EMAIL/PILOT_ORGANIZATION_ADMIN_PASSWORD not set"
+        )
 
 
 __all__ = [
