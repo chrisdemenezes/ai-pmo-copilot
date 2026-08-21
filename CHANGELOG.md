@@ -2866,3 +2866,18 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** vitest 590/590 (suite completa), tsc/eslint limpos, next build sucesso, ruff limpo. Preservacao arquitetural confirmada mecanicamente -- 12 arquivos alterados, exatamente o escopo autorizado, zero toque em RBAC/Tenant Isolation/AdvisorFramework/ExecutiveOrchestrator/Advisors/Knowledge Platform/Enterprise Domain/W7-*. CONTROLLED EXTERNAL PILOT TECHNICAL GATE = SATISFIED (nao autoriza o piloto externo ainda). USER SESSION #2 = READY, GO. Nenhuma implementacao alem do pacote minimo -- User Session #2 nao iniciada, piloto externo nao iniciado.
 
 **Decision Log:** D-218, D-219, D-220, D-221.
+
+## Local V1 Human User Session #2 -- validacao humana focada pos-Readiness Implementation (2026-08-20)
+
+**Achados (nenhuma correcao feita durante a sessao, regra STOP do mandato)**
+- Priorizacao: PASS -- usuario descreveu corretamente a sequencia de camadas sem explicacao previa. Pedido recorrente de Kanban/board persiste (2a evidencia).
+- Dashboard/dados demonstrativos: FAIL -- usuario rolou a pagina inteira e nao percebeu o badge "Dados demonstrativos", apesar de presente e visivel. Achado real de discoverability/salincia, nao de ausencia de implementacao.
+- Indicador de prazo: PASS -- "No Prazo" interpretado corretamente sem assistencia. Teste limitado pelo dataset (sem contraste Atencao/Atrasado disponivel).
+- Densidade do Dashboard: IGUAL a Session #1 -- sem melhora percebida.
+- Provisionamento do piloto: defeito real encontrado e contornado (sem alteracao de codigo) -- `demo/start-demo.sh` carrega `demo/.env` via `source` (bash), e um nome de organizacao com espaco sem aspas (`PILOT_ORGANIZATION_NAME=Piloto Externo A`, o proprio exemplo do Runbook) quebra o parsing, variavel nunca exportada. Corrigido apenas no `.env` local do Founder (aspas), confirmado o mecanismo funciona corretamente uma vez a variavel e exportada -- login/tenant isolation confirmados operacionalmente. Founder aceitou o modelo pre-provisionado como ACCEPTABLE WITH LIMITATION (exige tela de criacao de organizacoes no roadmap -- reforca gap ja conhecido de D-217).
+
+**Human Scores:** Perceived Value/Usability/Clarity/Navigation/Decision Support Potential/Trust = 8/10 (uniforme, confirmado explicitamente). Intent to Use = TALVEZ (nao Sim), condicionado pelo Founder a correcao dos achados pendentes.
+
+**Missão:** CONTROLLED EXTERNAL PILOT TECHNICAL GATE = SATISFIED (herdado, revalidado). CONTROLLED EXTERNAL PILOT EXPERIENCE GATE = NOT SATISFIED (G2 e G8 nao satisfeitos). GO/NO-GO for Controlled External Pilot = CONDITIONAL GO. Pedido direto do Founder de corrigir os achados imediatamente foi recusado durante a sessao, por regra STOP explicita do mandato -- redirecionado para nova Founder Decision. Piloto externo nao iniciado, nenhum outro Epic iniciado.
+
+**Decision Log:** D-222.
