@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -21,23 +20,11 @@ import { CockpitKpiStrip } from "@/components/cockpit/cockpit-kpi-strip";
 import { PortfolioSituationGrid } from "@/components/cockpit/portfolio-situation-grid";
 import { ProgramSituationGrid } from "@/components/cockpit/program-situation-grid";
 import { ProgramExecutionPanel } from "@/components/cockpit/program-execution-panel";
-import { WorkItemsOverview } from "@/components/cockpit/work-items-overview";
 import { ExecutiveFocusPanel } from "@/components/cockpit/executive-focus-panel";
-import { DecisionCenterPanel } from "@/components/cockpit/decision-center-panel";
-import { ActionsCenterTable } from "@/components/cockpit/actions-center-table";
-import { RecentActivityTimeline } from "@/components/cockpit/recent-activity-timeline";
-import { AIRecommendationsPanel } from "@/components/cockpit/ai-recommendations-panel";
 import { DecisionSupportPanel } from "@/components/dashboard/decision-support-panel";
 import { ExecutiveNarrativePanel } from "@/components/dashboard/executive-narrative-panel";
 import { computeExecutiveFocus } from "@/lib/dashboard/executive-focus";
-import {
-  WORK_ITEM_BREAKDOWN,
-  PENDING_DECISIONS,
-  PRIORITY_ACTIONS,
-  RECENT_ACTIVITY,
-  AI_RECOMMENDATIONS,
-  type CockpitKPI,
-} from "@/lib/mock/cockpit-data";
+import { type CockpitKPI } from "@/lib/mock/cockpit-data";
 
 export default function DashboardPage() {
   const { data, isPending, isError, error, refetch, isFetching } = usePortfolioSummary();
@@ -117,8 +104,6 @@ export default function DashboardPage() {
         </Button>
       </Header>
 
-      <DemoDataNotice />
-
       <section className="flex flex-col gap-3">
         <div>
           <h2 className="font-display text-lg font-semibold text-ink">Executive Overview</h2>
@@ -172,59 +157,11 @@ export default function DashboardPage() {
       </section>
 
       <section className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="font-display text-lg font-semibold text-ink">
-            Demandas, Riscos, Issues e Mudanças
-          </h2>
-          <DemoDataBadge />
-        </div>
-        <p className="text-sm text-ink-muted">Inventário formal de portfólio, ainda não implementado.</p>
-        <WorkItemsOverview items={WORK_ITEM_BREAKDOWN} />
-      </section>
-
-      <section className="flex flex-col gap-3">
         <div>
           <h2 className="font-display text-lg font-semibold text-ink">Executive Focus</h2>
           <p className="text-sm text-ink-muted">Onde devo concentrar minha atenção hoje?</p>
         </div>
         <ExecutiveFocusPanel focus={executiveFocus} />
-      </section>
-
-      <section className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="font-display text-lg font-semibold text-ink">Decision Center</h2>
-          <DemoDataBadge />
-        </div>
-        <p className="text-sm text-ink-muted">Quais decisões dependem de mim?</p>
-        <DecisionCenterPanel decisions={PENDING_DECISIONS} />
-      </section>
-
-      <section className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="font-display text-lg font-semibold text-ink">Actions Center</h2>
-          <DemoDataBadge />
-        </div>
-        <p className="text-sm text-ink-muted">O que devo fazer em seguida?</p>
-        <ActionsCenterTable actions={PRIORITY_ACTIONS} />
-      </section>
-
-      <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="font-display text-lg font-semibold text-ink">Recent Activity</h2>
-            <DemoDataBadge />
-          </div>
-          <p className="text-sm text-ink-muted">O que mudou desde meu último acesso?</p>
-          <RecentActivityTimeline events={RECENT_ACTIVITY} />
-        </div>
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="font-display text-lg font-semibold text-ink">AI Recommendations</h2>
-            <DemoDataBadge />
-          </div>
-          <p className="text-sm text-ink-muted">Camada de inteligência futura.</p>
-          <AIRecommendationsPanel recommendations={AI_RECOMMENDATIONS} />
-        </div>
       </section>
 
       <section className="flex flex-col gap-3">
@@ -276,38 +213,20 @@ export default function DashboardPage() {
 }
 
 /**
- * Local V1 Pilot Findings Review (D-217, Seção 6A): 5 seções do Dashboard
- * consomem dados de web/lib/mock/cockpit-data.ts, sem distinção visual dos
- * dados reais das demais seções -- achado real de risco de credibilidade
- * num piloto com usuário externo. Marca explícita, sem esconder as seções
- * nem alterar seu conteúdo.
- *
- * Local V1 Pilot Final Hardening (H1, D-223): a Human User Session #2
- * (D-222) provou que variant="outline" (borda fina, texto neutro) não é
- * percebido espontaneamente numa página densa -- o usuário rolou a tela
- * inteira duas vezes sem notar o selo. Trocado para variant="demo" (nova,
- * fundo preenchido com a cor de destaque da marca -- distinta de
- * ok/warn/danger/neutral, que já têm o significado de saúde/prazo nesta
- * mesma tela, para não colidir semanticamente com eles).
+ * Local V1 Pilot Findings Review (D-217, Seção 6A) marcou 5 seções
+ * alimentadas por web/lib/mock/cockpit-data.ts como "Dados demonstrativos"
+ * (D-219), depois reforçou a marcação com um aviso contextual (H1, D-223)
+ * -- ambas as tentativas de comunicação visual falharam no teste real com
+ * usuário (a Human User Session #2, D-222, e o micro-teste humano de H1
+ * mostraram que o usuário não percebe a distinção mesmo com o selo/aviso
+ * visíveis). Removidas do Dashboard do piloto (Local V1 Pilot Final
+ * Hardening, H1, decisão explícita do Founder): zero ambiguidade é mais
+ * seguro que qualquer selo que dependa do usuário notá-lo. Os componentes e
+ * o dado mock permanecem no repositório (WorkItemsOverview,
+ * DecisionCenterPanel, ActionsCenterTable, RecentActivityTimeline,
+ * AIRecommendationsPanel, web/lib/mock/cockpit-data.ts) para uma futura
+ * Capability real, não foram excluídos.
  */
-function DemoDataBadge() {
-  return <Badge variant="demo">Dados demonstrativos</Badge>;
-}
-
-/**
- * H1 (D-223): complementa o selo por seção com um único aviso, visível
- * antes de qualquer número ser interpretado -- a lacuna real era de
- * descoberta (discoverability), não de ausência do selo em si.
- */
-function DemoDataNotice() {
-  return (
-    <div className="rounded-lg border border-accent bg-accent-soft px-4 py-3 text-sm text-accent-ink">
-      <span className="font-semibold">Atenção: </span>
-      algumas seções abaixo usam dados de exemplo (marcadas &quot;Dados demonstrativos&quot;), não dados reais desta organização.
-    </div>
-  );
-}
-
 function EmptyState() {
   return (
     <Card>

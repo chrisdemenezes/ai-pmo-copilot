@@ -113,12 +113,16 @@ test("renders the portfolio widgets when the backend has data", async ({ page })
   await expect(page.getByRole("heading", { name: "Projetos" })).toBeVisible();
 });
 
-// Local V1 Pilot Final Hardening (H1, D-223): the contextual notice about
-// demonstrative data must render on the real page, not just in isolation.
-test("shows the demonstrative-data notice before any dashboard section", async ({ page }) => {
+// Local V1 Pilot Final Hardening (H1, D-223): marking demonstrative data
+// (badge, then badge + notice) never worked in real human testing -- the
+// 5 mock-fed sections were removed from the pilot Dashboard instead.
+test("does not render any of the removed demo-fed sections", async ({ page }) => {
   await login(page);
-  await expect(page.getByText(/dados de exemplo/i)).toBeVisible();
-  await expect(page.getByText("Dados demonstrativos").first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Demandas, Riscos, Issues e Mudanças" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Decision Center" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Actions Center" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Recent Activity" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "AI Recommendations" })).toHaveCount(0);
 });
 
 // 6 + 12 (vazio). Dashboard sem dados

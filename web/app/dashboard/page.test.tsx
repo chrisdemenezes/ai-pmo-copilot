@@ -281,21 +281,28 @@ describe("DashboardPage", () => {
     expect(link).toHaveTextContent("1");
   });
 
-  // Local V1 Pilot Final Hardening (H1, D-223): a Human User Session #2
-  // (D-222) provou que o selo por seção sozinho não é percebido -- estes
-  // testes provam a implementação (não a percepção humana, revalidada
-  // separadamente com o Founder).
-  it("shows exactly one contextual notice about demonstrative data, before any section", () => {
+  // Local V1 Pilot Final Hardening (H1, D-223): the Human User Session #2
+  // (D-222) and the H1 human micro-test both showed that marking the 5
+  // mock-fed sections (badge alone, then badge + contextual notice) is
+  // never spontaneously noticed -- the Founder decided to remove them from
+  // the pilot Dashboard entirely instead of continuing to mark them.
+  it("does not render any of the 5 removed demo-fed sections", () => {
     render(<DashboardPage />);
-    const notices = screen.getAllByText(/dados de exemplo/i);
-    expect(notices).toHaveLength(1);
+    const removedHeadings = [
+      "Demandas, Riscos, Issues e Mudanças",
+      "Decision Center",
+      "Actions Center",
+      "Recent Activity",
+      "AI Recommendations",
+    ];
+    for (const heading of removedHeadings) {
+      expect(screen.queryByRole("heading", { name: heading })).toBeNull();
+    }
+    expect(screen.queryByText("Dados demonstrativos")).toBeNull();
   });
 
-  it("marks all 5 demo-fed sections with the demo badge, and no others", () => {
+  it("still renders every real section after removing the mock-fed ones", () => {
     render(<DashboardPage />);
-    const badges = screen.getAllByText("Dados demonstrativos");
-    expect(badges).toHaveLength(5);
-
     const realSectionHeadings = [
       "Executive Overview",
       "Situação do Portfólio",
@@ -306,9 +313,7 @@ describe("DashboardPage", () => {
       "Narrativa Executiva",
     ];
     for (const heading of realSectionHeadings) {
-      const headingElement = screen.getByRole("heading", { name: heading });
-      const section = headingElement.closest("section");
-      expect(section?.textContent).not.toContain("Dados demonstrativos");
+      expect(screen.getByRole("heading", { name: heading })).toBeInTheDocument();
     }
   });
 });
