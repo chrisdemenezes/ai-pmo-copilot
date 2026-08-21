@@ -22,6 +22,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    Numeric,
     String,
     UniqueConstraint,
     text,
@@ -241,6 +242,14 @@ class Project(Base):
     owner_json = Column(JSON, nullable=True)
     milestones_json = Column(JSON, nullable=True)
     team_json = Column(JSON, nullable=True)
+
+    # -- Financial fields (V1 Product & Capability Completion, Package K) --
+    # Only Project carries these; Program/Portfolio compute their financial
+    # KPI as a runtime rollup over their own Projects, never a duplicated
+    # column (same discipline progress_percentage/health already use).
+    approved_budget = Column(Numeric(14, 2), nullable=True)
+    actual_cost = Column(Numeric(14, 2), nullable=True)
+    forecast_cost = Column(Numeric(14, 2), nullable=True)
 
 
 class UserProjectMembership(Base):

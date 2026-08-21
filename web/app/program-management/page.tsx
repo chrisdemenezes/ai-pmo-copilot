@@ -15,28 +15,49 @@ import {
 import { Header } from "@/components/shell/header";
 import { usePortfolios } from "@/lib/hooks/use-portfolios";
 import { usePrograms } from "@/lib/hooks/use-programs";
+import { useProjects } from "@/lib/hooks/use-projects";
 import type { Portfolio } from "@/lib/domain/portfolio";
 import type { Program } from "@/lib/domain/program";
+import type { Project } from "@/lib/domain/project";
+import { aggregateFinancials } from "@/lib/domain/financial-rollup";
+
+const currencyFormatter = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+  maximumFractionDigits: 0,
+});
+
+function formatCurrency(value: number | null): string {
+  return value === null ? "—" : currencyFormatter.format(value);
+}
 
 /**
  * Program Management (Capability 02, Release 0.2) -- listagem funcional
  * de todos os Programs agrupados por Portfolio pai. Sem CRUD (não
  * solicitado nesta Capability) -- apenas visualização real, consumindo
  * usePortfolios()/usePrograms() (lib/domain), nunca dado mock.
+ *
+ * V1 Product & Capability Completion, Package K: também carrega
+ * useProjects() para computar o KPI financeiro por Portfolio -- sempre um
+ * rollup em runtime sobre os Projects de seus próprios Programs, nunca uma
+ * coluna própria em Portfolio (Technical Design §2/§5).
  */
 export default function ProgramManagementPage() {
   const portfolios = usePortfolios();
   const programs = usePrograms();
+  const projects = useProjects();
 
-  if (portfolios.isPending || programs.isPending) {
+  if (portfolios.isPending || programs.isPending || projects.isPending) {
     return <ProgramManagementSkeleton />;
   }
 
   if (portfolios.isError && !portfolios.data) throw portfolios.error;
   if (programs.isError && !programs.data) throw programs.error;
+  if (projects.isError && !projects.data) throw projects.error;
 
   const portfolioList = portfolios.data ?? [];
   const programList = programs.data ?? [];
+  const projectList = projects.data ?? [];
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 p-6">
@@ -51,8 +72,16 @@ export default function ProgramManagementPage() {
 
       {portfolioList.map((portfolio) => {
         const ownPrograms = programList.filter((program) => program.belongsToPortfolio(portfolio.id));
+        const ownProjects = projectList.filter((project) =>
+          project.belongsToPortfolio(portfolio.id, programList),
+        );
         return (
-          <PortfolioProgramsSection key={portfolio.id} portfolio={portfolio} programs={ownPrograms} />
+          <PortfolioProgramsSection
+            key={portfolio.id}
+            portfolio={portfolio}
+            programs={ownPrograms}
+            projects={ownProjects}
+          />
         );
       })}
     </main>
@@ -62,10 +91,14 @@ export default function ProgramManagementPage() {
 function PortfolioProgramsSection({
   portfolio,
   programs,
+  projects,
 }: {
   portfolio: Portfolio;
   programs: Program[];
+  projects: Project[];
 }) {
+  const financials = aggregateFinancials(projects);
+
   return (
     <section className="flex flex-col gap-3">
       <Card>
@@ -74,6 +107,12 @@ function PortfolioProgramsSection({
           <CardDescription>
             {programs.length} {programs.length === 1 ? "Program" : "Programs"} — {portfolio.executiveOwner}
           </CardDescription>
+          {financials.approvedBudget !== null || financials.actualCost !== null ? (
+            <p className="text-sm text-ink-muted">
+              Orçamento aprovado: {formatCurrency(financials.approvedBudget)} · Custo real:{" "}
+              {formatCurrency(financials.actualCost)} · Variação: {formatCurrency(financials.variance)}
+            </p>
+          ) : null}
         </CardHeader>
       </Card>
 

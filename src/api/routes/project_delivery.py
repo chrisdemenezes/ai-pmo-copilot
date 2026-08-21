@@ -55,6 +55,12 @@ class ProjectDeliveryResponse(BaseModel):
     owner: dict | None
     milestones: list[dict] | None
     team: dict | None
+    # V1 Product & Capability Completion, Package K: raw financial fields
+    # only -- variance/variance_percentage are always computed at the point
+    # of read (frontend), never stored or returned pre-computed here.
+    approved_budget: float | None
+    actual_cost: float | None
+    forecast_cost: float | None
 
 
 class ProjectDeliveryCreateRequest(BaseModel):
@@ -76,6 +82,9 @@ class ProjectDeliveryCreateRequest(BaseModel):
     owner: dict | None = None
     milestones: list[dict] | None = None
     team: dict | None = None
+    approved_budget: float | None = None
+    actual_cost: float | None = None
+    forecast_cost: float | None = None
 
 
 def _to_response(project: Project) -> ProjectDeliveryResponse:
@@ -104,6 +113,9 @@ def _to_response(project: Project) -> ProjectDeliveryResponse:
         owner=project.owner_json,
         milestones=project.milestones_json,
         team=project.team_json,
+        approved_budget=float(project.approved_budget) if project.approved_budget is not None else None,
+        actual_cost=float(project.actual_cost) if project.actual_cost is not None else None,
+        forecast_cost=float(project.forecast_cost) if project.forecast_cost is not None else None,
     )
 
 

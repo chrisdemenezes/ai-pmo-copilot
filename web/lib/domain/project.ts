@@ -69,6 +69,14 @@ export interface ProjectProps {
   owner: Owner;
   milestones: Milestone[];
   team: Team;
+
+  // Financeiro (V1 Product & Capability Completion, Package K) -- só existe
+  // no Project; Program/Portfolio nunca duplicam, seu KPI financeiro é um
+  // rollup em runtime (ver financial-rollup.ts), mesma disciplina de
+  // progressPercentage/health (AR-1, consolidateFromChildren).
+  approvedBudget: number | null;
+  actualCost: number | null;
+  forecastCost: number | null;
 }
 
 export class Project {
@@ -90,6 +98,9 @@ export class Project {
   readonly owner: Owner;
   readonly milestones: Milestone[];
   readonly team: Team;
+  readonly approvedBudget: number | null;
+  readonly actualCost: number | null;
+  readonly forecastCost: number | null;
 
   private readonly _progressPercentage: number;
   private readonly _health: DomainHealth;
@@ -113,6 +124,9 @@ export class Project {
     this.owner = props.owner;
     this.milestones = props.milestones;
     this.team = props.team;
+    this.approvedBudget = props.approvedBudget;
+    this.actualCost = props.actualCost;
+    this.forecastCost = props.forecastCost;
     this._progressPercentage = props.progressPercentage;
     this._health = props.health;
   }
@@ -180,6 +194,9 @@ interface ProjectApiRow {
   owner: Owner | null;
   milestones: Milestone[] | null;
   team: Team | null;
+  approved_budget: number | null;
+  actual_cost: number | null;
+  forecast_cost: number | null;
 }
 
 function toProject(row: ProjectApiRow): Project {
@@ -207,6 +224,9 @@ function toProject(row: ProjectApiRow): Project {
     owner: row.owner ?? { name: "", role: "" },
     milestones: row.milestones ?? [],
     team: row.team ?? { size: 0, leadName: "" },
+    approvedBudget: row.approved_budget,
+    actualCost: row.actual_cost,
+    forecastCost: row.forecast_cost,
   });
 }
 

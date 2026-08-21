@@ -102,6 +102,58 @@ def test_create_project_delivery_with_value_objects(client):
     assert body["team"] == {"size": 8, "leadName": "Fernanda Lima"}
 
 
+def test_create_project_delivery_with_financial_fields(client):
+    """V1 Product & Capability Completion, Package K: approved_budget/
+    actual_cost/forecast_cost round-trip through create + get, as plain
+    numbers -- variance is never computed or stored server-side."""
+    test_client, repo = client
+    org_id = repo.enterprise.create_organization("Org A")
+    admin_id = _actor(repo, org_id, "organization_admin")
+    program_id = _make_program(repo, org_id)
+
+    response = test_client.post(
+        "/api/projects-delivery",
+        headers=_headers(org_id, admin_id),
+        json={
+            "program_id": program_id,
+            "name": "Multilift",
+            "approved_budget": 4_200_000.00,
+            "actual_cost": 3_100_000.00,
+            "forecast_cost": 5_000_000.00,
+        },
+    )
+
+    assert response.status_code == 201
+    body = response.json()
+    assert body["approved_budget"] == 4_200_000.00
+    assert body["actual_cost"] == 3_100_000.00
+    assert body["forecast_cost"] == 5_000_000.00
+
+    get_response = test_client.get(
+        f"/api/projects-delivery/{body['id']}", headers=_headers(org_id, admin_id)
+    )
+    assert get_response.json()["approved_budget"] == 4_200_000.00
+
+
+def test_project_delivery_financial_fields_default_to_null(client):
+    test_client, repo = client
+    org_id = repo.enterprise.create_organization("Org A")
+    admin_id = _actor(repo, org_id, "organization_admin")
+    program_id = _make_program(repo, org_id)
+
+    response = test_client.post(
+        "/api/projects-delivery",
+        headers=_headers(org_id, admin_id),
+        json={"program_id": program_id, "name": "Sem orçamento definido"},
+    )
+
+    assert response.status_code == 201
+    body = response.json()
+    assert body["approved_budget"] is None
+    assert body["actual_cost"] is None
+    assert body["forecast_cost"] is None
+
+
 def test_create_project_under_program_from_another_org_returns_404(client):
     test_client, repo = client
     org_a = repo.enterprise.create_organization("Org A")
