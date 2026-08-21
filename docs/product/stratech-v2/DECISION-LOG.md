@@ -2674,6 +2674,39 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-223 — Local V1 Pilot Final Hardening, H1: discoverability de dados demonstrativos no Dashboard
+
+- **Contexto:** D-222 (Human User Session #2) registrou H1 como achado HIGH -- o badge "Dados demonstrativos" (D-219) existe mas não é percebido espontaneamente. Esta missão autorizou diagnóstico, correção, teste e evidência exclusivamente deste achado (e de H2, ver D-224).
+- **Diagnóstico:** a hierarquia visual real do Dashboard confirmou a causa -- `variant="outline"` é um selo pequeno, com borda fina e texto neutro (`text-ink-muted`), inline junto ao título de cada seção, numa página densa de 13 seções quase idênticas visualmente. Nenhum tratamento visual ambiente distinguia a "zona" de dado demonstrativo como um todo.
+- **1ª tentativa (não validada pelo usuário real):** nova variante de Badge (`"demo"`, fundo preenchido com a cor de destaque da marca, distinta de ok/warn/danger/neutral já usadas para saúde/prazo na mesma tela) + um aviso contextual único, visível antes de qualquer seção. Testes automatizados (`web/app/dashboard/page.test.tsx`, `web/e2e/dashboard.spec.ts`) confirmaram a implementação. **Micro-teste humano com o Founder = FAIL** -- mesmo com o aviso visível, colorido e no topo da tela, o Founder não identificou nenhuma informação como não-real. Confirma o próprio mandato: teste automatizado comprova implementação, não percepção humana.
+- **2ª tentativa, decisão do Founder:** diante de duas falhas reais consecutivas de comunicação visual (selo sozinho em D-219, depois selo + aviso), o Founder escolheu explicitamente **remover as 5 seções demonstrativas do Dashboard do piloto** (Demandas/Riscos/Issues/Mudanças, Decision Center, Actions Center, Recent Activity, AI Recommendations) em vez de continuar tentando marcá-las -- zero ambiguidade em vez de um sinal que depende do usuário notá-lo. Os componentes (`WorkItemsOverview`, `DecisionCenterPanel`, `ActionsCenterTable`, `RecentActivityTimeline`, `AIRecommendationsPanel`) e o dado mock (`web/lib/mock/cockpit-data.ts`) permanecem no repositório para uma futura Capability real -- não foram excluídos. A variante `"demo"` do Badge, agora sem nenhum call site, foi revertida.
+- **Micro-teste humano final = PASS.** Com as seções removidas, o Founder (logado como `organization_admin` real, não mais em ambiente isolado) confirmou não perceber nenhuma informação como não-real na tela.
+- **Testes:** `web/app/dashboard/page.test.tsx` (2 testes atualizados: nenhuma das 5 seções renderiza; todas as seções reais continuam presentes), `web/e2e/dashboard.spec.ts` (1 teste atualizado). `vitest run` 592/592 PASS, `tsc`/`eslint` limpos, `next build` sucesso.
+- **Achado novo, fora de escopo, registrado sem correção:** durante a sessão, a tela de Priorização mostrou "Não foi possível carregar os riscos -- mostrando apenas o sinal de Status" -- sinal real de degradação (já é o comportamento gracioso documentado do produto quando o sinal de Risco falha), não investigado a fundo por estar fora do escopo H1/H2 desta missão.
+- **Achado operacional novo, resolvido sem alteração de código:** ao trocar de branch na máquina física do Founder, o cache de build do Next.js (`web/.next`) ficou dessincronizado, causando 404 em todas as rotas `/api/bff/*` (incluindo login) -- mascarado inicialmente como um problema de senha do Administrator. Resolvido com `rm -rf web/.next` + restart. Recomendado documentar esse passo no Runbook/Windows Session Protocol como higiene padrão ao trocar de branch.
+- **Missão:** Local V1 Pilot Final Hardening.
+
+### D-224 — Local V1 Pilot Final Hardening, H2: robustez do bootstrap de organização
+
+- **Contexto:** D-222 registrou H2 como achado HIGH -- `demo/start-demo.sh` carrega `demo/.env` via `source` (bash), e um nome de organização com espaço sem aspas (`PILOT_ORGANIZATION_NAME=Piloto Externo A`, o próprio exemplo do Runbook) quebra esse parsing.
+- **Reprodução mecânica confirmada:** `PILOT_ORGANIZATION_NAME=Piloto Externo A` (sem aspas), quando `source`ado sob `set -euo pipefail` (como o script real usa), é interpretado pelo bash como "atribuir `PILOT_ORGANIZATION_NAME=Piloto`, depois executar um comando chamado `Externo` com argumento `A`" -- um "command not found" que, sob `set -e`, pode abortar o script inteiro (reproduzido isoladamente); em combinação com um acidente de edição do Founder (colar texto de um comando heredoc como conteúdo literal do arquivo em vez de executá-lo), o efeito observado ao vivo foi mais brando (variável simplesmente nunca exportada, script conclui normalmente) -- ambos os efeitos têm a mesma causa raiz.
+- **Correção, na menor camada:** `demo/start-demo.sh` (único ponto do repositório que fazia `source` de um `.env`, confirmado por busca) substituído por um loader linha-a-linha que lê cada valor literalmente (sem re-interpretar como sintaxe de shell) -- funciona com ou sem aspas ao redor do valor. Nenhum endpoint novo, nenhuma UI nova, nenhum mecanismo paralelo de bootstrap, `AuthService.bootstrap_organization()` intocado.
+- **Testes:** `tests/shell/test_start_demo_env_loader.sh` (novo), 8 cenários (A-H): nome simples, um espaço (exemplo exato do Runbook), múltiplos espaços, caracteres PT-BR (acentuados e entre aspas), configuração ausente, configuração inválida (aspas desencontradas -- falha de forma segura, sem abortar o script), variáveis existentes com URLs (`:`, `/`, `@` preservados), quebras de linha CRLF (Windows/Git Bash). Todos os 8 PASS. Suíte de shell completa (4 arquivos) revalidada sem regressão.
+- **Runbook atualizado** (`docs/operations/LOCAL-V1-PILOT-ORGANIZATION-PROVISIONING-RUNBOOK.md`) com nota confirmando que o exemplo com espaço agora é copy/paste-safe, referenciando H2/D-224 e o teste de shell.
+- **Missão:** Local V1 Pilot Final Hardening.
+
+### D-225 — Controlled External Pilot Experience Remediation = SATISFIED
+
+- **Contexto:** reavaliação do Controlled External Pilot Gate após D-223 (H1) e D-224 (H2).
+- **Decisão:** H1 = CLOSED (correção implementada + micro-teste humano PASS). H2 = CLOSED (correção implementada + validação técnica PASS, 8/8 cenários). Zero BLOCKER. Zero HIGH remanescente relacionado ao piloto controlado. **CONTROLLED EXTERNAL PILOT EXPERIENCE REMEDIATION = SATISFIED.**
+- **G8 (Intent to Use = TALVEZ, de D-222) preservado sem manipulação** -- não foi criada nenhuma feature para elevar essa resposta, conforme mandato explícito. A medição mais relevante de Intent to Use fica para um usuário externo real, sem vínculo com o desenvolvimento da STRATECH.
+- **CONTROLLED EXTERNAL PILOT: READY FOR EXTERNAL VALIDATION.** Isso não inicia o piloto externo automaticamente -- retorna para Founder Executive Review.
+- **Preservação arquitetural confirmada mecanicamente:** `git diff --stat` contra a ponta real de `origin/main` -- 6 arquivos alterados, exatamente o escopo H1/H2 autorizado; zero arquivo tocado em RBAC/Tenant Isolation/Authentication/Session/AdvisorFramework/AIContextEngine/ExecutiveOrchestrator/Advisors/Executive Intelligence/Knowledge Platform/Enterprise Domain/Workflow Runtime/Event Pipeline/W7-1/W7-3/W7-4/W7-7.
+- **Evidência completa:** `docs/product/governance/LOCAL-V1-PILOT-FINAL-HARDENING-EXECUTIVE-EVIDENCE.md`. D-216, D-217, D-218 a D-222 preservadas sem edição retroativa.
+- **Missão:** Local V1 Pilot Final Hardening.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.
