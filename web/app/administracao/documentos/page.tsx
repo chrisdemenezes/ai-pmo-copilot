@@ -15,6 +15,7 @@ import { Header } from "@/components/shell/header";
 import { useAdminDocuments } from "@/lib/hooks/use-admin-documents";
 import { ReindexDocumentButton } from "./reindex-document-button";
 import { UploadDocumentDialog } from "./upload-document-dialog";
+import { AddDocumentFromUrlDialog } from "./add-document-from-url-dialog";
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("pt-BR", {
@@ -71,7 +72,10 @@ export default function DocumentsAdminPage() {
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 p-6">
       <Header>
         <PageTitle />
-        <UploadDocumentDialog />
+        <div className="flex gap-2">
+          <AddDocumentFromUrlDialog />
+          <UploadDocumentDialog />
+        </div>
       </Header>
 
       {rows.length === 0 ? (

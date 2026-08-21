@@ -124,6 +124,23 @@ export async function uploadDocument(file: File, sourceName?: string): Promise<S
   return toDocument(await parseResponse<DocumentApiRow>(response));
 }
 
+/** External Document Sources (V1 Product & Capability Completion, Package
+ * L) -- first adapter (http_url) only; `url` is the sole required field. */
+export async function uploadDocumentFromUrl(
+  url: string,
+  sourceName?: string,
+): Promise<StratechDocument> {
+  const response = await fetch("/api/bff/admin/documents/from-url", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      url,
+      source_name: sourceName && sourceName.trim().length > 0 ? sourceName.trim() : null,
+    }),
+  });
+  return toDocument(await parseResponse<DocumentApiRow>(response));
+}
+
 export async function reindexDocument(documentId: string): Promise<StratechDocument> {
   const response = await fetch(
     `/api/bff/admin/documents/${encodeURIComponent(documentId)}/reindex`,

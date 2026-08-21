@@ -13,6 +13,7 @@ Technical Design -- this module never imports `Evidence`,
 import logging
 
 from src.database.repository import AnalysisRepository
+from src.services.knowledge_platform.external_sources import ExternalDocumentSource
 from src.services.knowledge_platform.knowledge_repository import KnowledgeRepository
 from src.services.knowledge_platform.types import DocumentVersionInfo, IngestedDocument
 from src.workflows.execution_tracking import sanitize_error
@@ -26,6 +27,7 @@ STATUS_FAILED = "failed"
 ACTION_UPLOADED = "document.uploaded"
 ACTION_INDEXED = "document.indexed"
 ACTION_INDEX_FAILED = "document.index_failed"
+ACTION_INGESTED_FROM_EXTERNAL_SOURCE = "document.ingested_from_external_source"
 ENTITY_TYPE = "document"
 
 
@@ -68,6 +70,45 @@ class DocumentIngestionService:
             {"source_name": source_name, "version_id": ingested.version_id},
         )
         return self._index(organization_id, user_id, ingested.id, correlation_id)
+
+    def ingest_from_external_source(
+        self,
+        organization_id: int,
+        user_id: int,
+        source: ExternalDocumentSource,
+        reference: str,
+        correlation_id: str,
+        project_id: int | None = None,
+        source_name: str | None = None,
+    ) -> IngestedDocument:
+        """Fetches via the given `ExternalDocumentSource` (Package L), then
+        reuses `upload()` verbatim -- Document/DocumentVersion/Chunk are
+        never touched by this method, and indexing failures still surface
+        as `DocumentIndexingError`, same as a manual upload. Provenance
+        (provider/external_reference/fetched_at) is recorded only in the
+        audit trail, never a new column."""
+        content = source.fetch(reference)
+        ingested = self.upload(
+            organization_id,
+            user_id,
+            source_name or content.source_name,
+            content.text,
+            correlation_id=correlation_id,
+            project_id=project_id,
+        )
+        self._repository.administration.record_audit(
+            organization_id,
+            user_id,
+            ACTION_INGESTED_FROM_EXTERNAL_SOURCE,
+            ENTITY_TYPE,
+            ingested.id,
+            {
+                "provider": content.provider,
+                "external_reference": content.external_reference,
+                "fetched_at": content.fetched_at.isoformat(),
+            },
+        )
+        return ingested
 
     def reindex(
         self, organization_id: int, user_id: int, document_id: int, correlation_id: str

@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { reindexDocument, uploadDocument } from "@/lib/domain/document";
+import { reindexDocument, uploadDocument, uploadDocumentFromUrl } from "@/lib/domain/document";
 
 function useInvalidateAdminDocuments() {
   const queryClient = useQueryClient();
@@ -12,6 +12,15 @@ export function useUploadAdminDocument() {
   return useMutation({
     mutationFn: ({ file, sourceName }: { file: File; sourceName?: string }) =>
       uploadDocument(file, sourceName),
+    onSuccess: invalidate,
+  });
+}
+
+export function useUploadAdminDocumentFromUrl() {
+  const invalidate = useInvalidateAdminDocuments();
+  return useMutation({
+    mutationFn: ({ url, sourceName }: { url: string; sourceName?: string }) =>
+      uploadDocumentFromUrl(url, sourceName),
     onSuccess: invalidate,
   });
 }

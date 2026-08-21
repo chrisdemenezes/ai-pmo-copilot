@@ -3,22 +3,37 @@ import { render, screen } from "@testing-library/react";
 
 import DocumentsAdminPage from "./page";
 import { useAdminDocuments } from "@/lib/hooks/use-admin-documents";
-import { useUploadAdminDocument, useReindexAdminDocument } from "@/lib/hooks/use-admin-document-mutations";
+import {
+  useUploadAdminDocument,
+  useUploadAdminDocumentFromUrl,
+  useReindexAdminDocument,
+} from "@/lib/hooks/use-admin-document-mutations";
 import type { StratechDocument } from "@/lib/domain/document";
 
 vi.mock("@/lib/hooks/use-admin-documents", () => ({
   useAdminDocuments: vi.fn(),
 }));
-// UploadDocumentDialog and ReindexDocumentButton each own a real
-// useMutation() that would otherwise require a real QueryClientProvider
-// this test never sets up -- same reason as web/app/dashboard/page.test.tsx.
+// UploadDocumentDialog, AddDocumentFromUrlDialog and ReindexDocumentButton
+// each own a real useMutation() that would otherwise require a real
+// QueryClientProvider this test never sets up -- same reason as
+// web/app/dashboard/page.test.tsx.
 vi.mock("@/lib/hooks/use-admin-document-mutations", () => ({
   useUploadAdminDocument: vi.fn(),
+  useUploadAdminDocumentFromUrl: vi.fn(),
   useReindexAdminDocument: vi.fn(),
 }));
 
 const mockedDocuments = vi.mocked(useAdminDocuments);
 vi.mocked(useUploadAdminDocument).mockReturnValue({
+  mutate: vi.fn(),
+  isPending: false,
+  isError: false,
+  isSuccess: false,
+  data: undefined,
+  error: null,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any);
+vi.mocked(useUploadAdminDocumentFromUrl).mockReturnValue({
   mutate: vi.fn(),
   isPending: false,
   isError: false,
@@ -79,6 +94,22 @@ describe("DocumentsAdminPage", () => {
     render(<DocumentsAdminPage />);
     expect(screen.queryByRole("button", { name: /reindexar/i })).toBeNull();
     expect(screen.getByText("—")).toBeInTheDocument();
+  });
+
+  // V1 Product & Capability Completion, Package L (External Document
+  // Sources): a "Adicionar por URL" trigger sits alongside the existing
+  // manual upload, never replacing it.
+  it("offers Adicionar por URL alongside the manual upload trigger", () => {
+    mockedDocuments.mockReturnValue({
+      data: [document({})],
+      isPending: false,
+      isError: false,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+
+    render(<DocumentsAdminPage />);
+    expect(screen.getByRole("button", { name: /adicionar por url/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /enviar documento/i })).toBeInTheDocument();
   });
 
   it("still shows the Reindexar action for a failed document", () => {
