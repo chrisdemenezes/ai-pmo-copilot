@@ -26,6 +26,7 @@ from src.main import app
 from src.services.authorization.checker import SqlPermissionChecker
 from src.services.events.dispatcher import EventDispatcher
 from src.services.events.in_process_publisher import InProcessEventPublisher
+from src.services.knowledge_platform import external_sources as external_sources_module
 from src.services.knowledge_platform.knowledge_repository import KnowledgeRepository
 from src.services.knowledge_platform.vector_repository import PgVectorRepository
 from src.workflows import document_indexed_workflow
@@ -218,8 +219,6 @@ class TestFromUrl:
     no unauthorized real credential)."""
 
     def test_from_url_ingests_and_indexes_like_a_manual_upload(self, client, monkeypatch):
-        from src.services.knowledge_platform import external_sources as external_sources_module
-
         def handler(request):
             return httpx.Response(200, text="# Nota de Governanca de Fornecedores (DEMO)\n\nConteudo.")
 
@@ -246,8 +245,6 @@ class TestFromUrl:
         assert body["source_name"] == "governanca.md"
 
     def test_from_url_respects_an_explicit_source_name_override(self, client, monkeypatch):
-        from src.services.knowledge_platform import external_sources as external_sources_module
-
         def handler(request):
             return httpx.Response(200, text="Conteudo qualquer.")
 
@@ -271,8 +268,6 @@ class TestFromUrl:
         assert response.json()["source_name"] == "Nome Customizado.md"
 
     def test_from_url_returns_422_when_the_fetch_fails(self, client, monkeypatch):
-        from src.services.knowledge_platform import external_sources as external_sources_module
-
         def handler(request):
             return httpx.Response(404)
 
