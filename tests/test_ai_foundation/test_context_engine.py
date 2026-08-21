@@ -167,9 +167,20 @@ class TestGatherOrganizationalLearnings:
         assert evidence == []
 
     def test_caps_at_5_learnings_in_fixed_category_order_risks_before_actions(self, repository, org_id):
+        # list_latest_risks() keeps only the most recent risk analysis PER
+        # PROJECT (its own "current state" semantics) -- each of the 6
+        # recurring risk descriptions here needs its own 3 distinct
+        # projects, never reusing a project across descriptions, or a
+        # later description would silently displace an earlier one for
+        # the same project.
         for description_index in range(6):
-            for project in ["Aurora", "Boreal", "Cedro"]:
-                self._save_risk(repository, org_id, project, f"Risco recorrente {description_index}")
+            for project_suffix in ["A", "B", "C"]:
+                self._save_risk(
+                    repository,
+                    org_id,
+                    f"Projeto{description_index}{project_suffix}",
+                    f"Risco recorrente {description_index}",
+                )
         for project in ["Aurora", "Boreal", "Cedro"]:
             self._save_action(repository, org_id, project, "Acao recorrente unica")
 
