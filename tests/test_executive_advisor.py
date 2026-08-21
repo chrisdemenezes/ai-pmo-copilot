@@ -270,6 +270,54 @@ class TestScenarioG_AusenciaTotal:
         )
         assert explanation.recommendation.cited_evidence == []
 
+    def test_organizational_learnings_never_substitute_for_missing_status_or_risk_evidence(
+        self, repo, domain_service
+    ):
+        """Package M (V1 Product & Capability Completion): 3+ projects
+        sharing a recurring action item are real Organizational Learnings
+        (gathered separately by `ExecutiveAdvisorAgent.advise()` as
+        supporting context), but the Evidence Gate keys exclusively on
+        status/risk analyses -- exactly as before Package M existed. The
+        LLM must still never be called."""
+        org_id, program_id = _org_with_project(domain_service, repo)
+        actor_id = repo.enterprise.create_user(org_id, "a2@example.com", "Actor2")
+        for project_name in ["Aurora", "Boreal", "Cedro"]:
+            _create_project(domain_service, org_id, program_id, project_name, actor_id)
+            _save_analysis_at(
+                repo,
+                org_id,
+                project_name,
+                "meeting",
+                {
+                    "structured": True,
+                    "summary": "x",
+                    "decisions": [],
+                    "action_items": [{"description": "Mesma acao pendente recorrente"}],
+                    "issues": [],
+                    "dependencies": [],
+                },
+                NOW,
+            )
+
+        framework = _framework(repo, _ExplodingProvider())
+        assembler = ExecutiveEvidenceAssembler(domain_service, framework)
+        result = assembler.assemble(org_id)
+        assert result.evidence == []
+
+        agent = ExecutiveAdvisorAgent(framework)
+        explanation = framework.run(
+            agent,
+            _session(repo, org_id),
+            "O que exige atencao da lideranca agora?",
+            result.evidence,
+            no_evidence_answer="Nenhuma análise de status ou risco registrada para os projetos desta organização.",
+        )
+
+        assert explanation.recommendation.answer == (
+            "Nenhuma análise de status ou risco registrada para os projetos desta organização."
+        )
+        assert explanation.recommendation.cited_evidence == []
+
 
 class TestScenarioH_DuasCitacoesMesmoProjectKindsDiferentes:
     def test_two_citations_of_the_same_project_with_different_kinds_remain_distinguishable(

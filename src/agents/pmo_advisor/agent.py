@@ -8,6 +8,7 @@ never recalculates staleness -- it only serializes to JSON, same
 discipline as `PortfolioAdvisorAgent`/`DeliveryAdvisorAgent`."""
 import json
 
+from src.agents.shared.organizational_learning_prompt import learnings_json
 from src.agents.shared.output_parser import parse_structured_output
 from src.services.advisor_framework.framework import AdvisorFramework
 from src.services.ai_foundation.types import Evidence, SessionContext
@@ -44,8 +45,18 @@ class PMOAdvisorAgent:
             ],
             ensure_ascii=False,
         )
+        # Package M (V1 Product & Capability Completion): recurring
+        # cross-project patterns as supporting context only -- never merged
+        # into `evidence`/`cited_analysis_ids` (see
+        # organizational_learning_prompt.py's docstring). Absence of
+        # Learnings is just an empty JSON array, never a missing variable.
+        learnings = self.framework.gather_organizational_learnings(session.organization_id)
         final_prompt = self.framework.render_prompt(
-            self.name, "advise", question=question, records_json=records_json
+            self.name,
+            "advise",
+            question=question,
+            records_json=records_json,
+            learnings_json=learnings_json(learnings),
         )
         raw_output = self.framework.call_llm(self.name, session, final_prompt)
         return parse_structured_output(raw_output)

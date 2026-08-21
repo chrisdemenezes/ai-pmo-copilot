@@ -293,6 +293,49 @@ class TestScenarioI_CoberturaZero:
         assert explanation.recommendation.answer == "Nenhuma análise de status registrada para os projetos desta organização."
         assert explanation.recommendation.cited_evidence == []
 
+    def test_organizational_learnings_never_substitute_for_missing_status_evidence(
+        self, repo, domain_service
+    ):
+        """Package M (V1 Product & Capability Completion): even when 3+
+        projects report a recurring risk/action (real Organizational
+        Learnings, gathered separately by `PMOAdvisorAgent.advise()` as
+        supporting context), the Evidence Gate keys exclusively on
+        `status` analyses -- exactly as before Package M existed. The LLM
+        must still never be called."""
+        org_id, program_id = _org_with_project(domain_service, repo)
+        actor_id = repo.enterprise.create_user(org_id, "a2@example.com", "Actor2")
+        for project_name in ["Aurora", "Boreal", "Cedro"]:
+            _create_project(domain_service, org_id, program_id, project_name, actor_id)
+            _save_analysis_at(
+                repo,
+                org_id,
+                project_name,
+                "risk",
+                {
+                    "structured": True,
+                    "risks": [{"description": "Mesmo risco recorrente", "probability": "high", "impact": "high", "mitigation": "x"}],
+                    "escalation_recommendation": None,
+                },
+                NOW,
+            )
+
+        framework = _framework(repo, _ExplodingProvider())
+        assembler = PMOEvidenceAssembler(domain_service, framework)
+        result = assembler.assemble(org_id)
+        assert result.evidence == []
+
+        agent = PMOAdvisorAgent(framework)
+        explanation = framework.run(
+            agent,
+            _session(repo, org_id),
+            "Ha algum padrao de atraso?",
+            result.evidence,
+            no_evidence_answer="Nenhuma análise de status registrada para os projetos desta organização.",
+        )
+
+        assert explanation.recommendation.answer == "Nenhuma análise de status registrada para os projetos desta organização."
+        assert explanation.recommendation.cited_evidence == []
+
 
 class TestScenarioJ_InvariantesDeContagem:
     def test_coverage_invariants_hold_across_a_mixed_organization(self, repo, domain_service):

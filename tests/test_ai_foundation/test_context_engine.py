@@ -91,6 +91,119 @@ def test_gather_never_returns_evidence_from_another_organization(repository, org
     assert evidence == []
 
 
+class TestGatherOrganizationalLearnings:
+    """Package M (V1 Product & Capability Completion): the 6 mandated
+    negative/positive tests. Same deterministic rule as
+    `web/lib/organizational-intelligence/organizational-learnings.ts`
+    (>=3 distinct projects, exact textual match)."""
+
+    def _save_risk(self, repository, org_id, project_name, description):
+        repository.save_analysis(
+            kind="risk",
+            payload={
+                "model_output": {
+                    "structured": True,
+                    "risks": [{"description": description, "probability": "high", "impact": "high", "mitigation": "x"}],
+                    "escalation_recommendation": None,
+                }
+            },
+            organization_id=org_id,
+            project_name=project_name,
+        )
+
+    def _save_action(self, repository, org_id, project_name, description):
+        repository.save_analysis(
+            kind="meeting",
+            payload={
+                "model_output": {
+                    "structured": True,
+                    "summary": "x",
+                    "decisions": [],
+                    "action_items": [{"description": description}],
+                    "issues": [],
+                    "dependencies": [],
+                }
+            },
+            organization_id=org_id,
+            project_name=project_name,
+        )
+
+    def test_a_recurring_risk_across_3_projects_is_included(self, repository, org_id):
+        for project in ["Aurora", "Boreal", "Cedro"]:
+            self._save_risk(repository, org_id, project, "Atraso do mesmo fornecedor critico")
+
+        engine = AIContextEngine(repository)
+        evidence = engine.gather_organizational_learnings(org_id)
+
+        assert len(evidence) == 1
+        assert evidence[0].source_type == "organizational_learning"
+        assert evidence[0].content["description"] == "Atraso do mesmo fornecedor critico"
+        assert evidence[0].content["occurrences"] == 3
+        assert evidence[0].content["project_names"] == ["Aurora", "Boreal", "Cedro"]
+
+    def test_a_risk_seen_in_only_2_projects_is_excluded(self, repository, org_id):
+        for project in ["Aurora", "Boreal"]:
+            self._save_risk(repository, org_id, project, "Risco isolado, nao recorrente")
+
+        engine = AIContextEngine(repository)
+        evidence = engine.gather_organizational_learnings(org_id)
+
+        assert evidence == []
+
+    def test_learnings_are_scoped_by_organization_cross_tenant_impossible(self, repository, org_id):
+        other_org = repository.enterprise.create_organization("Org B")
+        for project in ["Aurora", "Boreal", "Cedro"]:
+            self._save_risk(repository, other_org, project, "Risco exclusivo da Org B")
+
+        engine = AIContextEngine(repository)
+        evidence = engine.gather_organizational_learnings(org_id)
+
+        assert evidence == []
+
+    def test_organization_with_no_data_at_all_returns_no_learnings(self, repository, org_id):
+        engine = AIContextEngine(repository)
+        evidence = engine.gather_organizational_learnings(org_id)
+
+        assert evidence == []
+
+    def test_caps_at_5_learnings_in_fixed_category_order_risks_before_actions(self, repository, org_id):
+        for description_index in range(6):
+            for project in ["Aurora", "Boreal", "Cedro"]:
+                self._save_risk(repository, org_id, project, f"Risco recorrente {description_index}")
+        for project in ["Aurora", "Boreal", "Cedro"]:
+            self._save_action(repository, org_id, project, "Acao recorrente unica")
+
+        engine = AIContextEngine(repository)
+        evidence = engine.gather_organizational_learnings(org_id)
+
+        assert len(evidence) == 5
+        assert all(item.content["category"] == "risco" for item in evidence)
+
+    def test_source_ids_are_negative_and_never_collide_with_a_real_analysis_record_id(
+        self, repository, org_id
+    ):
+        real_record_id = repository.save_analysis(
+            kind="risk",
+            payload={
+                "model_output": {
+                    "structured": True,
+                    "risks": [{"description": "x", "probability": "low", "impact": "low", "mitigation": "y"}],
+                    "escalation_recommendation": None,
+                }
+            },
+            organization_id=org_id,
+            project_name="Aurora",
+        )
+        for project in ["Aurora", "Boreal", "Cedro"]:
+            self._save_risk(repository, org_id, project, "Padrao recorrente")
+
+        engine = AIContextEngine(repository)
+        evidence = engine.gather_organizational_learnings(org_id)
+
+        assert evidence[0].source_id < 0
+        assert evidence[0].source_id != real_record_id
+
+
 class TestNormalizeRagEvidence:
     """D-086/AR-9 §3: `normalize_rag_evidence()` is purely mechanical -- one
     `Evidence` per `ScoredChunk`, in the same order, never interpreting

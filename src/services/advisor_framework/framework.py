@@ -47,6 +47,13 @@ class AdvisorFramework:
     ) -> list[Evidence]:
         return self._context_engine.gather(organization_id, project_name, kind)
 
+    def gather_organizational_learnings(self, organization_id: int) -> list[Evidence]:
+        """Package M (V1 Product & Capability Completion): thin passthrough,
+        same convention as every other method here -- the one seam an
+        Advisor agent uses to ask for recurring-pattern context, never a
+        second, parallel context-access path."""
+        return self._context_engine.gather_organizational_learnings(organization_id)
+
     # -- controlled RAG access -- never PgVectorRepository/EmbeddingProvider
     # directly, always through RagPipeline -> KnowledgeRepository ---------
 
