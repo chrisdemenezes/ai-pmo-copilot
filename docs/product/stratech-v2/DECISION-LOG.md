@@ -2707,6 +2707,97 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 
 ---
 
+### D-226 — V1 Product & Capability Completion, Pacote A+B: Navegação de IA Executiva + Consolidação de Navegação de Projetos
+
+- **Contexto:** Founder Mandate "STRATECH V1 Product & Capability Completion" autorizou execução autônoma fim-a-fim de 13 pacotes (A-M) em 5 Fases, sem aprovação intermediária exceto 14 condições de STOP explícitas.
+- **Pacote A:** Decision Support/Executive Narrative (antes enterrados no Dashboard) ganharam página dedicada `/inteligencia-executiva` com entrada própria de navegação (`BrainCircuit`), superando explicitamente a restrição anterior de "não criar dashboard novo" para este caso específico. Componentes/hooks movidos sem alteração de lógica; 8 testes E2E migrados de `dashboard.spec.ts` para `inteligencia-executiva.spec.ts`.
+- **Pacote B:** Priorização/Projetos/Program Management/Project Delivery agrupados visualmente sob o rótulo "Execução" na navegação (`NavItem.group`) -- Portfolio→Program→Project preservado, nenhuma entidade fundida, nenhum redesenho de backend.
+- **Testes:** `navigation.test.ts` reescrito (15 itens + grupos), `shell.spec.ts` atualizado, `inteligencia-executiva/page.test.tsx` novo.
+- **Missão:** V1 Product & Capability Completion.
+
+### D-227 — V1 Product & Capability Completion, Pacote C: Tema Claro/Escuro
+
+- **Contexto:** RFC-001 Seção 5 já descrevia o padrão `data-theme="dark"/"light"` sobre `@media (prefers-color-scheme: dark)`, nunca implementado.
+- **Decisão:** implementado per RFC-001 -- `web/lib/theme.ts` (persistência em localStorage, script anti-flash inline em `layout.tsx`), `ThemeToggle` (`useSyncExternalStore`, não `useState`+`useEffect`, que violava `react-hooks/set-state-in-effect`), evento customizado `stratech:theme-change` para reatividade na mesma aba. `globals.css` ganhou guarda `:root:not([data-theme="light"])` no bloco de mídia existente + novo bloco `:root[data-theme="dark"]` para o override explícito.
+- **Testes:** `theme.test.ts` (7), `theme-toggle.test.tsx` (3), E2E de persistência entre reloads.
+- **Missão:** V1 Product & Capability Completion.
+
+### D-228 — V1 Product & Capability Completion, Pacote D: Densidade Visual/Tipografia/Menu
+
+- **Decisão:** redução de carga cognitiva sem remover informação -- cabeçalho "Program Execution" no Dashboard rebaixado visualmente (`text-sm font-semibold text-ink-muted`), renomeado para "Program Execution — Top 5 que exigem atenção", legenda redundante removida. Nenhum redesenho arbitrário.
+- **Missão:** V1 Product & Capability Completion.
+
+### D-229 — V1 Product & Capability Completion, Pacote E: UX de Documentos
+
+- **Decisão:** "Chunks" (jargão técnico) renomeado para "Trechos indexados" na UI -- mecanismo de chunking real intocado. Coluna "Ações" ganhou traço explícito ("—") para documento já indexado sem ação de retry pendente, em vez de aparentar quebrada/vazia.
+- **Testes:** `administracao/documentos/page.test.tsx` (primeira cobertura desta página, 3 testes).
+- **Missão:** V1 Product & Capability Completion.
+
+### D-230 — V1 Product & Capability Completion, Pacote F: UX de Aprendizados
+
+- **Decisão:** apresentação visual melhorada usando exclusivamente dado real já existente -- badge numérico "Nx" de recorrência (não viola a Zero Labels Rule de FS-011 §5, que proíbe rótulos de CONCEITO, não badges numéricos/de dado), borda estilo citação na descrição verbatim, rótulo "Projetos:" explícito. Nenhum insight fabricado, nenhuma nova fonte de dado.
+- **Missão:** V1 Product & Capability Completion.
+
+### D-231 — V1 Product & Capability Completion, Pacote G: Explicação Saúde × Prazo
+
+- **Decisão:** tooltip explicando a relação entre as dimensões Saúde e Prazo na Situação do Portfólio (`portfolio-situation-grid.tsx`), reaproveitando `Tooltip`/`TooltipContent`/`TooltipTrigger` já existentes. Nenhuma mudança de algoritmo -- as duas dimensões continuam independentes, agora com essa independência explicada, não alterada.
+- **Missão:** V1 Product & Capability Completion.
+
+### D-232 — V1 Product & Capability Completion, Pacote H: Discoverability de Administração = ALREADY SATISFIED
+
+- **Contexto:** o mandato pediu revalidação da discoverability de atribuição de Papéis em Administração.
+- **Decisão:** auditoria direta de código confirmou `UserRolesDialog` já expõe o texto visível "Papéis" + ícone `ShieldCheck`, não apenas ícone -- consistente com o achado já registrado em D-217. **Nenhuma alteração de código feita.**
+- **Missão:** V1 Product & Capability Completion.
+
+### D-233 — V1 Product & Capability Completion, Pacote I: Administração de Organização = ARCHITECTURAL DECISION REQUIRED
+
+- **Contexto:** o mandato autorizou Technical Design + implementação de administração de Organização SE construível sobre o domínio existente (reaproveitando AuthService/RBAC/Tenant Isolation), com STOP explícito se exigisse uma mudança radical do modelo de Organização/Tenant.
+- **Auditoria mecânica (`src/database/models.py`):** `Role`/`UserRole` são tabelas GLOBAIS sem escopo de organização; `User.organization_id` é uma FK fixa de associação única; não existe conceito de "platform admin"/autoridade cross-tenant em nenhum lugar do código.
+- **Decisão:** construir uma UI real de criação de organizações exigiria inventar uma nova primitiva de autorização cross-tenant -- corresponde exatamente ao gatilho de STOP #7 do próprio mandato ("mudança radical ao modelo de Organização/Tenant") e à cláusula de escape do próprio Pacote I. **Classificado como ARCHITECTURAL DECISION REQUIRED, nenhuma implementação tentada.** Por instrução explícita do mandato, os demais pacotes continuaram.
+- **Missão:** V1 Product & Capability Completion.
+
+### D-234 — V1 Product & Capability Completion, Pacote J: Kanban/Board para Priorização, Ações e Decisões
+
+- **Contexto:** o Founder autorizou explicitamente Kanban/Board para V1 como uma visualização alternativa dos mesmos dados reais, nunca transformando a STRATECH em gerenciador de tarefas.
+- **Decisão:** toggle Lista|Board adicionado às 3 telas, cada uma agrupando por uma dimensão real já computada e intocada -- Priorização por `PortfolioLayer` (`buildExecutivePortfolioView`), Ações por urgência (`bucketByUrgency`/`URGENCY_ORDER`), Decisões pela janela real (`DecisionWindow`/`windowLabel`, `decision-queue.ts`). Novo componente genérico reutilizável `web/components/ui/board-view.tsx`. Nenhum drag-and-drop, nenhum status inventado, somente leitura.
+- **Supersessão institucional explícita:** esta decisão supera FS-007 (Diretrizes 1-3, "sem view configurável") **apenas** para este toggle List|Board em Ações -- por ser uma decisão institucional posterior explícita do Founder, prevalecendo sobre a anterior (regra já estabelecida de governança). As demais restrições de FS-007 (sem criar/editar/atribuir) permanecem em vigor e foram mantidas.
+- **Missão:** V1 Product & Capability Completion.
+
+### D-235 — V1 Product & Capability Completion, Pacote K: Gestão Financeira / KPIs Financeiros Executivos
+
+- **Contexto:** o mandato pediu um Technical Design curto antes de qualquer mudança de domínio/migração, com modelo mínimo sugerido (Project: approved_budget/actual_cost/forecast/variance; Program/Portfolio preferencialmente derivado, não duplicado).
+- **Technical Design:** `docs/architecture/TECHNICAL-DESIGN-PACKAGE-K-FINANCIAL-MANAGEMENT.md`.
+- **Decisão:** migração 0022 adiciona `approved_budget`/`actual_cost`/`forecast_cost` (NUMERIC(14,2), nullable) apenas a `Project` -- Program/Portfolio nunca ganham coluna própria, seu KPI é sempre um rollup em runtime (`web/lib/domain/financial-rollup.ts`) sobre seus Projects, mesma disciplina já usada para progress/health (`consolidateFromChildren`, AR-1). Valores ilustrativos aplicados apenas aos 7 Projects que a migração 0008 já semeia (mesma convenção de seed já existente, nunca uma segunda categoria "DEMO"). `variance`/`variance_percentage` nunca armazenados, sempre computados na leitura.
+- **Testes:** migração testada com upgrade/downgrade/round-trip real; `financial-rollup.test.ts` (null-safe); API estendida (`project_delivery.py`).
+- **Missão:** V1 Product & Capability Completion.
+
+### D-236 — V1 Product & Capability Completion, Pacote L: Fontes Externas de Documentos (fundação + primeiro adaptador)
+
+- **Contexto:** o mandato autorizou apenas a fundação arquitetural + um primeiro adaptador de prova, nunca acoplado a um provedor único; um provedor SaaS real exigindo credencial indisponível deveria ser marcado REAL PROVIDER VALIDATION = PENDING EXTERNAL CREDENTIAL.
+- **Technical Design:** `docs/architecture/TECHNICAL-DESIGN-PACKAGE-L-EXTERNAL-DOCUMENT-SOURCES.md`.
+- **Decisão:** novo contrato `ExternalDocumentSource` (Protocol) + `HttpUrlDocumentSource` como único primeiro adaptador (busca uma URL, sem credencial, sem vínculo a um provedor SaaS específico) -- mesmo padrão Protocol+Mock/adaptador-real já usado por `EmbeddingProvider`. `DocumentIngestionService.ingest_from_external_source()` reaproveita `upload()` verbatim; Document/DocumentVersion/Chunk intocados; proveniência registrada só na trilha de auditoria já existente. Um adaptador SaaS real (SharePoint/Google Drive/Confluence) permanece REAL PROVIDER VALIDATION = PENDING EXTERNAL CREDENTIAL -- não implementado, sem credencial real disponível neste ambiente.
+- **Testes:** `test_external_document_sources.py` (5, rodados localmente via `httpx.MockTransport`, nenhuma rede real); rota ponta a ponta em `test_documents_api.py::TestFromUrl`.
+- **Missão:** V1 Product & Capability Completion.
+
+### D-237 — V1 Product & Capability Completion, Pacote M: Aprendizados → Inteligência Executiva
+
+- **Contexto:** o mandato pediu que Aprendizados participassem como contexto/evidência controlada para Decision Support/Executive Narrative via AIContextEngine/AdvisorFramework, nunca concatenados indiscriminadamente, nunca uma segunda RAG paralela, com testes negativos específicos mandatados.
+- **Auditoria:** "Aprendizados" não é uma entidade persistida -- é uma view derivada no frontend (`organizational-learnings.ts`) sobre risco/ação já buscados. `Evidence` já é genérico o suficiente para um novo `source_type` sem mudança de schema. A integração óbvia (anexar Learnings ao `evidence` de PMOEvidenceAssembler/ExecutiveEvidenceAssembler) foi avaliada e **rejeitada** -- quebraria os dois agentes (acesso posicional a `metadata` que um Learning não tem) e arriscaria colisão de `source_id` na citação.
+- **Technical Design:** `docs/architecture/TECHNICAL-DESIGN-PACKAGE-M-LEARNINGS-EXECUTIVE-INTELLIGENCE.md`.
+- **Decisão:** `AIContextEngine.gather_organizational_learnings()` (espelho em Python do mesmo algoritmo do frontend, reaproveitando `ProjectSummaryService` verbatim) + passthrough em `AdvisorFramework`. Cada um dos dois únicos Advisors organization-wide (PMO, Executive) pede Learnings como uma variável de prompt **separada** (`$learnings_json`), nunca misturada a `evidence`/`cited_evidence` -- o Evidence Gate e toda citação estruturada permanecem byte-a-byte inalterados; ausência de Learnings nunca quebra um Advisor.
+- **Testes:** os 6 cenários mandatados (relevante incluído, irrelevante excluído, cross-tenant impossível, organização sem Learnings, múltiplos Learnings/cap em 5, insuficiência de evidência permanece fail-closed para PMO e Executive) + 8 testes puros do algoritmo + 2 de wiring de prompt -- 27 testes rodados localmente (sem banco), todos PASS.
+- **Missão:** V1 Product & Capability Completion.
+
+### D-238 — V1 Product & Capability Completion = COMPLETE (com 2 exceções documentadas)
+
+- **Contexto:** fechamento do Founder Mandate "STRATECH V1 Product & Capability Completion, Fases 1-5" (13 pacotes, A-M).
+- **Decisão:** **12 de 13 pacotes IMPLEMENTED** (A, B, C, D, E, F, G, J, K, L, M implementados; H já satisfeito, nenhuma mudança necessária). **1 pacote (I) classificado ARCHITECTURAL DECISION REQUIRED**, não implementado, por corresponder a um gatilho de STOP explícito do próprio mandato (mudança radical do modelo de Organização/Tenant) -- decisão registrada em D-233, não uma falha de execução.
+- **Validação:** `ruff check src tests` limpo em todo o branch; `tsc --noEmit`/`eslint . --max-warnings=0` limpos; `vitest run` 627/627 (progressão incremental 597→627 ao longo dos 13 pacotes, zero regressão); `next build` sucesso em cada checkpoint; migração 0022 aplicada, head único confirmado; testes de backend rodados localmente onde não exigem Postgres real (todos passando), os que exigem ficam pendentes de CI real (mesma limitação de sandbox de toda a sessão, documentada em cada Pacote).
+- **Não confundir IMPLEMENTED com HUMAN VALIDATED** -- validação humana permanece um gate separado, posterior, não iniciado por esta missão.
+- **Missão:** V1 Product & Capability Completion. Retornando para Founder Executive Review -- nenhum início automático de Founder Human Regression/External Validation/Controlled External Pilot/nova Wave/novo Epic/contratação de provedor/dado corporativo real/credencial real não autorizada.
+
+---
+
 ## Convenção
 
 Cada decisão ganha um ID sequencial `D-NNN`, contexto, decisão e a Sprint/Entrega em que foi tomada. Não editado retroativamente — uma correção é uma nova entrada.
