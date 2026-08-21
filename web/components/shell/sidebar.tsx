@@ -6,6 +6,7 @@ import { LogOut, Sparkles } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS } from "./navigation";
+import { ThemeToggle } from "./theme-toggle";
 
 /**
  * Responsive behavior reuses RFC-001 Decision D6 (already-approved sidebar
@@ -34,13 +35,21 @@ export function Sidebar() {
         data-testid="sidebar-nav"
         className="hidden shrink-0 flex-col border-r border-border bg-surface md:sticky md:top-0 md:flex md:h-screen md:w-14 md:overflow-y-auto lg:w-[220px]"
       >
-        <div className="flex items-center gap-3 border-b border-border p-3 md:justify-center lg:justify-start">
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-accent text-white">
-            <Sparkles className="size-4" aria-hidden="true" />
+        <div className="flex items-center gap-3 border-b border-border p-3 md:justify-center lg:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-accent text-white">
+              <Sparkles className="size-4" aria-hidden="true" />
+            </div>
+            <span className="hidden font-display text-sm font-semibold text-ink lg:inline">
+              STRATECH
+            </span>
           </div>
-          <span className="hidden font-display text-sm font-semibold text-ink lg:inline">
-            STRATECH
-          </span>
+          {/* md (ícone-rail, 56px) não tem espaço para o logo + o toggle
+              lado a lado -- reaproveitado no lg (sidebar completa) e no
+              bottom nav mobile (abaixo). */}
+          <div className="hidden lg:block">
+            <ThemeToggle />
+          </div>
         </div>
 
         <nav aria-label="Navegação principal" className="flex flex-1 flex-col gap-1 p-2">
@@ -122,6 +131,9 @@ export function Sidebar() {
           <LogOut className="size-5 shrink-0" aria-hidden="true" />
           <span className="w-full truncate text-center" aria-hidden="true">Sair</span>
         </button>
+        <div className="flex shrink-0 items-center justify-center px-1">
+          <ThemeToggle />
+        </div>
       </nav>
     </>
   );

@@ -48,8 +48,22 @@
   --radius: 0.75rem;
 }
 
+/*
+ * V1 Product & Capability Completion, Pacote C (Founder Decision): RFC-001
+ * Seção 5 já descrevia o padrão data-theme="dark"/"light" como override
+ * manual sobre o @media (prefers-color-scheme: dark) -- nunca chegou a ser
+ * implementado (nenhuma regra [data-theme] existia neste arquivo). Os
+ * valores de cada par claro/escuro são exatamente os mesmos já usados e
+ * calculados para contraste (RFC-001 Seção 5) -- nenhuma nova identidade
+ * visual, nenhum terceiro tema.
+ *
+ * :root:not([data-theme="light"]) faz a preferência do sistema continuar
+ * valendo por padrão; uma escolha explícita "light" via data-theme sempre
+ * vence mesmo com o sistema em modo escuro. [data-theme="dark"] faz o
+ * inverso -- vence mesmo com o sistema em modo claro.
+ */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #13141c;
     --surface: #1a1c28;
     --surface-2: #222436;
@@ -73,6 +87,31 @@
     --status-neutral: #a6b3c9;
     --status-neutral-soft: #232a38;
   }
+}
+
+:root[data-theme="dark"] {
+  --bg: #13141c;
+  --surface: #1a1c28;
+  --surface-2: #222436;
+  --ink: #e9eaf3;
+  --ink-muted: #a2a6bc;
+  --ink-faint: #6e7288;
+  --border: #2b2e42;
+  --border-strong: #3b3f58;
+
+  --accent: #9498f0;
+  --accent-ink: #c7c9f8;
+  --accent-soft: #26284a;
+
+  --ok: #6fcb8f;
+  --ok-soft: #1e3527;
+  --warn: #e0ad63;
+  --warn-soft: #382c18;
+  --danger: #e08080;
+  --danger-soft: #3b2424;
+
+  --status-neutral: #a6b3c9;
+  --status-neutral-soft: #232a38;
 }
 
 @theme inline {

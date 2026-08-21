@@ -85,6 +85,27 @@ test("shows a single 'Execução' group header before Priorização, Projetos, P
   await expect(page.getByTestId("sidebar-nav").getByText("Execução")).toHaveCount(1);
 });
 
+// V1 Product & Capability Completion, Pacote C: a escolha manual de tema
+// persiste entre reloads e não pisca o tema errado antes de aplicar a
+// escolha salva (script anti-flash em app/layout.tsx).
+test("theme toggle persists across a reload, with no flash of the wrong theme", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await login(page);
+
+  const toggle = page.getByTestId("sidebar-nav").getByRole("button", { name: /Mudar para tema/ });
+  await toggle.click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+
+  await page.reload();
+  // The no-flash script applies data-theme synchronously before hydration
+  // -- checking immediately after reload (no waitForLoadState) proves it
+  // was never absent, not just eventually corrected by React.
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+
+  await page.getByTestId("sidebar-nav").getByRole("button", { name: /Mudar para tema/ }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+});
+
 test("shows the sidebar shape appropriate to the current breakpoint", async ({ page }) => {
   await login(page);
   const width = (await page.viewportSize())!.width;
