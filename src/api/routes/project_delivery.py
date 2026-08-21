@@ -43,6 +43,13 @@ logger = logging.getLogger(__name__)
 router = APIRouter(dependencies=[Depends(verify_api_key), Depends(enforce_rate_limit)])
 
 
+def build_performance_service(
+    repository: AnalysisRepository = Depends(build_repository),
+    publisher: EventPublisher = Depends(build_event_publisher),
+) -> ProjectPerformanceService:
+    return ProjectPerformanceService(repository=repository, publisher=publisher)
+
+
 class ProjectDeliveryResponse(BaseModel):
     id: int
     organization_id: int
@@ -131,6 +138,27 @@ def _to_response(project: Project) -> ProjectDeliveryResponse:
     )
 
 
+def _auto_capture_snapshot(
+    performance_service: ProjectPerformanceService,
+    organization_id: int,
+    project_id: int,
+    actor_user_id: int,
+    correlation_id: str,
+) -> None:
+    """TD-016 (V1 Post-Completion Technical Closure): read-triggered
+    checkpoint -- the periodic-capture substitute this closure adopts
+    since no scheduling infrastructure exists (Technical Design Section
+    3.B). Best-effort: a Project with no `actual_cost`/`progress_percentage`
+    yet is an expected, normal state, never allowed to fail the read it
+    rides along with."""
+    try:
+        performance_service.capture_snapshot(
+            organization_id, project_id, actor_user_id, correlation_id
+        )
+    except ValueError:
+        pass
+
+
 @router.get(
     "/projects-delivery", response_model=list[ProjectDeliveryResponse], tags=["project-delivery"]
 )
@@ -138,6 +166,7 @@ def list_projects_delivery(
     program_id: int | None = None,
     context: RequestContext = Depends(get_request_context),
     service: DomainService = Depends(build_domain_service),
+    performance_service: ProjectPerformanceService = Depends(build_performance_service),
     _permission: None = Depends(require_permission("project_delivery.read")),
 ):
     """Lists domain Projects (program_id set) for the caller's organization
@@ -147,6 +176,14 @@ def list_projects_delivery(
     projects = service.list_projects(context.organization.organization_id, program_id)
     if projects is None:
         raise HTTPException(status_code=404, detail="Program not found")
+    for project in projects:
+        _auto_capture_snapshot(
+            performance_service,
+            context.organization.organization_id,
+            project.id,
+            context.user.user_id,
+            context.request_id,
+        )
     return [_to_response(project) for project in projects]
 
 
@@ -159,11 +196,19 @@ def get_project_delivery(
     project_id: int,
     context: RequestContext = Depends(get_request_context),
     service: DomainService = Depends(build_domain_service),
+    performance_service: ProjectPerformanceService = Depends(build_performance_service),
     _permission: None = Depends(require_permission("project_delivery.read")),
 ):
     project = service.get_project(project_id, context.organization.organization_id)
     if project is None:
         raise HTTPException(status_code=404, detail="Project not found")
+    _auto_capture_snapshot(
+        performance_service,
+        context.organization.organization_id,
+        project.id,
+        context.user.user_id,
+        context.request_id,
+    )
     return _to_response(project)
 
 
@@ -206,13 +251,6 @@ def create_project_delivery(
 
 # -- Wave 8 (Executive Analytics): EVM Temporal Baseline ---------------------
 # Founder Decision, `docs/architecture/TECHNICAL-DESIGN-WAVE-8-EXECUTIVE-ANALYTICS.md`.
-
-
-def build_performance_service(
-    repository: AnalysisRepository = Depends(build_repository),
-    publisher: EventPublisher = Depends(build_event_publisher),
-) -> ProjectPerformanceService:
-    return ProjectPerformanceService(repository=repository, publisher=publisher)
 
 
 # Fixed, single-source-of-truth disclosure -- Earned Value here is derived

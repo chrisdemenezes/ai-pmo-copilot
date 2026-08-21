@@ -63,7 +63,16 @@ class ProjectPerformanceService:
         )
         self._publisher.publish(
             "project_performance_baseline.created",
-            {"project_id": project_id, "baseline_version": baseline_version},
+            # TD-016 (Post-Completion Technical Closure): `actor_user_id`
+            # added so the automated snapshot-capture handler
+            # (`src/workflows/performance_snapshot_automation.py`) can
+            # attribute the capture it triggers to the real human who
+            # authored this baseline -- never a synthetic "system" actor.
+            {
+                "project_id": project_id,
+                "baseline_version": baseline_version,
+                "actor_user_id": actor_user_id,
+            },
             organization_id,
             correlation_id=correlation_id,
             origin="performance_service",

@@ -16,7 +16,7 @@ from src.services.events.in_process_publisher import InProcessEventPublisher
 from src.services.events.interfaces import EventPublisher
 from src.services.notifications.interfaces import NotificationProvider
 from src.services.notifications.noop_provider import NoOpNotificationProvider
-from src.workflows import document_indexed_workflow
+from src.workflows import document_indexed_workflow, performance_snapshot_automation
 from src.workflows.execution_tracking import ExecutionTracker
 from src.workflows.runtime import WorkflowRuntime
 
@@ -40,7 +40,12 @@ def build_event_publisher() -> EventPublisher:
     # lifecycle entirely on their own.
     runtime = WorkflowRuntime(ExecutionTracker(repository.SessionLocal))
     document_indexed_workflow.register(dispatcher, runtime)
-    return InProcessEventPublisher(repository.SessionLocal, dispatcher)
+    publisher = InProcessEventPublisher(repository.SessionLocal, dispatcher)
+    # TD-016 (V1 Post-Completion Technical Closure): a plain EventDispatcher
+    # handler, not a WorkflowRuntime workflow -- see
+    # performance_snapshot_automation.py's own docstring for why.
+    performance_snapshot_automation.register(dispatcher, repository, publisher)
+    return publisher
 
 
 @lru_cache
