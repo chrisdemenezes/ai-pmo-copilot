@@ -14,6 +14,8 @@ PILOT_ORGANIZATION_ADMIN_EMAIL=admin@piloto-a.example
 PILOT_ORGANIZATION_ADMIN_PASSWORD=<senha real, nunca commitada>
 ```
 
+O nome acima (com espaços, sem aspas) é copy/paste-safe: `demo/start-demo.sh` carrega `demo/.env` por um loader linha-a-linha (não mais `source`), que não re-interpreta o valor como sintaxe de shell — funciona igual com ou sem aspas ao redor do valor (Local V1 Pilot Final Hardening, H2/D-223; `tests/shell/test_start_demo_env_loader.sh`, cenários A-H).
+
 Reiniciar o backend (`bash demo/stop-demo.sh && bash demo/start-demo.sh`, ou o equivalente de produção/staging). No boot, `bootstrap_identities()` chama `AuthService.bootstrap_organization(...)`:
 
 - Se a organização com esse nome já existir, é reaproveitada (idempotente — nunca duplica).

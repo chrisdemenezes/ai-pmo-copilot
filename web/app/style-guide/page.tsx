@@ -149,6 +149,7 @@ export default function StyleGuidePage() {
             </Badge>
           ))}
           <Badge variant="outline">outline</Badge>
+          <Badge variant="demo">demo</Badge>
         </div>
       </Section>
 

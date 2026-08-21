@@ -117,6 +117,8 @@ export default function DashboardPage() {
         </Button>
       </Header>
 
+      <DemoDataNotice />
+
       <section className="flex flex-col gap-3">
         <div>
           <h2 className="font-display text-lg font-semibold text-ink">Executive Overview</h2>
@@ -277,13 +279,33 @@ export default function DashboardPage() {
  * Local V1 Pilot Findings Review (D-217, Seção 6A): 5 seções do Dashboard
  * consomem dados de web/lib/mock/cockpit-data.ts, sem distinção visual dos
  * dados reais das demais seções -- achado real de risco de credibilidade
- * num piloto com usuário externo. Marca explícita, reutilizando o
- * componente Badge já existente (variant="outline", o mesmo usado para
- * rótulos neutros em outras telas), sem esconder as seções nem alterar seu
- * conteúdo.
+ * num piloto com usuário externo. Marca explícita, sem esconder as seções
+ * nem alterar seu conteúdo.
+ *
+ * Local V1 Pilot Final Hardening (H1, D-223): a Human User Session #2
+ * (D-222) provou que variant="outline" (borda fina, texto neutro) não é
+ * percebido espontaneamente numa página densa -- o usuário rolou a tela
+ * inteira duas vezes sem notar o selo. Trocado para variant="demo" (nova,
+ * fundo preenchido com a cor de destaque da marca -- distinta de
+ * ok/warn/danger/neutral, que já têm o significado de saúde/prazo nesta
+ * mesma tela, para não colidir semanticamente com eles).
  */
 function DemoDataBadge() {
-  return <Badge variant="outline">Dados demonstrativos</Badge>;
+  return <Badge variant="demo">Dados demonstrativos</Badge>;
+}
+
+/**
+ * H1 (D-223): complementa o selo por seção com um único aviso, visível
+ * antes de qualquer número ser interpretado -- a lacuna real era de
+ * descoberta (discoverability), não de ausência do selo em si.
+ */
+function DemoDataNotice() {
+  return (
+    <div className="rounded-lg border border-accent bg-accent-soft px-4 py-3 text-sm text-accent-ink">
+      <span className="font-semibold">Atenção: </span>
+      algumas seções abaixo usam dados de exemplo (marcadas &quot;Dados demonstrativos&quot;), não dados reais desta organização.
+    </div>
+  );
 }
 
 function EmptyState() {

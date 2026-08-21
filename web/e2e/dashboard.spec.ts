@@ -113,6 +113,14 @@ test("renders the portfolio widgets when the backend has data", async ({ page })
   await expect(page.getByRole("heading", { name: "Projetos" })).toBeVisible();
 });
 
+// Local V1 Pilot Final Hardening (H1, D-223): the contextual notice about
+// demonstrative data must render on the real page, not just in isolation.
+test("shows the demonstrative-data notice before any dashboard section", async ({ page }) => {
+  await login(page);
+  await expect(page.getByText(/dados de exemplo/i)).toBeVisible();
+  await expect(page.getByText("Dados demonstrativos").first()).toBeVisible();
+});
+
 // 6 + 12 (vazio). Dashboard sem dados
 test("renders the empty state when the backend has no projects", async ({ page }) => {
   await setBackendScenario("empty");

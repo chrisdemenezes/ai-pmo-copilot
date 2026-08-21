@@ -280,4 +280,35 @@ describe("DashboardPage", () => {
     // Multilift (Status crítico) é a única decisão real deste portfólio.
     expect(link).toHaveTextContent("1");
   });
+
+  // Local V1 Pilot Final Hardening (H1, D-223): a Human User Session #2
+  // (D-222) provou que o selo por seção sozinho não é percebido -- estes
+  // testes provam a implementação (não a percepção humana, revalidada
+  // separadamente com o Founder).
+  it("shows exactly one contextual notice about demonstrative data, before any section", () => {
+    render(<DashboardPage />);
+    const notices = screen.getAllByText(/dados de exemplo/i);
+    expect(notices).toHaveLength(1);
+  });
+
+  it("marks all 5 demo-fed sections with the demo badge, and no others", () => {
+    render(<DashboardPage />);
+    const badges = screen.getAllByText("Dados demonstrativos");
+    expect(badges).toHaveLength(5);
+
+    const realSectionHeadings = [
+      "Executive Overview",
+      "Situação do Portfólio",
+      "Situação dos Programas",
+      "Program Execution",
+      "Executive Focus",
+      "Decision Support",
+      "Narrativa Executiva",
+    ];
+    for (const heading of realSectionHeadings) {
+      const headingElement = screen.getByRole("heading", { name: heading });
+      const section = headingElement.closest("section");
+      expect(section?.textContent).not.toContain("Dados demonstrativos");
+    }
+  });
 });
