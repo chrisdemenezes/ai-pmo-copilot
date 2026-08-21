@@ -266,7 +266,7 @@ describe("DashboardPage", () => {
       "Executive Overview",
       "Situação do Portfólio",
       "Situação dos Programas",
-      "Program Execution",
+      "Program Execution — Top 5 que exigem atenção",
       "Executive Focus",
     ];
     for (const heading of realSectionHeadings) {

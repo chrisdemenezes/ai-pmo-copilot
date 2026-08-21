@@ -140,13 +140,14 @@ export default function DashboardPage() {
         )}
       </section>
 
+      {/* V1 Product & Capability Completion, Pacote D: rebaixado ao estilo
+          já usado por "Distribuição de saúde"/"Maior concentração de
+          risco" -- é um detalhamento (Top 5) de "Situação dos Programas"
+          logo acima, não uma métrica primária própria; toda seção com
+          o mesmo peso visual (text-lg font-semibold) tornava a hierarquia
+          de leitura plana. Nenhum dado removido, apenas o peso do título. */}
       <section className="flex flex-col gap-3">
-        <div>
-          <h2 className="font-display text-lg font-semibold text-ink">Program Execution</h2>
-          <p className="text-sm text-ink-muted">
-            Capability 03 (Release 0.2) — Projects por Program, saúde consolidada e Top 5 que exigem atenção.
-          </p>
-        </div>
+        <h2 className="text-sm font-semibold text-ink-muted">Program Execution — Top 5 que exigem atenção</h2>
         {programs.isPending || deliveryProjects.isPending ? (
           <Skeleton className="h-48" />
         ) : (
