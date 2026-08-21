@@ -6,6 +6,7 @@ import { LogOut, Sparkles } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS } from "./navigation";
+import { ThemeToggle } from "./theme-toggle";
 
 /**
  * Responsive behavior reuses RFC-001 Decision D6 (already-approved sidebar
@@ -34,34 +35,53 @@ export function Sidebar() {
         data-testid="sidebar-nav"
         className="hidden shrink-0 flex-col border-r border-border bg-surface md:sticky md:top-0 md:flex md:h-screen md:w-14 md:overflow-y-auto lg:w-[220px]"
       >
-        <div className="flex items-center gap-3 border-b border-border p-3 md:justify-center lg:justify-start">
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-accent text-white">
-            <Sparkles className="size-4" aria-hidden="true" />
+        <div className="flex items-center gap-3 border-b border-border p-3 md:justify-center lg:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-accent text-white">
+              <Sparkles className="size-4" aria-hidden="true" />
+            </div>
+            <span className="hidden font-display text-sm font-semibold text-ink lg:inline">
+              STRATECH
+            </span>
           </div>
-          <span className="hidden font-display text-sm font-semibold text-ink lg:inline">
-            STRATECH
-          </span>
+          {/* md (ícone-rail, 56px) não tem espaço para o logo + o toggle
+              lado a lado -- reaproveitado no lg (sidebar completa) e no
+              bottom nav mobile (abaixo). */}
+          <div className="hidden lg:block">
+            <ThemeToggle />
+          </div>
         </div>
 
         <nav aria-label="Navegação principal" className="flex flex-1 flex-col gap-1 p-2">
-          {NAV_ITEMS.map((item) => {
+          {NAV_ITEMS.map((item, index) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
+            // Pacote B: um cabeçalho de grupo aparece só na primeira vez
+            // que esse `group` surge em sequência -- nunca reordena ou
+            // duplica itens, puramente apresentacional (lg apenas, mesma
+            // regra do rótulo textual dos links).
+            const showGroupHeader = item.group !== undefined && NAV_ITEMS[index - 1]?.group !== item.group;
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={isActive ? "page" : undefined}
-                className={cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-accent-soft text-accent-ink"
-                    : "text-ink-muted hover:bg-surface-2 hover:text-ink",
+              <div key={item.href} className="flex flex-col">
+                {showGroupHeader && (
+                  <p className="hidden px-3 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-ink-muted lg:block">
+                    {item.group}
+                  </p>
                 )}
-              >
-                <Icon className="size-5 shrink-0" aria-hidden="true" />
-                <span className="hidden lg:inline">{item.label}</span>
-              </Link>
+                <Link
+                  href={item.href}
+                  aria-current={isActive ? "page" : undefined}
+                  className={cn(
+                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-accent-soft text-accent-ink"
+                      : "text-ink-muted hover:bg-surface-2 hover:text-ink",
+                  )}
+                >
+                  <Icon className="size-5 shrink-0" aria-hidden="true" />
+                  <span className="hidden lg:inline">{item.label}</span>
+                </Link>
+              </div>
             );
           })}
         </nav>
@@ -111,6 +131,9 @@ export function Sidebar() {
           <LogOut className="size-5 shrink-0" aria-hidden="true" />
           <span className="w-full truncate text-center" aria-hidden="true">Sair</span>
         </button>
+        <div className="flex shrink-0 items-center justify-center px-1">
+          <ThemeToggle />
+        </div>
       </nav>
     </>
   );

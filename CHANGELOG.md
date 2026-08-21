@@ -2895,3 +2895,23 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** vitest 592/592, tsc/eslint limpos, next build sucesso, ruff limpo, 4/4 suites de shell PASS. Preservacao arquitetural confirmada -- 6 arquivos alterados, exatamente o escopo H1/H2. CONTROLLED EXTERNAL PILOT EXPERIENCE REMEDIATION = SATISFIED. CONTROLLED EXTERNAL PILOT = READY FOR EXTERNAL VALIDATION (nao inicia o piloto automaticamente). Achados novos registrados sem correcao: banner de risco degradado na tela de Priorizacao (fora de escopo); cache de build do Next.js (web/.next) dessincronizado ao trocar de branch, mascarado como problema de senha do Administrator, resolvido sem alteracao de codigo (rm -rf web/.next + restart).
 
 **Decision Log:** D-223, D-224, D-225.
+
+## V1 Product & Capability Completion — 13 pacotes, Fases 1-5 (2026-08-21)
+
+**Adicionado / Alterado**
+- Pacote A+B: `/inteligencia-executiva` (Decision Support/Executive Narrative com navegação própria), Execução (Priorização/Projetos/Program Management/Project Delivery) agrupada visualmente na navegação.
+- Pacote C: tema Claro/Escuro completo (RFC-001 §5), persistido, sem flash, `ThemeToggle` (`useSyncExternalStore`).
+- Pacote D: densidade visual reduzida no Dashboard (cabeçalho "Program Execution" rebaixado, legenda redundante removida).
+- Pacote E: "Chunks" renomeado para "Trechos indexados"; coluna Ações com traço explícito quando sem ação pendente.
+- Pacote F: badge de recorrência "Nx" e citação visual em Aprendizados, usando só dado real existente.
+- Pacote G: tooltip explicando a independência Saúde × Prazo.
+- Pacote H: discoverability de Papéis reconfirmada ALREADY SATISFIED, nenhuma mudança.
+- Pacote I: Administração de Organização classificada ARCHITECTURAL DECISION REQUIRED (RBAC/User são globais/single-org por construção) -- não implementada.
+- Pacote J: toggle Lista|Board em Priorização/Ações/Decisões, cada um agrupando por uma dimensão real já existente (`board-view.tsx` novo, genérico); supersessão institucional explícita de FS-007 só para este toggle em Ações.
+- Pacote K: `approved_budget`/`actual_cost`/`forecast_cost` em `Project` (migração 0022); Program/Portfolio mostram rollup financeiro em runtime, nunca coluna própria (`financial-rollup.ts`).
+- Pacote L: fundação `ExternalDocumentSource` + primeiro adaptador `HttpUrlDocumentSource` (busca por URL, sem credencial); `POST /api/documents/from-url`.
+- Pacote M: Aprendizados alcançam PMO Advisor/Executive Advisor como contexto de apoio controlado (`$learnings_json`, nunca citável, nunca substitui o Evidence Gate).
+
+**Missão:** `ruff check src tests` limpo, `tsc`/`eslint` limpos, `vitest run` 627/627 (progressão 597→627, zero regressão), `next build` sucesso em cada checkpoint, migração 0022 aplicada (head único). 12/13 pacotes IMPLEMENTED, 1 (I) ARCHITECTURAL DECISION REQUIRED por corresponder a um gatilho de STOP explícito do mandato. IMPLEMENTED ≠ HUMAN VALIDATED -- validação humana é um gate separado, não iniciado por esta missão.
+
+**Decision Log:** D-226 a D-238.

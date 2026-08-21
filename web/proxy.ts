@@ -35,6 +35,8 @@ export const config = {
     "/portfolio/:path*",
     "/aprendizados",
     "/aprendizados/:path*",
+    "/inteligencia-executiva",
+    "/inteligencia-executiva/:path*",
     "/mission-control",
     "/mission-control/:path*",
     // D-051 -- Administração (Usuários, Chaves de API) was never in this

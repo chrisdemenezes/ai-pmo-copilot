@@ -62,4 +62,13 @@ describe("PortfolioSituationGrid", () => {
 
     expect(screen.queryByText("Atrasado")).toBeNull();
   });
+
+  // V1 Product & Capability Completion, Pacote G: explica a relação
+  // Saúde x Prazo (Human User Session #2, D-222) sem alterar nenhum
+  // algoritmo -- só a comunicação.
+  it("offers an explanation of Saúde and Prazo as independent dimensions", () => {
+    render(<PortfolioSituationGrid portfolios={[portfolio({})]} />);
+    expect(screen.getByLabelText("O que significa Saúde?")).toBeInTheDocument();
+    expect(screen.getByLabelText("O que significa Prazo?")).toBeInTheDocument();
+  });
 });

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 import PortfolioPage from "./page";
 import { usePortfolioSummary } from "@/lib/hooks/use-portfolio-summary";
@@ -73,6 +74,19 @@ describe("PortfolioPage", () => {
 
     expect(screen.getByRole("heading", { name: "Implantacao SAP S/4HANA" })).toBeInTheDocument();
     // "Portal do Cliente 2.0" has no pending decision -- discreet form (no heading role), but still present.
+    expect(screen.getByText("Portal do Cliente 2.0")).toBeInTheDocument();
+  });
+
+  // V1 Product & Capability Completion, Pacote J: Board é uma
+  // visualização alternativa dos mesmos 4 layers, somente leitura.
+  it("shows the same items grouped into board columns when switching to the Board tab", async () => {
+    mockedHook.mockReturnValue(hookState({ data: MIXED_PORTFOLIO }));
+    render(<PortfolioPage />);
+
+    await userEvent.click(screen.getByRole("tab", { name: "Board" }));
+
+    expect(screen.getByTestId("board-view")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Implantacao SAP S/4HANA" })).toBeInTheDocument();
     expect(screen.getByText("Portal do Cliente 2.0")).toBeInTheDocument();
   });
 

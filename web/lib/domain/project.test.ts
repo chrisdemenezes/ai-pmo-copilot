@@ -56,6 +56,9 @@ function projectProps(overrides: Partial<Parameters<typeof Project.create>[0]> =
     owner: { name: "Owner", role: "Product Owner" },
     milestones: [],
     team: { size: 3, leadName: "Owner" },
+    approvedBudget: null,
+    actualCost: null,
+    forecastCost: null,
     ...overrides,
   };
 }

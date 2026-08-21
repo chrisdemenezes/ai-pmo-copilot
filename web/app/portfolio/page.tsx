@@ -3,6 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BoardView } from "@/components/ui/board-view";
 import { Header } from "@/components/shell/header";
 import { ExecutivePortfolioCard } from "@/components/portfolio-intelligence/executive-portfolio-card";
 import { usePortfolioSummary } from "@/lib/hooks/use-portfolio-summary";
@@ -112,24 +114,48 @@ export default function PortfolioPage() {
       {items.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="flex flex-col gap-6">
-          {LAYER_ORDER.map((layer) => {
-            const layerItems = grouped.get(layer);
-            if (!layerItems || layerItems.length === 0) return null;
-            return (
-              <div key={layer} className="flex flex-col gap-3">
-                <p className="text-xs font-medium uppercase tracking-wide text-ink-muted">
-                  {LAYER_LABEL[layer]}
-                </p>
-                <div className="flex flex-col gap-3">
-                  {layerItems.map((item) => (
-                    <ExecutivePortfolioCard key={item.project_name} item={item} />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <Tabs defaultValue="lista">
+          <TabsList>
+            <TabsTrigger value="lista">Lista</TabsTrigger>
+            <TabsTrigger value="board">Board</TabsTrigger>
+          </TabsList>
+          <TabsContent value="lista">
+            <div className="flex flex-col gap-6">
+              {LAYER_ORDER.map((layer) => {
+                const layerItems = grouped.get(layer);
+                if (!layerItems || layerItems.length === 0) return null;
+                return (
+                  <div key={layer} className="flex flex-col gap-3">
+                    <p className="text-xs font-medium uppercase tracking-wide text-ink-muted">
+                      {LAYER_LABEL[layer]}
+                    </p>
+                    <div className="flex flex-col gap-3">
+                      {layerItems.map((item) => (
+                        <ExecutivePortfolioCard key={item.project_name} item={item} />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </TabsContent>
+          {/* V1 Product & Capability Completion, Pacote J: visualização
+              alternativa dos mesmos 4 layers (item.layer, já computado por
+              buildExecutivePortfolioView, intocado) -- somente leitura,
+              sem drag-and-drop (as camadas não são um estado que o usuário
+              muda manualmente, são derivadas do sinal real de Status/Risco). */}
+          <TabsContent value="board">
+            <BoardView
+              columns={LAYER_ORDER.map((layer) => ({
+                key: layer,
+                label: LAYER_LABEL[layer],
+                items: grouped.get(layer) ?? [],
+              }))}
+              getItemKey={(item) => item.project_name}
+              renderItem={(item) => <ExecutivePortfolioCard item={item} />}
+            />
+          </TabsContent>
+        </Tabs>
       )}
     </main>
   );

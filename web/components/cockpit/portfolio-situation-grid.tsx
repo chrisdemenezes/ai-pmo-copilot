@@ -1,3 +1,5 @@
+import { Info } from "lucide-react";
+
 import { Badge, healthStatusLabel, healthStatusVariant } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -9,12 +11,48 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Portfolio } from "@/lib/domain/portfolio";
 import {
   computeScheduleStatus,
   scheduleStatusBadgeVariant,
   SCHEDULE_STATUS_LABEL,
 } from "@/lib/dashboard/schedule-status";
+
+/**
+ * V1 Product & Capability Completion, Pacote G: a Human User Session #2
+ * (D-222) mostrou que o usuário entende cada selo isoladamente, mas
+ * questiona a relação entre eles quando divergem (ex.: um portfólio
+ * "Crítico" em saúde mas "No Prazo"). Nenhum algoritmo mudou -- só a
+ * explicação de que são duas dimensões independentes por desenho.
+ */
+function HealthTooltip() {
+  return (
+    <Tooltip>
+      <TooltipTrigger aria-label="O que significa Saúde?">
+        <Info className="size-3.5 text-ink-faint" aria-hidden="true" />
+      </TooltipTrigger>
+      <TooltipContent>
+        Visão mais ampla do estado do portfólio (execução, riscos, entregas) --
+        independente do cronograma.
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+function ScheduleTooltip() {
+  return (
+    <Tooltip>
+      <TooltipTrigger aria-label="O que significa Prazo?">
+        <Info className="size-3.5 text-ink-faint" aria-hidden="true" />
+      </TooltipTrigger>
+      <TooltipContent>
+        Situação temporal/cronograma apenas -- um portfólio pode estar no prazo
+        mesmo com saúde crítica, e vice-versa.
+      </TooltipContent>
+    </Tooltip>
+  );
+}
 
 /**
  * Entrega 2.2 (Sprint 1) -- Situação do Portfólio. Desde a Capability 01
@@ -37,8 +75,18 @@ export function PortfolioSituationGrid({
           <TableHeader>
             <TableRow>
               <TableHead>Portfólio</TableHead>
-              <TableHead>Saúde</TableHead>
-              <TableHead>Prazo</TableHead>
+              <TableHead>
+                <span className="inline-flex items-center gap-1">
+                  Saúde
+                  <HealthTooltip />
+                </span>
+              </TableHead>
+              <TableHead>
+                <span className="inline-flex items-center gap-1">
+                  Prazo
+                  <ScheduleTooltip />
+                </span>
+              </TableHead>
               <TableHead>Progresso</TableHead>
               <TableHead>Programas</TableHead>
               <TableHead>Projetos</TableHead>

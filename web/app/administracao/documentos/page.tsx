@@ -15,6 +15,7 @@ import { Header } from "@/components/shell/header";
 import { useAdminDocuments } from "@/lib/hooks/use-admin-documents";
 import { ReindexDocumentButton } from "./reindex-document-button";
 import { UploadDocumentDialog } from "./upload-document-dialog";
+import { AddDocumentFromUrlDialog } from "./add-document-from-url-dialog";
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("pt-BR", {
@@ -71,7 +72,10 @@ export default function DocumentsAdminPage() {
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 p-6">
       <Header>
         <PageTitle />
-        <UploadDocumentDialog />
+        <div className="flex gap-2">
+          <AddDocumentFromUrlDialog />
+          <UploadDocumentDialog />
+        </div>
       </Header>
 
       {rows.length === 0 ? (
@@ -87,7 +91,7 @@ export default function DocumentsAdminPage() {
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Chunks</TableHead>
+                <TableHead>Trechos indexados</TableHead>
                 <TableHead>Enviado em</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
@@ -105,8 +109,16 @@ export default function DocumentsAdminPage() {
                   <TableCell className="text-ink-muted">{formatDate(document.createdAt)}</TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-2">
-                      {document.status !== "indexed" && (
+                      {document.status !== "indexed" ? (
                         <ReindexDocumentButton document={document} />
+                      ) : (
+                        // V1 Product & Capability Completion, Pacote E:
+                        // um documento já indexado não tem ação de retry
+                        // pendente -- um traço explícito evita que a
+                        // coluna pareça quebrada/vazia por engano.
+                        <span className="text-sm text-ink-faint" aria-hidden="true">
+                          —
+                        </span>
                       )}
                     </div>
                   </TableCell>

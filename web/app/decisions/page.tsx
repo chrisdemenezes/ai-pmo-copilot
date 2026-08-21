@@ -3,11 +3,20 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BoardView } from "@/components/ui/board-view";
 import { Header } from "@/components/shell/header";
 import { ExecutiveDecisionCard } from "@/components/decision-center/executive-decision-card";
 import { usePortfolioSummary } from "@/lib/hooks/use-portfolio-summary";
 import { useLatestRisks } from "@/lib/hooks/use-latest-risks";
-import { buildExecutiveDecisionQueue, groupLatestRisksByProject } from "@/lib/decision-center/decision-queue";
+import {
+  buildExecutiveDecisionQueue,
+  groupLatestRisksByProject,
+  windowLabel,
+  type DecisionWindow,
+} from "@/lib/decision-center/decision-queue";
+
+const WINDOW_ORDER: DecisionWindow[] = ["hoje", "esta_semana"];
 
 /**
  * Executive Decision Queue -- página de portfólio "Decisões" (TIP-009
@@ -71,11 +80,38 @@ export default function DecisionsPage() {
       {decisions.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="flex flex-col gap-3">
-          {decisions.map((decision) => (
-            <ExecutiveDecisionCard key={`${decision.project_name}-${decision.source}`} decision={decision} />
-          ))}
-        </div>
+        <Tabs defaultValue="lista">
+          <TabsList>
+            <TabsTrigger value="lista">Lista</TabsTrigger>
+            <TabsTrigger value="board">Board</TabsTrigger>
+          </TabsList>
+          <TabsContent value="lista">
+            <div className="flex flex-col gap-3">
+              {decisions.map((decision) => (
+                <ExecutiveDecisionCard
+                  key={`${decision.project_name}-${decision.source}`}
+                  decision={decision}
+                />
+              ))}
+            </div>
+          </TabsContent>
+          {/* V1 Product & Capability Completion, Pacote J: visualização
+              alternativa da mesma fila, agrupada pela janela real já
+              computada por buildExecutiveDecisionQueue (window, intocada)
+              -- somente leitura, sem drag-and-drop (a janela deriva do
+              sinal de Status/Risco, não é um estado que o usuário move). */}
+          <TabsContent value="board">
+            <BoardView
+              columns={WINDOW_ORDER.map((window) => ({
+                key: window,
+                label: windowLabel(window),
+                items: decisions.filter((decision) => decision.window === window),
+              }))}
+              getItemKey={(decision) => `${decision.project_name}-${decision.source}`}
+              renderItem={(decision) => <ExecutiveDecisionCard decision={decision} />}
+            />
+          </TabsContent>
+        </Tabs>
       )}
     </main>
   );

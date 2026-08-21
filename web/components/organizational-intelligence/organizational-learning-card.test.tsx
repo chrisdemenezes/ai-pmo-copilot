@@ -30,6 +30,19 @@ describe("OrganizationalLearningCard", () => {
     );
   });
 
+  // V1 Product & Capability Completion, Pacote F: a recorrência
+  // (learning.occurrences) já existia na frase executiva -- o selo só a
+  // destaca visualmente, não introduz um dado novo.
+  it("shows a recurrence badge using the same occurrences value as the executive phrase", () => {
+    render(<OrganizationalLearningCard learning={LEARNING} />);
+    expect(screen.getByText("3x")).toBeInTheDocument();
+  });
+
+  it("labels the project list for context", () => {
+    render(<OrganizationalLearningCard learning={LEARNING} />);
+    expect(screen.getByText("Projetos:")).toBeInTheDocument();
+  });
+
   it("never renders a concept label/chip -- Zero Labels Rule (FS-011 §5)", () => {
     render(<OrganizationalLearningCard learning={LEARNING} />);
     for (const forbiddenLabel of [

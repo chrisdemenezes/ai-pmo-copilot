@@ -29,6 +29,10 @@ from src.services.knowledge_platform.document_ingestion_service import (
     DocumentIndexingError,
     DocumentIngestionService,
 )
+from src.services.knowledge_platform.external_sources import (
+    ExternalSourceFetchError,
+    HttpUrlDocumentSource,
+)
 from src.services.knowledge_platform.knowledge_repository import KnowledgeRepository
 from src.services.knowledge_platform.types import IngestedDocument
 
@@ -62,6 +66,12 @@ class DocumentVersionResponse(BaseModel):
 
 class DocumentDetailResponse(DocumentResponse):
     versions: list[DocumentVersionResponse]
+
+
+class DocumentFromUrlRequest(BaseModel):
+    url: str
+    source_name: str | None = None
+    project_id: int | None = None
 
 
 def _to_response(document: IngestedDocument, status: str) -> DocumentResponse:
@@ -126,6 +136,38 @@ def upload_document(
             correlation_id=context.request_id,
             project_id=project_id,
         )
+    except DocumentIndexingError as exc:
+        raise HTTPException(status_code=502, detail=_indexing_error_detail(exc)) from exc
+
+    status = service.get_status(context.organization.organization_id, document.id)
+    return _to_response(document, status)
+
+
+@router.post("/documents/from-url", response_model=DocumentResponse, status_code=201)
+def upload_document_from_url(
+    request: DocumentFromUrlRequest,
+    context: RequestContext = Depends(get_request_context),
+    service: DocumentIngestionService = Depends(build_document_ingestion_service),
+    _permission: None = Depends(require_permission("knowledge.write")),
+) -> DocumentResponse:
+    """External Document Sources (Package L, first adapter): fetches the
+    URL's content the same bounded-read way `POST /documents` bounds a file
+    upload, then ingests it through the exact same
+    `DocumentIngestionService.upload()` path -- Document/DocumentVersion/
+    Chunk are never touched differently than a manual upload."""
+    source = HttpUrlDocumentSource(max_bytes=max_upload_size_bytes())
+    try:
+        document = service.ingest_from_external_source(
+            context.organization.organization_id,
+            context.user.user_id,
+            source,
+            request.url,
+            correlation_id=context.request_id,
+            project_id=request.project_id,
+            source_name=request.source_name,
+        )
+    except ExternalSourceFetchError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     except DocumentIndexingError as exc:
         raise HTTPException(status_code=502, detail=_indexing_error_detail(exc)) from exc
 

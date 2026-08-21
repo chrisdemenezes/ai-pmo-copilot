@@ -69,6 +69,9 @@ function fakeProject(overrides: Partial<Parameters<typeof Project.create>[0]> = 
     owner: { name: "Owner", role: "Product Owner" },
     milestones: [],
     team: { size: 3, leadName: "Owner" },
+    approvedBudget: null,
+    actualCost: null,
+    forecastCost: null,
     ...overrides,
   });
 }
@@ -118,6 +121,47 @@ describe("ProjectDeliveryPage", () => {
     expect(screen.getByText("Programa B")).toBeInTheDocument();
     expect(screen.getByText("Projeto Um")).toBeInTheDocument();
     expect(screen.getByText("Projeto Dois")).toBeInTheDocument();
+  });
+
+  // V1 Product & Capability Completion, Package K: KPI financeiro do
+  // Program é um rollup em runtime sobre seus Projects, nunca um dado
+  // próprio -- e cada linha de Project mostra seus valores brutos.
+  it("shows a per-Project budget/actual-cost/variance and a Program-level rollup", () => {
+    mockedPrograms.mockReturnValue({
+      isPending: false,
+      isError: false,
+      data: [fakeProgram({ id: "PG-001", name: "Programa A" })],
+      error: null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    mockedProjects.mockReturnValue({
+      isPending: false,
+      isError: false,
+      data: [
+        fakeProject({
+          id: "PJ-001",
+          name: "Projeto Um",
+          programId: "PG-001",
+          approvedBudget: 1000,
+          actualCost: 800,
+        }),
+        fakeProject({
+          id: "PJ-002",
+          name: "Projeto Dois",
+          programId: "PG-001",
+          approvedBudget: 500,
+          actualCost: 600,
+        }),
+      ],
+      error: null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+
+    render(<ProjectDeliveryPage />);
+
+    expect(screen.getByText(/Orçamento aprovado: R\$\s?1\.500/)).toBeInTheDocument();
+    expect(screen.getByText(/Custo real: R\$\s?1\.400/)).toBeInTheDocument();
+    expect(screen.getByText(/Variação: R\$\s?100/)).toBeInTheDocument();
   });
 
   it("shows an empty-state message for a Program with no Projects", () => {

@@ -13,6 +13,7 @@ import os
 import subprocess
 import sys
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
@@ -25,6 +26,7 @@ from src.main import app
 from src.services.authorization.checker import SqlPermissionChecker
 from src.services.events.dispatcher import EventDispatcher
 from src.services.events.in_process_publisher import InProcessEventPublisher
+from src.services.knowledge_platform import external_sources as external_sources_module
 from src.services.knowledge_platform.knowledge_repository import KnowledgeRepository
 from src.services.knowledge_platform.vector_repository import PgVectorRepository
 from src.workflows import document_indexed_workflow
@@ -205,6 +207,100 @@ class TestIndexingFailureAndReindex:
         )
         assert reindex_response.status_code == 200
         assert reindex_response.json()["status"] == "indexed"
+
+
+class TestFromUrl:
+    """V1 Product & Capability Completion, Package L (External Document
+    Sources): `POST /api/documents/from-url` reuses the exact same
+    upload -> ingest -> index chain as a manual upload -- only the source
+    of the text changes. No real network call: `httpx.stream` is
+    monkeypatched to an `httpx.MockTransport`, so this proves the route's
+    own wiring, never a real external provider (no real corporate data,
+    no unauthorized real credential)."""
+
+    def test_from_url_ingests_and_indexes_like_a_manual_upload(self, client, monkeypatch):
+        def handler(request):
+            return httpx.Response(200, text="# Nota de Governanca de Fornecedores (DEMO)\n\nConteudo.")
+
+        def fake_stream(method, url, **kwargs):
+            mock_client = httpx.Client(transport=httpx.MockTransport(handler))
+            return mock_client.stream(method, url)
+
+        monkeypatch.setattr(external_sources_module.httpx, "stream", fake_stream)
+
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = _actor(repo, org_id, "organization_admin")
+
+        response = test_client.post(
+            "/api/documents/from-url",
+            headers=_headers(org_id, user_id),
+            json={"url": "https://intranet.example.com/docs/governanca.md"},
+        )
+
+        assert response.status_code == 201
+        body = response.json()
+        assert body["status"] == "indexed"
+        assert body["chunk_count"] == 1
+        assert body["source_name"] == "governanca.md"
+
+    def test_from_url_respects_an_explicit_source_name_override(self, client, monkeypatch):
+        def handler(request):
+            return httpx.Response(200, text="Conteudo qualquer.")
+
+        def fake_stream(method, url, **kwargs):
+            mock_client = httpx.Client(transport=httpx.MockTransport(handler))
+            return mock_client.stream(method, url)
+
+        monkeypatch.setattr(external_sources_module.httpx, "stream", fake_stream)
+
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = _actor(repo, org_id, "organization_admin")
+
+        response = test_client.post(
+            "/api/documents/from-url",
+            headers=_headers(org_id, user_id),
+            json={"url": "https://intranet.example.com/docs/x.md", "source_name": "Nome Customizado.md"},
+        )
+
+        assert response.status_code == 201
+        assert response.json()["source_name"] == "Nome Customizado.md"
+
+    def test_from_url_returns_422_when_the_fetch_fails(self, client, monkeypatch):
+        def handler(request):
+            return httpx.Response(404)
+
+        def fake_stream(method, url, **kwargs):
+            mock_client = httpx.Client(transport=httpx.MockTransport(handler))
+            return mock_client.stream(method, url)
+
+        monkeypatch.setattr(external_sources_module.httpx, "stream", fake_stream)
+
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        user_id = _actor(repo, org_id, "organization_admin")
+
+        response = test_client.post(
+            "/api/documents/from-url",
+            headers=_headers(org_id, user_id),
+            json={"url": "https://intranet.example.com/missing.md"},
+        )
+
+        assert response.status_code == 422
+
+    def test_viewer_cannot_ingest_from_url(self, client):
+        test_client, repo = client
+        org_id = repo.enterprise.create_organization("Org A")
+        viewer_id = _actor(repo, org_id, "viewer")
+
+        response = test_client.post(
+            "/api/documents/from-url",
+            headers=_headers(org_id, viewer_id),
+            json={"url": "https://intranet.example.com/docs/x.md"},
+        )
+
+        assert response.status_code == 403
 
 
 class TestOrganizationalIsolation:

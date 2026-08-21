@@ -1,4 +1,4 @@
-import { ClipboardList, FileText, Folder, Gavel, KeyRound, LayoutDashboard, Lightbulb, ListOrdered, Mail, MonitorSmartphone, Network, Radar, Rocket, Users } from "lucide-react";
+import { BrainCircuit, ClipboardList, FileText, Folder, Gavel, KeyRound, LayoutDashboard, Lightbulb, ListOrdered, Mail, MonitorSmartphone, Network, Radar, Rocket, Users } from "lucide-react";
 
 import type { NavItem } from "./types";
 
@@ -15,23 +15,32 @@ export const NAV_ITEMS: NavItem[] = [
   // TIP-010 Incremento 3 -- logo após o Dashboard: Executive Navigation
   // (Onde devo olhar? -> Portfolio Intelligence) coloca esta Capability
   // como o primeiro ritual do dia, antes de Projetos/Ações/Decisões.
-  { label: "Priorização", href: "/portfolio", icon: ListOrdered },
-  { label: "Projetos", href: "/projects", icon: Folder },
+  // V1 Product & Capability Completion, Pacote B: Priorização/Projetos/
+  // Program Management/Project Delivery ganham o mesmo `group` -- cadeia
+  // de execução Portfolio -> Program -> Project preservada intocada,
+  // apenas comunicada visualmente como pertencendo à mesma área.
+  { label: "Priorização", href: "/portfolio", icon: ListOrdered, group: "Execução" },
+  { label: "Projetos", href: "/projects", icon: Folder, group: "Execução" },
   // Capability 02 (Release 0.2) -- Program já é entidade real, entra na
   // navegação com a mesma regra de entrada (rota real, dado real, testes).
-  { label: "Program Management", href: "/program-management", icon: Network },
+  { label: "Program Management", href: "/program-management", icon: Network, group: "Execução" },
   // Capability 03 (Release 0.2) -- Project (Project Delivery) já é
   // entidade real, mesma regra de entrada da navegação.
-  { label: "Project Delivery", href: "/project-delivery", icon: Rocket },
+  { label: "Project Delivery", href: "/project-delivery", icon: Rocket, group: "Execução" },
   // TIP-008 Incremento 2 -- entra aqui só agora que a rota é real, com dado
   // real, estados completos e testes (regra de entrada da navegação).
   { label: "Ações", href: "/actions", icon: ClipboardList },
   // TIP-009 Incremento 3 -- mesma regra de entrada, agora para a Executive
   // Decision Queue.
   { label: "Decisões", href: "/decisions", icon: Gavel },
-  // TIP-012 -- último item por desenho: Organizational Intelligence é
-  // consultada esporadicamente (Architecture Review §1, pergunta 4),
-  // diferente do ritual diário das Capabilities anteriores.
+  // V1 Product & Capability Completion, Pacote A (Founder Decision):
+  // Decision Support e Executive Narrative deixam de estar incorporados
+  // ao Dashboard e ganham entrada própria -- Inteligência Executiva
+  // percebida como Capability central, não como widgets perdidos.
+  { label: "Inteligência Executiva", href: "/inteligencia-executiva", icon: BrainCircuit },
+  // TIP-012 -- Organizational Intelligence é consultada esporadicamente
+  // (Architecture Review §1, pergunta 4), diferente do ritual diário das
+  // Capabilities anteriores.
   { label: "Aprendizados", href: "/aprendizados", icon: Lightbulb },
   // Enterprise Administration -- User Management Capability (Wave 2):
   // primeira tela administrativa real (rota, dado, estados e testes),

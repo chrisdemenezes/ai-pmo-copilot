@@ -13,6 +13,21 @@ class FakePromptRegistry:
         return "Question: $question\nRecords: $records_json"
 
 
+class FakeRepository:
+    """Package M (V1 Product & Capability Completion): `advise()` now also
+    calls `framework.gather_organizational_learnings()`, which needs a real
+    repository -- `repository=None` (this file's convention before Package
+    M) would crash. Defaults to zero analyses of any kind, i.e. no
+    Organizational Learnings, matching every test below's original intent
+    (none of them are about Learnings)."""
+
+    def resolve_scope_id(self, organization_id, project_name=None, project_id=None):
+        return None, False
+
+    def list_analyses(self, organization_id, project_id=None, kind=None, limit=None):
+        return []
+
+
 class RecordingProvider:
     def __init__(self, response: str):
         self.response = response
@@ -23,9 +38,9 @@ class RecordingProvider:
         return self.response
 
 
-def _agent(provider) -> PMOAdvisorAgent:
+def _agent(provider, repository=None) -> PMOAdvisorAgent:
     framework = AdvisorFramework(
-        repository=None,
+        repository=repository if repository is not None else FakeRepository(),
         prompt_registry=FakePromptRegistry(),
         llm_provider=provider,
         rag_pipeline=None,
@@ -114,6 +129,68 @@ def test_advise_falls_back_to_unstructured_when_model_output_is_not_json():
 
     assert result["structured"] is False
     assert result["raw_output"] == "not json at all"
+
+
+class FakePromptRegistryWithLearnings:
+    def get(self, agent_name, prompt_name):
+        return "Learnings: $learnings_json"
+
+
+def _fake_analysis_record(record_id, project_name, payload):
+    from types import SimpleNamespace
+
+    return SimpleNamespace(
+        id=record_id,
+        project_id=record_id,
+        project=SimpleNamespace(name=project_name),
+        payload=payload,
+        created_at=datetime(2026, 8, 1, tzinfo=timezone.utc),
+    )
+
+
+class FakeRepositoryWithMeetings:
+    """3+ distinct projects reporting the exact same action-item
+    description -- a real Organizational Learning by the same rule
+    `organizational-learnings.ts` uses."""
+
+    def resolve_scope_id(self, organization_id, project_name=None, project_id=None):
+        return None, False
+
+    def list_analyses(self, organization_id, project_id=None, kind=None, limit=None):
+        if kind != "meeting":
+            return []
+        return [
+            _fake_analysis_record(
+                index,
+                project_name,
+                {
+                    "model_output": {
+                        "structured": True,
+                        "action_items": [{"description": "Revisar contrato com fornecedor"}],
+                    }
+                },
+            )
+            for index, project_name in enumerate(["Aurora", "Boreal", "Cedro"])
+        ]
+
+
+def test_advise_includes_organizational_learnings_as_supporting_context():
+    provider = RecordingProvider(json.dumps({"answer": "ok", "cited_analysis_ids": []}))
+    framework = AdvisorFramework(
+        repository=FakeRepositoryWithMeetings(),
+        prompt_registry=FakePromptRegistryWithLearnings(),
+        llm_provider=provider,
+        rag_pipeline=None,
+    )
+    agent = PMOAdvisorAgent(framework)
+
+    agent.advise(session=SESSION, question="Algum padrao recorrente?", evidence=[])
+
+    sent_learnings = json.loads(provider.received_prompt.split("Learnings: ", 1)[1])
+    assert len(sent_learnings) == 1
+    assert sent_learnings[0]["description"] == "Revisar contrato com fornecedor"
+    assert sent_learnings[0]["occurrences"] == 3
+    assert sent_learnings[0]["project_names"] == ["Aurora", "Boreal", "Cedro"]
 
 
 def test_advise_serializes_multiple_records_of_the_same_project_distinctly():

@@ -22,10 +22,13 @@ Question: $question
 Records (JSON array, at most one "status" and one "risk" per project, both already the most recent available -- order carries no meaning):
 $records_json
 
+Organizational Learnings (JSON array, supporting context only -- recurring risks/actions already observed across 3 or more distinct projects in this organization, may be empty): these are NOT status/risk records, NOT citable via "cited_analysis_ids", and NEVER the sole basis of your answer -- use them only to add a "this kind of pattern has recurred before" note when directly relevant to the question, never to answer a question the records above cannot answer on their own:
+$learnings_json
+
 Respond with a single JSON object only, no extra text before or after it, using exactly this schema:
 {
   "answer": "string",
   "cited_analysis_ids": [integer, ...]
 }
 
-"cited_analysis_ids" must list the "source_analysis_id" of every record your answer draws from -- name every project you cite, never summarize "several projects" without naming them. If you cite both the "status" and the "risk" record of the same project, list both "source_analysis_id" values separately -- never collapse them into one.
+"cited_analysis_ids" must list the "source_analysis_id" of every record your answer draws from -- name every project you cite, never summarize "several projects" without naming them. If you cite both the "status" and the "risk" record of the same project, list both "source_analysis_id" values separately -- never collapse them into one. Never include anything from the Organizational Learnings array in "cited_analysis_ids" -- it has no "source_analysis_id".

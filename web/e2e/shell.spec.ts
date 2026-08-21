@@ -35,7 +35,7 @@ test("redirects the root route to /dashboard when authenticated", async ({ page 
   await expect(page).toHaveURL(/\/dashboard/);
 });
 
-test("renders exactly fourteen nav items, only Dashboard active on /dashboard", async ({ page }) => {
+test("renders exactly fifteen nav items, only Dashboard active on /dashboard", async ({ page }) => {
   await login(page);
 
   const visibleNav = (await page.viewportSize())!.width < MOBILE_BREAKPOINT
@@ -43,7 +43,7 @@ test("renders exactly fourteen nav items, only Dashboard active on /dashboard", 
     : page.getByTestId("sidebar-nav");
 
   const links = visibleNav.getByRole("link");
-  await expect(links).toHaveCount(14);
+  await expect(links).toHaveCount(15);
   await expect(links.first()).toHaveAttribute("aria-current", "page");
   await expect(links.first()).toHaveAttribute("href", "/dashboard");
   await expect(links.nth(1)).not.toHaveAttribute("aria-current", "page");
@@ -59,19 +59,51 @@ test("renders exactly fourteen nav items, only Dashboard active on /dashboard", 
   await expect(links.nth(6)).not.toHaveAttribute("aria-current", "page");
   await expect(links.nth(6)).toHaveAttribute("href", "/decisions");
   await expect(links.nth(7)).not.toHaveAttribute("aria-current", "page");
-  await expect(links.nth(7)).toHaveAttribute("href", "/aprendizados");
+  await expect(links.nth(7)).toHaveAttribute("href", "/inteligencia-executiva");
   await expect(links.nth(8)).not.toHaveAttribute("aria-current", "page");
-  await expect(links.nth(8)).toHaveAttribute("href", "/administracao/usuarios");
+  await expect(links.nth(8)).toHaveAttribute("href", "/aprendizados");
   await expect(links.nth(9)).not.toHaveAttribute("aria-current", "page");
-  await expect(links.nth(9)).toHaveAttribute("href", "/administracao/api-keys");
+  await expect(links.nth(9)).toHaveAttribute("href", "/administracao/usuarios");
   await expect(links.nth(10)).not.toHaveAttribute("aria-current", "page");
-  await expect(links.nth(10)).toHaveAttribute("href", "/administracao/sessoes");
+  await expect(links.nth(10)).toHaveAttribute("href", "/administracao/api-keys");
   await expect(links.nth(11)).not.toHaveAttribute("aria-current", "page");
-  await expect(links.nth(11)).toHaveAttribute("href", "/administracao/convites");
+  await expect(links.nth(11)).toHaveAttribute("href", "/administracao/sessoes");
   await expect(links.nth(12)).not.toHaveAttribute("aria-current", "page");
-  await expect(links.nth(12)).toHaveAttribute("href", "/administracao/documentos");
+  await expect(links.nth(12)).toHaveAttribute("href", "/administracao/convites");
   await expect(links.nth(13)).not.toHaveAttribute("aria-current", "page");
-  await expect(links.nth(13)).toHaveAttribute("href", "/mission-control");
+  await expect(links.nth(13)).toHaveAttribute("href", "/administracao/documentos");
+  await expect(links.nth(14)).not.toHaveAttribute("aria-current", "page");
+  await expect(links.nth(14)).toHaveAttribute("href", "/mission-control");
+});
+
+// V1 Product & Capability Completion, Pacote B: um cabeçalho de grupo
+// visível aparece uma única vez, antes do primeiro item de "Execução".
+test("shows a single 'Execução' group header before Priorização, Projetos, Program Management and Project Delivery (lg)", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await login(page);
+
+  await expect(page.getByTestId("sidebar-nav").getByText("Execução")).toHaveCount(1);
+});
+
+// V1 Product & Capability Completion, Pacote C: a escolha manual de tema
+// persiste entre reloads e não pisca o tema errado antes de aplicar a
+// escolha salva (script anti-flash em app/layout.tsx).
+test("theme toggle persists across a reload, with no flash of the wrong theme", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await login(page);
+
+  const toggle = page.getByTestId("sidebar-nav").getByRole("button", { name: /Mudar para tema/ });
+  await toggle.click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+
+  await page.reload();
+  // The no-flash script applies data-theme synchronously before hydration
+  // -- checking immediately after reload (no waitForLoadState) proves it
+  // was never absent, not just eventually corrected by React.
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+
+  await page.getByTestId("sidebar-nav").getByRole("button", { name: /Mudar para tema/ }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
 });
 
 test("shows the sidebar shape appropriate to the current breakpoint", async ({ page }) => {

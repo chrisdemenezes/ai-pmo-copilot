@@ -21,8 +21,6 @@ import { PortfolioSituationGrid } from "@/components/cockpit/portfolio-situation
 import { ProgramSituationGrid } from "@/components/cockpit/program-situation-grid";
 import { ProgramExecutionPanel } from "@/components/cockpit/program-execution-panel";
 import { ExecutiveFocusPanel } from "@/components/cockpit/executive-focus-panel";
-import { DecisionSupportPanel } from "@/components/dashboard/decision-support-panel";
-import { ExecutiveNarrativePanel } from "@/components/dashboard/executive-narrative-panel";
 import { computeExecutiveFocus } from "@/lib/dashboard/executive-focus";
 import { type CockpitKPI } from "@/lib/mock/cockpit-data";
 
@@ -142,13 +140,14 @@ export default function DashboardPage() {
         )}
       </section>
 
+      {/* V1 Product & Capability Completion, Pacote D: rebaixado ao estilo
+          já usado por "Distribuição de saúde"/"Maior concentração de
+          risco" -- é um detalhamento (Top 5) de "Situação dos Programas"
+          logo acima, não uma métrica primária própria; toda seção com
+          o mesmo peso visual (text-lg font-semibold) tornava a hierarquia
+          de leitura plana. Nenhum dado removido, apenas o peso do título. */}
       <section className="flex flex-col gap-3">
-        <div>
-          <h2 className="font-display text-lg font-semibold text-ink">Program Execution</h2>
-          <p className="text-sm text-ink-muted">
-            Capability 03 (Release 0.2) — Projects por Program, saúde consolidada e Top 5 que exigem atenção.
-          </p>
-        </div>
+        <h2 className="text-sm font-semibold text-ink-muted">Program Execution — Top 5 que exigem atenção</h2>
         {programs.isPending || deliveryProjects.isPending ? (
           <Skeleton className="h-48" />
         ) : (
@@ -162,26 +161,6 @@ export default function DashboardPage() {
           <p className="text-sm text-ink-muted">Onde devo concentrar minha atenção hoje?</p>
         </div>
         <ExecutiveFocusPanel focus={executiveFocus} />
-      </section>
-
-      <section className="flex flex-col gap-3">
-        <div>
-          <h2 className="font-display text-lg font-semibold text-ink">Decision Support</h2>
-          <p className="text-sm text-ink-muted">
-            Pergunta executiva — Executive Orchestrator, Wave 6 (Enterprise Advisors reais).
-          </p>
-        </div>
-        <DecisionSupportPanel />
-      </section>
-
-      <section className="flex flex-col gap-3">
-        <div>
-          <h2 className="font-display text-lg font-semibold text-ink">Narrativa Executiva</h2>
-          <p className="text-sm text-ink-muted">
-            Síntese executiva de um escopo declarado — Executive Orchestrator, Wave 6.
-          </p>
-        </div>
-        <ExecutiveNarrativePanel />
       </section>
 
       {projects.length === 0 ? (
