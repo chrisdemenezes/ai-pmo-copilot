@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 import DecisionsPage from "./page";
 import { usePortfolioSummary } from "@/lib/hooks/use-portfolio-summary";
@@ -100,6 +101,18 @@ describe("DecisionsPage", () => {
     for (const forbidden of [/criar/i, /editar/i, /resolver/i, /nova decisão/i]) {
       expect(screen.queryByRole("button", { name: forbidden })).toBeNull();
     }
+  });
+
+  // V1 Product & Capability Completion, Pacote J: Board é uma visualização
+  // alternativa somente leitura, agrupada pela janela real (window).
+  it("shows the same decision grouped into board columns when switching to the Board tab", async () => {
+    mockedHook.mockReturnValue(hookState({ data: MIXED_PORTFOLIO }));
+    render(<DecisionsPage />);
+
+    await userEvent.click(screen.getByRole("tab", { name: "Board" }));
+
+    expect(screen.getByTestId("board-view")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Implantacao SAP S/4HANA" })).toBeInTheDocument();
   });
 });
 

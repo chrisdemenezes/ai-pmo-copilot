@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 import ActionsPage from "./page";
 import { useActionItems } from "@/lib/hooks/use-action-items";
@@ -97,6 +98,20 @@ describe("ActionsPage (portfólio)", () => {
     expect(screen.getByText("Validar plano de cutover com o cliente")).toBeInTheDocument();
     expect(screen.getByText("Aurora")).toBeInTheDocument();
     expect(screen.getByText("Implantacao SAP S/4HANA")).toBeInTheDocument();
+  });
+
+  // V1 Product & Capability Completion, Pacote J: Board é uma
+  // visualização alternativa somente leitura das mesmas 4 categorias
+  // de urgência (bucketByUrgency, intocado).
+  it("shows the same items grouped into board columns when switching to the Board tab", async () => {
+    mockedHook.mockReturnValue(hookState({ data: MULTI_PROJECT_ITEMS }));
+    render(<ActionsPage />);
+
+    await userEvent.click(screen.getByRole("tab", { name: "Board" }));
+
+    expect(screen.getByTestId("board-view")).toBeInTheDocument();
+    expect(screen.getByText("Cobrar plano de contingência do fornecedor")).toBeInTheDocument();
+    expect(screen.getByText("Validar plano de cutover com o cliente")).toBeInTheDocument();
   });
 
   it("never renders a create/edit/assign control", () => {
