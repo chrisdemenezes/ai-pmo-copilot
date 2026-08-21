@@ -208,6 +208,22 @@ A mesma disciplina da Wave Completion Policy (D-048) aplicada ao fechamento da W
 
 ---
 
+## TD-016 — Captura de snapshot de performance (EVM) é manual, sem scheduler automático
+
+- **Origem:** Wave 8 — Executive Analytics & Experience Completion, Founder Decision "EVM Temporal Baseline" (`docs/architecture/TECHNICAL-DESIGN-WAVE-8-EXECUTIVE-ANALYTICS.md` Seção 2.B).
+- **Classificação:** Médio.
+- **Status:** Deferred (decisão explícita, não uma lacuna descoberta depois).
+- **Descrição:** `POST /projects-delivery/{id}/performance-snapshots` captura um `ProjectPerformanceSnapshot` só quando explicitamente chamado (idempotente por dia) -- não existe scheduler/cron/Event Pipeline consumer que capture automaticamente em intervalo regular. Construir isso agora exigiria nova infraestrutura de integração, fora do escopo autorizado pelo mandato Wave 8 ("não criar nova arquitetura de integração" sem necessidade comprovada).
+- **Gatilho de resolução:** quando houver necessidade real de histórico denso (S-Curve com múltiplos pontos por projeto) e uma decisão arquitetural explícita do Founder sobre qual mecanismo de captura periódica usar (o `events/` seam já existente -- `InProcessEventPublisher`/`EventDispatcher`, TD-013's "dead capacity" -- é o candidato natural, não um novo Event Pipeline).
+
+## TD-017 — Executive Signals/Analytics ainda não alimentam a Executive Intelligence (Wave 8, Fase F adiada)
+
+- **Origem:** Wave 8 — Executive Analytics & Experience Completion, Fase F (Intelligence Integration).
+- **Classificação:** Baixo (nenhum impacto funcional -- Signals/Analytics já funcionam standalone).
+- **Status:** Deferred (decisão explícita, registrada em D-244, não uma omissão silenciosa).
+- **Descrição:** o mandato Wave 8 autorizou integrar Signals/Analytics ao contexto de `AdvisorFramework`/`AIContextEngine` **somente se** de forma aditiva, rastreável e compatível com os contratos existentes ("somente se", não um requisito incondicional). Dado o volume já entregue nesta sessão (5 fases completas, migração nova, 4 endpoints novos) e o risco de apressar qualquer mudança tocando prompts/Advisors sem o mesmo rigor de teste das Fases B-E, a integração foi deliberadamente adiada.
+- **Gatilho de resolução:** desenho explícito equivalente ao já feito para Learnings em Package M (D-237) -- uma variável de prompt separada, nunca misturada a `evidence`/`cited_evidence`, com os mesmos testes negativos mandatados (Evidence Gate preservado, sem colisão de `source_id`, fail-closed mantido).
+
 ## Convenção de uso deste registro
 
 - Novo débito identificado por qualquer revisão (arquitetural, de segurança, de código) ganha um ID sequencial `TD-NNN` aqui, com origem (PR/commit), status (`Aberto` / `Planejado` / `Resolvido`) e o gatilho explícito de resolução.

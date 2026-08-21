@@ -2915,3 +2915,24 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** `ruff check src tests` limpo, `tsc`/`eslint` limpos, `vitest run` 627/627 (progressão 597→627, zero regressão), `next build` sucesso em cada checkpoint, migração 0022 aplicada (head único). 12/13 pacotes IMPLEMENTED, 1 (I) ARCHITECTURAL DECISION REQUIRED por corresponder a um gatilho de STOP explícito do mandato. IMPLEMENTED ≠ HUMAN VALIDATED -- validação humana é um gate separado, não iniciado por esta missão.
 
 **Decision Log:** D-226 a D-238.
+
+## Wave 8 — Executive Analytics & Experience Completion (2026-08-21)
+
+**Founder Decision (EVM Temporal Baseline)**
+- A STRATECH só carregava um snapshot atual por Project (`approved_budget`/`actual_cost`/`progress_percentage`), sem série temporal de baseline -- EVM formal (CPI/SPI/EAC/S-Curve) não tinha base real. Em vez de inferir/fabricar um histórico, o Founder autorizou uma evolução aditiva do domínio para passar a acumular histórico verdadeiro dali para frente.
+
+**Adicionado / Alterado**
+- Migração `0023`: `project_performance_baselines` (curva de valor planejado, versionada, autorada por humano) e `project_performance_snapshots` (captura periódica real de custo/progresso, idempotente por dia, append-only). Ambas puramente aditivas -- nenhuma tabela/coluna existente alterada.
+- `src/services/executive_analytics/metrics_engine.py`: calculadora EVM determinística e pura (PV/EV/AC/CPI/SPI/CV/SV/EAC/ETC/VAC) -- todo valor ausente retorna N/A tipado com motivo, nunca zero/fabricado. EV rotulado em toda API/UI como estimativa (deriva de `progress_percentage`, campo sem disciplina formal de earned value).
+- 3 novos endpoints em `project_delivery.py` (mesmo router já existente): `POST performance-baselines`, `POST performance-snapshots`, `GET performance-summary`, `GET performance-history`.
+- `web/lib/domain/executive-metric.ts` + `web/components/analytics/` (ExecutiveMetricCard, TrendIndicator, VarianceIndicator, DataQualityBadge, ChartCard) -- construídos sobre Card/Badge/Tooltip já existentes, tokens claro/escuro inalterados.
+- Visual Analytics (SVG puro, nenhuma biblioteca de gráficos adicionada): `ParetoChart`, `RiskHeatmapChart`, `HealthDistributionChart`, `SCurveChart` -- cada um com estado vazio explícito, nunca uma curva/série fabricada.
+- Executive Signals determinísticos (`executive-signal.ts`): cost/schedule performance trend, portfolio/risk concentration, forecast deviation -- nunca uma Decision/Recommendation, nunca aciona nada. `RESOURCE_BOTTLENECK` deliberadamente não implementado (sem dado real de alocação/FTE em nenhum lugar do domínio).
+- Product Integration: `PortfolioAnalyticsSection` na página Project Delivery já existente (Health Distribution/Risk Heatmap/Pareto/Signals), alimentada só por dados que a página já buscava ou um hook de leitura já existente (`useLatestRisks`) -- sem página nova, sem widget duplicado no Dashboard.
+
+**Adiado (decisão explícita, não débito oculto)**
+- Intelligence Integration (Fase F): Signals/Analytics ainda não alimentam `AdvisorFramework`/`AIContextEngine` -- o mandato só autorizava essa integração se comprovadamente segura, e a decisão foi não apressá-la nesta sessão. Nenhum Advisor/Evidence Gate/Synthesis tocado.
+
+**Missão:** `ruff check src tests` limpo, `tsc --noEmit`/`eslint` limpos, `vitest run` 685/685 (97 arquivos, zero regressão), `next build` sucesso, migração 0023 aplicada (head único), E2E `project-delivery.spec.ts` verde (mobile/md/lg). Pacote I (Administração de Organização) permanece ARCHITECTURAL DECISION REQUIRED, inalterado, fora de escopo desta Wave.
+
+**Decision Log:** D-239 a D-244.
