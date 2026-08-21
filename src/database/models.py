@@ -252,6 +252,76 @@ class Project(Base):
     forecast_cost = Column(Numeric(14, 2), nullable=True)
 
 
+class ProjectPerformanceBaseline(Base):
+    """Wave 8 (Executive Analytics): one row per period of a Project's
+    planned-value curve, human-authored (PM/PMO) -- never inferred or
+    linearized by the system (Founder Decision, EVM Temporal Baseline).
+
+    `baseline_version` follows the append-only discipline already used by
+    `DocumentVersion`/`AnalysisRecord`: a rebaseline inserts a brand new set
+    of rows with `baseline_version + 1`, never updating or deleting a prior
+    version. The "current" baseline for live KPI computation is always the
+    row set with the highest `baseline_version` for a given project.
+
+    `bac_reference` freezes the BAC used when this baseline point was
+    authored -- it may differ from `Project.approved_budget` later, since
+    the project's actual budget can change independently of a specific
+    baseline version.
+    """
+
+    __tablename__ = "project_performance_baselines"
+    __table_args__ = (
+        UniqueConstraint(
+            "project_id",
+            "baseline_version",
+            "period_date",
+            name="uq_performance_baseline_project_version_period",
+        ),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    organization_id = Column(
+        Integer, ForeignKey("organizations.id"), nullable=False, index=True
+    )
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False, index=True)
+    baseline_version = Column(Integer, nullable=False)
+    period_date = Column(Date, nullable=False)
+    planned_progress_percentage = Column(Numeric(5, 2), nullable=False)
+    planned_value = Column(Numeric(14, 2), nullable=False)
+    bac_reference = Column(Numeric(14, 2), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
+
+
+class ProjectPerformanceSnapshot(Base):
+    """Wave 8 (Executive Analytics): one row per periodic capture of a
+    Project's real actual-cost/progress state -- append-only, never
+    retroactive (Founder Decision, EVM Temporal Baseline §B/E). Existing
+    Projects have zero rows until the first capture; history accumulates
+    strictly prospectively from that point on.
+
+    `UNIQUE(project_id, snapshot_date)` makes capture idempotent: a second
+    capture on the same day returns the existing row rather than
+    overwriting it.
+    """
+
+    __tablename__ = "project_performance_snapshots"
+    __table_args__ = (
+        UniqueConstraint(
+            "project_id", "snapshot_date", name="uq_performance_snapshot_project_date"
+        ),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    organization_id = Column(
+        Integer, ForeignKey("organizations.id"), nullable=False, index=True
+    )
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False, index=True)
+    snapshot_date = Column(Date, nullable=False)
+    actual_cost = Column(Numeric(14, 2), nullable=False)
+    progress_percentage = Column(Integer, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=_utcnow, nullable=False)
+
+
 class UserProjectMembership(Base):
     __tablename__ = "user_project_memberships"
 

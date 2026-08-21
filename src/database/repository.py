@@ -16,6 +16,7 @@ from src.database.enterprise_repository import (
     EnterpriseRepository,
     ProjectNotFoundError,
 )
+from src.database.performance_repository import PerformanceRepository
 from src.database.project_identity import FALLBACK_PROJECT_NAME
 
 logger = logging.getLogger(__name__)
@@ -70,6 +71,7 @@ class AnalysisRepository:
         self.enterprise = EnterpriseRepository(self.SessionLocal)
         self.domain = DomainRepository(self.SessionLocal)
         self.administration = AdministrationRepository(self.SessionLocal, self.enterprise)
+        self.performance = PerformanceRepository(self.SessionLocal)
 
     def save_analysis(
         self, kind: str, payload: dict, organization_id: int, project_name: str | None = None

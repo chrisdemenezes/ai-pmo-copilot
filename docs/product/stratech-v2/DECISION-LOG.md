@@ -2796,6 +2796,42 @@ Registro leve e cronológico de decisões de produto/técnicas tomadas durante a
 - **Não confundir IMPLEMENTED com HUMAN VALIDATED** -- validação humana permanece um gate separado, posterior, não iniciado por esta missão.
 - **Missão:** V1 Product & Capability Completion. Retornando para Founder Executive Review -- nenhum início automático de Founder Human Regression/External Validation/Controlled External Pilot/nova Wave/novo Epic/contratação de provedor/dado corporativo real/credencial real não autorizada.
 
+### D-239 — Wave 8 Executive Analytics, Founder Decision: EVM Temporal Baseline
+
+- **Contexto:** o mandato Wave 8 exigiu EVM (PV/EV/AC/CPI/SPI/EAC/ETC/VAC) e S-Curve. A reconciliação factual (Phase A) confirmou que a STRATECH só carrega um snapshot atual por Project (`approved_budget`/`actual_cost`/`progress_percentage`), sem nenhuma série temporal de baseline/histórico -- EVM formal não tinha base real para ser calculado.
+- **Decisão do Founder:** não estimar/inferir/fabricar Planned Value histórico a partir do snapshot atual. Duas tabelas novas, puramente aditivas (migração `0023`): `project_performance_baselines` (curva planejada, autorada por humano, versionada, imutável por versão) e `project_performance_snapshots` (captura periódica real do lado atual/realizado, idempotente por dia, append-only). `progress_percentage` explicitamente NÃO assumido automaticamente como base de EV sem documentar a limitação semântica -- EV é rotulado em toda API/UI como "estimado a partir do progresso reportado", nunca um EV certificado.
+- **Technical Design:** `docs/architecture/TECHNICAL-DESIGN-WAVE-8-EXECUTIVE-ANALYTICS.md` (Seção 2, decisão completa A-H).
+- **Missão:** Wave 8 -- Executive Analytics & Experience Completion.
+
+### D-240 — Wave 8 Fase B: Metrics Foundation (EVM Engine)
+
+- **Decisão:** `src/services/executive_analytics/metrics_engine.py` -- calculadora puramente determinística (`compute_evm_summary`, `build_history_series`), sem chamada a LLM. Cada métrica é `MetricValue` (um `Decimal` real OU um motivo de N/A tipado -- nunca zero, nunca fabricado). PV usa função-degrau sobre pontos reais do baseline ativo, nunca interpola. Divisão por zero tratada explicitamente (nunca crasha, nunca retorna infinito). 3 novos endpoints no router `project_delivery.py` já existente (nenhum novo registro de rota): `POST performance-baselines`, `POST performance-snapshots` (idempotente, copia `Project.actual_cost`/`progress_percentage` -- nunca aceita valor do cliente), `GET performance-summary`, `GET performance-history`.
+- **Testes:** 27 testes puros/de serviço (sem Postgres: 14 do `metrics_engine`; com Postgres real via `temp_database_url`, mesma convenção de `test_domain_service.py`: 13 do `performance_service`), todos passando localmente onde não exigem banco.
+- **Missão:** Wave 8 -- Executive Analytics & Experience Completion.
+
+### D-241 — Wave 8 Fase C: Executive KPI System
+
+- **Decisão:** `web/lib/domain/executive-metric.ts` (MetricValue/formatMetricValue/metricSentiment/metricReasonLabel -- espelha `MetricValueResponse`, mesma disciplina de nunca exibir zero fabricado) + componentes reutilizáveis em `web/components/analytics/` (ExecutiveMetricCard, TrendIndicator, VarianceIndicator, DataQualityBadge, ChartCard), construídos inteiramente sobre Card/Tooltip/Badge já existentes e os tokens claro/escuro do Package C -- nenhuma linguagem visual nova.
+- **Missão:** Wave 8 -- Executive Analytics & Experience Completion.
+
+### D-242 — Wave 8 Fase D: Visual Analytics (Pareto, Risk Heatmap, Health Distribution, S-Curve)
+
+- **Decisão:** sem biblioteca de gráficos adicionada -- 4 visualizações construídas em SVG/CSS puro sobre `ChartCard`: `ParetoChart` (concentração 80/20 reutilizável), `RiskHeatmapChart` (Probabilidade × Impacto, preserva a taxonomia real de 3 níveis, risco sem classificação completa é reportado à parte, nunca posicionado numa célula adivinhada), `HealthDistributionChart` (reaproveita a mesma taxonomia de `healthStatusVariant`), `SCurveChart` (plota apenas pontos reais capturados via novo endpoint `performance-history`; série com menos de 2 pontos reais não desenha linha; estado vazio explícito "Dados históricos insuficientes", nunca uma curva fabricada/interpolada).
+- **Testes:** 8 arquivos de teste, 25 casos, incluindo estado vazio obrigatório de cada gráfico.
+- **Missão:** Wave 8 -- Executive Analytics & Experience Completion.
+
+### D-243 — Wave 8 Fase E: Executive Signals (determinísticos, nunca acionáveis)
+
+- **Decisão:** `web/lib/domain/executive-signal.ts` -- 6 sinais determinísticos (cost/schedule performance deteriorando ou em recuperação; concentração de portfólio; concentração de risco; desvio de forecast), cada um pura aritmética sobre métricas já computadas nas Fases B/D, nenhuma chamada a LLM. Um Signal nunca é uma Decision/Recommendation e nunca dispara ação -- `ExecutiveSignalList` renderiza apenas informação + referência de evidência, nada clicável. `RESOURCE_BOTTLENECK` deliberadamente **não implementado**: nenhum dado de horas/FTE/alocação existe em nenhum lugar do domínio (confirmado na Fase A) -- construir esse sinal exigiria fabricar dado para satisfazer o dashboard, exatamente o que o Founder Decision (D-239) proíbe.
+- **Missão:** Wave 8 -- Executive Analytics & Experience Completion.
+
+### D-244 — Wave 8 Fase F/G: Intelligence Integration adiada; Product Integration em Project Delivery
+
+- **Fase F (Intelligence Integration):** o mandato autorizou integrar Signals/Analytics ao contexto de IA **somente se** de forma aditiva, rastreável e compatível com os contratos existentes ("somente se"). Dada a superfície já validada nesta sessão (5 fases completas com testes/migração/endpoints) e o risco de apressar qualquer mudança tocando prompts/Advisors sem o mesmo rigor de teste das Fases B-E, a decisão foi **adiar deliberadamente** esta integração -- documentada, não silenciosamente pulada. Nenhum Advisor, Evidence Gate, Synthesis ou Correlation foi tocado.
+- **Fase G (Product Integration):** `PortfolioAnalyticsSection` adicionada à página Project Delivery já existente (nenhuma página nova criada, per "não criar páginas apenas para acomodar gráficos") -- Health Distribution/Risk Heatmap/Pareto/Signals, todos alimentados por dados que a página já buscava (`useProjects()`) ou um hook de leitura já existente (`useLatestRisks()`, Decision Center). Distinto e não-duplicado em relação aos widgets `HealthStatusDistribution`/`RiskConcentrationRanking` já existentes no Dashboard, que operam sobre a fonte de dados V1 separada (`ProjectIntelligenceSummary`, Decision Log D-019) -- nenhum widget duplicado adicionado ao Dashboard.
+- **Validação:** `tsc --noEmit` limpo, `eslint` limpo, `vitest run` 685/685 (97 arquivos, zero regressão), `next build` sucesso, E2E `project-delivery.spec.ts` verde nos 3 viewports (mobile/md/lg).
+- **Missão:** Wave 8 -- Executive Analytics & Experience Completion.
+
 ---
 
 ## Convenção

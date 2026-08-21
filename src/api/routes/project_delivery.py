@@ -12,18 +12,30 @@ only reachable through a Program that belongs to the caller's
 organization (transitively, via the Program's Portfolio).
 """
 import logging
-from datetime import date
+from datetime import date, datetime, timezone
+from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from src.api.authorization import require_permission
+from src.api.dependencies import build_event_publisher, build_repository
 from src.api.identity_context import get_request_context
 from src.api.rate_limiter import enforce_rate_limit
 from src.api.routes.portfolio import build_domain_service
 from src.api.security import verify_api_key
 from src.database.models import Project
+from src.database.repository import AnalysisRepository
 from src.services.domain_service import DomainService
+from src.services.events.interfaces import EventPublisher
+from src.services.executive_analytics.metrics_engine import (
+    EvmSummary,
+    HistoryPoint,
+    MetricValue,
+)
+from src.services.executive_analytics.performance_service import (
+    ProjectPerformanceService,
+)
 from src.services.identity.models import RequestContext
 
 logger = logging.getLogger(__name__)
@@ -190,3 +202,226 @@ def create_project_delivery(
     if project is None:
         raise HTTPException(status_code=404, detail="Program not found")
     return _to_response(project)
+
+
+# -- Wave 8 (Executive Analytics): EVM Temporal Baseline ---------------------
+# Founder Decision, `docs/architecture/TECHNICAL-DESIGN-WAVE-8-EXECUTIVE-ANALYTICS.md`.
+
+
+def build_performance_service(
+    repository: AnalysisRepository = Depends(build_repository),
+    publisher: EventPublisher = Depends(build_event_publisher),
+) -> ProjectPerformanceService:
+    return ProjectPerformanceService(repository=repository, publisher=publisher)
+
+
+# Fixed, single-source-of-truth disclosure -- Earned Value here is derived
+# from `progress_percentage`, a manually-reported field with no formal
+# WBS/earned-value discipline behind it (Technical Design Section 2.D).
+# Every surface that renders `ev` must carry this label, never present it
+# as a certified EV.
+EV_ESTIMATE_LABEL = (
+    "Valor Agregado (estimado a partir do progresso reportado -- não é um EV certificado)"
+)
+
+
+class PerformanceBaselinePointRequest(BaseModel):
+    period_date: date
+    planned_progress_percentage: Decimal
+
+
+class CreatePerformanceBaselineRequest(BaseModel):
+    bac_reference: Decimal
+    points: list[PerformanceBaselinePointRequest]
+
+
+class PerformanceBaselineResponse(BaseModel):
+    baseline_version: int
+
+
+class CaptureSnapshotRequest(BaseModel):
+    snapshot_date: date | None = None
+
+
+class PerformanceSnapshotResponse(BaseModel):
+    id: int
+    project_id: int
+    snapshot_date: date
+    actual_cost: float
+    progress_percentage: int
+
+
+class MetricValueResponse(BaseModel):
+    value: float | None
+    reason: str | None
+
+
+def _to_metric_response(metric: MetricValue) -> MetricValueResponse:
+    return MetricValueResponse(
+        value=float(metric.value) if metric.value is not None else None, reason=metric.reason
+    )
+
+
+class EvmSummaryResponse(BaseModel):
+    as_of: date
+    ev_label: str
+    bac: MetricValueResponse
+    pv: MetricValueResponse
+    ev: MetricValueResponse
+    ac: MetricValueResponse
+    cpi: MetricValueResponse
+    spi: MetricValueResponse
+    cv: MetricValueResponse
+    sv: MetricValueResponse
+    eac: MetricValueResponse
+    etc_: MetricValueResponse
+    vac: MetricValueResponse
+
+
+def _to_evm_response(summary: EvmSummary, as_of: date) -> EvmSummaryResponse:
+    return EvmSummaryResponse(
+        as_of=as_of,
+        ev_label=EV_ESTIMATE_LABEL,
+        bac=_to_metric_response(summary.bac),
+        pv=_to_metric_response(summary.pv),
+        ev=_to_metric_response(summary.ev),
+        ac=_to_metric_response(summary.ac),
+        cpi=_to_metric_response(summary.cpi),
+        spi=_to_metric_response(summary.spi),
+        cv=_to_metric_response(summary.cv),
+        sv=_to_metric_response(summary.sv),
+        eac=_to_metric_response(summary.eac),
+        etc_=_to_metric_response(summary.etc),
+        vac=_to_metric_response(summary.vac),
+    )
+
+
+@router.post(
+    "/projects-delivery/{project_id}/performance-baselines",
+    response_model=PerformanceBaselineResponse,
+    status_code=201,
+    tags=["project-delivery"],
+)
+def create_performance_baseline(
+    project_id: int,
+    request: CreatePerformanceBaselineRequest,
+    context: RequestContext = Depends(get_request_context),
+    service: ProjectPerformanceService = Depends(build_performance_service),
+    _permission: None = Depends(require_permission("project_delivery.write")),
+):
+    """Authors a new planned-value baseline version -- points are always
+    human-provided, never inferred or linearized by the system (Technical
+    Design Section 2.A). Creating a baseline for a project that already has
+    one is a rebaseline: it never touches the prior version's rows."""
+    if not request.points:
+        raise HTTPException(status_code=422, detail="At least one baseline point is required")
+    points = [(point.period_date, point.planned_progress_percentage) for point in request.points]
+    baseline_version = service.create_baseline(
+        context.organization.organization_id,
+        project_id,
+        context.user.user_id,
+        context.request_id,
+        request.bac_reference,
+        points,
+    )
+    if baseline_version is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return PerformanceBaselineResponse(baseline_version=baseline_version)
+
+
+@router.post(
+    "/projects-delivery/{project_id}/performance-snapshots",
+    response_model=PerformanceSnapshotResponse,
+    status_code=201,
+    tags=["project-delivery"],
+)
+def capture_performance_snapshot(
+    project_id: int,
+    request: CaptureSnapshotRequest = CaptureSnapshotRequest(),
+    context: RequestContext = Depends(get_request_context),
+    service: ProjectPerformanceService = Depends(build_performance_service),
+    _permission: None = Depends(require_permission("project_delivery.write")),
+):
+    """Copies the Project's current `actual_cost`/`progress_percentage`
+    into a new append-only snapshot row -- idempotent per day (Technical
+    Design Section 2.B). Never accepts a cost/progress value from the
+    caller; there is nothing to capture when either field is still null."""
+    try:
+        snapshot = service.capture_snapshot(
+            context.organization.organization_id,
+            project_id,
+            context.user.user_id,
+            context.request_id,
+            snapshot_date=request.snapshot_date,
+        )
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+    if snapshot is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return PerformanceSnapshotResponse(
+        id=snapshot.id,
+        project_id=snapshot.project_id,
+        snapshot_date=snapshot.snapshot_date,
+        actual_cost=float(snapshot.actual_cost),
+        progress_percentage=snapshot.progress_percentage,
+    )
+
+
+@router.get(
+    "/projects-delivery/{project_id}/performance-summary",
+    response_model=EvmSummaryResponse,
+    tags=["project-delivery"],
+)
+def get_performance_summary(
+    project_id: int,
+    as_of: date | None = None,
+    context: RequestContext = Depends(get_request_context),
+    service: ProjectPerformanceService = Depends(build_performance_service),
+    _permission: None = Depends(require_permission("project_delivery.read")),
+):
+    """Deterministic EVM summary -- every metric is either a real value or
+    an explicit N/A carrying a machine-readable `reason`, never fabricated
+    or zero-filled (Technical Design Section 2.H)."""
+    resolved_as_of = as_of or datetime.now(tz=timezone.utc).date()
+    summary = service.get_evm_summary(
+        project_id, context.organization.organization_id, resolved_as_of
+    )
+    if summary is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return _to_evm_response(summary, resolved_as_of)
+
+
+class HistoryPointResponse(BaseModel):
+    as_of: date
+    pv: MetricValueResponse
+    ev: MetricValueResponse
+    ac: MetricValueResponse
+
+
+def _to_history_point_response(point: HistoryPoint) -> HistoryPointResponse:
+    return HistoryPointResponse(
+        as_of=point.as_of,
+        pv=_to_metric_response(point.pv),
+        ev=_to_metric_response(point.ev),
+        ac=_to_metric_response(point.ac),
+    )
+
+
+@router.get(
+    "/projects-delivery/{project_id}/performance-history",
+    response_model=list[HistoryPointResponse],
+    tags=["project-delivery"],
+)
+def get_performance_history(
+    project_id: int,
+    context: RequestContext = Depends(get_request_context),
+    service: ProjectPerformanceService = Depends(build_performance_service),
+    _permission: None = Depends(require_permission("project_delivery.read")),
+):
+    """S-Curve data -- one point per real captured snapshot, empty when
+    none exist yet (never a fabricated/interpolated series, Technical
+    Design Section 2.H)."""
+    history = service.get_performance_history(project_id, context.organization.organization_id)
+    if history is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return [_to_history_point_response(point) for point in history]

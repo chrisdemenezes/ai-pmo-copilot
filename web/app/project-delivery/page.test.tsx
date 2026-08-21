@@ -1,9 +1,10 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 import ProjectDeliveryPage from "./page";
 import { usePrograms } from "@/lib/hooks/use-programs";
 import { useProjects } from "@/lib/hooks/use-projects";
+import { useLatestRisks } from "@/lib/hooks/use-latest-risks";
 import { Program } from "@/lib/domain/program";
 import { Project } from "@/lib/domain/project";
 
@@ -13,9 +14,13 @@ vi.mock("@/lib/hooks/use-programs", () => ({
 vi.mock("@/lib/hooks/use-projects", () => ({
   useProjects: vi.fn(),
 }));
+vi.mock("@/lib/hooks/use-latest-risks", () => ({
+  useLatestRisks: vi.fn(),
+}));
 
 const mockedPrograms = vi.mocked(usePrograms);
 const mockedProjects = vi.mocked(useProjects);
+const mockedRisks = vi.mocked(useLatestRisks);
 
 function fakeProgram(overrides: Partial<Parameters<typeof Program.create>[0]> = {}) {
   return Program.create({
@@ -77,6 +82,16 @@ function fakeProject(overrides: Partial<Parameters<typeof Project.create>[0]> = 
 }
 
 describe("ProjectDeliveryPage", () => {
+  beforeEach(() => {
+    mockedRisks.mockReturnValue({
+      isPending: false,
+      isError: false,
+      data: [],
+      error: null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+  });
+
   it("renders the skeleton while pending", () => {
     mockedPrograms.mockReturnValue({
       isPending: true,
@@ -182,5 +197,31 @@ describe("ProjectDeliveryPage", () => {
 
     render(<ProjectDeliveryPage />);
     expect(screen.getByText("Nenhum Project vinculado a este Program ainda.")).toBeInTheDocument();
+  });
+
+  // Wave 8 (Executive Analytics & Experience Completion): portfolio-wide
+  // Health Distribution / Risk Heatmap / Pareto analytics render above the
+  // per-Program listing, using only data this page already fetches.
+  it("renders portfolio-wide Wave 8 analytics (Health Distribution, Risk Heatmap, Pareto)", () => {
+    mockedPrograms.mockReturnValue({
+      isPending: false,
+      isError: false,
+      data: [fakeProgram({ id: "PG-001", name: "Programa A" })],
+      error: null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    mockedProjects.mockReturnValue({
+      isPending: false,
+      isError: false,
+      data: [fakeProject({ id: "PJ-001", name: "Projeto Um", programId: "PG-001", health: "green" })],
+      error: null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+
+    render(<ProjectDeliveryPage />);
+
+    expect(screen.getByText("Distribuição de Saúde do Portfólio")).toBeInTheDocument();
+    expect(screen.getByText("Mapa de Calor de Riscos")).toBeInTheDocument();
+    expect(screen.getByText("Concentração de Desvio Orçamentário")).toBeInTheDocument();
   });
 });

@@ -249,6 +249,36 @@ class TestDetectsIncompatibleSchema:
 
             engine = create_engine(database_url)
             with engine.connect() as conn:
+                # Wave 8 (migration 0023) added 2 tables that don't exist yet
+                # at revision 0020 -- without them, validate_restore's
+                # "missing tables" check (step 2) would halt before ever
+                # reaching the embedding-dimension check (step 4) this test
+                # exists to exercise, since any future migration that adds a
+                # table (not just columns) would otherwise make this
+                # fixture's "everything except the embedding migration
+                # applied" premise stale. Created directly, matching
+                # `alembic/versions/0023_project_performance_baseline_and_snapshots.py`
+                # verbatim, so the two checks stay independently testable.
+                conn.execute(
+                    text(
+                        "CREATE TABLE project_performance_baselines ("
+                        "id SERIAL PRIMARY KEY, organization_id INTEGER NOT NULL, "
+                        "project_id INTEGER NOT NULL, baseline_version INTEGER NOT NULL, "
+                        "period_date DATE NOT NULL, planned_progress_percentage NUMERIC(5,2) NOT NULL, "
+                        "planned_value NUMERIC(14,2) NOT NULL, bac_reference NUMERIC(14,2) NOT NULL, "
+                        "created_at TIMESTAMPTZ NOT NULL)"
+                    )
+                )
+                conn.execute(
+                    text(
+                        "CREATE TABLE project_performance_snapshots ("
+                        "id SERIAL PRIMARY KEY, organization_id INTEGER NOT NULL, "
+                        "project_id INTEGER NOT NULL, snapshot_date DATE NOT NULL, "
+                        "actual_cost NUMERIC(14,2) NOT NULL, progress_percentage INTEGER NOT NULL, "
+                        "created_at TIMESTAMPTZ NOT NULL)"
+                    )
+                )
+                conn.commit()
                 org_id = conn.execute(
                     text(
                         "INSERT INTO organizations (name, slug, created_at) "
