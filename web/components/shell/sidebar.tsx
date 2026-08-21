@@ -44,24 +44,35 @@ export function Sidebar() {
         </div>
 
         <nav aria-label="Navegação principal" className="flex flex-1 flex-col gap-1 p-2">
-          {NAV_ITEMS.map((item) => {
+          {NAV_ITEMS.map((item, index) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
+            // Pacote B: um cabeçalho de grupo aparece só na primeira vez
+            // que esse `group` surge em sequência -- nunca reordena ou
+            // duplica itens, puramente apresentacional (lg apenas, mesma
+            // regra do rótulo textual dos links).
+            const showGroupHeader = item.group !== undefined && NAV_ITEMS[index - 1]?.group !== item.group;
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={isActive ? "page" : undefined}
-                className={cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-accent-soft text-accent-ink"
-                    : "text-ink-muted hover:bg-surface-2 hover:text-ink",
+              <div key={item.href} className="flex flex-col">
+                {showGroupHeader && (
+                  <p className="hidden px-3 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-ink-muted lg:block">
+                    {item.group}
+                  </p>
                 )}
-              >
-                <Icon className="size-5 shrink-0" aria-hidden="true" />
-                <span className="hidden lg:inline">{item.label}</span>
-              </Link>
+                <Link
+                  href={item.href}
+                  aria-current={isActive ? "page" : undefined}
+                  className={cn(
+                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-accent-soft text-accent-ink"
+                      : "text-ink-muted hover:bg-surface-2 hover:text-ink",
+                  )}
+                >
+                  <Icon className="size-5 shrink-0" aria-hidden="true" />
+                  <span className="hidden lg:inline">{item.label}</span>
+                </Link>
+              </div>
             );
           })}
         </nav>

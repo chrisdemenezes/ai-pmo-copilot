@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { NAV_ITEMS } from "./navigation";
 
 describe("NAV_ITEMS", () => {
-  it("contains exactly fourteen entries -- the only fully real modules today (Capability 03, User Management, API Keys, Sessions, Invitations, Document Ingestion, Mission Control)", () => {
-    expect(NAV_ITEMS).toHaveLength(14);
+  it("contains exactly fifteen entries -- the only fully real modules today (Capability 03, User Management, API Keys, Sessions, Invitations, Document Ingestion, Mission Control, Executive Intelligence)", () => {
+    expect(NAV_ITEMS).toHaveLength(15);
   });
 
   it("points the first entry at the real Dashboard route", () => {
@@ -42,38 +42,63 @@ describe("NAV_ITEMS", () => {
     expect(NAV_ITEMS[6].label).toBe("Decisões");
   });
 
-  it("points the eighth entry at the real Aprendizados (Organizational Intelligence) route", () => {
-    expect(NAV_ITEMS[7].href).toBe("/aprendizados");
-    expect(NAV_ITEMS[7].label).toBe("Aprendizados");
+  it("points the eighth entry at the real Inteligência Executiva route (V1 Product & Capability Completion, Pacote A)", () => {
+    expect(NAV_ITEMS[7].href).toBe("/inteligencia-executiva");
+    expect(NAV_ITEMS[7].label).toBe("Inteligência Executiva");
   });
 
-  it("points the ninth entry at the real Administração (User Management) route", () => {
-    expect(NAV_ITEMS[8].href).toBe("/administracao/usuarios");
-    expect(NAV_ITEMS[8].label).toBe("Administração");
+  it("points the ninth entry at the real Aprendizados (Organizational Intelligence) route", () => {
+    expect(NAV_ITEMS[8].href).toBe("/aprendizados");
+    expect(NAV_ITEMS[8].label).toBe("Aprendizados");
   });
 
-  it("points the tenth entry at the real Chaves de API (API Keys, D-051) route", () => {
-    expect(NAV_ITEMS[9].href).toBe("/administracao/api-keys");
-    expect(NAV_ITEMS[9].label).toBe("Chaves de API");
+  it("points the tenth entry at the real Administração (User Management) route", () => {
+    expect(NAV_ITEMS[9].href).toBe("/administracao/usuarios");
+    expect(NAV_ITEMS[9].label).toBe("Administração");
   });
 
-  it("points the eleventh entry at the real Sessões (server-side sessions, TD-010) route", () => {
-    expect(NAV_ITEMS[10].href).toBe("/administracao/sessoes");
-    expect(NAV_ITEMS[10].label).toBe("Sessões");
+  it("points the eleventh entry at the real Chaves de API (API Keys, D-051) route", () => {
+    expect(NAV_ITEMS[10].href).toBe("/administracao/api-keys");
+    expect(NAV_ITEMS[10].label).toBe("Chaves de API");
   });
 
-  it("points the twelfth entry at the real Convites (Invitations, D-054) route", () => {
-    expect(NAV_ITEMS[11].href).toBe("/administracao/convites");
-    expect(NAV_ITEMS[11].label).toBe("Convites");
+  it("points the twelfth entry at the real Sessões (server-side sessions, TD-010) route", () => {
+    expect(NAV_ITEMS[11].href).toBe("/administracao/sessoes");
+    expect(NAV_ITEMS[11].label).toBe("Sessões");
   });
 
-  it("points the thirteenth entry at the real Documentos (Document Ingestion, W5-0) route", () => {
-    expect(NAV_ITEMS[12].href).toBe("/administracao/documentos");
-    expect(NAV_ITEMS[12].label).toBe("Documentos");
+  it("points the thirteenth entry at the real Convites (Invitations, D-054) route", () => {
+    expect(NAV_ITEMS[12].href).toBe("/administracao/convites");
+    expect(NAV_ITEMS[12].label).toBe("Convites");
   });
 
-  it("points the fourteenth entry at Mission Control", () => {
-    expect(NAV_ITEMS[13].href).toBe("/mission-control");
-    expect(NAV_ITEMS[13].label).toBe("Mission Control");
+  it("points the fourteenth entry at the real Documentos (Document Ingestion, W5-0) route", () => {
+    expect(NAV_ITEMS[13].href).toBe("/administracao/documentos");
+    expect(NAV_ITEMS[13].label).toBe("Documentos");
+  });
+
+  it("points the fifteenth entry at Mission Control", () => {
+    expect(NAV_ITEMS[14].href).toBe("/mission-control");
+    expect(NAV_ITEMS[14].label).toBe("Mission Control");
+  });
+
+  // V1 Product & Capability Completion, Pacote B: Priorização/Projetos/
+  // Program Management/Project Delivery share the same visual group,
+  // consecutively, and nothing else does.
+  it("groups Priorização/Projetos/Program Management/Project Delivery under the same 'Execução' group, consecutively", () => {
+    const executionItems = NAV_ITEMS.filter((item) => item.group === "Execução");
+    expect(executionItems.map((item) => item.label)).toEqual([
+      "Priorização",
+      "Projetos",
+      "Program Management",
+      "Project Delivery",
+    ]);
+    const indices = executionItems.map((item) => NAV_ITEMS.indexOf(item));
+    expect(indices).toEqual([1, 2, 3, 4]);
+  });
+
+  it("does not assign a group to any other entry", () => {
+    const ungrouped = NAV_ITEMS.filter((item) => item.group === undefined);
+    expect(ungrouped).toHaveLength(11);
   });
 });

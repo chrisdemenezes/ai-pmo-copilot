@@ -21,8 +21,6 @@ import { PortfolioSituationGrid } from "@/components/cockpit/portfolio-situation
 import { ProgramSituationGrid } from "@/components/cockpit/program-situation-grid";
 import { ProgramExecutionPanel } from "@/components/cockpit/program-execution-panel";
 import { ExecutiveFocusPanel } from "@/components/cockpit/executive-focus-panel";
-import { DecisionSupportPanel } from "@/components/dashboard/decision-support-panel";
-import { ExecutiveNarrativePanel } from "@/components/dashboard/executive-narrative-panel";
 import { computeExecutiveFocus } from "@/lib/dashboard/executive-focus";
 import { type CockpitKPI } from "@/lib/mock/cockpit-data";
 
@@ -162,26 +160,6 @@ export default function DashboardPage() {
           <p className="text-sm text-ink-muted">Onde devo concentrar minha atenção hoje?</p>
         </div>
         <ExecutiveFocusPanel focus={executiveFocus} />
-      </section>
-
-      <section className="flex flex-col gap-3">
-        <div>
-          <h2 className="font-display text-lg font-semibold text-ink">Decision Support</h2>
-          <p className="text-sm text-ink-muted">
-            Pergunta executiva — Executive Orchestrator, Wave 6 (Enterprise Advisors reais).
-          </p>
-        </div>
-        <DecisionSupportPanel />
-      </section>
-
-      <section className="flex flex-col gap-3">
-        <div>
-          <h2 className="font-display text-lg font-semibold text-ink">Narrativa Executiva</h2>
-          <p className="text-sm text-ink-muted">
-            Síntese executiva de um escopo declarado — Executive Orchestrator, Wave 6.
-          </p>
-        </div>
-        <ExecutiveNarrativePanel />
       </section>
 
       {projects.length === 0 ? (
