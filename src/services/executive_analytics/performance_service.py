@@ -18,7 +18,9 @@ from src.services.events.interfaces import EventPublisher
 from src.services.executive_analytics.metrics_engine import (
     BaselinePoint,
     EvmSummary,
+    HistoryPoint,
     PerformanceSnapshotPoint,
+    build_history_series,
     compute_evm_summary,
 )
 
@@ -118,15 +120,9 @@ class ProjectPerformanceService:
         )
         return snapshot
 
-    def get_evm_summary(
-        self, project_id: int, organization_id: int, as_of: date
-    ) -> EvmSummary | None:
-        """None means the project doesn't exist or isn't this
-        organization's. Otherwise always returns a summary -- individual
-        metrics inside it are `MetricValue.na(...)` when the underlying
-        baseline/snapshot data doesn't exist, never raised as an error."""
-        if self._repository.domain.get_project(project_id, organization_id) is None:
-            return None
+    def _load_series(
+        self, project_id: int, organization_id: int
+    ) -> tuple[list[BaselinePoint], list[PerformanceSnapshotPoint]]:
         baseline_rows = self._repository.performance.get_active_baseline(
             project_id, organization_id
         )
@@ -139,4 +135,28 @@ class ProjectPerformanceService:
             PerformanceSnapshotPoint(row.snapshot_date, row.actual_cost, row.progress_percentage)
             for row in snapshot_rows
         ]
+        return baseline, snapshots
+
+    def get_evm_summary(
+        self, project_id: int, organization_id: int, as_of: date
+    ) -> EvmSummary | None:
+        """None means the project doesn't exist or isn't this
+        organization's. Otherwise always returns a summary -- individual
+        metrics inside it are `MetricValue.na(...)` when the underlying
+        baseline/snapshot data doesn't exist, never raised as an error."""
+        if self._repository.domain.get_project(project_id, organization_id) is None:
+            return None
+        baseline, snapshots = self._load_series(project_id, organization_id)
         return compute_evm_summary(baseline, snapshots, as_of)
+
+    def get_performance_history(
+        self, project_id: int, organization_id: int
+    ) -> list[HistoryPoint] | None:
+        """None means the project doesn't exist or isn't this
+        organization's. Otherwise one point per real captured snapshot --
+        empty list when no snapshot has ever been captured (S-Curve's
+        "Insufficient Historical Data" state), never a fabricated series."""
+        if self._repository.domain.get_project(project_id, organization_id) is None:
+            return None
+        baseline, snapshots = self._load_series(project_id, organization_id)
+        return build_history_series(baseline, snapshots)

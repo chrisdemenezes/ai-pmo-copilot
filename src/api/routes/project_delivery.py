@@ -28,7 +28,11 @@ from src.database.models import Project
 from src.database.repository import AnalysisRepository
 from src.services.domain_service import DomainService
 from src.services.events.interfaces import EventPublisher
-from src.services.executive_analytics.metrics_engine import EvmSummary, MetricValue
+from src.services.executive_analytics.metrics_engine import (
+    EvmSummary,
+    HistoryPoint,
+    MetricValue,
+)
 from src.services.executive_analytics.performance_service import (
     ProjectPerformanceService,
 )
@@ -385,3 +389,39 @@ def get_performance_summary(
     if summary is None:
         raise HTTPException(status_code=404, detail="Project not found")
     return _to_evm_response(summary, resolved_as_of)
+
+
+class HistoryPointResponse(BaseModel):
+    as_of: date
+    pv: MetricValueResponse
+    ev: MetricValueResponse
+    ac: MetricValueResponse
+
+
+def _to_history_point_response(point: HistoryPoint) -> HistoryPointResponse:
+    return HistoryPointResponse(
+        as_of=point.as_of,
+        pv=_to_metric_response(point.pv),
+        ev=_to_metric_response(point.ev),
+        ac=_to_metric_response(point.ac),
+    )
+
+
+@router.get(
+    "/projects-delivery/{project_id}/performance-history",
+    response_model=list[HistoryPointResponse],
+    tags=["project-delivery"],
+)
+def get_performance_history(
+    project_id: int,
+    context: RequestContext = Depends(get_request_context),
+    service: ProjectPerformanceService = Depends(build_performance_service),
+    _permission: None = Depends(require_permission("project_delivery.read")),
+):
+    """S-Curve data -- one point per real captured snapshot, empty when
+    none exist yet (never a fabricated/interpolated series, Technical
+    Design Section 2.H)."""
+    history = service.get_performance_history(project_id, context.organization.organization_id)
+    if history is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return [_to_history_point_response(point) for point in history]

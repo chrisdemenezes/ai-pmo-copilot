@@ -12,6 +12,7 @@ from src.services.executive_analytics.metrics_engine import (
     ZERO_PLANNED_VALUE,
     BaselinePoint,
     PerformanceSnapshotPoint,
+    build_history_series,
     compute_evm_summary,
 )
 
@@ -125,3 +126,37 @@ class TestMetricValueInvariant:
 
         with pytest.raises(ValueError):
             MetricValue(value=None, reason=None)
+
+
+class TestBuildHistorySeries:
+    def test_empty_snapshots_yields_an_empty_series_never_a_fabricated_point(self):
+        assert build_history_series(_baseline(), []) == []
+
+    def test_one_point_per_snapshot_ordered_by_date(self):
+        snapshots = [
+            PerformanceSnapshotPoint(date(2026, 3, 1), Decimal("45000.00"), 45),
+            PerformanceSnapshotPoint(date(2026, 2, 1), Decimal("20000.00"), 20),
+        ]
+
+        series = build_history_series(_baseline(), snapshots)
+
+        assert [point.as_of for point in series] == [date(2026, 2, 1), date(2026, 3, 1)]
+
+    def test_each_point_matches_compute_evm_summary_as_of_its_own_date(self):
+        snapshots = [PerformanceSnapshotPoint(date(2026, 2, 1), Decimal("20000.00"), 20)]
+
+        series = build_history_series(_baseline(), snapshots)
+        summary = compute_evm_summary(_baseline(), snapshots, as_of=date(2026, 2, 1))
+
+        assert series[0].pv.value == summary.pv.value
+        assert series[0].ev.value == summary.ev.value
+        assert series[0].ac.value == summary.ac.value
+
+    def test_no_baseline_still_yields_ac_points_with_pv_and_ev_na(self):
+        snapshots = [PerformanceSnapshotPoint(date(2026, 2, 1), Decimal("20000.00"), 20)]
+
+        series = build_history_series([], snapshots)
+
+        assert series[0].ac.value == Decimal("20000.00")
+        assert series[0].pv.value is None
+        assert series[0].ev.value is None

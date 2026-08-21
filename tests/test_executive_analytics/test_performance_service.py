@@ -222,3 +222,42 @@ class TestGetEvmSummary:
         assert summary.pv.value == Decimal("25000.00")
         assert summary.ev.value == Decimal("20000.00")
         assert summary.ac.value == Decimal("20000.00")
+
+
+class TestGetPerformanceHistory:
+    def test_returns_none_for_a_project_outside_the_caller_organization(
+        self, performance_service, repository, actor_id
+    ):
+        other_org = repository.enterprise.create_organization("Org B")
+
+        result = performance_service.get_performance_history(999999, other_org)
+
+        assert result is None
+
+    def test_empty_when_no_snapshot_has_ever_been_captured(
+        self, performance_service, org_id, project
+    ):
+        history = performance_service.get_performance_history(project.id, org_id)
+
+        assert history == []
+
+    def test_one_point_per_captured_snapshot(
+        self, performance_service, org_id, actor_id, project
+    ):
+        performance_service.create_baseline(
+            org_id,
+            project.id,
+            actor_id,
+            CORRELATION_ID,
+            Decimal("100000.00"),
+            [(date(2026, 1, 1), Decimal(0)), (date(2026, 2, 1), Decimal(25))],
+        )
+        performance_service.capture_snapshot(
+            org_id, project.id, actor_id, CORRELATION_ID, snapshot_date=date(2026, 2, 1)
+        )
+
+        history = performance_service.get_performance_history(project.id, org_id)
+
+        assert len(history) == 1
+        assert history[0].as_of == date(2026, 2, 1)
+        assert history[0].ac.value == Decimal("20000.00")

@@ -82,6 +82,14 @@ class EvmSummary:
     vac: MetricValue
 
 
+@dataclass(frozen=True)
+class HistoryPoint:
+    as_of: date
+    pv: MetricValue
+    ev: MetricValue
+    ac: MetricValue
+
+
 def _planned_value_at(baseline: list[BaselinePoint], as_of: date) -> MetricValue:
     if not baseline:
         return MetricValue.na(NO_BASELINE_DEFINED)
@@ -144,6 +152,24 @@ def compute_evm_summary(
     return EvmSummary(
         bac=bac, pv=pv, ev=ev, ac=ac, cpi=cpi, spi=spi, cv=cv, sv=sv, eac=eac, etc=etc, vac=vac
     )
+
+
+def build_history_series(
+    baseline: list[BaselinePoint], snapshots: list[PerformanceSnapshotPoint]
+) -> list[HistoryPoint]:
+    """S-Curve data (Technical Design Section 2.H / 7.A): one point per
+    captured snapshot date -- never a fabricated/interpolated point in
+    between. Reuses `compute_evm_summary` itself (as-of each snapshot's own
+    date) instead of re-deriving PV/EV/AC with a second formula, so the
+    series and the live summary can never disagree."""
+    ordered = sorted(snapshots, key=lambda s: s.snapshot_date)
+    points = []
+    for snapshot in ordered:
+        summary = compute_evm_summary(baseline, snapshots, as_of=snapshot.snapshot_date)
+        points.append(
+            HistoryPoint(as_of=snapshot.snapshot_date, pv=summary.pv, ev=summary.ev, ac=summary.ac)
+        )
+    return points
 
 
 def _ratio(numerator: MetricValue, denominator: MetricValue, zero_reason: str) -> MetricValue:
