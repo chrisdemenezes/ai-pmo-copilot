@@ -15,9 +15,21 @@ import {
 import { Header } from "@/components/shell/header";
 import { usePrograms } from "@/lib/hooks/use-programs";
 import { useProjects } from "@/lib/hooks/use-projects";
+import { useLatestRisks } from "@/lib/hooks/use-latest-risks";
 import type { Program } from "@/lib/domain/program";
 import type { Project } from "@/lib/domain/project";
 import { aggregateFinancials, projectFinancialSummary } from "@/lib/domain/financial-rollup";
+import { ParetoChart } from "@/components/analytics/charts/pareto-chart";
+import { RiskHeatmapChart } from "@/components/analytics/charts/risk-heatmap-chart";
+import { HealthDistributionChart } from "@/components/analytics/charts/health-distribution-chart";
+import { ExecutiveSignalList } from "@/components/analytics/executive-signal-list";
+import {
+  derivePortfolioConcentrationSignal,
+  deriveRiskConcentrationSignal,
+  type ExecutiveSignal,
+} from "@/lib/domain/executive-signal";
+import { bucketRisksByProbabilityImpact } from "@/lib/domain/risk-heatmap";
+import { computeParetoData } from "@/lib/domain/pareto";
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -60,11 +72,60 @@ export default function ProjectDeliveryPage() {
         </div>
       </Header>
 
+      <PortfolioAnalyticsSection projects={projectList} />
+
       {programList.map((program) => {
         const ownProjects = projectList.filter((project) => project.belongsToProgram(program.id));
         return <ProgramProjectsSection key={program.id} program={program} projects={ownProjects} />;
       })}
     </main>
+  );
+}
+
+/**
+ * Wave 8 (Executive Analytics & Experience Completion) -- portfolio-wide
+ * analytics for Project Delivery: Health Distribution, cost-variance
+ * concentration (Pareto), Risk Heatmap, and the deterministic Signals
+ * derived from them. Computed entirely from data this page already
+ * fetches (`projectList`) plus the existing `useLatestRisks()` hook
+ * (Decision Center) -- no new data source, no fabricated values.
+ */
+function PortfolioAnalyticsSection({ projects }: { projects: Project[] }) {
+  const risks = useLatestRisks();
+  const riskItems = (risks.data ?? []).map((risk, index) => ({
+    id: risk.source_analysis_id ?? index,
+    label: risk.project_name ?? risk.description,
+    probability: risk.probability,
+    impact: risk.impact,
+  }));
+  const heatmapCells = bucketRisksByProbabilityImpact(riskItems);
+
+  const varianceItems = projects
+    .map((project) => {
+      const summary = projectFinancialSummary(project);
+      return summary.variance === null
+        ? null
+        : { label: project.name, value: Math.abs(summary.variance) };
+    })
+    .filter((item): item is { label: string; value: number } => item !== null);
+
+  const varianceBars = computeParetoData(varianceItems);
+  const signals: ExecutiveSignal[] = [
+    derivePortfolioConcentrationSignal(varianceBars, "desvio orçamentário"),
+    deriveRiskConcentrationSignal(heatmapCells),
+  ].filter((signal): signal is ExecutiveSignal => signal !== null);
+
+  return (
+    <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <HealthDistributionChart statuses={projects.map((project) => project.health())} />
+      <RiskHeatmapChart risks={riskItems} />
+      <ParetoChart
+        title="Concentração de Desvio Orçamentário"
+        description="Projetos ordenados pela magnitude do desvio (aprovado vs. real)"
+        items={varianceItems}
+      />
+      <ExecutiveSignalList signals={signals} />
+    </section>
   );
 }
 
