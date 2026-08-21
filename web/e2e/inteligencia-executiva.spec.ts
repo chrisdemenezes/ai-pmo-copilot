@@ -58,7 +58,15 @@ test("navigates via the Inteligência Executiva nav item to the dedicated page",
   await page.getByRole("button", { name: "Entrar" }).click();
   await page.waitForURL(/\/dashboard/);
 
-  await page.locator("main").getByRole("link", { name: /^Inteligência Executiva/ }).click();
+  // Same viewport-aware nav container every other shell E2E test uses
+  // (web/e2e/shell.spec.ts) -- the nav lives in the sidebar/bottom-nav
+  // region, never inside <main>.
+  const MOBILE_BREAKPOINT = 768;
+  const visibleNav = (await page.viewportSize())!.width < MOBILE_BREAKPOINT
+    ? page.getByTestId("bottom-nav")
+    : page.getByTestId("sidebar-nav");
+
+  await visibleNav.getByRole("link", { name: /^Inteligência Executiva/ }).click();
   await expect(page).toHaveURL(/\/inteligencia-executiva/);
   await expect(page.getByRole("heading", { name: "Inteligência Executiva" })).toBeVisible();
 });

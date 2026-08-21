@@ -87,7 +87,10 @@ test("uploads a valid document, shows success feedback, and lists it afterwards"
   // signal here -- there is no separate toast on this flow.
   await expect(dialog).not.toBeVisible();
   await expect(page.getByText("Playbook E2E")).toBeVisible();
-  await expect(page.getByText("Indexado")).toBeVisible();
+  // exact: true -- "Trechos indexados" (Pacote E's column header) contains
+  // "indexado" as a case-insensitive substring, colliding with the status
+  // badge under Playwright's default substring match.
+  await expect(page.getByText("Indexado", { exact: true })).toBeVisible();
 });
 
 test("rejects an empty file with the real backend validation message", async ({ page }) => {

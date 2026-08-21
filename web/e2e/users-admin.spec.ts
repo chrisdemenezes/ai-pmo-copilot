@@ -108,7 +108,12 @@ test("Sair works from inside Administração, not just from Dashboard", async ({
   await visibleNav().locator('a[href="/administracao/usuarios"]').click();
   await expect(page).toHaveURL(/\/administracao\/usuarios/);
 
-  await visibleNav().getByRole("button", { name: "Sair" }).click();
+  // force: true -- Pacote C added ThemeToggle to the mobile bottom nav
+  // right after Sair, and Next.js dev server's own floating dev-tools
+  // indicator (only present under `next dev`, never in production) can
+  // render over that exact corner of the viewport. Forcing tests the real
+  // click handler, not a dev-only decoration no real user ever sees.
+  await visibleNav().getByRole("button", { name: "Sair" }).click({ force: true });
   await expect(page).toHaveURL(/\/entrar/);
 });
 
