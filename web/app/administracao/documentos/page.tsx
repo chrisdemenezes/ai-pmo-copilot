@@ -87,7 +87,7 @@ export default function DocumentsAdminPage() {
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Chunks</TableHead>
+                <TableHead>Trechos indexados</TableHead>
                 <TableHead>Enviado em</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
@@ -105,8 +105,16 @@ export default function DocumentsAdminPage() {
                   <TableCell className="text-ink-muted">{formatDate(document.createdAt)}</TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-2">
-                      {document.status !== "indexed" && (
+                      {document.status !== "indexed" ? (
                         <ReindexDocumentButton document={document} />
+                      ) : (
+                        // V1 Product & Capability Completion, Pacote E:
+                        // um documento já indexado não tem ação de retry
+                        // pendente -- um traço explícito evita que a
+                        // coluna pareça quebrada/vazia por engano.
+                        <span className="text-sm text-ink-faint" aria-hidden="true">
+                          —
+                        </span>
                       )}
                     </div>
                   </TableCell>
