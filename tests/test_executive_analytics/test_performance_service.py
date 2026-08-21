@@ -119,6 +119,10 @@ class TestCreateBaseline:
     def test_publishes_baseline_created_event(
         self, performance_service, publisher, org_id, actor_id, project
     ):
+        # `project` fixture itself publishes portfolio/program/project
+        # events (same pattern as test_domain_service.py) -- clear those
+        # before asserting only on this call's own event.
+        publisher.events.clear()
         performance_service.create_baseline(
             org_id,
             project.id,
