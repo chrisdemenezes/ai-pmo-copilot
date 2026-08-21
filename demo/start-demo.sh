@@ -44,9 +44,38 @@ if [ ! -f "$ENV_FILE" ]; then
   echo "Created $ENV_FILE (Demo Mode: mock provider, no external credential needed)."
 fi
 
+# Load demo/.env line-by-line instead of `source`-ing it as a bash script.
+# `source` previously executed each line as a shell command: an unquoted
+# value containing a space (e.g. PILOT_ORGANIZATION_NAME=Piloto Externo A --
+# the exact example used by the Pilot Organization Provisioning Runbook) is
+# parsed by bash as "assign PILOT_ORGANIZATION_NAME=Piloto, then run a
+# command named Externo with argument A" -- the variable was never exported
+# at all, and (because this script runs under `set -e`) the "command not
+# found" aborted the whole script. This loader reads each line as literal
+# data (no re-interpretation as shell syntax), so values with spaces work
+# whether or not they are quoted; one matching pair of surrounding quotes is
+# stripped if present, for compatibility with already-quoted values.
 set -a
-# shellcheck disable=SC1090
-source "$ENV_FILE"
+while IFS= read -r line || [ -n "$line" ]; do
+  line="${line%$'\r'}"
+  case "$line" in
+    ''|'#'*) continue ;;
+  esac
+  case "$line" in
+    *=*) ;;
+    *) continue ;;
+  esac
+  key="${line%%=*}"
+  value="${line#*=}"
+  first_char="${value:0:1}"
+  last_char="${value: -1}"
+  if { [ "$first_char" = '"' ] && [ "$last_char" = '"' ]; } || { [ "$first_char" = "'" ] && [ "$last_char" = "'" ]; }; then
+    if [ "${#value}" -ge 2 ]; then
+      value="${value:1:${#value}-2}"
+    fi
+  fi
+  export "$key=$value"
+done < "$ENV_FILE"
 set +a
 
 if [ "${LLM_PROVIDER:-}" = "anthropic" ] && [ -z "${ANTHROPIC_API_KEY:-}" ]; then

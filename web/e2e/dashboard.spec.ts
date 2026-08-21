@@ -113,6 +113,18 @@ test("renders the portfolio widgets when the backend has data", async ({ page })
   await expect(page.getByRole("heading", { name: "Projetos" })).toBeVisible();
 });
 
+// Local V1 Pilot Final Hardening (H1, D-223): marking demonstrative data
+// (badge, then badge + notice) never worked in real human testing -- the
+// 5 mock-fed sections were removed from the pilot Dashboard instead.
+test("does not render any of the removed demo-fed sections", async ({ page }) => {
+  await login(page);
+  await expect(page.getByRole("heading", { name: "Demandas, Riscos, Issues e Mudanças" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Decision Center" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Actions Center" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Recent Activity" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "AI Recommendations" })).toHaveCount(0);
+});
+
 // 6 + 12 (vazio). Dashboard sem dados
 test("renders the empty state when the backend has no projects", async ({ page }) => {
   await setBackendScenario("empty");

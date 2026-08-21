@@ -280,4 +280,40 @@ describe("DashboardPage", () => {
     // Multilift (Status crítico) é a única decisão real deste portfólio.
     expect(link).toHaveTextContent("1");
   });
+
+  // Local V1 Pilot Final Hardening (H1, D-223): the Human User Session #2
+  // (D-222) and the H1 human micro-test both showed that marking the 5
+  // mock-fed sections (badge alone, then badge + contextual notice) is
+  // never spontaneously noticed -- the Founder decided to remove them from
+  // the pilot Dashboard entirely instead of continuing to mark them.
+  it("does not render any of the 5 removed demo-fed sections", () => {
+    render(<DashboardPage />);
+    const removedHeadings = [
+      "Demandas, Riscos, Issues e Mudanças",
+      "Decision Center",
+      "Actions Center",
+      "Recent Activity",
+      "AI Recommendations",
+    ];
+    for (const heading of removedHeadings) {
+      expect(screen.queryByRole("heading", { name: heading })).toBeNull();
+    }
+    expect(screen.queryByText("Dados demonstrativos")).toBeNull();
+  });
+
+  it("still renders every real section after removing the mock-fed ones", () => {
+    render(<DashboardPage />);
+    const realSectionHeadings = [
+      "Executive Overview",
+      "Situação do Portfólio",
+      "Situação dos Programas",
+      "Program Execution",
+      "Executive Focus",
+      "Decision Support",
+      "Narrativa Executiva",
+    ];
+    for (const heading of realSectionHeadings) {
+      expect(screen.getByRole("heading", { name: heading })).toBeInTheDocument();
+    }
+  });
 });

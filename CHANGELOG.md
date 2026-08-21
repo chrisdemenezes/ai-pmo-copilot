@@ -2881,3 +2881,17 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** CONTROLLED EXTERNAL PILOT TECHNICAL GATE = SATISFIED (herdado, revalidado). CONTROLLED EXTERNAL PILOT EXPERIENCE GATE = NOT SATISFIED (G2 e G8 nao satisfeitos). GO/NO-GO for Controlled External Pilot = CONDITIONAL GO. Pedido direto do Founder de corrigir os achados imediatamente foi recusado durante a sessao, por regra STOP explicita do mandato -- redirecionado para nova Founder Decision. Piloto externo nao iniciado, nenhum outro Epic iniciado.
 
 **Decision Log:** D-222.
+
+## Local V1 Pilot Final Hardening -- fechamento dos achados HIGH da User Session #2 (2026-08-21)
+
+**Corrigido**
+- H1 (Dashboard): 1a tentativa (nova variante de Badge "demo" + aviso contextual unico) testada com o Founder ao vivo e FAIL -- nao percebida mesmo visivel e colorida. Por decisao explicita do Founder, as 5 secoes alimentadas por mock (Demandas/Riscos/Issues/Mudancas, Decision Center, Actions Center, Recent Activity, AI Recommendations) foram removidas do Dashboard do piloto em vez de continuar marcadas -- zero ambiguidade. Micro-teste humano final = PASS. Componentes e dado mock preservados no repositorio para uma futura Capability real.
+- H2 (Organization Bootstrap): `demo/start-demo.sh` carregava `demo/.env` via `source` (bash) -- um nome de organizacao com espaco sem aspas (o proprio exemplo do Runbook) quebrava o parsing. Substituido por um loader linha-a-linha que le cada valor literalmente, funciona com ou sem aspas. Nenhum endpoint novo, nenhum mecanismo paralelo.
+
+**Testes**
+- `tests/shell/test_start_demo_env_loader.sh` (novo, 8 cenarios A-H).
+- `web/app/dashboard/page.test.tsx` + `web/e2e/dashboard.spec.ts` atualizados para a remocao das 5 secoes.
+
+**Missão:** vitest 592/592, tsc/eslint limpos, next build sucesso, ruff limpo, 4/4 suites de shell PASS. Preservacao arquitetural confirmada -- 6 arquivos alterados, exatamente o escopo H1/H2. CONTROLLED EXTERNAL PILOT EXPERIENCE REMEDIATION = SATISFIED. CONTROLLED EXTERNAL PILOT = READY FOR EXTERNAL VALIDATION (nao inicia o piloto automaticamente). Achados novos registrados sem correcao: banner de risco degradado na tela de Priorizacao (fora de escopo); cache de build do Next.js (web/.next) dessincronizado ao trocar de branch, mascarado como problema de senha do Administrator, resolvido sem alteracao de codigo (rm -rf web/.next + restart).
+
+**Decision Log:** D-223, D-224, D-225.
