@@ -66,7 +66,11 @@ test("navigates via the Inteligência Executiva nav item to the dedicated page",
     ? page.getByTestId("bottom-nav")
     : page.getByTestId("sidebar-nav");
 
-  await visibleNav.getByRole("link", { name: /^Inteligência Executiva/ }).click();
+  // href, not role+name -- at md the sidebar is an icon-only rail
+  // (label span is `hidden lg:inline`, so the link has no accessible name
+  // there at all); same pattern users-admin.spec.ts already uses for this
+  // exact reason.
+  await visibleNav.locator('a[href="/inteligencia-executiva"]').click();
   await expect(page).toHaveURL(/\/inteligencia-executiva/);
   await expect(page.getByRole("heading", { name: "Inteligência Executiva" })).toBeVisible();
 });

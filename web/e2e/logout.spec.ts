@@ -64,12 +64,7 @@ test("clicking Sair invalidates the session both in the browser and server-side"
   const visibleNav = (await page.viewportSize())!.width < MOBILE_BREAKPOINT
     ? page.getByTestId("bottom-nav")
     : page.getByTestId("sidebar-nav");
-  // force: true -- Pacote C added ThemeToggle to the mobile bottom nav
-  // right after Sair, and Next.js dev server's own floating dev-tools
-  // indicator (only present under `next dev`, never in production) can
-  // render over that exact corner of the viewport. Forcing tests the real
-  // click handler, not a dev-only decoration no real user ever sees.
-  await visibleNav.getByRole("button", { name: "Sair" }).click({ force: true });
+  await visibleNav.getByRole("button", { name: "Sair" }).click();
 
   await expect(page).toHaveURL(/\/entrar/);
   await page.goto("/dashboard");
