@@ -8,6 +8,7 @@ never recalculates staleness -- it only serializes to JSON, same
 discipline as `PortfolioAdvisorAgent`/`DeliveryAdvisorAgent`."""
 import json
 
+from src.agents.shared.executive_analytics_prompt import analytics_context_json
 from src.agents.shared.organizational_learning_prompt import learnings_json
 from src.agents.shared.output_parser import parse_structured_output
 from src.services.advisor_framework.framework import AdvisorFramework
@@ -51,12 +52,19 @@ class PMOAdvisorAgent:
         # organizational_learning_prompt.py's docstring). Absence of
         # Learnings is just an empty JSON array, never a missing variable.
         learnings = self.framework.gather_organizational_learnings(session.organization_id)
+        # TD-017 (V1 Post-Completion Technical Closure): deterministic
+        # Executive Signals as supporting context only -- same discipline
+        # as Learnings, never merged into `evidence`/`cited_analysis_ids`
+        # (see executive_analytics_prompt.py's docstring). Absence of
+        # signals is just an empty JSON array, never a missing variable.
+        analytics = self.framework.gather_executive_analytics_context(session.organization_id)
         final_prompt = self.framework.render_prompt(
             self.name,
             "advise",
             question=question,
             records_json=records_json,
             learnings_json=learnings_json(learnings),
+            analytics_context=analytics_context_json(analytics),
         )
         raw_output = self.framework.call_llm(self.name, session, final_prompt)
         return parse_structured_output(raw_output)

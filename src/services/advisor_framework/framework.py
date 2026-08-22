@@ -54,6 +54,12 @@ class AdvisorFramework:
         second, parallel context-access path."""
         return self._context_engine.gather_organizational_learnings(organization_id)
 
+    def gather_executive_analytics_context(self, organization_id: int) -> list[Evidence]:
+        """TD-017 (V1 Post-Completion Technical Closure): thin passthrough,
+        same convention as `gather_organizational_learnings` -- deterministic
+        Executive Signals as supporting context only."""
+        return self._context_engine.gather_executive_analytics_context(organization_id)
+
     # -- controlled RAG access -- never PgVectorRepository/EmbeddingProvider
     # directly, always through RagPipeline -> KnowledgeRepository ---------
 
