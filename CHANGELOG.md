@@ -2936,3 +2936,19 @@ F1/F2/F4 fechados (D-188/D-189/D-190). Mandato de encerramento: revalidar contro
 **Missão:** `ruff check src tests` limpo, `tsc --noEmit`/`eslint` limpos, `vitest run` 685/685 (97 arquivos, zero regressão), `next build` sucesso, migração 0023 aplicada (head único), E2E `project-delivery.spec.ts` verde (mobile/md/lg). Pacote I (Administração de Organização) permanece ARCHITECTURAL DECISION REQUIRED, inalterado, fora de escopo desta Wave.
 
 **Decision Log:** D-239 a D-244.
+
+## V1 Post-Completion Technical Closure — TD-016 & TD-017 (2026-08-22)
+
+Fechamento pontual dos 2 débitos técnicos registrados no encerramento da Wave 8 -- não uma nova Wave/Epic, Wave 8 permanece COMPLETE.
+
+**Resolvido**
+- **TD-016 (captura automática de snapshot de performance):** `src/workflows/performance_snapshot_automation.py` (novo) registra um handler simples de `EventDispatcher` no evento real `project_performance_baseline.created`, capturando automaticamente o snapshot do dia toda vez que uma baseline é autorada. Complementado por captura disparada por leitura (`_auto_capture_snapshot` em `project_delivery.py`, chamada de `list_projects_delivery`/`get_project_delivery`) -- substitui a necessidade de um scheduler periódico sem criar nenhuma infraestrutura nova. Os 4 endpoints de performance da Wave 8 preservados integralmente, incluindo captura manual/on-demand.
+- **TD-017 (Executive Signals alimentando a Executive Intelligence):** `src/services/executive_analytics/executive_signal_engine.py` (novo) -- port server-side, puramente determinístico, do algoritmo já validado no frontend (cost/schedule performance trend, forecast deviation a partir do histórico EVM real de um Project). `AIContextEngine.gather_executive_analytics_context()` + passthrough em `AdvisorFramework` alimentam PMO Advisor e Executive Advisor como uma variável de prompt nova e separada (`analytics_context`, nunca citável, nunca substitui o Evidence Gate) -- mesmo padrão já usado para Organizational Learnings (Package M). Nenhum Advisor, Orchestrator, RBAC ou contrato de API alterado estruturalmente.
+
+**Testes**
+- `tests/test_performance_snapshot_automation.py` (11 casos: captura orientada a evento, checkpoint por leitura, idempotência, isolamento de tenant, ausência de baseline/dados, ordenação, histórico append-only, endpoints preservados).
+- `tests/test_executive_analytics/test_executive_signal_engine.py` (10 casos), `tests/test_ai_foundation/test_context_engine.py::TestGatherExecutiveAnalyticsContext` (cap-de-5/ordenação, isolamento de tenant, proveniência), `tests/test_pmo_advisor.py`/`tests/test_executive_advisor.py::TestTD017ExecutiveSignalsIntegration` (Evidence Gate preservado).
+
+**Missão:** `ruff check src tests` limpo, migração ainda `0023` (head único, nenhuma migração nova exigida), nenhum arquivo de frontend tocado. Nenhuma STOP condition encontrada. Human Experience Regression, Controlled Pilot, provedores reais e Pacote I permanecem fora de escopo, não iniciados.
+
+**Decision Log:** D-245 a D-247.
