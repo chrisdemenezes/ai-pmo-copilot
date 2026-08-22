@@ -233,9 +233,14 @@ class TestGatherExecutiveAnalyticsContext:
             org_id, f"actor-{org_id}-{project_name}@example.com", "Actor"
         )
         service = DomainService(repository=repository, publisher=_NoOpEventPublisher())
-        portfolio = service.create_portfolio(org_id, "Portfolio", "PF", actor_id, correlation_id="c-1")
+        # Portfolio/Program codes are unique per (organization_id, code) --
+        # this helper may be called more than once for the same org_id (one
+        # project per call), so each call needs its own codes.
+        portfolio = service.create_portfolio(
+            org_id, "Portfolio", f"PF-{project_name}", actor_id, correlation_id="c-1"
+        )
         program = service.create_program(
-            org_id, portfolio.id, "Program", "PRG", actor_id, correlation_id="c-1"
+            org_id, portfolio.id, "Program", f"PRG-{project_name}", actor_id, correlation_id="c-1"
         )
         return service.create_project(org_id, program.id, project_name, actor_id, correlation_id="c-1")
 
