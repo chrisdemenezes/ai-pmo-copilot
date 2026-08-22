@@ -19,9 +19,26 @@ const launchOptions = fs.existsSync(SANDBOX_CHROMIUM) ? { executablePath: SANDBO
 export default defineConfig({
   testDir: "./e2e",
   timeout: 30_000,
+  // CI reliability remediation: each CI run starts a fresh `next dev`
+  // server (see `webServer` below, `reuseExistingServer: !process.env.CI`),
+  // so the first navigation to any not-yet-compiled route pays Next.js's
+  // dev-mode JIT compile cost on top of the assertion itself. Reproduced
+  // locally: with a warm server every test below passes deterministically
+  // (5/5 consecutive runs each); with a cold server, whichever test/route
+  // happens to hit an uncompiled page first can occasionally exceed the
+  // default 5s expect timeout. Retrying only in CI absorbs that one-time
+  // compile tax without masking a real regression -- a genuine bug fails
+  // the same way on every retry, a compile-latency flake does not.
+  retries: process.env.CI ? 2 : 0,
   fullyParallel: false,
   workers: 1,
   reporter: "list",
+  expect: {
+    // Doubled from Playwright's 5s default for the same reason as
+    // `retries` above -- absorbs occasional dev-server compile latency,
+    // never changes what is asserted.
+    timeout: 10_000,
+  },
   use: {
     baseURL: EXTERNAL_BASE_URL ?? `http://localhost:${PORT}`,
   },
