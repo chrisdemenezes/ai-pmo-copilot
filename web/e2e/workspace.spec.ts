@@ -431,21 +431,26 @@ test.describe("O que mudou na última reunião? (TIP-007)", () => {
     await expect(dialog).not.toBeVisible();
 
     // Comunicação reflects the new result without a manual reload, in the
-    // Executive Hierarchy order approved in the User Journey.
-    await expect(page.getByRole("heading", { name: "Comunicação" })).toBeVisible();
-    await expect(page.getByText("O que mudou")).toBeVisible();
+    // Executive Hierarchy order approved in the User Journey. Scoped to its
+    // own <section role="region"> -- Ações independently renders the same
+    // recommendation text as an action item, so an unscoped getByText()
+    // can match both sections once Ações' own query settles (Playwright
+    // strict mode: "resolved to N elements").
+    const comunicacao = page.getByRole("region", { name: "Comunicação" });
+    await expect(comunicacao.getByRole("heading", { name: "Comunicação" })).toBeVisible();
+    await expect(comunicacao.getByText("O que mudou")).toBeVisible();
     await expect(
-      page.getByText("Fornecedor confirmou atraso adicional na integração fiscal, sem plano de contingência apresentado."),
+      comunicacao.getByText("Fornecedor confirmou atraso adicional na integração fiscal, sem plano de contingência apresentado."),
     ).toBeVisible();
-    await expect(page.getByText("Pontos de atenção")).toBeVisible();
+    await expect(comunicacao.getByText("Pontos de atenção")).toBeVisible();
     await expect(
-      page.getByText("Fornecedor sem plano de contingência para o atraso na integração fiscal"),
+      comunicacao.getByText("Fornecedor sem plano de contingência para o atraso na integração fiscal"),
     ).toBeVisible();
-    await expect(page.getByText("Escalar o atraso ao comitê executivo antes do próximo go-live")).toBeVisible();
-    await expect(page.getByText("Solicitar plano de contingência formal ao fornecedor")).toBeVisible();
-    await expect(page.getByText("Aprovação do comitê executivo para replanejar o go-live")).toBeVisible();
+    await expect(comunicacao.getByText("Escalar o atraso ao comitê executivo antes do próximo go-live")).toBeVisible();
+    await expect(comunicacao.getByText("Solicitar plano de contingência formal ao fornecedor")).toBeVisible();
+    await expect(comunicacao.getByText("Aprovação do comitê executivo para replanejar o go-live")).toBeVisible();
     // Próximo passo: issues > 0, so the real, existing next step is suggested.
-    await expect(page.getByText("Executar Avaliação de Riscos")).toBeVisible();
+    await expect(comunicacao.getByText("Executar Avaliação de Riscos")).toBeVisible();
 
     // Dashboard reflects it too -- "Ações pendentes" strip is a single
     // instance, so the exact new total (Multilift 2 + Aurora 1+2 +
