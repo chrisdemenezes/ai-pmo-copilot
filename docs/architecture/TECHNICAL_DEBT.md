@@ -17,10 +17,9 @@ Registro vivo de débitos arquiteturais conhecidos. Cada item tem origem, status
 ## TD-002 — Delete Policy indefinida (RESTRICT vs. CASCADE)
 
 - **Origem:** PR #39 (Épico 1 — Enterprise Foundation Schema)
-- **Status:** Aberto
+- **Status:** ✅ **Resolvido** (Wave 7, W7-3 Etapa 3 — D-184). Registrado aqui durante a Wave 7 Reconciliation (2026-08-22) por drift de documentação: a decisão já existia, este registro não refletia.
 - **Descrição:** Nenhuma FK possui `ondelete` definido; nenhum `relationship()` ORM com cascade existe. Combinado com TD-001, uma exclusão real hoje produziria órfãos silenciosos em vez de RESTRICT (bloquear) ou CASCADE (propagar) — nenhuma das duas é a política atual; a política atual é "nenhuma".
-- **Decisão pendente:** escolher RESTRICT ou CASCADE por relação (ex.: excluir Organização deveria bloquear se houver Projetos, ou excluir em cascata?) é uma decisão de produto/arquitetura, não apenas técnica.
-- **Resolver antes de:** o primeiro endpoint `DELETE` de qualquer entidade da Enterprise Foundation (candidato natural: Épico 5 — Auditoria e administração mínima).
+- **Resolução:** análise empírica contra Postgres real (`grep` de todas as 33 `ForeignKey(` do schema, nenhuma com `ondelete`; teste direto de exclusão com filho real) confirmou que o comportamento real já é `RESTRICT`-equivalente (`NO ACTION`, o default do Postgres para FK não-`DEFERRABLE`) — corrige uma afirmação equivocada de AR-18 §12 ("produziria órfãos silenciosos"). Política derivada, não inventada: manter o comportamento atual, travado por `tests/test_delete_policy.py` (6 testes cobrindo tenant isolation, auditability, Knowledge Platform, AnalysisRecords, Events). Nenhuma migration necessária.
 
 ## TD-003 — Convenção de sessão do Repository inconsistente
 
@@ -70,9 +69,9 @@ Registro vivo de débitos arquiteturais conhecidos. Cada item tem origem, status
 
 - **Origem:** Wave 3, Fase 1 (`DOMAIN-BLUEPRINT-ENTERPRISE-KNOWLEDGE-PLATFORM.md` §1.4) — decisão explicitamente diferida à época, reafirmada nas Fases 2 e 4.
 - **Classificação:** Baixo (sem consumidor real ainda).
-- **Status:** Aberto.
-- **Descrição:** `EmbeddingProvider` (Protocol) só tem uma implementação, `MockEmbeddingProvider` (determinística, hash-based) — nenhum backend de produção (modelo de embeddings real) foi escolhido ou integrado. O Risk Advisor migrado (Fase 4) já chama `RagPipeline`/`KnowledgeRepository` em produção, mas sobre embeddings mock, já que nenhum documento real é ingerido para o domínio de risco hoje.
-- **Gatilho de resolução:** quando um Advisor real precisar de qualidade semântica de produção sobre conteúdo real ingerido — o candidato natural é o Document Advisor (Wave 5 — Enterprise Advisors, per a harmonização oficial do roadmap em D-071), o primeiro Advisor com dependência obrigatória de RAG.
+- **Status:** ✅ **Resolvido** (Wave 7, W7-1 — D-177). Registrado aqui durante a Wave 7 Reconciliation (2026-08-22) por drift de documentação: a decisão já existia, este registro não refletia.
+- **Descrição:** `EmbeddingProvider` (Protocol) só tinha uma implementação, `MockEmbeddingProvider` (determinística, hash-based) — nenhum backend de produção (modelo de embeddings real) havia sido escolhido ou integrado.
+- **Resolução:** Production Embedding Provider aprovado = Voyage AI, modelo `voyage-4`, dimensão 1024. `VoyageEmbeddingProvider` implementa o `EmbeddingProvider` Protocol (chamada REST direta via `httpx`, falha explícita sem `VOYAGE_API_KEY`), migration `0021` migra o schema vetorial (`vector(16)` → `vector(1024)`) e adiciona proveniência (`embedding_provider`/`embedding_model`). **Nenhuma chamada real à API da Voyage foi feita ainda** (nenhuma credencial disponível) — a resolução é da escolha/implementação do backend, não da validação com dado real, que permanece sob Gate B (Wave 7 Reconciliation, `CONTROLLED-USER-PILOT-READINESS-REVIEW.md`).
 
 ## TD-012 — Document Ingestion real (parsing de formatos binários) não implementado
 
