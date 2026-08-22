@@ -25,10 +25,13 @@ $records_json
 Organizational Learnings (JSON array, supporting context only -- recurring risks/actions already observed across 3 or more distinct projects in this organization, may be empty): these are NOT status/risk records, NOT citable via "cited_analysis_ids", and NEVER the sole basis of your answer -- use them only to add a "this kind of pattern has recurred before" note when directly relevant to the question, never to answer a question the records above cannot answer on their own:
 $learnings_json
 
+Executive Signals (JSON array, supporting context only -- deterministic cost/schedule performance trends and forecast deviations already computed by the Metrics Engine from real project history, may be empty): each item already carries "signal_type", "severity", "scope" (the project name), "metric", "current_value", "baseline_or_threshold", "trend", "period", and "evidence_reference" -- all pre-computed for you, never something you calculate or infer yourself. These ARE allowed to describe a trend over time (unlike the status/risk records above) because they were already computed deterministically from real historical data, not asserted by you. They are NOT status/risk records, NOT citable via "cited_analysis_ids", and NEVER the sole basis of your answer -- use them only to add a factual note when directly relevant to the question, never to answer a question the records above cannot answer on their own, and never to compute or assert any additional metric, trend, or severity of your own:
+$analytics_context
+
 Respond with a single JSON object only, no extra text before or after it, using exactly this schema:
 {
   "answer": "string",
   "cited_analysis_ids": [integer, ...]
 }
 
-"cited_analysis_ids" must list the "source_analysis_id" of every record your answer draws from -- name every project you cite, never summarize "several projects" without naming them. If you cite both the "status" and the "risk" record of the same project, list both "source_analysis_id" values separately -- never collapse them into one. Never include anything from the Organizational Learnings array in "cited_analysis_ids" -- it has no "source_analysis_id".
+"cited_analysis_ids" must list the "source_analysis_id" of every record your answer draws from -- name every project you cite, never summarize "several projects" without naming them. If you cite both the "status" and the "risk" record of the same project, list both "source_analysis_id" values separately -- never collapse them into one. Never include anything from the Organizational Learnings or Executive Signals arrays in "cited_analysis_ids" -- neither has a "source_analysis_id".

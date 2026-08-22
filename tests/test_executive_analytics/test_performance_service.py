@@ -135,7 +135,7 @@ class TestCreateBaseline:
         assert publisher.events == [
             (
                 "project_performance_baseline.created",
-                {"project_id": project.id, "baseline_version": 1},
+                {"project_id": project.id, "baseline_version": 1, "actor_user_id": actor_id},
                 org_id,
             )
         ]

@@ -12,7 +12,8 @@ by "Founder Decision -- Technical Design do PMO Advisor" (item 8), using
 real PostgreSQL and real `DomainService` (Wave 2).
 """
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
+from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
@@ -335,6 +336,91 @@ class TestScenarioI_CoberturaZero:
 
         assert explanation.recommendation.answer == "Nenhuma análise de status registrada para os projetos desta organização."
         assert explanation.recommendation.cited_evidence == []
+
+
+class TestTD017ExecutiveSignalsIntegration:
+    """TD-017 (V1 Post-Completion Technical Closure): Executive Signals as
+    supporting context, same discipline already proven for Organizational
+    Learnings (Package M)."""
+
+    def test_executive_signals_never_substitute_for_missing_status_evidence(
+        self, repo, domain_service
+    ):
+        """Even when a Project has a real, signal-producing EVM history
+        (baseline + 2 snapshots showing a genuine CPI deterioration), the
+        Evidence Gate keys exclusively on `status` analyses -- exactly as
+        before TD-017 existed. The LLM must still never be called."""
+        org_id, program_id = _org_with_project(domain_service, repo)
+        actor_id = repo.enterprise.create_user(org_id, "a2@example.com", "Actor2")
+        project = domain_service.create_project(
+            org_id, program_id, "Aurora", actor_id, correlation_id=CORRELATION_ID
+        )
+        repo.performance.create_baseline(
+            org_id,
+            project.id,
+            Decimal("100000.00"),
+            [(date(2026, 1, 1), Decimal(0)), (date(2026, 2, 1), Decimal(50))],
+        )
+        repo.performance.capture_snapshot(org_id, project.id, date(2026, 1, 1), Decimal("100000.00"), 100)
+        repo.performance.capture_snapshot(org_id, project.id, date(2026, 2, 1), Decimal("100000.00"), 50)
+
+        framework = _framework(repo, _ExplodingProvider())
+        assembler = PMOEvidenceAssembler(domain_service, framework)
+        result = assembler.assemble(org_id)
+        assert result.evidence == []
+
+        agent = PMOAdvisorAgent(framework)
+        explanation = framework.run(
+            agent,
+            _session(repo, org_id),
+            "Ha algum padrao de atraso?",
+            result.evidence,
+            no_evidence_answer="Nenhuma análise de status registrada para os projetos desta organização.",
+        )
+
+        assert explanation.recommendation.answer == "Nenhuma análise de status registrada para os projetos desta organização."
+        assert explanation.recommendation.cited_evidence == []
+
+    def test_executive_signal_appears_in_prompt_as_supporting_context_when_evidence_exists(
+        self, repo, domain_service
+    ):
+        """Positive path: real status evidence exists (Evidence Gate opens),
+        and a real Executive Signal is rendered into the prompt as
+        `$analytics_context` -- never citable, never the sole basis, exactly
+        the same discipline as `$learnings_json`."""
+        org_id, program_id = _org_with_project(domain_service, repo)
+        actor_id = repo.enterprise.create_user(org_id, "a2@example.com", "Actor2")
+        project = domain_service.create_project(
+            org_id, program_id, "Aurora", actor_id, correlation_id=CORRELATION_ID
+        )
+        _save_status_at(repo, org_id, "Aurora", "green", NOW - timedelta(days=1))
+        repo.performance.create_baseline(
+            org_id,
+            project.id,
+            Decimal("100000.00"),
+            [(date(2026, 1, 1), Decimal(0)), (date(2026, 2, 1), Decimal(50))],
+        )
+        repo.performance.capture_snapshot(org_id, project.id, date(2026, 1, 1), Decimal("100000.00"), 100)
+        repo.performance.capture_snapshot(org_id, project.id, date(2026, 2, 1), Decimal("100000.00"), 50)
+
+        recording_provider = _ScriptedProvider("ok", [])
+        framework = _framework(repo, recording_provider)
+        assembler = PMOEvidenceAssembler(domain_service, framework)
+        result = assembler.assemble(org_id)
+        assert result.evidence != []
+
+        with patch.object(
+            recording_provider, "generate", wraps=recording_provider.generate
+        ) as generate_spy:
+            agent = PMOAdvisorAgent(framework)
+            framework.run(agent, _session(repo, org_id), "Ha algum padrao?", result.evidence)
+
+        sent_prompt = generate_spy.call_args[0][0]
+        analytics_sent = json.loads(
+            sent_prompt.split("of your own:\n", 1)[1].split("\n\nRespond", 1)[0]
+        )
+        assert analytics_sent[0]["scope"] == "Aurora"
+        assert analytics_sent[0]["signal_type"] == "cost_performance_deteriorating"
 
 
 class TestScenarioJ_InvariantesDeContagem:

@@ -13,6 +13,17 @@ class FakePromptRegistry:
         return "Question: $question\nRecords: $records_json"
 
 
+class _FakeDomainRepositoryNoProjects:
+    """TD-017 (V1 Post-Completion Technical Closure): `advise()` now also
+    calls `framework.gather_executive_analytics_context()`, which reads
+    `repository.domain.list_projects_by_organization()`. Zero projects, i.e.
+    no Executive Signals, matching every test below's original intent
+    (none of them are about Executive Signals)."""
+
+    def list_projects_by_organization(self, organization_id):
+        return []
+
+
 class FakeRepository:
     """Package M (V1 Product & Capability Completion): `advise()` now also
     calls `framework.gather_organizational_learnings()`, which needs a real
@@ -20,6 +31,8 @@ class FakeRepository:
     M) would crash. Defaults to zero analyses of any kind, i.e. no
     Organizational Learnings, matching every test below's original intent
     (none of them are about Learnings)."""
+
+    domain = _FakeDomainRepositoryNoProjects()
 
     def resolve_scope_id(self, organization_id, project_name=None, project_id=None):
         return None, False
@@ -186,6 +199,8 @@ class FakeRepositoryWithRisks:
     """3+ distinct projects reporting the exact same risk description --
     a real Organizational Learning by the same rule
     `organizational-learnings.ts` uses."""
+
+    domain = _FakeDomainRepositoryNoProjects()
 
     def resolve_scope_id(self, organization_id, project_name=None, project_id=None):
         return None, False
